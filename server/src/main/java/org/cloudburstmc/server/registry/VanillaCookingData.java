@@ -1,0 +1,154 @@
+package org.cloudburstmc.server.registry;
+
+import lombok.experimental.UtilityClass;
+import org.cloudburstmc.api.block.component.IntTypeHandler;
+import org.cloudburstmc.api.item.ItemBehaviors;
+import org.cloudburstmc.api.item.ItemType;
+
+import java.util.List;
+import java.util.Map;
+
+import static java.util.Map.entry;
+import static org.cloudburstmc.api.item.ItemTypes.*;
+
+@UtilityClass
+public class VanillaCookingData {
+
+    public static final int FURNACE_COOK_TICKS = 200;
+    public static final int FAST_COOK_TICKS = 100;
+    public static final int CAMPFIRE_COOK_TICKS = 600;
+
+    private static final List<ItemType> CHARCOAL_INPUTS = List.of(
+            ACACIA_LOG, ACACIA_WOOD, BIRCH_LOG, BIRCH_WOOD, CHERRY_LOG, CHERRY_WOOD, DARK_OAK_LOG,
+            DARK_OAK_WOOD, JUNGLE_LOG, JUNGLE_WOOD, MANGROVE_LOG, MANGROVE_WOOD, OAK_LOG, OAK_WOOD,
+            PALE_OAK_LOG, PALE_OAK_WOOD, POPLAR_LOG, POPLAR_WOOD, SPRUCE_LOG, SPRUCE_WOOD, STRIPPED_ACACIA_LOG,
+            STRIPPED_ACACIA_WOOD, STRIPPED_BIRCH_LOG, STRIPPED_BIRCH_WOOD, STRIPPED_CHERRY_LOG,
+            STRIPPED_CHERRY_WOOD, STRIPPED_DARK_OAK_LOG, STRIPPED_DARK_OAK_WOOD, STRIPPED_JUNGLE_LOG,
+            STRIPPED_JUNGLE_WOOD, STRIPPED_MANGROVE_LOG, STRIPPED_MANGROVE_WOOD, STRIPPED_OAK_LOG,
+            STRIPPED_OAK_WOOD, STRIPPED_PALE_OAK_LOG, STRIPPED_PALE_OAK_WOOD, STRIPPED_POPLAR_LOG,
+            STRIPPED_POPLAR_WOOD, STRIPPED_SPRUCE_LOG, STRIPPED_SPRUCE_WOOD
+    );
+
+    private static final float DEFAULT_EXPERIENCE = 0.1f;
+    private static final Map<ItemType, Float> EXPERIENCE_BY_RESULT = Map.ofEntries(
+            entry(NETHERITE_SCRAP, 2f),
+            entry(DIAMOND, 1f),
+            entry(EMERALD, 1f),
+            entry(GOLD_INGOT, 1f),
+            entry(GREEN_DYE, 1f),
+            entry(IRON_INGOT, 0.7f),
+            entry(COPPER_INGOT, 0.7f),
+            entry(REDSTONE, 0.7f),
+            entry(BAKED_POTATO, 0.35f),
+            entry(COOKED_BEEF, 0.35f),
+            entry(COOKED_CHICKEN, 0.35f),
+            entry(COOKED_COD, 0.35f),
+            entry(COOKED_MUTTON, 0.35f),
+            entry(COOKED_PORKCHOP, 0.35f),
+            entry(COOKED_RABBIT, 0.35f),
+            entry(COOKED_SALMON, 0.35f),
+            entry(HARDENED_CLAY, 0.35f),
+            entry(BRICK, 0.3f),
+            entry(LAPIS_LAZULI, 0.2f),
+            entry(QUARTZ, 0.2f),
+            entry(CHARCOAL, 0.15f),
+            entry(SPONGE, 0.15f)
+    );
+
+    public static void configureFuels(CloudItemRegistry registry) {
+        configureFuel(registry, 300, CHARCOAL_INPUTS.toArray(ItemType[]::new));
+
+        configureFuel(registry, 50, BAMBOO);
+
+        configureFuel(registry, 67,
+                BLACK_CARPET, BLUE_CARPET, BROWN_CARPET, CYAN_CARPET, GRAY_CARPET, GREEN_CARPET,
+                LIGHT_BLUE_CARPET, LIGHT_GRAY_CARPET, LIME_CARPET, MAGENTA_CARPET, ORANGE_CARPET, PINK_CARPET,
+                PURPLE_CARPET, RED_CARPET, WHITE_CARPET, YELLOW_CARPET
+        );
+
+        configureFuel(registry, 100,
+                ACACIA_BUTTON, ACACIA_SAPLING, BAMBOO_BUTTON, BAMBOO_SAPLING, BIRCH_BUTTON, BIRCH_SAPLING,
+                BLACK_WOOL, BLUE_WOOL, BOWL, BROWN_WOOL, CHERRY_BUTTON, CHERRY_SAPLING, CYAN_WOOL,
+                DARK_OAK_BUTTON, DARK_OAK_SAPLING, DEADBUSH, GRAY_WOOL, GREEN_WOOL, JUNGLE_BUTTON,
+                JUNGLE_SAPLING, LIGHT_BLUE_WOOL, LIGHT_GRAY_WOOL, LIME_WOOL, MAGENTA_WOOL, MANGROVE_BUTTON,
+                OAK_SAPLING, ORANGE_WOOL, PALE_OAK_BUTTON, PALE_OAK_SAPLING, PINK_WOOL, POPLAR_BUTTON,
+                POPLAR_SAPLING, PURPLE_WOOL, RED_WOOL, SHORT_DRY_GRASS, SPRUCE_BUTTON, SPRUCE_SAPLING, STICK,
+                TALL_DRY_GRASS, WHITE_WOOL, YELLOW_WOOL
+        );
+
+        configureFuel(registry, 150,
+                ACACIA_SLAB, BAMBOO_MOSAIC_SLAB, BAMBOO_SLAB, BIRCH_SLAB, CHERRY_SLAB, DARK_OAK_SLAB,
+                JUNGLE_SLAB, MANGROVE_SLAB, OAK_SLAB, PALE_OAK_SLAB, POPLAR_SLAB, SPRUCE_SLAB
+        );
+
+        configureFuel(registry, 200,
+                ACACIA_DOOR, ACACIA_SIGN, BAMBOO_DOOR, BAMBOO_SIGN, BIRCH_DOOR, BIRCH_SIGN, BOW, CHERRY_DOOR,
+                CHERRY_SIGN, CROSSBOW, DARK_OAK_DOOR, DARK_OAK_SIGN, FISHING_ROD, JUNGLE_DOOR, JUNGLE_SIGN,
+                MANGROVE_DOOR, MANGROVE_SIGN, OAK_SIGN, PALE_OAK_DOOR, PALE_OAK_SIGN, POPLAR_DOOR, POPLAR_SIGN,
+                SPRUCE_DOOR, SPRUCE_SIGN, WOODEN_AXE, WOODEN_DOOR, WOODEN_HOE, WOODEN_PICKAXE, WOODEN_SHOVEL,
+                WOODEN_SPEAR, WOODEN_SWORD
+        );
+
+        configureFuel(registry, 300,
+                ACACIA_DOUBLE_SLAB, ACACIA_FENCE, ACACIA_FENCE_GATE, ACACIA_PLANKS, ACACIA_PRESSURE_PLATE,
+                ACACIA_SHELF, ACACIA_STAIRS, ACACIA_TRAPDOOR, BAMBOO_BLOCK, BAMBOO_DOUBLE_SLAB, BAMBOO_FENCE,
+                BAMBOO_FENCE_GATE, BAMBOO_MOSAIC, BAMBOO_MOSAIC_DOUBLE_SLAB, BAMBOO_MOSAIC_STAIRS,
+                BAMBOO_PLANKS, BAMBOO_PRESSURE_PLATE, BAMBOO_SHELF, BAMBOO_STAIRS, BAMBOO_TRAPDOOR, BARREL,
+                BIRCH_DOUBLE_SLAB, BIRCH_FENCE, BIRCH_FENCE_GATE, BIRCH_PLANKS, BIRCH_PRESSURE_PLATE,
+                BIRCH_SHELF, BIRCH_STAIRS, BIRCH_TRAPDOOR, BOOKSHELF, CARTOGRAPHY_TABLE, CHERRY_DOUBLE_SLAB,
+                CHERRY_FENCE, CHERRY_FENCE_GATE, CHERRY_PLANKS, CHERRY_PRESSURE_PLATE, CHERRY_SHELF,
+                CHERRY_STAIRS, CHERRY_TRAPDOOR, CHEST, CHISELED_BOOKSHELF, COMPOSTER, CRAFTING_TABLE,
+                DARK_OAK_DOUBLE_SLAB, DARK_OAK_FENCE, DARK_OAK_FENCE_GATE, DARK_OAK_PLANKS,
+                DARK_OAK_PRESSURE_PLATE, DARK_OAK_SHELF, DARK_OAK_STAIRS, DARK_OAK_TRAPDOOR, DAYLIGHT_DETECTOR,
+                FLETCHING_TABLE, JUKEBOX, JUNGLE_DOUBLE_SLAB, JUNGLE_FENCE, JUNGLE_FENCE_GATE, JUNGLE_PLANKS,
+                JUNGLE_PRESSURE_PLATE, JUNGLE_SHELF, JUNGLE_STAIRS, JUNGLE_TRAPDOOR, LADDER, LOOM,
+                MANGROVE_DOUBLE_SLAB, MANGROVE_FENCE, MANGROVE_FENCE_GATE, MANGROVE_PLANKS,
+                MANGROVE_PRESSURE_PLATE, MANGROVE_SHELF, MANGROVE_STAIRS, MANGROVE_TRAPDOOR, NOTEBLOCK,
+                OAK_DOUBLE_SLAB, OAK_FENCE, OAK_PLANKS, OAK_SHELF, OAK_STAIRS, PALE_OAK_DOUBLE_SLAB,
+                PALE_OAK_FENCE, PALE_OAK_FENCE_GATE, PALE_OAK_PLANKS, PALE_OAK_PRESSURE_PLATE, PALE_OAK_SHELF,
+                PALE_OAK_STAIRS, PALE_OAK_TRAPDOOR, POPLAR_DOUBLE_SLAB, POPLAR_FENCE, POPLAR_FENCE_GATE,
+                POPLAR_PLANKS, POPLAR_PRESSURE_PLATE, POPLAR_SHELF, POPLAR_STAIRS, POPLAR_TRAPDOOR,
+                SMITHING_TABLE, SPRUCE_DOUBLE_SLAB, SPRUCE_FENCE, SPRUCE_FENCE_GATE, SPRUCE_PLANKS,
+                SPRUCE_PRESSURE_PLATE, SPRUCE_SHELF, SPRUCE_STAIRS, SPRUCE_TRAPDOOR, STRIPPED_BAMBOO_BLOCK,
+                TRAPPED_CHEST
+        );
+
+        configureFuel(registry, 800,
+                ACACIA_HANGING_SIGN, BAMBOO_HANGING_SIGN, BIRCH_HANGING_SIGN, CHERRY_HANGING_SIGN,
+                DARK_OAK_HANGING_SIGN, JUNGLE_HANGING_SIGN, MANGROVE_HANGING_SIGN, OAK_HANGING_SIGN,
+                PALE_OAK_HANGING_SIGN, POPLAR_HANGING_SIGN, SPRUCE_HANGING_SIGN
+        );
+
+        configureFuel(registry, 1200,
+                ACACIA_BOAT, ACACIA_CHEST_BOAT, BAMBOO_CHEST_RAFT, BAMBOO_RAFT, BIRCH_BOAT, BIRCH_CHEST_BOAT,
+                CHERRY_BOAT, CHERRY_CHEST_BOAT, DARK_OAK_BOAT, DARK_OAK_CHEST_BOAT, JUNGLE_BOAT,
+                JUNGLE_CHEST_BOAT, MANGROVE_BOAT, MANGROVE_CHEST_BOAT, OAK_BOAT, OAK_CHEST_BOAT, PALE_OAK_BOAT,
+                PALE_OAK_CHEST_BOAT, POPLAR_BOAT, POPLAR_CHEST_BOAT, SPRUCE_BOAT, SPRUCE_CHEST_BOAT
+        );
+
+        configureFuel(registry, 1600, CHARCOAL, COAL);
+
+        configureFuel(registry, 2400, BLAZE_ROD);
+
+        configureFuel(registry, 4000, DRIED_KELP_BLOCK);
+
+        configureFuel(registry, 16_000, COAL_BLOCK);
+
+        configureFuel(registry, 20_000, LAVA_BUCKET);
+    }
+
+    public static List<ItemType> charcoalInputs() {
+        return CHARCOAL_INPUTS;
+    }
+
+    public static float experience(ItemType result) {
+        return EXPERIENCE_BY_RESULT.getOrDefault(result, DEFAULT_EXPERIENCE);
+    }
+
+    private static void configureFuel(CloudItemRegistry registry, int ticks, ItemType... items) {
+        IntTypeHandler duration = () -> ticks;
+        for (ItemType item : items) {
+            registry.configure(item).set(ItemBehaviors.FUEL_DURATION, duration);
+        }
+    }
+}

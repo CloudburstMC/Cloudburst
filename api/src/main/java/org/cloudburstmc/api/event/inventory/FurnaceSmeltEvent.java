@@ -1,40 +1,16 @@
 package org.cloudburstmc.api.event.inventory;
 
-import org.cloudburstmc.api.blockentity.Furnace;
-import org.cloudburstmc.api.event.Cancellable;
-import org.cloudburstmc.api.event.block.BlockEvent;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.crafting.CookingRecipe;
+import org.cloudburstmc.api.event.block.BlockCookEvent;
 import org.cloudburstmc.api.item.ItemStack;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * Called when a furnace, blast furnace, or smoker completes a batch.
  */
-public final class FurnaceSmeltEvent extends BlockEvent implements Cancellable {
+public class FurnaceSmeltEvent extends BlockCookEvent {
 
-    private final Furnace furnace;
-    private final ItemStack source;
-    private ItemStack result;
-
-    public FurnaceSmeltEvent(Furnace furnace, ItemStack source, ItemStack result) {
-        super(furnace.getBlock());
-        this.source = source.withCount(1);
-        this.result = result;
-        this.furnace = furnace;
-    }
-
-    public Furnace getFurnace() {
-        return furnace;
-    }
-
-    public ItemStack getSource() {
-        return source;
-    }
-
-    public ItemStack getResult() {
-        return result;
-    }
-
-    public void setResult(ItemStack result) {
-        this.result = result;
+    public FurnaceSmeltEvent(Block block, ItemStack source, ItemStack result, CookingRecipe recipe) {
+        super(block, source, result, recipe);
     }
 }

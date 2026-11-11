@@ -37,7 +37,7 @@ public abstract class CloudInventoryScreen implements InventoryScreen {
     protected final CloudPlayer player;
     private final Map<ContainerSlotType, ContainerMapping> mappings = new HashMap<>();
     private final Map<SlotGroupType<?>, SlotGroup> sections = new HashMap<>();
-    private final Set<CloudContainer> observedUIContainers = new HashSet<>();
+    private final Set<CloudContainer> observedContainers = new HashSet<>();
     private final ScreenType<?> type;
 
     @Nullable
@@ -75,12 +75,15 @@ public abstract class CloudInventoryScreen implements InventoryScreen {
 
         for (ContainerMapping mapping : this.mappings.values()) {
             if (mapping instanceof UIContainerMapping && mapping.getView() instanceof CloudSlotGroupBase group) {
-                CloudContainer container = group.getContainer();
-                if (!container.getListeners().contains(this.player)) {
-                    this.observedUIContainers.add(container);
-                    container.addContainerListener(this.player);
-                }
+                this.observeContainer(group.getContainer());
             }
+        }
+    }
+
+    protected final void observeContainer(CloudContainer container) {
+        if (!container.getListeners().contains(this.player)) {
+            this.observedContainers.add(container);
+            container.addContainerListener(this.player);
         }
     }
 
@@ -89,11 +92,11 @@ public abstract class CloudInventoryScreen implements InventoryScreen {
     }
 
     public final void closeWindow(@Nullable ContainerClosePacket request) {
-        for (CloudContainer container : this.observedUIContainers) {
+        for (CloudContainer container : this.observedContainers) {
             container.removeContainerListener(this.player);
         }
 
-        this.observedUIContainers.clear();
+        this.observedContainers.clear();
         NetworkWindow window = this.networkWindow;
         this.networkWindow = null;
         if (window == null) {

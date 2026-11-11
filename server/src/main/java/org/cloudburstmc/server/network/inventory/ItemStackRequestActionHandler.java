@@ -1,14 +1,11 @@
 package org.cloudburstmc.server.network.inventory;
 
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.api.blockentity.BlockEntity;
-import org.cloudburstmc.api.blockentity.Furnace;
 import org.cloudburstmc.api.crafting.CraftingRecipe;
 import org.cloudburstmc.api.crafting.Recipe;
 import org.cloudburstmc.api.event.inventory.ActionType;
 import org.cloudburstmc.api.event.inventory.CartographyItemEvent;
 import org.cloudburstmc.api.event.inventory.ClickType;
-import org.cloudburstmc.api.event.inventory.FurnaceExtractEvent;
 import org.cloudburstmc.api.event.inventory.InventoryClickEvent;
 import org.cloudburstmc.api.inventory.ScreenTypes;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
@@ -167,6 +164,7 @@ public class ItemStackRequestActionHandler {
         if (screen instanceof ResultContainerScreen resultScreen && resultScreen.isResultSlot(dstContainer, dstSlot.getSlot())) {
             throw new IllegalArgumentException("Cannot place into a result slot");
         }
+        rejectFurnaceResultInsert(dstSlot);
 
         ItemStack sourceItem = getSlot(srcSlot);
         ItemStack destItem = getSlot(dstSlot);
@@ -223,21 +221,12 @@ public class ItemStackRequestActionHandler {
         }
 
         ItemStack resolvedDest = event.getResultItem() != null ? event.getResultItem() : newDest;
+        validateFurnaceFuel(dstSlot, resolvedDest);
 
         setSlot(srcSlot, newSource);
         setSlot(dstSlot, resolvedDest);
 
-        if (srcContainer == ContainerSlotType.FURNACE_RESULT
-                && screen instanceof CloudBlockContainerScreen blockScreen) {
-            BlockEntity be = blockScreen.getBlock().getLevel().getBlockEntity(blockScreen.getBlock().getPosition());
-            if (be instanceof Furnace furnace) {
-                FurnaceExtractEvent extractEvent = new FurnaceExtractEvent(player, furnace, sourceItem, 0);
-                player.getServer().getEventManager().fire(extractEvent);
-                if (extractEvent.getExperience() != 0) {
-                    player.addExperience(extractEvent.getExperience());
-                }
-            }
-        }
+        onFurnaceResultTaken(srcSlot, sourceItem.withCount(count));
     }
 
     private void handleResultTransfer(ResultContainerScreen resultScreen, TransferItemStackRequestAction action) {
@@ -367,6 +356,8 @@ public class ItemStackRequestActionHandler {
         ItemStackRequestSlotData dstSlot = action.getDestination();
         rejectResultMutation(srcSlot);
         rejectResultMutation(dstSlot);
+        rejectFurnaceResultInsert(srcSlot);
+        rejectFurnaceResultInsert(dstSlot);
 
         ItemStack sourceItem = getSlot(srcSlot);
         ItemStack destItem = getSlot(dstSlot);
@@ -401,6 +392,8 @@ public class ItemStackRequestActionHandler {
         }
 
         ItemStack resolvedDest = event.getResultItem() != null ? event.getResultItem() : sourceItem;
+        validateFurnaceFuel(srcSlot, destItem);
+        validateFurnaceFuel(dstSlot, resolvedDest);
 
         setSlot(srcSlot, destItem);
         setSlot(dstSlot, resolvedDest);
@@ -449,6 +442,7 @@ public class ItemStackRequestActionHandler {
 
         setSlot(srcSlot, newSource);
         player.dropItem(dropItem);
+        onFurnaceResultTaken(srcSlot, dropItem);
     }
 
     private void handleDestroy(DestroyAction action) {
@@ -491,6 +485,25 @@ public class ItemStackRequestActionHandler {
         }
 
         setSlot(srcSlot, newSource);
+    }
+
+    private void rejectFurnaceResultInsert(ItemStackRequestSlotData slot) {
+        if (screen instanceof CloudFurnaceContainerScreen && container(slot) == ContainerSlotType.FURNACE_RESULT) {
+            throw new IllegalArgumentException("Cannot insert items into a furnace result slot");
+        }
+    }
+
+    private void validateFurnaceFuel(ItemStackRequestSlotData slot, ItemStack item) {
+        if (screen instanceof CloudFurnaceContainerScreen furnace && container(slot) == ContainerSlotType.FURNACE_FUEL
+                && !furnace.furnaceEntity().acceptsFuel(item)) {
+            throw new IllegalArgumentException("Item cannot be placed in a furnace fuel slot");
+        }
+    }
+
+    private void onFurnaceResultTaken(ItemStackRequestSlotData slot, ItemStack item) {
+        if (screen instanceof CloudFurnaceContainerScreen furnace && container(slot) == ContainerSlotType.FURNACE_RESULT) {
+            furnace.furnaceEntity().extract(player, item);
+        }
     }
 
     private void rejectResultMutation(ItemStackRequestSlotData slot) {

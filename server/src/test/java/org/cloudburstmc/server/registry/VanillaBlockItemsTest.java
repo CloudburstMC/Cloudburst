@@ -6,6 +6,7 @@ import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.item.ToolUtils;
 import org.cloudburstmc.server.testutil.BlockTestRegistry;
 import org.cloudburstmc.server.testutil.BlockTestWorld;
 import org.junit.jupiter.api.Test;
@@ -53,6 +54,19 @@ class VanillaBlockItemsTest {
 
             assertSame(defaultPlacement.getType(), placed.getType());
             assertSame(picked.getType(), placed.getType().asItem().orElseThrow());
+        }
+    }
+
+    @Test
+    void woodenPickaxeHarvestsAllFurnaceStates() {
+        ItemStack pickaxe = ItemStack.from(ItemTypes.WOODEN_PICKAXE);
+        for (BlockType type : List.of(
+                BlockTypes.FURNACE, BlockTypes.LIT_FURNACE,
+                BlockTypes.BLAST_FURNACE, BlockTypes.LIT_BLAST_FURNACE,
+                BlockTypes.SMOKER, BlockTypes.LIT_SMOKER)) {
+            BlockState state = type.getDefaultState();
+            assertTrue(ToolUtils.isCorrectForDrops(pickaxe, state), type.getId().toString());
+            assertFalse(ToolUtils.isCorrectForDrops(ItemStack.EMPTY, state), type.getId().toString());
         }
     }
 

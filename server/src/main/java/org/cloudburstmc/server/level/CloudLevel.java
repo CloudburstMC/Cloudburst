@@ -2204,6 +2204,10 @@ public class CloudLevel implements Level, BlockStateRegion {
             return null;
         }
 
+        if (this.getLoadedBlockEntity(blockPos) instanceof BaseBlockEntity entity && entity.getBlockState().getType() == hand.getType()) {
+            entity.applyPlacementItem(item);
+        }
+
         if (player != null && !player.isCreative()) {
             item = item.decreaseCount();
         }

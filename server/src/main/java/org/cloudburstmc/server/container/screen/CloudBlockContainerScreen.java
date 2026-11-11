@@ -13,6 +13,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.blockentity.ContainerBlockEntity;
+import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.server.container.ContainerTypeRegistry;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -53,13 +54,17 @@ public abstract class CloudBlockContainerScreen extends CloudContainerScreen {
         ContainerType containerType = ContainerTypeRegistry.get(this.getType());
         Vector3i pos = block.getPosition();
 
-        byte windowId = player.assignContainerId(getStorageContainer());
+        Container storage = this.getStorageContainer();
+        byte windowId = player.assignContainerId(storage);
 
         ContainerOpenPacket pkt = new ContainerOpenPacket();
         pkt.setId(windowId);
         pkt.setType(containerType);
         pkt.setBlockPosition(pos);
         this.openWindow(pkt);
+        if (storage instanceof CloudContainer container) {
+            this.observeContainer(container);
+        }
 
         player.getInventoryManager().sendAllInventories();
     }

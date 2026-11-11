@@ -4166,15 +4166,11 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
                 && this.boundingBox.intersects(entity.getBoundingBox())) {
             if (experienceOrb.getPickupDelay() <= 0) {
                 int exp = experienceOrb.getExperience();
-                TakeItemEntityPacket take = new TakeItemEntityPacket();
-                take.setRuntimeEntityId(this.getRuntimeId());
-                take.setItemRuntimeEntityId(experienceOrb.getRuntimeId());
-                CloudServer.broadcastPacket(((CloudEntity) entity).getViewers(), take);
-                this.sendPacket(take);
+                Vector3f pickupPosition = experienceOrb.getPosition();
                 experienceOrb.consumeOne();
                 LevelEventPacket sound = new LevelEventPacket();
                 sound.setType(LevelEvent.SOUND_EXPERIENCE_ORB_PICKUP);
-                sound.setPosition(this.getPosition());
+                sound.setPosition(pickupPosition);
                 sound.setData(0);
                 this.sendPacket(sound);
                 pickedXPOrb = tick;

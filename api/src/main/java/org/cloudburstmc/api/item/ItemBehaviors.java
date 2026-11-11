@@ -2,7 +2,7 @@ package org.cloudburstmc.api.item;
 
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.component.BooleanTypeHandler;
-import org.cloudburstmc.api.block.component.FloatTypeHandler;
+import org.cloudburstmc.api.block.component.IntTypeHandler;
 import org.cloudburstmc.api.data.ComponentType;
 import org.cloudburstmc.api.entity.damage.DamageType;
 import org.cloudburstmc.api.item.component.*;
@@ -105,9 +105,9 @@ public class ItemBehaviors {
     public static final ComponentType<FoodComponent> FOOD = ComponentType.of("food", FoodComponent.class);
 
     /**
-     * Supplies the burn duration when this item type is used as fuel.
+     * Supplies the furnace burn duration in ticks. Zero means the item is not fuel.
      */
-    public static final ComponentType<FloatTypeHandler> FUEL_DURATION = ComponentType.of("fuel_duration", FloatTypeHandler.class);
+    public static final ComponentType<IntTypeHandler> FUEL_DURATION = ComponentType.of("fuel_duration", IntTypeHandler.class);
 
     /**
      * Calculates the base melee damage dealt with this item.

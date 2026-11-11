@@ -9,6 +9,11 @@ import lombok.experimental.UtilityClass;
 public class ItemTags {
 
     /**
+     * Logs and wood that can be smelted into charcoal.
+     */
+    public static final ItemTagKey LOGS_THAT_BURN = tag("logs_that_burn");
+
+    /**
      * Head equipment that conceals a player from locator maps unless they carry a copy.
      */
     public static final ItemTagKey MAP_INVISIBILITY_EQUIPMENT = tag("map_invisibility_equipment");

@@ -39,6 +39,7 @@ import static org.cloudburstmc.api.item.ItemTypes.*;
 public final class VanillaItemBehaviors {
 
     public static void configure(CloudItemRegistry registry) {
+        VanillaCookingData.configureFuels(registry);
         configureBoats(registry);
         configureSpawnEgg(registry, ItemTypes.AGENT_SPAWN_EGG, EntityTypes.AGENT);
         configureSpawnEgg(registry, ItemTypes.ALLAY_SPAWN_EGG, EntityTypes.ALLAY);

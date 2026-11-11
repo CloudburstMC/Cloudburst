@@ -248,6 +248,12 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             yaw += 360;
         }
 
+        final float rotationEpsilon = 0.001f;
+        boolean rotationChanged = Math.abs(yaw - player.getYaw()) >= rotationEpsilon || Math.abs(pitch - player.getPitch()) >= rotationEpsilon;
+        if (rotationChanged) {
+            player.setRotation(yaw, pitch);
+        }
+
         float maxDelta = player.getServer().getConfig().getMovement().getMaxPositionDelta();
         float distance = currentPos.distance(newPos);
         if (distance > maxDelta) {
@@ -264,14 +270,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
         player.acceptInputMotion(delta);
 
-        final float ROT_EPSILON = 0.001f;
-        boolean posUnchanged = newPos.equals(currentPos);
-        boolean rotUnchanged = Math.abs(yaw - player.getYaw()) < ROT_EPSILON && Math.abs(pitch - player.getPitch()) < ROT_EPSILON;
-        if (posUnchanged && rotUnchanged) {
+        if (newPos.equals(currentPos) && !rotationChanged) {
             return;
         }
 
-        player.setRotation(yaw, pitch);
         player.setNewPosition(newPos);
         player.setForceMovement(null);
 

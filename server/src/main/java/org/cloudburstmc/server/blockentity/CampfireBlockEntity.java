@@ -1,176 +1,337 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockTypes;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Campfire;
+import org.cloudburstmc.api.crafting.CookingRecipe;
+import org.cloudburstmc.api.event.block.BlockCookEvent;
+import org.cloudburstmc.api.event.block.CampfireStartEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
 
-    private static final String[] ITEM_TAGS = {"Item1", "Item2", "Item3", "Item4"};
-    private static final String[] TIME_TAGS = {"ItemTime1", "ItemTime2", "ItemTime3", "ItemTime4"};
+    private static final int SLOT_COUNT = 4;
+    private static final int AVERAGE_CRACKLE_INTERVAL = 60;
 
-    private final ItemStack[] items = new ItemStack[4];
-    private final int[] itemTimes = new int[4];
+    private final ItemStack[] ingredients = new ItemStack[SLOT_COUNT];
+    private final int[] progress = new int[SLOT_COUNT];
+    private final int[] duration = new int[SLOT_COUNT];
+    private final boolean[] cookingPaused = new boolean[SLOT_COUNT];
 
     public CampfireBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
+        Arrays.fill(this.ingredients, ItemStack.EMPTY);
     }
 
     @Override
     public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
-        boolean hasItems = false;
-        for (int i = 0; i < 4; i++) {
-            if (tag.containsKey(ITEM_TAGS[i])) {
-                ItemStack item = ItemUtils.deserializeItem(tag.getCompound(ITEM_TAGS[i]));
-                items[i] = item;
-                hasItems = true;
-            } else {
-                items[i] = null;
+        for (int slot = 0; slot < SLOT_COUNT; slot++) {
+            ItemStack item = ItemUtils.deserializeItem(tag.getCompound(itemKey(slot)));
+            this.clearSlot(slot);
+            this.cookingPaused[slot] = tag.getBoolean(pausedKey(slot));
+            if (item.isEmpty()) {
+                continue;
             }
 
-            if (tag.containsKey(TIME_TAGS[i])) {
-                itemTimes[i] = tag.getInt(TIME_TAGS[i]);
-            } else {
-                itemTimes[i] = 0;
-            }
+            CookingRecipe recipe = this.findRecipe(item);
+            int remaining = Math.max(0, tag.getInt(timeKey(slot)));
+            int defaultDuration = recipe == null ? Math.max(1, remaining) : recipe.getCookingTime();
+            int total = Math.max(1, tag.getInt(durationKey(slot), defaultDuration));
+            this.ingredients[slot] = item;
+            this.duration[slot] = total;
+            this.progress[slot] = total - Math.min(total, remaining);
         }
-        if (hasItems) this.scheduleUpdate();
+    }
+
+    @Override
+    public void saveAdditionalData(NbtMapBuilder tag) {
+        super.saveAdditionalData(tag);
+        for (int slot = 0; slot < SLOT_COUNT; slot++) {
+            tag.putInt(durationKey(slot), this.duration[slot]);
+            tag.putBoolean(pausedKey(slot), this.cookingPaused[slot]);
+        }
     }
 
     @Override
     protected void saveClientData(NbtMapBuilder tag) {
         super.saveClientData(tag);
-
-        for (int i = 0; i < 4; i++) {
-            ItemStack item = this.items[i];
-            if (item != null) {
-                tag.putCompound(ITEM_TAGS[i], ItemUtils.serializeItem(item));
-                tag.putInt(TIME_TAGS[i], this.itemTimes[i]);
-            }
+        for (int slot = 0; slot < SLOT_COUNT; slot++) {
+            tag.putCompound(itemKey(slot), ItemUtils.serializeItem(this.ingredients[slot]));
+            tag.putInt(timeKey(slot), this.duration[slot] - this.progress[slot]);
         }
-    }
-
-    @Override
-    public boolean onUpdate() {
-        if (this.closed) {
-            return false;
-        }
-
-        BlockState state = getBlockState();
-
-/*
-        if (state.getTrait(BlockTraits.IS_EXTINGUISHED) == null) {
-            this.close();
-            return false;
-        }
-*/
-
-        if (state.ensureTrait(BlockTraits.IS_EXTINGUISHED)) {
-            return false;
-        }
-
-        boolean haveUpdate = false;
-        boolean itemChange = false;
-
-        for (int i = 0; i < items.length; i++) {
-            if (items[i] != null) {
-                if (++itemTimes[i] >= 600) {
-                    ItemStack output = CloudRecipeRegistry.get().matchFurnaceRecipe(items[i], BlockTypes.CAMPFIRE.getId()).getResult();
-                    this.getLevel().dropItem(this.getPosition(), output);
-                    items[i] = null;
-                    itemTimes[i] = 0;
-                    itemChange = true;
-                }
-                haveUpdate = true;
-            }
-        }
-
-        this.lastUpdate = System.currentTimeMillis();
-        if (itemChange) spawnToAll();
-        return haveUpdate;
-    }
-
-    @Override
-    public void onBreak() {
-        for (ItemStack item : items) {
-            if (item != null) {
-                this.dropItemOnBreak(item);
-            }
-        }
-    }
-
-    public ItemStack getItemInFire(int index) {
-        if (index < 0 || index >= items.length) {
-            return null;
-        }
-        return items[index];
-    }
-
-    public boolean putItemInFire(ItemStack item) {
-//        if (!(item.getBehavior() instanceof ItemEdibleBehavior)) return false; //TODO: edible items
-//
-//        if (CloudRecipeRegistry.get().matchFurnaceRecipe(item, BlockTypes.CAMPFIRE.getId()) != null) {
-//            for (int i = 0; i < items.length; i++) {
-//                if (items[i] == null) {
-//                    items[i] = item.withAmount(1);
-//                    itemTimes[i] = 0;
-//                    this.spawnToAll();
-//                    this.scheduleUpdate();
-//                    return true;
-//                }
-//            }
-//        }
-        return false;
-    }
-
-    @Override
-    public boolean putItemInFire(ItemStack item, int index, boolean overwrite) {
-        if (index < 0 || index >= items.length) return false;
-//        if (!(item.getBehavior() instanceof ItemEdibleBehavior)) return false; //TODO: edible items
-//
-//        item = item.withAmount(1);
-//
-//        boolean addedFood = false;
-//        if (items[index] == null) {
-//            items[index] = item;
-//            addedFood = true;
-//        } else if (overwrite) {
-//            items[index] = item;
-//            itemTimes[index] = 0;
-//            addedFood = true;
-//        }
-//        if (addedFood) {
-//            spawnToAll();
-//            this.scheduleUpdate();
-//        }
-//        return addedFood;
-        return false;
-    }
-
-    /**
-     * Method is used to clear all of the items cooking in the fire, without dropping any into the world.
-     */
-    public void clearItems() {
-        for (int i = 0; i < items.length; i++) {
-            items[i] = null;
-            itemTimes[i] = 0;
-        }
-        spawnToAll();
     }
 
     @Override
     public boolean isSpawnable() {
         return true;
+    }
+
+    @Override
+    public boolean onUpdate() {
+        if (this.isClosed() || !this.isValid()) {
+            return false;
+        }
+        super.onUpdate();
+
+        boolean lit = this.isLit();
+        if (lit && this.getLevel().getRandom().nextInt(AVERAGE_CRACKLE_INTERVAL) == 0) {
+            this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.CAMPFIRE_CRACKLE);
+        }
+
+        boolean progressChanged = false;
+        boolean contentsChanged = false;
+        for (int slot = 0; slot < SLOT_COUNT; slot++) {
+            if (this.ingredients[slot].isEmpty() || this.cookingPaused[slot]) {
+                continue;
+            }
+
+            int previous = this.progress[slot];
+            if (!lit) {
+                this.progress[slot] = Math.max(0, previous - 2);
+            } else if (previous < this.duration[slot]) {
+                this.progress[slot]++;
+            }
+            progressChanged |= this.progress[slot] != previous;
+
+            if (lit && this.progress[slot] == this.duration[slot]) {
+                contentsChanged |= this.completeCooking(slot);
+                if (this.isClosed() || !this.isValid()) {
+                    return false;
+                }
+                if (!this.isLit()) {
+                    break;
+                }
+            }
+        }
+
+        if (progressChanged || contentsChanged) {
+            this.setDirty();
+        }
+
+        if (contentsChanged) {
+            this.spawnToAll();
+        }
+
+        return lit || progressChanged;
+    }
+
+    @Override
+    public void onBreak() {
+        for (int slot = 0; slot < SLOT_COUNT; slot++) {
+            ItemStack ingredient = this.ingredients[slot];
+            this.clearSlot(slot);
+            this.dropItemOnBreak(ingredient);
+        }
+    }
+
+    public void ejectIngredients() {
+        boolean changed = false;
+        for (int slot = 0; slot < SLOT_COUNT; slot++) {
+            ItemStack ingredient = this.ingredients[slot];
+            if (!ingredient.isEmpty()) {
+                this.clearSlot(slot);
+                this.getLevel().dropItem(this.getPosition().toFloat().add(0.5f, 0.5f, 0.5f), ingredient);
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            this.setDirty();
+            this.spawnToAll();
+        }
+    }
+
+    @Override
+    public int getSize() {
+        return SLOT_COUNT;
+    }
+
+    @Override
+    public ItemStack getItem(int slot) {
+        return this.ingredients[Objects.checkIndex(slot, SLOT_COUNT)];
+    }
+
+    @Override
+    public void setItem(int slot, ItemStack item) {
+        Objects.checkIndex(slot, SLOT_COUNT);
+        if (item.isEmpty()) {
+            this.clearSlot(slot);
+        } else {
+            CookingRecipe recipe = this.findRecipe(item);
+            if (item.getCount() != 1 || recipe == null) {
+                throw new IllegalArgumentException("Expected one campfire ingredient");
+            }
+            this.setIngredient(slot, item, recipe.getCookingTime());
+        }
+        this.syncSlotChange();
+    }
+
+    @Override
+    public int getCookProgress(int slot) {
+        return this.progress[Objects.checkIndex(slot, SLOT_COUNT)];
+    }
+
+    @Override
+    public void setCookProgress(int slot, int ticks) {
+        Objects.checkIndex(slot, SLOT_COUNT);
+        this.progress[slot] = Math.clamp(ticks, 0, this.duration[slot]);
+        this.syncSlotChange();
+    }
+
+    @Override
+    public int getCookDuration(int slot) {
+        return this.duration[Objects.checkIndex(slot, SLOT_COUNT)];
+    }
+
+    @Override
+    public void setCookDuration(int slot, int ticks) {
+        Objects.checkIndex(slot, SLOT_COUNT);
+        if (ticks < 1) {
+            throw new IllegalArgumentException("Cooking time must be positive");
+        }
+
+        if (this.ingredients[slot].isEmpty()) {
+            throw new IllegalStateException("Cooking slot is empty");
+        }
+
+        this.duration[slot] = ticks;
+        this.progress[slot] = Math.min(this.progress[slot], ticks);
+        this.syncSlotChange();
+    }
+
+    @Override
+    public boolean isCookingEnabled(int slot) {
+        return !this.cookingPaused[Objects.checkIndex(slot, SLOT_COUNT)];
+    }
+
+    @Override
+    public void setCookingEnabled(int slot, boolean enabled) {
+        Objects.checkIndex(slot, SLOT_COUNT);
+        boolean paused = !enabled;
+        if (this.cookingPaused[slot] != paused) {
+            this.cookingPaused[slot] = paused;
+            this.syncSlotChange();
+        }
+    }
+
+    @Override
+    public boolean addItem(ItemStack item) {
+        return this.addItem(item, null);
+    }
+
+    public boolean addItem(ItemStack item, @Nullable Player player) {
+        if (this.isClosed() || !this.isValid() || item.isEmpty() || !this.getBlock().getLiquid().isEmpty()) {
+            return false;
+        }
+
+        int slot = this.firstEmptySlot();
+        if (slot < 0) {
+            return false;
+        }
+
+        ItemStack ingredient = item.withCount(1);
+        CookingRecipe recipe = this.findRecipe(ingredient);
+        if (recipe == null) {
+            return false;
+        }
+
+        CampfireStartEvent event = new CampfireStartEvent(this.getBlock(), ingredient, recipe);
+        this.server.getEventManager().fire(event);
+        if (this.isClosed() || !this.isValid() || !this.getBlock().getLiquid().isEmpty()
+                || !this.ingredients[slot].isEmpty()
+                || (player != null && !player.getInventory().getSelectedItem().equals(item))) {
+            return false;
+        }
+
+        this.setIngredient(slot, ingredient, event.getTotalCookTime());
+        this.syncSlotChange();
+        return true;
+    }
+
+    private boolean completeCooking(int slot) {
+        ItemStack ingredient = this.ingredients[slot];
+        CookingRecipe recipe = this.findRecipe(ingredient);
+        ItemStack result = ingredient;
+        if (recipe != null) {
+            BlockCookEvent event = new BlockCookEvent(this.getBlock(), ingredient, recipe.getResult(), recipe);
+            this.server.getEventManager().fire(event);
+            if (event.isCancelled() || this.isClosed() || !this.isValid() || !this.isLit()
+                    || this.ingredients[slot] != ingredient || this.cookingPaused[slot]
+                    || this.progress[slot] < this.duration[slot]) {
+                return false;
+            }
+
+            result = event.getResult();
+        }
+
+        this.clearSlot(slot);
+        if (!result.isEmpty()) {
+            this.getLevel().dropItem(this.getPosition().toFloat().add(0.5f, 0.5f, 0.5f), result);
+        }
+
+        return true;
+    }
+
+    private int firstEmptySlot() {
+        for (int slot = 0; slot < SLOT_COUNT; slot++) {
+            if (this.ingredients[slot].isEmpty()) {
+                return slot;
+            }
+        }
+        return -1;
+    }
+
+    private void clearSlot(int slot) {
+        this.setIngredient(slot, ItemStack.EMPTY, 0);
+    }
+
+    private void setIngredient(int slot, ItemStack item, int ticks) {
+        this.ingredients[slot] = item;
+        this.progress[slot] = 0;
+        this.duration[slot] = ticks;
+    }
+
+    private void syncSlotChange() {
+        this.setDirty();
+        this.scheduleUpdate();
+        this.spawnToAll();
+    }
+
+    private boolean isLit() {
+        return !this.getBlockState().ensureTrait(BlockTraits.IS_EXTINGUISHED);
+    }
+
+    private @Nullable CookingRecipe findRecipe(ItemStack item) {
+        return CloudRecipeRegistry.get().matchCookingRecipe(item, this.getBlockState().getType().getId());
+    }
+
+    private static String itemKey(int slot) {
+        return "Item" + (slot + 1);
+    }
+
+    private static String timeKey(int slot) {
+        return "ItemTime" + (slot + 1);
+    }
+
+    private static String durationKey(int slot) {
+        return "ItemDuration" + (slot + 1);
+    }
+
+    private static String pausedKey(int slot) {
+        return "ItemPaused" + (slot + 1);
     }
 }

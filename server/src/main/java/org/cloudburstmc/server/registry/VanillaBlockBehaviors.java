@@ -6,6 +6,9 @@ import org.cloudburstmc.api.block.component.BlockLootHandler;
 import org.cloudburstmc.api.block.component.ComplexBlockHandler;
 import org.cloudburstmc.api.block.component.SurviveBlockHandler;
 import org.cloudburstmc.api.block.component.UseBlockHandler;
+import org.cloudburstmc.api.blockentity.BlockEntity;
+import org.cloudburstmc.api.blockentity.BlockEntityType;
+import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
@@ -153,7 +156,7 @@ public class VanillaBlockBehaviors {
         configureConcretePowder(registry, BLACK_CONCRETE_POWDER, BLACK_CONCRETE);
         configureShulkerBox(registry, BLACK_SHULKER_BOX);
         configureSlab(registry, BLACKSTONE_SLAB, BLACKSTONE_DOUBLE_SLAB);
-        configureUsable(registry, BLAST_FURNACE, ContainerBlockHandlers.BLAST_FURNACE);
+        configureFurnace(registry, BLAST_FURNACE, BlockEntityTypes.BLAST_FURNACE, ContainerBlockHandlers.BLAST_FURNACE);
         configureConcretePowder(registry, BLUE_CONCRETE_POWDER, BLUE_CONCRETE);
         registry.configure(BLUE_ICE).set(BlockComponents.GET_LOOT, VanillaBlockLoot.silkTouchOnly(BLUE_ICE));
         configureShulkerBox(registry, BLUE_SHULKER_BOX);
@@ -175,8 +178,7 @@ public class VanillaBlockBehaviors {
         configureUsable(registry, CAKE, CakeBlockHandlers.cake(CANDLE_CAKES));
         configureCakeSupport(registry, CAKE);
         CANDLE_CAKES.forEach((candle, cake) -> configureCandleCake(registry, cake, candle));
-        registry.configure(CAMPFIRE).set(BlockComponents.GET_IGNITED_STATE,
-                BlockIgnitionHandlers.litState(BlockTraits.IS_EXTINGUISHED, false));
+        configureCampfire(registry, CAMPFIRE);
         configureUsable(registry, CARTOGRAPHY_TABLE, ContainerBlockHandlers.CARTOGRAPHY_TABLE);
         registry.configure(CARVED_PUMPKIN).set(BlockComponents.ON_PLACE, new CarvedPumpkinPlaceHandler());
 
@@ -339,7 +341,7 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.ON_REMOVE, FrostedIceBlockHandlers.ON_REMOVE)
                 .set(BlockComponents.GET_PICK_BLOCK, FrostedIceBlockHandlers.GET_PICK_BLOCK);
 
-        configureUsable(registry, FURNACE, ContainerBlockHandlers.FURNACE);
+        configureFurnace(registry, FURNACE, BlockEntityTypes.FURNACE, ContainerBlockHandlers.FURNACE);
         registry.configure(GLASS).set(BlockComponents.GET_LOOT, VanillaBlockLoot.silkTouchOnly(GLASS));
         configureItemFrame(registry, GLOW_FRAME);
 
@@ -414,12 +416,12 @@ public class VanillaBlockBehaviors {
         configureShulkerBox(registry, LIGHT_GRAY_SHULKER_BOX);
         configureConcretePowder(registry, LIME_CONCRETE_POWDER, LIME_CONCRETE);
         configureShulkerBox(registry, LIME_SHULKER_BOX);
-        configureUsable(registry, LIT_BLAST_FURNACE, ContainerBlockHandlers.BLAST_FURNACE);
+        configureFurnace(registry, LIT_BLAST_FURNACE, BlockEntityTypes.BLAST_FURNACE, ContainerBlockHandlers.BLAST_FURNACE);
         configureOre(registry, LIT_DEEPSLATE_REDSTONE_ORE, OreLoot.redstone(DEEPSLATE_REDSTONE_ORE.getDefaultState()));
-        configureUsable(registry, LIT_FURNACE, ContainerBlockHandlers.FURNACE);
+        configureFurnace(registry, LIT_FURNACE, BlockEntityTypes.FURNACE, ContainerBlockHandlers.FURNACE);
         registry.configure(LIT_PUMPKIN).set(BlockComponents.ON_PLACE, new CarvedPumpkinPlaceHandler());
         configureOre(registry, LIT_REDSTONE_ORE, OreLoot.redstone(REDSTONE_ORE.getDefaultState()));
-        configureUsable(registry, LIT_SMOKER, ContainerBlockHandlers.SMOKER);
+        configureFurnace(registry, LIT_SMOKER, BlockEntityTypes.SMOKER, ContainerBlockHandlers.SMOKER);
         configureUsable(registry, LOOM, ContainerBlockHandlers.LOOM);
         configureConcretePowder(registry, MAGENTA_CONCRETE_POWDER, MAGENTA_CONCRETE);
         configureShulkerBox(registry, MAGENTA_SHULKER_BOX);
@@ -570,7 +572,7 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.GET_LOOT, SeaPickleBlockHandlers.GET_LOOT);
 
         configureUsable(registry, SMITHING_TABLE, ContainerBlockHandlers.SMITHING_TABLE);
-        configureUsable(registry, SMOKER, ContainerBlockHandlers.SMOKER);
+        configureFurnace(registry, SMOKER, BlockEntityTypes.SMOKER, ContainerBlockHandlers.SMOKER);
         configureSlab(registry, SMOOTH_QUARTZ_SLAB, SMOOTH_QUARTZ_DOUBLE_SLAB);
         configureSlab(registry, SMOOTH_RED_SANDSTONE_SLAB, SMOOTH_RED_SANDSTONE_DOUBLE_SLAB);
         configureSlab(registry, SMOOTH_SANDSTONE_SLAB, SMOOTH_SANDSTONE_DOUBLE_SLAB);
@@ -594,8 +596,7 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.RESOLVE_FALLING_PLACEMENT, SnowLayerBlockHandlers.RESOLVE_FALLING_PLACEMENT)
                 .set(BlockComponents.RESOLVE_PLACEMENT_STATE, SnowLayerBlockHandlers.RESOLVE_PLACEMENT_STATE)
                 .set(BlockComponents.ON_RANDOM_TICK, SnowLayerBlockHandlers.ON_RANDOM_TICK);
-        registry.configure(SOUL_CAMPFIRE).set(BlockComponents.GET_IGNITED_STATE,
-                BlockIgnitionHandlers.litState(BlockTraits.IS_EXTINGUISHED, false));
+        configureCampfire(registry, SOUL_CAMPFIRE);
 
         registry.configure(SOUL_FIRE)
                 .set(BlockComponents.CAN_SURVIVE, FireBlockHandlers.SOUL_CAN_SURVIVE)
@@ -894,6 +895,22 @@ public class VanillaBlockBehaviors {
                         VegetationBlockHandlers.checkSurvival(CakeBlockHandlers.CAN_SURVIVE));
     }
 
+    private void configureCampfire(CloudBlockRegistry registry, BlockType type) {
+        configureUsable(registry, type, CampfireBlockHandlers.USE);
+        registry.configure(type)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, CampfireBlockHandlers.RESOLVE_PLACEMENT_STATE)
+                .set(BlockComponents.GET_IGNITED_STATE, BlockIgnitionHandlers.litState(BlockTraits.IS_EXTINGUISHED, false))
+                .set(BlockComponents.ON_ADDED, CampfireBlockHandlers.ON_ADDED)
+                .set(BlockComponents.ON_STATE_CHANGED, CampfireBlockHandlers.ON_STATE_CHANGED)
+                .set(BlockComponents.ON_LIQUID_CHANGED, CampfireBlockHandlers.ON_LIQUID_CHANGED)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, CampfireBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, CampfireBlockHandlers.INSIDE_SHAPE)
+                .set(BlockComponents.ON_ENTITY_INSIDE, CampfireBlockHandlers.ON_ENTITY_INSIDE)
+                .set(BlockComponents.ON_PROJECTILE_HIT, CampfireBlockHandlers.ON_PROJECTILE_HIT)
+                .set(BlockComponents.GET_LOOT, CampfireBlockHandlers.GET_LOOT)
+                .set(BlockComponents.ON_REMOVE, CampfireBlockHandlers.ON_REMOVE);
+    }
+
     private void configureCandleCake(CloudBlockRegistry registry, BlockType type, ItemType candle) {
         configureUsable(registry, type, CakeBlockHandlers.candleCake(candle));
         configureCakeSupport(registry, type);
@@ -1048,6 +1065,19 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.RESOLVE_PLACEMENT_STATE, VegetationBlockHandlers.FLOWER_BED_PLACEMENT)
                 .set(BlockComponents.FERTILIZE, VegetationBlockHandlers.growFlowerBed(type))
                 .set(BlockComponents.GET_LOOT, VanillaBlockLoot.flowerBed(type));
+    }
+
+    private <T extends BlockEntity> void configureFurnace(
+            CloudBlockRegistry registry, BlockType type, BlockEntityType<T> entityType, UseBlockHandler use) {
+        configureUsable(registry, type, use);
+        registry.configure(type)
+                .set(BlockComponents.GET_LOOT, FurnaceBlockHandlers.GET_LOOT)
+                .set(BlockComponents.ON_REMOVE, FurnaceBlockHandlers.ON_REMOVE)
+                .set(BlockComponents.ON_ADDED, block -> {
+                    if (block.getLevel().getBlockEntity(block.getPosition()) == null) {
+                        CloudBlockEntityRegistry.get().newEntity(entityType, block);
+                    }
+                });
     }
 
     private ComponentBuilder configureGrowingVine(CloudBlockRegistry registry, BlockType type, GrowingVines vine) {
