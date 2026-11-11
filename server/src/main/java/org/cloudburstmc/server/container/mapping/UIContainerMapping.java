@@ -18,7 +18,8 @@ public class UIContainerMapping extends ContainerMapping {
 
     private static int getContainerSize(ContainerSlotType type) {
         return switch (type) {
-            case ANVIL_INPUT, ANVIL_MATERIAL, SMITHING_TABLE_INPUT, SMITHING_TABLE_MATERIAL, BEACON_PAYMENT,
+            case ANVIL_INPUT, ANVIL_MATERIAL, SMITHING_TABLE_TEMPLATE, SMITHING_TABLE_INPUT,
+                 SMITHING_TABLE_MATERIAL, SMITHING_TABLE_RESULT, BEACON_PAYMENT,
                  ENCHANTING_INPUT, ENCHANTING_MATERIAL, TRADE_INGREDIENT_1, TRADE_INGREDIENT_2,
                  MATERIAL_REDUCER_INPUT, LOOM_INPUT, LOOM_DYE, LOOM_MATERIAL, TRADE2_INGREDIENT_1,
                  TRADE2_INGREDIENT_2, GRINDSTONE_INPUT, GRINDSTONE_ADDITIONAL, STONECUTTER_INPUT, CARTOGRAPHY_INPUT,
@@ -34,6 +35,7 @@ public class UIContainerMapping extends ContainerMapping {
             case ANVIL_MATERIAL -> -2;
             case SMITHING_TABLE_INPUT -> -51;
             case SMITHING_TABLE_MATERIAL -> -52;
+            case SMITHING_TABLE_TEMPLATE -> -53;
             case BEACON_PAYMENT -> -27;
             case ENCHANTING_INPUT -> -14;
             case ENCHANTING_MATERIAL -> -15;
@@ -52,7 +54,7 @@ public class UIContainerMapping extends ContainerMapping {
             case STONECUTTER_INPUT -> -3;
             case CARTOGRAPHY_INPUT -> -12;
             case CARTOGRAPHY_ADDITIONAL -> -13;
-            case CARTOGRAPHY_RESULT, ANVIL_RESULT, CREATED_OUTPUT -> -50;
+            case CARTOGRAPHY_RESULT, ANVIL_RESULT, SMITHING_TABLE_RESULT, CREATED_OUTPUT -> -50;
             case CURSOR -> 0;
             default -> throw new UnsupportedOperationException("Unknown UI container slot type " + type);
         };

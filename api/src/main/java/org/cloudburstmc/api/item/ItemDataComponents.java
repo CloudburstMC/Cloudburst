@@ -26,6 +26,11 @@ import java.util.Map;
 public class ItemDataComponents {
 
     /**
+     * The trim applied to an armor item.
+     */
+    public static final ItemDataComponentType<ArmorTrim> ARMOR_TRIM = value("armor_trim", ArmorTrim.class);
+
+    /**
      * Block state represented by a block item.
      */
     public static final ItemDataComponentType<BlockState> BLOCK_STATE = value("block_state", BlockState.class);

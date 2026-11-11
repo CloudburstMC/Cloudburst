@@ -5,55 +5,69 @@ import org.cloudburstmc.api.inventory.view.SmithingView;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.container.CloudContainer;
 
-/**
- * Server-side implementation of {@link SmithingView}.
- * Wraps a 4-slot ephemeral container:
- * slot 0 = template, slot 1 = base, slot 2 = addition, slot 3 = result.
- * This is an ephemeral section with no block entity backing.
- */
 public class CloudSmithingView extends CloudSlotGroupBase implements SmithingView {
 
-    public CloudSmithingView(CloudContainer container) {
-        super(SlotGroupTypes.SMITHING, container);
+    public static final int TEMPLATE_SLOT = 0;
+    public static final int BASE_SLOT = 1;
+    public static final int ADDITION_SLOT = 2;
+    public static final int RESULT_SLOT = 3;
+
+    private final Runnable inputChanged;
+
+    public CloudSmithingView(Runnable inputChanged) {
+        super(SlotGroupTypes.SMITHING, new CloudContainer(RESULT_SLOT + 1));
+        this.inputChanged = inputChanged;
+    }
+
+    @Override
+    public void setItem(int slot, ItemStack item) {
+        if (slot == RESULT_SLOT) {
+            throw new IllegalArgumentException("Cannot modify a smithing result directly");
+        }
+
+        ItemStack previous = this.getItem(slot);
+        super.setItem(slot, item);
+        if (!previous.equals(item)) {
+            this.inputChanged.run();
+        }
     }
 
     @Override
     public ItemStack getTemplate() {
-        return getItem(0);
+        return getItem(TEMPLATE_SLOT);
     }
 
     @Override
     public void setTemplate(ItemStack item) {
-        setItem(0, item);
+        setItem(TEMPLATE_SLOT, item);
     }
 
     @Override
     public ItemStack getBase() {
-        return getItem(1);
+        return getItem(BASE_SLOT);
     }
 
     @Override
     public void setBase(ItemStack item) {
-        setItem(1, item);
+        setItem(BASE_SLOT, item);
     }
 
     @Override
     public ItemStack getAddition() {
-        return getItem(2);
+        return getItem(ADDITION_SLOT);
     }
 
     @Override
     public void setAddition(ItemStack item) {
-        setItem(2, item);
+        setItem(ADDITION_SLOT, item);
     }
 
     @Override
     public ItemStack getResult() {
-        return getItem(3);
+        return getItem(RESULT_SLOT);
     }
 
-    @Override
-    public void setResult(ItemStack item) {
-        setItem(3, item);
+    public void updateResult(ItemStack item) {
+        super.setItem(RESULT_SLOT, item);
     }
 }

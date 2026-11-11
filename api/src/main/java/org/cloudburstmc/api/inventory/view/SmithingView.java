@@ -3,8 +3,7 @@ package org.cloudburstmc.api.inventory.view;
 import org.cloudburstmc.api.item.ItemStack;
 
 /**
- * Represents the item slots of a smithing table container.
- * Exposes the template, base item, addition material, and result slots.
+ * The inputs and result preview of an open smithing table.
  */
 public interface SmithingView extends SlotGroup {
 
@@ -23,7 +22,7 @@ public interface SmithingView extends SlotGroup {
     void setTemplate(ItemStack item);
 
     /**
-     * Returns the item in the base slot (the item to upgrade).
+     * Returns the item to upgrade or trim.
      *
      * @return the base item
      */
@@ -37,7 +36,7 @@ public interface SmithingView extends SlotGroup {
     void setBase(ItemStack item);
 
     /**
-     * Returns the item in the addition slot (the upgrade material, e.g. netherite ingot).
+     * Returns the material to apply to the base item.
      *
      * @return the addition item
      */
@@ -51,19 +50,10 @@ public interface SmithingView extends SlotGroup {
     void setAddition(ItemStack item);
 
     /**
-     * Returns the item in the result slot.
-     *
-     * <p>This slot is computed by the client from the template, base, and addition inputs.
-     * The server can read or override the result by setting this slot directly.</p>
+     * Returns the result preview. To change it, listen for
+     * {@link org.cloudburstmc.api.event.inventory.PrepareSmithingEvent}.
      *
      * @return the result item
      */
     ItemStack getResult();
-
-    /**
-     * Sets the item in the result slot.
-     *
-     * @param item the result item to place
-     */
-    void setResult(ItemStack item);
 }

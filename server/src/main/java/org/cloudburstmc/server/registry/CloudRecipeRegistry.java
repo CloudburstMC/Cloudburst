@@ -10,10 +10,7 @@ import it.unimi.dsi.fastutil.objects.Reference2IntMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.api.crafting.MixRecipe;
-import org.cloudburstmc.api.crafting.Recipe;
-import org.cloudburstmc.api.crafting.RecipeType;
-import org.cloudburstmc.api.crafting.RecipeUnlockContext;
+import org.cloudburstmc.api.crafting.*;
 import org.cloudburstmc.api.item.*;
 import org.cloudburstmc.api.registry.RecipeRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
@@ -25,6 +22,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.ContainerMixDat
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.RecipeUnlockingRequirement;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.*;
+import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.DefaultDescriptor;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescriptor;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
@@ -33,16 +31,15 @@ import org.cloudburstmc.protocol.bedrock.packet.UnlockedRecipesPacket;
 import org.cloudburstmc.server.ServerJson;
 import org.cloudburstmc.server.crafting.*;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.utils.Utils;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.JsonNode;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 @Log4j2
 public class CloudRecipeRegistry implements RecipeRegistry {
@@ -65,28 +62,13 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     private static final int RECIPE_TYPE_SMITHING_TRANSFORM = 8;
     private static final int RECIPE_TYPE_SMITHING_TRIM = 9;
 
-    private static final TypeReference<List<Map<String, Object>>> LIST_OF_MAPS = new TypeReference<>() {
-    };
-    private static final TypeReference<Map<String, Map<String, Object>>> MAP_OF_MAPS = new TypeReference<>() {
-    };
-    private static final TypeReference<Map<String, Object>> MAP_OF_OBJECTS = new TypeReference<>() {
-    };
-    private static final TypeReference<String[]> STRING_ARRAY = new TypeReference<>() {
-    };
+    private static final TypeReference<List<Map<String, Object>>> LIST_OF_MAPS = new TypeReference<>() {};
+    private static final TypeReference<Map<String, Map<String, Object>>> MAP_OF_MAPS = new TypeReference<>() {};
+    private static final TypeReference<Map<String, Object>> MAP_OF_OBJECTS = new TypeReference<>() {};
+    private static final TypeReference<String[]> STRING_ARRAY = new TypeReference<>() {};
 
-    private static final Map<Identifier, SmithingUpgrade> SMITHING_UPGRADE_BY_BASE;
-
-    static {
-        List<SmithingUpgrade> all = List.of(
-                SmithingUpgrades.AXE, SmithingUpgrades.BOOTS, SmithingUpgrades.CHESTPLATE,
-                SmithingUpgrades.HELMET, SmithingUpgrades.HOE, SmithingUpgrades.HORSE_ARMOR,
-                SmithingUpgrades.LEGGINGS, SmithingUpgrades.NAUTILUS_ARMOR, SmithingUpgrades.PICKAXE,
-                SmithingUpgrades.SHOVEL, SmithingUpgrades.SPEAR, SmithingUpgrades.SWORD
-        );
-        SMITHING_UPGRADE_BY_BASE = Map.copyOf(
-                all.stream().collect(Collectors.toMap(SmithingUpgrade::base, u -> u))
-        );
-    }
+    private static final Identifier TRIM_TEMPLATES = Identifier.parse("trim_templates");
+    private static final Identifier TRIM_MATERIALS = Identifier.parse("trim_materials");
 
     private static final CloudRecipeRegistry INSTANCE;
 
@@ -112,7 +94,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
 
     private final List<TrimPattern> trimPatterns = new ArrayList<>();
     private final List<TrimMaterial> trimMaterials = new ArrayList<>();
-    private final List<SmithingUpgrade> smithingUpgrades = new ArrayList<>();
+    private final List<SmithingRecipe> smithingRecipes = new ArrayList<>();
 
     private boolean closed;
     private CraftingDataPacket cached;
@@ -157,21 +139,24 @@ public class CloudRecipeRegistry implements RecipeRegistry {
             throw new RegistryException("Unable to unregister recipes after registry closes");
         }
 
-        UUID uuid = getInputHash(recipe);
-        int outputHash = ItemUtils.getItemHash(recipe.getResult());
+        UUID uuid = recipeUuid(recipe);
+        int outputHash = recipeOutputHash(recipe);
 
         uuidIndex.remove(uuid);
 
         Map<UUID, Identifier> hashMap = recipeHashMap.get(outputHash);
         if (hashMap != null) {
-            if (hashMap.size() <= 1) {
+            hashMap.remove(uuid);
+            if (hashMap.isEmpty()) {
                 recipeHashMap.remove(outputHash);
-            } else {
-                hashMap.remove(uuid);
             }
         }
 
         recipeMap.remove(recipe.getId());
+        if (recipe instanceof SmithingRecipe smithing) {
+            this.smithingRecipes.remove(smithing);
+        }
+
         if (recipe instanceof CloudCookingRecipe furnace) {
             cookingByBlock.computeIfPresent(normalizeFurnaceBlock(furnace.getBlock()), (_, recipes) -> {
                 recipes.remove(furnace);
@@ -190,24 +175,24 @@ public class CloudRecipeRegistry implements RecipeRegistry {
             return;
         }
 
-        int outputHash;
-        UUID uuid = switch (recipe.getType()) {
-            case COMPLEX -> {
-                outputHash = Objects.hash(System.identityHashCode(recipe.getId()));
-                yield ((CloudComplexRecipe) recipe).uuid();
-            }
-            case SMITHING_TRANSFORM, SMITHING_TRIM -> {
-                outputHash = Objects.hash(System.identityHashCode(recipe.getId()));
-                yield UUID.nameUUIDFromBytes(recipe.getId().toString().getBytes());
-            }
-            default -> {
-                outputHash = ItemUtils.getItemHash(recipe.getResult());
-                yield getInputHash(recipe);
-            }
-        };
-
-        register0(recipe.getId(), uuid, outputHash, recipe);
+        register0(recipe.getId(), recipeUuid(recipe), recipeOutputHash(recipe), recipe);
         indexRecipe(recipe);
+    }
+
+    private static UUID recipeUuid(Recipe recipe) {
+        return switch (recipe.getType()) {
+            case COMPLEX -> ((CloudComplexRecipe) recipe).uuid();
+            case SMITHING_TRANSFORM, SMITHING_TRIM ->
+                    UUID.nameUUIDFromBytes(recipe.getId().toString().getBytes(StandardCharsets.UTF_8));
+            default -> getInputHash(recipe);
+        };
+    }
+
+    private static int recipeOutputHash(Recipe recipe) {
+        return switch (recipe.getType()) {
+            case COMPLEX, SMITHING_TRANSFORM, SMITHING_TRIM -> Objects.hash(System.identityHashCode(recipe.getId()));
+            default -> ItemUtils.getItemHash(recipe.getResult());
+        };
     }
 
     private void register0(Identifier id, UUID uuid, int outputHash, Recipe recipe) {
@@ -238,7 +223,8 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                 CloudContainerRecipe container = (CloudContainerRecipe) recipe;
                 containerByBase.computeIfAbsent(container.getInput().getType().getId(), _ -> new ArrayList<>()).add(container);
             }
-            default -> { /* shapeless/shaped/smithing/complex need no additional index */ }
+            case SMITHING_TRANSFORM, SMITHING_TRIM -> smithingRecipes.add((SmithingRecipe) recipe);
+            default -> { }
         }
     }
 
@@ -428,38 +414,128 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     }
 
     private void parseSmithingTransform(JsonNode entry, Identifier block) {
-        Identifier smithingTable = block != null ? block : Identifier.parse("smithing_table");
+        Identifier smithingTable = block != null ? block : Identifiers.SMITHING_TABLE;
         JsonNode input = entry.get("input");
 
         ItemDescriptorWithCount templateDesc = ItemUtils.descriptorFromJson(toMap(input.get("template")));
         ItemDescriptorWithCount baseDesc = ItemUtils.descriptorFromJson(toMap(input.get("base")));
         ItemDescriptorWithCount additionDesc = ItemUtils.descriptorFromJson(toMap(input.get("addition")));
 
-        Map<String, Object> baseData = toMap(input.get("base"));
-        Identifier baseId = baseData.containsKey("id")
-                ? Identifier.parse(baseData.get("id").toString())
-                : itemRegistry.fromLegacy(Utils.toInt(baseData.get("itemId")), 0);
-
-        SmithingUpgrade upgrade = baseId != null ? SMITHING_UPGRADE_BY_BASE.get(baseId) : null;
-        if (upgrade == null) {
-            log.warn("No SmithingUpgrade found for base item {} — skipping smithing transform recipe.", baseId);
-            return;
-        }
-
-        registerSmithingUpgrade(upgrade);
         ItemStack resultItem = ItemUtils.fromJson(toMap(entry.get("output")));
-        this.register(new CloudSmithingTransformRecipe(upgrade.id(), templateDesc, baseDesc, additionDesc, resultItem, smithingTable));
+        Identifier id = entry.has("id") ? Identifier.parse(entry.get("id").asString())
+                : Identifier.parse("smithing_" + resultItem.getType().getId().getName());
+        this.register(new CloudSmithingTransformRecipe(id, templateDesc, baseDesc, additionDesc, resultItem, smithingTable));
     }
 
     private void parseSmithingTrim(JsonNode entry, Identifier block) {
-        Identifier smithingTable = block != null ? block : Identifier.parse("smithing_table");
+        Identifier smithingTable = block != null ? block : Identifiers.SMITHING_TABLE;
         JsonNode input = entry.get("input");
 
         ItemDescriptorWithCount templateDesc = ItemUtils.descriptorFromJson(toMap(input.get("template")));
         ItemDescriptorWithCount baseDesc = ItemUtils.descriptorFromJson(toMap(input.get("base")));
         ItemDescriptorWithCount additionDesc = ItemUtils.descriptorFromJson(toMap(input.get("addition")));
 
-        this.register(new CloudSmithingTrimRecipe(Identifier.parse("minecraft:smithing_armor_trim"), templateDesc, baseDesc, additionDesc, smithingTable));
+        Identifier id = entry.has("id") ? Identifier.parse(entry.get("id").asString()) : Identifier.parse("smithing_armor_trim");
+        this.register(new CloudSmithingTrimRecipe(id, templateDesc, baseDesc, additionDesc, smithingTable));
+    }
+
+    public @Nullable SmithingResult findSmithingResult(ItemStack template, ItemStack base, ItemStack addition) {
+        if (template.isEmpty() || base.isEmpty() || addition.isEmpty()) {
+            return null;
+        }
+
+        for (SmithingRecipe recipe : this.smithingRecipes) {
+            if (!Identifiers.SMITHING_TABLE.equals(recipe.getBlock())) {
+                continue;
+            }
+
+            switch (recipe) {
+                case CloudSmithingTransformRecipe transform -> {
+                    if (this.matchesSmithing(template, transform.getTemplate(), transform.getTemplateDescriptor())
+                            && this.matchesSmithing(base, transform.getBase(), transform.getBaseDescriptor())
+                            && this.matchesSmithing(addition, transform.getAddition(), transform.getAdditionDescriptor())) {
+                        ItemStack output = transform.getResult();
+                        if (output.isEmpty()) {
+                            continue;
+                        }
+
+                        ItemStackBuilder result = base.toBuilder().itemType(output.getType()).amount(output.getCount());
+                        output.getDataComponents().keySet().forEach(type -> copySmithingComponent(output, result, type));
+                        return new SmithingResult(recipe, result.build(), transform.getTemplateDescriptor().getCount(),
+                                transform.getBaseDescriptor().getCount(), transform.getAdditionDescriptor().getCount());
+                    }
+                }
+                case CloudSmithingTrimRecipe trim -> {
+                    if (this.matchesSmithing(template, trim.getTemplate(), trim.getTemplateDescriptor())
+                            && this.matchesSmithing(base, trim.getBase(), trim.getBaseDescriptor())
+                            && this.matchesSmithing(addition, trim.getAddition(), trim.getAdditionDescriptor())) {
+                        TrimPattern pattern = this.findTrimPattern(template.getType().getId());
+                        TrimMaterial material = this.findTrimMaterial(addition.getType().getId());
+                        if (pattern == null || material == null) {
+                            continue;
+                        }
+
+                        ArmorTrim armorTrim = new ArmorTrim(pattern.patternId(), material.materialId());
+                        if (!armorTrim.equals(base.get(ItemDataComponents.ARMOR_TRIM))) {
+                            ItemStack result = base.toBuilder().amount(1).setData(ItemDataComponents.ARMOR_TRIM, armorTrim).build();
+                            return new SmithingResult(recipe, result, trim.getTemplateDescriptor().getCount(),
+                                    trim.getBaseDescriptor().getCount(), trim.getAdditionDescriptor().getCount());
+                        }
+                    }
+                }
+                default -> { }
+            }
+        }
+
+        return null;
+    }
+
+    private boolean matchesSmithing(ItemStack stack, RecipeIngredient ingredient, ItemDescriptorWithCount descriptor) {
+        if (descriptor.getCount() <= 0 || stack.getCount() < descriptor.getCount()) {
+            return false;
+        }
+
+        if (ingredient instanceof RecipeIngredient.Tag(Identifier tag)) {
+            if (tag.equals(TRIM_TEMPLATES)) {
+                return this.findTrimPattern(stack.getType().getId()) != null;
+            }
+
+            if (tag.equals(TRIM_MATERIALS)) {
+                return this.findTrimMaterial(stack.getType().getId()) != null;
+            }
+
+            ItemTagKey key = ItemTagKey.of(tag);
+            return this.itemRegistry.getTags().stream().anyMatch(candidate -> candidate.getKey() == key && candidate.isTagged(stack.getType()));
+        }
+
+        return ingredient.test(stack) && (!(descriptor.getDescriptor() instanceof DefaultDescriptor exact)
+                || exact.getAuxValue() == Short.MAX_VALUE
+                || this.itemRegistry.getSerializer(stack.getType()).getAuxValue(stack) == exact.getAuxValue());
+    }
+
+    private static <T> void copySmithingComponent(ItemStack source, ItemStackBuilder target, ItemDataComponentType<T> type) {
+        target.setData(type, Objects.requireNonNull(source.get(type)));
+    }
+
+    private @Nullable TrimPattern findTrimPattern(Identifier item) {
+        for (TrimPattern pattern : this.trimPatterns) {
+            if (pattern.itemId().equals(item)) {
+                return pattern;
+            }
+        }
+        return null;
+    }
+
+    private @Nullable TrimMaterial findTrimMaterial(Identifier item) {
+        for (TrimMaterial material : this.trimMaterials) {
+            if (material.itemId().equals(item)) {
+                return material;
+            }
+        }
+        return null;
+    }
+
+    public record SmithingResult(SmithingRecipe recipe, ItemStack item, int templateCost, int baseCost, int additionCost) {
     }
 
     public Recipe getRecipeFromNetId(int netId) {
@@ -704,16 +780,6 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     @Override
     public Collection<TrimMaterial> getTrimMaterials() {
         return ImmutableList.copyOf(trimMaterials);
-    }
-
-    @Override
-    public void registerSmithingUpgrade(SmithingUpgrade upgrade) {
-        smithingUpgrades.add(upgrade);
-    }
-
-    @Override
-    public Collection<SmithingUpgrade> getSmithingUpgrades() {
-        return ImmutableList.copyOf(smithingUpgrades);
     }
 
     @Override

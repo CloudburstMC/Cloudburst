@@ -98,6 +98,11 @@ public class ItemTags {
      */
     public static final ItemTagKey REPAIRS_WOLF_ARMOR = tag("repairs_wolf_armor");
 
+    /**
+     * Armor items that can receive a trim at a smithing table.
+     */
+    public static final ItemTagKey TRIMMABLE_ARMORS = tag("trimmable_armors");
+
     private static ItemTagKey tag(String path) {
         return ItemTagKey.of("minecraft:" + path);
     }

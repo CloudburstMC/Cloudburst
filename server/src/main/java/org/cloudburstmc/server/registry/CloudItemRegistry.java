@@ -323,6 +323,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
     }
 
     private void registerVanillaDataComponentSerializers() throws RegistryException {
+        this.registerDataComponentSerializer(ItemDataComponents.ARMOR_TRIM, new ArmorTrimSerializer());
         this.registerDataComponentSerializer(ItemDataComponents.BANNER_DATA, new BannerDataSerializer());
         this.registerDataComponentSerializer(ItemDataComponents.DYED_COLOR, new DyedColorSerializer());
         this.registerDataComponentSerializer(ItemDataComponents.DAMAGE, new PrimitiveSerializer<>("Damage", Integer.class));

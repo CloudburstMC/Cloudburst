@@ -22,7 +22,8 @@ public class VanillaItemTags {
     static {
         tag(LOGS_THAT_BURN, VanillaCookingData.charcoalInputs().toArray(ItemType[]::new));
         tag(MAP_INVISIBILITY_EQUIPMENT, CARVED_PUMPKIN, CREEPER_HEAD, DRAGON_HEAD, PIGLIN_HEAD,
-                PLAYER_HEAD, SKELETON_SKULL, WITHER_SKELETON_SKULL, ZOMBIE_HEAD);
+                PLAYER_HEAD, SKELETON_SKULL, WITHER_SKELETON_SKULL, ZOMBIE_HEAD
+        );
         initWoodenToolMaterials();
         initStoneToolMaterials();
         initCopperToolMaterials();
@@ -31,6 +32,16 @@ public class VanillaItemTags {
         initDiamondToolMaterials();
         initNetheriteToolMaterials();
         initArmorRepairMaterials();
+        tag(TRIMMABLE_ARMORS,
+                LEATHER_HELMET, LEATHER_CHESTPLATE, LEATHER_LEGGINGS, LEATHER_BOOTS,
+                CHAINMAIL_HELMET, CHAINMAIL_CHESTPLATE, CHAINMAIL_LEGGINGS, CHAINMAIL_BOOTS,
+                COPPER_HELMET, COPPER_CHESTPLATE, COPPER_LEGGINGS, COPPER_BOOTS,
+                IRON_HELMET, IRON_CHESTPLATE, IRON_LEGGINGS, IRON_BOOTS,
+                GOLDEN_HELMET, GOLDEN_CHESTPLATE, GOLDEN_LEGGINGS, GOLDEN_BOOTS,
+                DIAMOND_HELMET, DIAMOND_CHESTPLATE, DIAMOND_LEGGINGS, DIAMOND_BOOTS,
+                NETHERITE_HELMET, NETHERITE_CHESTPLATE, NETHERITE_LEGGINGS, NETHERITE_BOOTS,
+                TURTLE_HELMET
+        );
     }
 
     public static void freeze() {

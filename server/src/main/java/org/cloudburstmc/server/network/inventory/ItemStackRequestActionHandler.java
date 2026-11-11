@@ -295,6 +295,7 @@ public class ItemStackRequestActionHandler {
             requestFailed = true;
             return;
         }
+
         ItemStack taken = resultScreen.takeResult(sourceItem, count);
         if (taken.isEmpty()) {
             requestFailed = true;
@@ -305,7 +306,13 @@ public class ItemStackRequestActionHandler {
         ItemStack resolvedDest = proposed != null && !proposed.equals(newDest) ? proposed
                 : destItem.isEmpty() ? taken : taken.withCount(destItem.getCount() + taken.getCount());
         setSlot(dstSlot, resolvedDest);
+
+        if (screen instanceof CloudSmithingContainerScreen smithing) {
+            smithing.prepareResult();
+        }
+
         resultScreen.trackResultSlots(this::trackAffectedSlot);
+
         if (!resolvedDest.equals(newDest)) {
             this.requiresFullSlotUpdate = true;
         }
@@ -544,6 +551,11 @@ public class ItemStackRequestActionHandler {
     }
 
     private void handleCraftRecipe(RecipeItemStackRequestAction action) {
+        if (screen instanceof CloudSmithingContainerScreen smithing) {
+            smithing.trackResultSlots(this::trackAffectedSlot);
+            return;
+        }
+
         if (screen instanceof CloudCartographyContainerScreen cartography) {
             cartography.recomputeResult();
             cartography.trackResultSlots(this::trackAffectedSlot);
