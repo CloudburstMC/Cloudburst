@@ -40,6 +40,10 @@ public final class VanillaItemBehaviors {
 
     public static void configure(CloudItemRegistry registry) {
         VanillaCookingData.configureFuels(registry);
+        for (ItemType type : List.of(ItemTypes.BOOK, ItemTypes.BOW, ItemTypes.CROSSBOW, ItemTypes.FISHING_ROD, ItemTypes.TRIDENT)) {
+            registry.configure(type).set(ItemBehaviors.GET_ENCHANTABILITY, item -> 1);
+        }
+        registry.configure(ItemTypes.MACE).set(ItemBehaviors.GET_ENCHANTABILITY, item -> 15);
         configureBoats(registry);
         configureSpawnEgg(registry, ItemTypes.AGENT_SPAWN_EGG, EntityTypes.AGENT);
         configureSpawnEgg(registry, ItemTypes.ALLAY_SPAWN_EGG, EntityTypes.ALLAY);
@@ -285,7 +289,7 @@ public final class VanillaItemBehaviors {
         registry.configure(ItemTypes.SALMON_BUCKET)
                 .set(ItemBehaviors.USE_ON, BucketItemHandlers.placeEntity(BlockStates.WATER, EntityTypes.SALMON));
         configureSpawnEgg(registry, ItemTypes.SALMON_SPAWN_EGG, EntityTypes.SALMON);
-        configureTool(registry, SHEARS, VanillaTools.shears(), 238, 1, repairWith());
+        configureTool(registry, SHEARS, VanillaTools.shears(), 238, 1, 0, repairWith());
         registry.configure(SHEARS).set(ItemBehaviors.USE_ON,
                 BlockTransformationItemHandlers.useOn(VanillaBlockTransformations.SHEARS, GrowingVines::canPrune));
         configureSpawnEgg(registry, ItemTypes.SHEEP_SPAWN_EGG, EntityTypes.SHEEP);
@@ -416,6 +420,7 @@ public final class VanillaItemBehaviors {
 
     private void configureArmor(CloudItemRegistry registry, ItemType type, ArmorMaterial material, EquipmentSlot slot) {
         configureDamageableVanilla(registry, type, material.durability(slot), repairWith(material.repairTag()))
+                .set(ItemBehaviors.GET_ENCHANTABILITY, item -> material.enchantability())
                 .set(ItemBehaviors.ARMOR, new ArmorComponent(material.defense(slot), material.toughness(), material.knockbackResistance()))
                 .set(ItemBehaviors.GET_EQUIPMENT_SLOT, item -> slot)
                 .set(
@@ -457,10 +462,12 @@ public final class VanillaItemBehaviors {
             Tool tool,
             int maxDamage,
             float attackDamage,
+            int enchantability,
             CanRepairWithHandler repairWith,
             EnchantmentTarget... additionalEnchantmentTargets
     ) {
         configureDamageableVanilla(registry, type, maxDamage, repairWith)
+                .set(ItemBehaviors.GET_ENCHANTABILITY, item -> enchantability)
                 .set(ItemBehaviors.CAN_ENCHANT_WITH, toolEnchantableWith(additionalEnchantmentTargets))
                 .set(ItemBehaviors.GET_ATTACK_DAMAGE, item -> attackDamage)
                 .set(ItemBehaviors.GET_ATTACK_DURABILITY_DAMAGE, item -> 1)
@@ -475,6 +482,7 @@ public final class VanillaItemBehaviors {
                 VanillaTools.axe(material),
                 material.getDurability(),
                 1 + attackDamageBaseline + material.getAttackDamageBonus(),
+                material.getEnchantmentValue(),
                 repairWith,
                 EnchantmentTarget.SHARP_WEAPON,
                 EnchantmentTarget.WEAPON
@@ -485,11 +493,13 @@ public final class VanillaItemBehaviors {
     }
 
     private void configurePickaxe(CloudItemRegistry registry, ItemType type, ToolMaterial material, CanRepairWithHandler repairWith) {
-        configureTool(registry, type, VanillaTools.pickaxe(material), material.getDurability(), 2 + material.getAttackDamageBonus(), repairWith);
+        configureTool(registry, type, VanillaTools.pickaxe(material), material.getDurability(),
+                2 + material.getAttackDamageBonus(), material.getEnchantmentValue(), repairWith);
     }
 
     private void configureShovel(CloudItemRegistry registry, ItemType type, ToolMaterial material, CanRepairWithHandler repairWith) {
-        configureTool(registry, type, VanillaTools.shovel(material.getSpeed()), material.getDurability(), 2.5f + material.getAttackDamageBonus(), repairWith);
+        configureTool(registry, type, VanillaTools.shovel(material.getSpeed()), material.getDurability(),
+                2.5f + material.getAttackDamageBonus(), material.getEnchantmentValue(), repairWith);
         registry.configure(type).set(ItemBehaviors.USE_ON, BlockTransformationItemHandlers.useOn(VanillaBlockTransformations.SHOVEL));
     }
 
@@ -500,6 +510,7 @@ public final class VanillaItemBehaviors {
                 VanillaTools.hoe(material),
                 material.getDurability(),
                 1 + attackDamageBaseline + material.getAttackDamageBonus(),
+                material.getEnchantmentValue(),
                 repairWith
         );
         registry.configure(type).set(ItemBehaviors.USE_ON, BlockTransformationItemHandlers.useOn(VanillaBlockTransformations.HOE));
@@ -507,6 +518,7 @@ public final class VanillaItemBehaviors {
 
     private void configureSword(CloudItemRegistry registry, ItemType type, ToolMaterial material, CanRepairWithHandler repairWith) {
         configureDamageableVanilla(registry, type, material.getDurability(), repairWith)
+                .set(ItemBehaviors.GET_ENCHANTABILITY, item -> material.getEnchantmentValue())
                 .set(
                         ItemBehaviors.CAN_ENCHANT_WITH,
                         enchantableWith(
@@ -528,6 +540,7 @@ public final class VanillaItemBehaviors {
                                 CanRepairWithHandler repairWith, SoundEvent hitSound, SoundEvent missSound,
                                 SoundEvent useSound, SpearProfile spear) {
         configureDamageableVanilla(registry, type, material.getDurability(), repairWith)
+                .set(ItemBehaviors.GET_ENCHANTABILITY, item -> material.getEnchantmentValue())
                 .set(
                         ItemBehaviors.CAN_ENCHANT_WITH,
                         enchantableWith(

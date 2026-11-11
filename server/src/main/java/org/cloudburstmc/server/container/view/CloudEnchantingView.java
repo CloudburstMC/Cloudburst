@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.container.view;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.inventory.view.EnchantingView;
 import org.cloudburstmc.api.inventory.view.EnchantmentOffer;
 import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
@@ -7,68 +8,70 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.container.CloudContainer;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.IntSupplier;
 
-/**
- * View-layer slot group for the enchanting table. Holds two item slots: input (item to enchant)
- * and reagent (lapis lazuli). Tracks the three enchantment offers and the enchantment seed.
- * <p>
- * There is no separate output slot; the item is enchanted in-place in the input slot.
- * This is an ephemeral section with no block entity backing.
- */
 public class CloudEnchantingView extends CloudSlotGroupBase implements EnchantingView {
 
-    private static final int OFFER_COUNT = 3;
+    public static final int INPUT_SLOT = 0;
+    public static final int REAGENT_SLOT = 1;
 
-    private final List<EnchantmentOffer> offers;
-    private int seed;
+    private final Runnable inputChanged;
+    private final IntSupplier seed;
+    private List<@Nullable EnchantmentOffer> offers = Collections.nCopies(3, null);
 
-    public CloudEnchantingView() {
+    public CloudEnchantingView(Runnable inputChanged, IntSupplier seed) {
         super(SlotGroupTypes.ENCHANTING, new CloudContainer(2));
-        this.offers = new ArrayList<>(Arrays.asList(null, null, null));
-        this.seed = ThreadLocalRandom.current().nextInt();
+        this.inputChanged = inputChanged;
+        this.seed = seed;
     }
 
     @Override
     public ItemStack getInput() {
-        return getItem(0);
+        return this.getItem(INPUT_SLOT);
     }
 
     @Override
     public void setInput(ItemStack item) {
-        setItem(0, item);
+        this.setItem(INPUT_SLOT, item);
     }
 
     @Override
     public ItemStack getReagent() {
-        return getItem(1);
+        return this.getItem(REAGENT_SLOT);
     }
 
     @Override
     public void setReagent(ItemStack item) {
-        setItem(1, item);
+        this.setItem(REAGENT_SLOT, item);
     }
 
     @Override
-    public List<EnchantmentOffer> getOffers() {
-        return Collections.unmodifiableList(offers);
+    public void setItem(int slot, ItemStack item) {
+        ItemStack previous = this.getItem(slot);
+        super.setItem(slot, item);
+        if (slot == INPUT_SLOT && !previous.equals(this.getItem(slot))) {
+            this.inputChanged.run();
+        }
     }
 
-    void updateOffers(EnchantmentOffer top, EnchantmentOffer middle, EnchantmentOffer bottom) {
-        this.offers.set(0, top);
-        this.offers.set(1, middle);
-        this.offers.set(2, bottom);
+    @Override
+    public int getMaxStackSize(int slot) {
+        return slot == INPUT_SLOT ? 1 : super.getMaxStackSize(slot);
+    }
+
+    @Override
+    public List<@Nullable EnchantmentOffer> getOffers() {
+        return this.offers;
+    }
+
+    public void updateOffers(List<@Nullable EnchantmentOffer> offers) {
+        this.offers = Collections.unmodifiableList(new ArrayList<>(offers));
     }
 
     @Override
     public int getSeed() {
-        return seed;
-    }
-
-    void updateSeed(int seed) {
-        this.seed = seed;
+        return this.seed.getAsInt();
     }
 }

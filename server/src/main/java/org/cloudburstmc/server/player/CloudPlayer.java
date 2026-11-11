@@ -240,6 +240,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     public int pickedXPOrb = 0;
     private int exp = 0;
     private int expLevel = 0;
+    private int enchantmentSeed = ThreadLocalRandom.current().nextInt();
     private Entity killer = null;
     private boolean foodEnabled = true;
     private boolean wasUnderwater;
@@ -3017,6 +3018,20 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         this.sendExperience(exp);
     }
 
+    public int getEnchantmentSeed() {
+        return this.enchantmentSeed;
+    }
+
+    public void completeEnchantment(int levelsSpent) {
+        if (levelsSpent > 0) {
+            int level = this.getExperienceLevel();
+            int remaining = level - levelsSpent;
+            int progress = (int) ((long) this.getExperience() * calculateRequireExperience(remaining) / calculateRequireExperience(level));
+            this.setExperience(progress, remaining);
+        }
+        this.enchantmentSeed = ThreadLocalRandom.current().nextInt();
+    }
+
     public void sendExperience() {
         sendExperience(this.getExperience());
     }
@@ -3383,6 +3398,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         int exp = tag.getInt("EXP");
         int expLevel = tag.getInt("expLevel");
         this.setExperience(exp, expLevel);
+        tag.listenForInt("enchantmentSeed", seed -> this.enchantmentSeed = seed);
 
         this.foodData.load(tag.getInt("foodLevel", 20), tag.getFloat("foodSaturationLevel", 5.0f),
                 tag.getFloat("foodExhaustionLevel", 0.0f), tag.getInt("foodTickTimer", 0));
@@ -3426,6 +3442,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
         tag.putInt("EXP", this.getExperience());
         tag.putInt("expLevel", this.getExperienceLevel());
+        tag.putInt("enchantmentSeed", this.enchantmentSeed);
 
         tag.putInt("foodLevel", this.getFoodData().getLevel());
         tag.putFloat("foodSaturationLevel", this.foodData.getSaturation());

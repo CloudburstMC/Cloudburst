@@ -22,7 +22,7 @@ public class NetworkItemStack {
             .weakKeys() // Make sure the entry is removed when the item is no longer referenced
             .build();
 
-    private final int netId = NET_ID_ALLOCATOR.getAndUpdate(operand -> operand >= Integer.MAX_VALUE ? 1 : operand + 1);
+    private final int netId = allocateNetId();
     private SoftReference<NbtMap> tag;
 
     private static NetworkItemStack get(ItemStack itemStack) {
@@ -39,6 +39,10 @@ public class NetworkItemStack {
 
     public static int getNetId(ItemStack itemStack) {
         return get(itemStack).netId;
+    }
+
+    public static int allocateNetId() {
+        return NET_ID_ALLOCATOR.getAndUpdate(id -> id == Integer.MAX_VALUE ? 1 : id + 1);
     }
 
     public static Optional<NbtMap> getCachedNbt(ItemStack itemStack) {

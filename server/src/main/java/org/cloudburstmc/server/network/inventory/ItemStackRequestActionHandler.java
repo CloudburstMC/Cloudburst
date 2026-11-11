@@ -516,6 +516,10 @@ public class ItemStackRequestActionHandler {
         if (screen instanceof CloudGrindstoneContainerScreen grindstone && grindstone.isInputSlot(container(slot)) && !GrindstoneResultCalculator.accepts(item)) {
             throw new IllegalArgumentException("Item cannot be placed in a grindstone input slot");
         }
+
+        if (screen instanceof CloudEnchantingContainerScreen enchanting && !enchanting.acceptsItem(container(slot), item)) {
+            throw new IllegalArgumentException("Item cannot be placed in that enchanting table slot");
+        }
     }
 
     private void onFurnaceResultTaken(ItemStackRequestSlotData slot, ItemStack item) {
@@ -571,6 +575,16 @@ public class ItemStackRequestActionHandler {
     }
 
     private void handleCraftRecipe(RecipeItemStackRequestAction action) {
+        if (screen instanceof CloudEnchantingContainerScreen enchanting) {
+            this.requestFailed = !(action instanceof CraftRecipeAction)
+                    || this.currentRequest.getActions()[0] != action
+                    || !enchanting.selectOffer(action.getRecipeNetworkId());
+            this.requiresFullSlotUpdate = true;
+            this.trackAffectedSlot(ContainerSlotType.ENCHANTING_INPUT, CloudEnchantingContainerScreen.INPUT_UI_SLOT);
+            this.trackAffectedSlot(ContainerSlotType.ENCHANTING_MATERIAL, CloudEnchantingContainerScreen.REAGENT_UI_SLOT);
+            return;
+        }
+
         if (screen instanceof CloudSmithingContainerScreen smithing) {
             smithing.trackResultSlots(this::trackAffectedSlot);
             return;
@@ -742,6 +756,10 @@ public class ItemStackRequestActionHandler {
 
     public ItemStackResponse endRequest() {
         int requestId = currentRequest.getRequestId();
+
+        if (this.screen instanceof CloudEnchantingContainerScreen enchanting) {
+            enchanting.sendOffers();
+        }
 
         if (this.requiresFullSlotUpdate) {
             for (Map.Entry<ContainerSlotType, Set<Integer>> entry : this.affectedSlots.entrySet()) {

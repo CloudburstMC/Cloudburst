@@ -286,6 +286,9 @@ public class VanillaBlockBehaviors {
         configureUsable(registry, DROPPER, ContainerBlockHandlers.DROPPER);
         configureOre(registry, EMERALD_ORE, OreLoot.emerald(EMERALD_ORE.getDefaultState()));
         configureUsable(registry, ENCHANTING_TABLE, ContainerBlockHandlers.ENCHANTING_TABLE);
+        registry.configure(ENCHANTING_TABLE)
+                .set(BlockComponents.ON_ADDED, EnchantingTableBlockHandlers.ON_ADDED)
+                .set(BlockComponents.GET_LOOT, EnchantingTableBlockHandlers.GET_LOOT);
 
         registry.configure(END_GATEWAY)
                 .set(BlockComponents.GET_COLLISION_SHAPE, EndGatewayBlockHandlers.COLLISION_SHAPE)

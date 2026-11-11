@@ -13,6 +13,7 @@ import org.cloudburstmc.protocol.bedrock.packet.ItemStackRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ItemStackResponsePacket;
 import org.cloudburstmc.server.blockentity.ContainerBlockEntity;
 import org.cloudburstmc.server.container.Container;
+import org.cloudburstmc.server.container.screen.CloudEnchantingContainerScreen;
 import org.cloudburstmc.server.container.screen.CloudInventoryScreen;
 import org.cloudburstmc.server.container.view.CloudSlotGroupBase;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -58,6 +59,10 @@ public class ItemStackNetManager {
     public void handleSingleRequest(ItemStackRequest request) {
         this.requests.offer(request);
         processQueue();
+    }
+
+    public boolean isProcessingRequests() {
+        return this.processingRequests;
     }
 
     public void resendSlotAfterResponse(CloudInventoryScreen screen, ContainerSlotType container, int slot) {
@@ -133,6 +138,10 @@ public class ItemStackNetManager {
             this.player.onInventorySlotChange(update.container(), update.slot());
         }
 
+        if (this.screenStack.peekLast() instanceof CloudEnchantingContainerScreen enchanting) {
+            enchanting.sendOffers();
+        }
+
         if (this.requests.isEmpty()) {
             if (this.textFilterState != TextFilterState.NONE) {
                 this.textFilterState = TextFilterState.NONE;
@@ -183,12 +192,16 @@ public class ItemStackNetManager {
         this.currentRequestIsCrafting = false;
         this.handler.beginRequest(request, screen);
 
-        for (ItemStackRequestAction action : request.getActions()) {
-            if (!isRequestActionAllowed(action)) {
-                break;
+        ItemStackRequestAction[] actions = request.getActions();
+        if (screen instanceof CloudEnchantingContainerScreen && actions.length != 0 && actions[0] instanceof CraftRecipeAction selection) {
+            this.handler.handleAction(selection);
+        } else {
+            for (ItemStackRequestAction action : actions) {
+                if (!isRequestActionAllowed(action)) {
+                    break;
+                }
+                this.handler.handleAction(action);
             }
-
-            handler.handleAction(action);
         }
 
         this.currentRequestIsCrafting = false;

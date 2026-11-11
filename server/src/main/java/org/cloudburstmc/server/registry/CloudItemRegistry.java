@@ -351,6 +351,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         this.registerComponent(ItemBehaviors.CAN_DESTROY, DefaultItemHandlers.CAN_DESTROY);
         this.registerComponent(ItemBehaviors.CAN_DESTROY_IN_CREATIVE, () -> true);
         this.registerComponent(ItemBehaviors.CAN_ENCHANT_WITH, (item, enchantment) -> false);
+        this.registerComponent(ItemBehaviors.GET_ENCHANTABILITY, item -> 0);
         this.registerComponent(ItemBehaviors.CAN_REPAIR_WITH, (item, material) -> false);
         this.registerComponent(ItemBehaviors.CAN_STORE_ENCHANTMENTS, () -> true);
         this.registerComponent(ItemBehaviors.CONSUMABLE);

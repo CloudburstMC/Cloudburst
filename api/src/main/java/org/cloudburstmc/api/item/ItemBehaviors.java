@@ -70,6 +70,12 @@ public class ItemBehaviors {
     public static final ComponentType<CanEnchantWithHandler> CAN_ENCHANT_WITH = ComponentType.of("can_enchant_with", CanEnchantWithHandler.class);
 
     /**
+     * Controls enchanting table eligibility and the bonus used to select enchantments. Zero disables table enchanting.
+     */
+    public static final ComponentType<IntItemHandler> GET_ENCHANTABILITY =
+            ComponentType.of("get_enchantability", IntItemHandler.class);
+
+    /**
      * Determines whether a material may be used to repair an item.
      */
     public static final ComponentType<CanRepairWithHandler> CAN_REPAIR_WITH = ComponentType.of("can_repair_with", CanRepairWithHandler.class);
