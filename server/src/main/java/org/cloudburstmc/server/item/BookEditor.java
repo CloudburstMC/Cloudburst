@@ -6,7 +6,7 @@ import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
-import org.cloudburstmc.api.item.data.Page;
+import org.cloudburstmc.api.item.data.BookPage;
 import org.cloudburstmc.api.item.data.WrittenBook;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
@@ -14,7 +14,6 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.InventoryAct
 import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.InventorySource;
 import org.cloudburstmc.protocol.bedrock.packet.BookEditPacket;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.PageContent;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -25,6 +24,7 @@ import java.util.List;
 public class BookEditor {
 
     private static final int MAX_PAGES = 50;
+    private static final int MAX_PAGE_LENGTH = 256;
     private static final int MAX_SIGNATURE_LENGTH = 16;
 
     public static boolean isInventoryPrediction(List<InventoryActionData> actions) {
@@ -87,7 +87,7 @@ public class BookEditor {
 
     private static @Nullable ItemStack propose(CloudPlayer player, BookEditPacket packet, ItemStack original) {
         WrittenBook book = original.get(ItemDataComponents.BOOK_DATA);
-        List<Page> pages = new ArrayList<>(book == null ? List.of() : book.getPages());
+        List<BookPage> pages = new ArrayList<>(book == null ? List.of() : book.getPages());
         if (packet.getAction() == BookEditPacket.Action.SIGN_BOOK) {
             String title = packet.getTitle();
             String author = packet.getAuthor();
@@ -95,7 +95,7 @@ public class BookEditor {
                 return null;
             }
 
-            WrittenBook signed = WrittenBook.of(0, title, author, player.getXuid(), 0, true, List.copyOf(pages));
+            WrittenBook signed = WrittenBook.of(0, title, author, player.getXuid(), 0, true, pages);
             return original.toBuilder().itemType(ItemTypes.WRITTEN_BOOK).setData(ItemDataComponents.BOOK_DATA, signed).build();
         }
 
@@ -107,18 +107,18 @@ public class BookEditor {
         switch (packet.getAction()) {
             case ADD_PAGE, REPLACE_PAGE -> {
                 String text = packet.getText();
-                if (text == null) {
+                if (text == null || text.length() > MAX_PAGE_LENGTH) {
                     return null;
                 }
 
-                PageContent page = PageContent.from(text, packet.getPhotoName() == null ? "" : packet.getPhotoName());
+                BookPage page = new BookPage(text, packet.getPhotoName() == null ? "" : packet.getPhotoName());
                 boolean insert = packet.getAction() == BookEditPacket.Action.ADD_PAGE;
-                if (!page.isValid() || (pages.size() >= MAX_PAGES && insert)) {
+                if (insert && pages.size() >= MAX_PAGES) {
                     return null;
                 }
 
                 while (pages.size() < index) {
-                    pages.add(PageContent.from(""));
+                    pages.add(new BookPage("", ""));
                 }
 
                 if (insert || pages.size() == index) {
@@ -143,7 +143,7 @@ public class BookEditor {
             case SIGN_BOOK -> throw new IllegalStateException("Signature must be handled before page edits");
         }
 
-        WrittenBook draft = WrittenBook.of(0, "", "", "", 0, false, List.copyOf(pages));
+        WrittenBook draft = WrittenBook.of(0, "", "", "", 0, false, pages);
         return original.toBuilder().setData(ItemDataComponents.BOOK_DATA, draft).build();
     }
 }

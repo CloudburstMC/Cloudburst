@@ -1,11 +1,11 @@
 package org.cloudburstmc.api.item.data;
 
-import com.google.common.base.Preconditions;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * The pages and signature data of a writable or written book.
@@ -45,9 +45,9 @@ public class WrittenBook {
     private final boolean resolved;
 
     /**
-     * The pages in reading order.
+     * The unmodifiable list of pages in reading order.
      */
-    private final List<Page> pages;
+    private final List<BookPage> pages;
 
     /**
      * Creates the page and signature data for a book.
@@ -58,12 +58,10 @@ public class WrittenBook {
      * @param xuid       the signer's Xbox user ID, or an empty string if unavailable
      * @param id         the recorded book identifier, or zero if unavailable
      * @param resolved   whether the page content is marked as resolved
-     * @param pages      the pages in reading order
+     * @param pages      the pages in reading order, copied when the book is created
      * @return the book data
      */
-    public static WrittenBook of(int generation, String title, String author, String xuid, long id, boolean resolved, List<Page> pages) {
-        Preconditions.checkNotNull(title, "title");
-        Preconditions.checkNotNull(pages, "pages");
-        return new WrittenBook(generation, title, author, xuid, id, resolved, pages);
+    public static WrittenBook of(int generation, String title, String author, String xuid, long id, boolean resolved, List<BookPage> pages) {
+        return new WrittenBook(generation, Objects.requireNonNull(title, "title"), author, xuid, id, resolved, List.copyOf(pages));
     }
 }

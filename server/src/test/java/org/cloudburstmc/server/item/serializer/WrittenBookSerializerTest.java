@@ -26,8 +26,8 @@ class WrittenBookSerializerTest {
 
         assertNotNull(book);
         assertEquals("", book.getTitle());
-        assertEquals("First page", book.getPages().getFirst().getText());
-        assertEquals("Previously saved page", book.getPages().getLast().getText());
+        assertEquals("First page", book.getPages().getFirst().text());
+        assertEquals("Previously saved page", book.getPages().getLast().text());
 
         NbtMapBuilder serialized = NbtMap.builder();
         serializer.serialize(ItemStack.from(ItemTypes.WRITABLE_BOOK), serialized, book);

@@ -1,15 +1,13 @@
 package org.cloudburstmc.server.item.data.serializer;
 
-import com.google.common.collect.ImmutableList;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
-import org.cloudburstmc.api.item.data.Page;
+import org.cloudburstmc.api.item.data.BookPage;
 import org.cloudburstmc.api.item.data.WrittenBook;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.utils.PageContent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,8 +35,8 @@ public class WrittenBookSerializer implements ItemDataComponentSerializer<Writte
         }
 
         List<NbtMap> pages = new ArrayList<>();
-        for (Page page : value.getPages()) {
-            pages.add(PageContent.from(page.getText(), page.getPhotoName()).createTag());
+        for (BookPage page : value.getPages()) {
+            pages.add(NbtMap.builder().putString("text", page.text()).putString("photoname", page.photoName()).build());
         }
 
         tag.putList(TAG_PAGES, NbtType.COMPOUND, pages);
@@ -50,17 +48,9 @@ public class WrittenBookSerializer implements ItemDataComponentSerializer<Writte
             return null;
         }
 
-        List<Page> pages;
-        List<NbtMap> pageTags = tag.getList(TAG_PAGES, NbtType.COMPOUND);
-
-        if (pageTags == null) {
-            pages = ImmutableList.of();
-        } else {
-            pages = new ArrayList<>(pageTags.size());
-
-            for (NbtMap pageTag : pageTags) {
-                pages.add(PageContent.from(pageTag));
-            }
+        List<BookPage> pages = new ArrayList<>();
+        for (NbtMap page : tag.getList(TAG_PAGES, NbtType.COMPOUND, List.of())) {
+            pages.add(new BookPage(page.getString("text", page.getString("page", "")), page.getString("photoname", "")));
         }
 
         return WrittenBook.of(
