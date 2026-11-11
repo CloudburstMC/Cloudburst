@@ -1,11 +1,11 @@
 package org.cloudburstmc.server.blockentity;
 
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Hopper;
-import org.cloudburstmc.server.container.Container;
-import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.event.inventory.InventoryMoveItemEvent;
@@ -22,7 +22,10 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.block.component.ComposterBlockHandlers;
 import org.cloudburstmc.server.container.CloudContainer;
+import org.cloudburstmc.server.container.Container;
+import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -100,12 +103,15 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
         }
 
         if (!this.isOnTransferCooldown()) {
+            Block above = this.getLevel().getLoadedBlock(this.getPosition().add(UP));
             BlockEntity blockEntity = this.getLevel().getBlockEntity(this.getPosition().add(UP));
 
             boolean changed = pushItems();
 
             if (!changed) {
-                if (blockEntity == null) {
+                if (above != null && above.getState().getType() == BlockTypes.COMPOSTER) {
+                    changed = ComposterBlockHandlers.extractFromBelow(above, this, this.container);
+                } else if (blockEntity == null) {
                     changed = pickupItems();
                 } else {
                     changed = pullItems();
@@ -244,7 +250,15 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
         }
 
         Direction direction = getBlockState().ensureTrait(BlockTraits.FACING_DIRECTION);
-        BlockEntity be = this.getLevel().getBlockEntity(direction.relative(this.getPosition()));
+        Vector3i targetPosition = direction.relative(this.getPosition());
+        if (direction == Direction.DOWN) {
+            Block target = this.getLevel().getLoadedBlock(targetPosition);
+            if (target != null && target.getState().getType() == BlockTypes.COMPOSTER) {
+                return ComposterBlockHandlers.insertFromAbove(target, this, this.container);
+            }
+        }
+
+        BlockEntity be = this.getLevel().getBlockEntity(targetPosition);
 
         if (be instanceof Hopper && direction == Direction.DOWN || !(be instanceof ContainerBlockEntity))
             return false;

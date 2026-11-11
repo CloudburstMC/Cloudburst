@@ -23,6 +23,7 @@ public class SlotGroupTypes {
     public static final SlotGroupType<BlockBrewingStandView> BREWING_STAND = SlotGroupType.of(Identifier.parse("cloudburstmc:slot_group_brewing_stand"), BlockBrewingStandView.class);
     public static final SlotGroupType<CartographyView> CARTOGRAPHY = SlotGroupType.of(Identifier.parse("cloudburstmc:slot_group_cartography"), CartographyView.class);
     public static final SlotGroupType<BlockStorageView> CHEST = SlotGroupType.of(Identifier.parse("cloudburstmc:slot_group_chest"), BlockStorageView.class);
+    public static final SlotGroupType<ComposterView> COMPOSTER = SlotGroupType.of(Identifier.parse("cloudburstmc:slot_group_composter"), ComposterView.class);
     public static final SlotGroupType<CraftingView> CRAFTING = SlotGroupType.of(Identifier.parse("cloudburstmc:slot_group_crafting"), CraftingView.class);
     public static final SlotGroupType<CraftingTableView> CRAFTING_TABLE = SlotGroupType.of(Identifier.parse("cloudburstmc:slot_group_crafting_table"), CraftingTableView.class);
     public static final SlotGroupType<BlockCrafterView> CRAFTER = SlotGroupType.of(Identifier.parse("cloudburstmc:slot_group_crafter"), BlockCrafterView.class);

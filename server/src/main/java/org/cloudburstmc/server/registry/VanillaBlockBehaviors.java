@@ -233,6 +233,8 @@ public class VanillaBlockBehaviors {
         configureOre(registry, COPPER_ORE, OreLoot.copper(COPPER_ORE.getDefaultState()));
         configureTorch(registry, COPPER_TORCH);
         configureTrapdoor(registry, COPPER_TRAPDOOR);
+        configureUsable(registry, COMPOSTER, ComposterBlockHandlers.USE);
+        registry.configure(COMPOSTER).set(BlockComponents.ON_TICK, ComposterBlockHandlers.ON_TICK);
         configureUsable(registry, CRAFTER, ContainerBlockHandlers.CRAFTER);
         configureUsable(registry, CRAFTING_TABLE, ContainerBlockHandlers.CRAFTING_TABLE);
         configureWoodenButton(registry, CRIMSON_BUTTON);

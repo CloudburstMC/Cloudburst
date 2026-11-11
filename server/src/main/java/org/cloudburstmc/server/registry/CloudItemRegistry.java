@@ -354,6 +354,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         this.registerComponent(ItemBehaviors.GET_ENCHANTABILITY, item -> 0);
         this.registerComponent(ItemBehaviors.CAN_REPAIR_WITH, (item, material) -> false);
         this.registerComponent(ItemBehaviors.CAN_STORE_ENCHANTMENTS, () -> true);
+        this.registerComponent(ItemBehaviors.COMPOSTING_CHANCE);
         this.registerComponent(ItemBehaviors.CONSUMABLE);
         this.registerComponent(ItemBehaviors.DEATH_PROTECTION);
         this.registerComponent(ItemBehaviors.DAMAGEABLE, () -> false);

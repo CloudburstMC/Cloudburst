@@ -40,6 +40,7 @@ public final class VanillaItemBehaviors {
 
     public static void configure(CloudItemRegistry registry) {
         VanillaCookingData.configureFuels(registry);
+        VanillaCompostingData.configure(registry);
         for (ItemType type : List.of(ItemTypes.BOOK, ItemTypes.BOW, ItemTypes.CROSSBOW, ItemTypes.FISHING_ROD, ItemTypes.TRIDENT)) {
             registry.configure(type).set(ItemBehaviors.GET_ENCHANTABILITY, item -> 1);
         }

@@ -203,6 +203,11 @@ public class ItemBehaviors {
     public static final ComponentType<Integer> USE_DURATION_TICKS = ComponentType.of("use_duration_ticks", Integer.class);
 
     /**
+     * Percentage chance to raise a nonempty composter by one layer. Absence means the item is not compostable.
+     */
+    public static final ComponentType<Integer> COMPOSTING_CHANCE = ComponentType.of("composting_chance", Integer.class);
+
+    /**
      * Applies the behavior for using an item on a block and returns the resulting item stack.
      */
     public static final ComponentType<UseOnHandler> USE_ON = ComponentType.of("use_on", UseOnHandler.class);
