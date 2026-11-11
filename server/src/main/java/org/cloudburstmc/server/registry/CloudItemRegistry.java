@@ -337,6 +337,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         this.registerDataComponentSerializer(ItemDataComponents.CHARGED_PROJECTILE, new ChargedProjectileSerializer());
         this.registerDataComponentSerializer(ItemDataComponents.SPAWN_EGG_TYPE, new EntityTypeSerializer());
         this.registerDataComponentSerializer(ItemDataComponents.ENTITY_DATA, new EntitySnapshotSerializer());
+        this.registerDataComponentSerializer(ItemDataComponents.SHULKER_BOX_CONTENTS, new ShulkerBoxContentsSerializer());
     }
 
     private void registerDefaultComponents() {

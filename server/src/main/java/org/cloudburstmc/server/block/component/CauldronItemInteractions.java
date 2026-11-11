@@ -26,13 +26,13 @@ import org.cloudburstmc.api.potion.PotionTypes;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.Bucket;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.server.item.ShulkerBoxItems;
 import org.cloudburstmc.server.item.VanillaItemDyes;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.network.LevelEffectPacketFactory;
 import org.cloudburstmc.server.potion.CloudPotionColor;
 
 import java.util.Map;
-import java.util.Set;
 
 import static org.cloudburstmc.server.block.component.CauldronBlockHandlers.*;
 
@@ -52,14 +52,6 @@ public class CauldronItemInteractions {
             ItemTypes.POTION, PotionForm.DRINKABLE,
             ItemTypes.SPLASH_POTION, PotionForm.SPLASH,
             ItemTypes.LINGERING_POTION, PotionForm.LINGERING);
-
-    private static final Set<ItemType> DYED_SHULKERS = Set.of(
-            ItemTypes.WHITE_SHULKER_BOX, ItemTypes.ORANGE_SHULKER_BOX, ItemTypes.MAGENTA_SHULKER_BOX,
-            ItemTypes.LIGHT_BLUE_SHULKER_BOX, ItemTypes.YELLOW_SHULKER_BOX, ItemTypes.LIME_SHULKER_BOX,
-            ItemTypes.PINK_SHULKER_BOX, ItemTypes.GRAY_SHULKER_BOX, ItemTypes.LIGHT_GRAY_SHULKER_BOX,
-            ItemTypes.CYAN_SHULKER_BOX, ItemTypes.PURPLE_SHULKER_BOX, ItemTypes.BLUE_SHULKER_BOX,
-            ItemTypes.BROWN_SHULKER_BOX, ItemTypes.GREEN_SHULKER_BOX, ItemTypes.RED_SHULKER_BOX,
-            ItemTypes.BLACK_SHULKER_BOX);
 
     public static boolean use(Block block, Player player, Direction face, ItemStack item) {
         Bucket incoming = BUCKETS.get(item.getType());
@@ -253,20 +245,17 @@ public class CauldronItemInteractions {
                     .build();
             BlockState updated = state(Bucket.WATER, fill(block) - 1);
 
-            exchange(block, player, item, output, 1, updated, CauldronContents.PLAIN, CauldronChangeReason.BANNER_WASH, SoundTypes.CAULDRON_CLEANBANNER, ExchangeMode.COPY);
+            exchange(block, player, item, output, 1, updated, CauldronContents.PLAIN,
+                    CauldronChangeReason.BANNER_WASH, SoundTypes.CAULDRON_CLEANBANNER, ExchangeMode.TRANSFORM);
             return true;
         }
 
-        if (DYED_SHULKERS.contains(item.getType())) {
-            ItemStack output = item.toBuilder()
-                    .itemType(ItemTypes.UNDYED_SHULKER_BOX)
-                    .amount(1)
-                    .removeData(ItemDataComponents.BLOCK_STATE)
-                    .removeData(ItemDataComponents.COLOR)
-                    .build();
+        if (item.getType() != ItemTypes.UNDYED_SHULKER_BOX && ShulkerBoxItems.TYPES.contains(item.getType())) {
+            ItemStack output = ShulkerBoxItems.recolor(item, ItemTypes.UNDYED_SHULKER_BOX);
             BlockState updated = state(Bucket.WATER, fill(block) - 1);
 
-            exchange(block, player, item, output, 1, updated, CauldronContents.PLAIN, CauldronChangeReason.SHULKER_WASH, null, ExchangeMode.COPY);
+            exchange(block, player, item, output, 1, updated, CauldronContents.PLAIN,
+                    CauldronChangeReason.SHULKER_WASH, SoundTypes.CAULDRON_CLEANARMOR, ExchangeMode.TRANSFORM);
             return true;
         }
 
@@ -275,13 +264,21 @@ public class CauldronItemInteractions {
 
     private static boolean tipArrows(Block block, Player player, ItemStack item, CauldronContents stored) {
         int level = fill(block);
-        if (item.getType() != ItemTypes.ARROW || item.get(ItemDataComponents.POTION_TYPE) != null || level < BOTTLE) {
+        if (item.getType() != ItemTypes.ARROW || item.get(ItemDataComponents.POTION_TYPE) != null) {
             return false;
         }
 
-        int capacity = level == FULL ? 64 : level / BOTTLE * 16;
+        int capacity = level == FULL ? 64 : level >= 4 ? 32 : 16;
         int count = Math.min(item.getCount(), capacity);
-        int cost = Math.min(level, (count + 15) / 16 * BOTTLE);
+        int cost;
+        if (level <= 3) {
+            cost = level;
+        } else if (count <= 16) {
+            cost = 1;
+        } else {
+            cost = count <= 32 ? 4 : FULL;
+        }
+
         ItemStack output = item.toBuilder()
                 .amount(count)
                 .setData(ItemDataComponents.POTION_TYPE, stored.potion())
@@ -294,14 +291,15 @@ public class CauldronItemInteractions {
 
     private static void exchange(Block block, Player player, ItemStack input, ItemStack output, int count,
                                  BlockState updated, CauldronContents contents, CauldronChangeReason reason,
-                                 @Nullable SoundType sound, ExchangeMode mode) {
+                                 SoundType sound, ExchangeMode mode) {
+        CauldronContents previous = contents(block);
         if (!player.getInventory().getSelectedItem().equals(input)
                 || !change(block, player, reason, updated, contents)) {
             return;
         }
 
-        if (player.isCreative() && mode != ExchangeMode.TRANSFORM) {
-            if (!output.isEmpty() && (mode == ExchangeMode.COPY || !player.getInventory().contains(output))) {
+        if (player.isCreative() && mode == ExchangeMode.CONTAINER) {
+            if (!output.isEmpty() && !player.getInventory().contains(output)) {
                 give(player, output);
             }
         } else if (input.getCount() == count) {
@@ -311,9 +309,7 @@ public class CauldronItemInteractions {
             give(player, output);
         }
 
-        if (sound != null) {
-            playEffect(block, sound, contents);
-        }
+        playEffect(block, sound, previous);
     }
 
     private static void playEffect(Block block, SoundType sound, CauldronContents previous) {
@@ -372,7 +368,6 @@ public class CauldronItemInteractions {
 
     private enum ExchangeMode {
         CONTAINER,
-        TRANSFORM,
-        COPY
+        TRANSFORM
     }
 }

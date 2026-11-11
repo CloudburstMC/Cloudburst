@@ -3,12 +3,14 @@ package org.cloudburstmc.server.network.inventory;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.crafting.CraftingRecipe;
 import org.cloudburstmc.api.crafting.Recipe;
+import org.cloudburstmc.api.crafting.ShulkerBoxRecipe;
 import org.cloudburstmc.api.event.inventory.ActionType;
 import org.cloudburstmc.api.event.inventory.CartographyItemEvent;
 import org.cloudburstmc.api.event.inventory.ClickType;
 import org.cloudburstmc.api.event.inventory.InventoryClickEvent;
 import org.cloudburstmc.api.inventory.ScreenTypes;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
+import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.data.ItemLockMode;
@@ -23,6 +25,7 @@ import org.cloudburstmc.server.container.grindstone.GrindstoneResultCalculator;
 import org.cloudburstmc.server.container.screen.*;
 import org.cloudburstmc.server.container.screen.ResultContainerScreen.ResultQuote;
 import org.cloudburstmc.server.container.screen.ResultContainerScreen.ResultTake;
+import org.cloudburstmc.server.item.ShulkerBoxItems;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
@@ -42,6 +45,7 @@ public class InventoryRequest {
     private final CloudPlayer player;
     private final Map<ContainerSlotType, Set<Integer>> affectedSlots = new LinkedHashMap<>();
     private final InventorySlotChanges changes = new InventorySlotChanges();
+    private @Nullable Set<Integer> shulkerDyeConsumes;
     private final List<Runnable> effects = new ArrayList<>();
     private final Set<InventorySlotChanges.SlotKey> stationSlots = new HashSet<>();
     private @Nullable PendingResult pendingResult;
@@ -596,7 +600,8 @@ public class InventoryRequest {
             throw new IllegalArgumentException("Unknown creative item network ID: " + creativeNetId);
         }
 
-        creativeItem = creativeItem.withCount(64); // TODO: Use actual creative item size
+        creativeItem = creativeItem.withCount(CloudItemRegistry.get()
+                .requireComponent(creativeItem.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute(creativeItem));
 
         ResolvedRequestSlot createdOutputSlot = resolveSlot(ContainerSlotType.CREATED_OUTPUT, CREATED_OUTPUT_PROTOCOL_SLOT);
 
@@ -649,7 +654,11 @@ public class InventoryRequest {
         }
 
         int numberOfCrafts = Math.max(1, action.getNumberOfRequestedCrafts());
-        placeRecipeOutput(recipe, numberOfCrafts);
+        if (recipe instanceof ShulkerBoxRecipe dyeRecipe) {
+            this.dyeShulkerBox(dyeRecipe, numberOfCrafts);
+        } else {
+            placeRecipeOutput(recipe, numberOfCrafts);
+        }
     }
 
     private void handleCraftRecipeOptional(CraftRecipeOptionalAction action) {
@@ -700,6 +709,13 @@ public class InventoryRequest {
 
         int sourceSlot = action.getSource().getSlot();
         int consumeCount = action.getCount();
+
+        if (this.shulkerDyeConsumes != null) {
+            if (consumeCount != 1 || !this.shulkerDyeConsumes.remove(sourceSlot)) {
+                this.requestFailed = true;
+            }
+            return;
+        }
 
         ItemStack current = this.getSlot(action.getSource());
         if (current.isEmpty()) {
@@ -754,6 +770,51 @@ public class InventoryRequest {
         this.stageSlot(ContainerSlotType.CREATED_OUTPUT, CREATED_OUTPUT_PROTOCOL_SLOT, result);
     }
 
+    private void dyeShulkerBox(ShulkerBoxRecipe recipe, int crafts) {
+        if (crafts != 1) {
+            throw new IllegalArgumentException("Only one shulker box may be dyed per request");
+        }
+
+        ContainerSlotType grid = ContainerSlotType.CRAFTING_INPUT;
+        SlotGroup group = Objects.requireNonNull(this.screen.resolveSlotGroup(grid), "crafting grid");
+        ItemStack box = ItemStack.EMPTY;
+        ItemStack dye = ItemStack.EMPTY;
+
+        int boxSlot = -1;
+        int dyeSlot = -1;
+
+        for (int slot = 0; slot < group.size(); slot++) {
+            ItemStack item = this.changes.read(group, slot);
+            if (item.isEmpty()) {
+                continue;
+            }
+
+            if (item.get(ItemDataComponents.ITEM_LOCK) != null) {
+                throw new IllegalArgumentException("Cannot dye a shulker box with locked ingredients");
+            }
+
+            if (box.isEmpty() && ShulkerBoxItems.TYPES.contains(item.getType()) && recipe.getShulkerBox().test(item)) {
+                box = item;
+                boxSlot = this.screen.resolveProtocolSlot(grid, slot);
+            } else if (dye.isEmpty() && recipe.getDye().test(item)) {
+                dye = item;
+                dyeSlot = this.screen.resolveProtocolSlot(grid, slot);
+            } else {
+                throw new IllegalArgumentException("Unexpected ingredient for shulker box dyeing");
+            }
+        }
+
+        if (boxSlot < 0 || dyeSlot < 0) {
+            throw new IllegalArgumentException("Shulker box dyeing requires a box and dye");
+        }
+
+        ItemStack result = ShulkerBoxItems.recolor(box, recipe.getResult().getType());
+        this.stageSlot(grid, boxSlot, box.decreaseCount());
+        this.stageSlot(grid, dyeSlot, dye.decreaseCount());
+        this.stageSlot(ContainerSlotType.CREATED_OUTPUT, CREATED_OUTPUT_PROTOCOL_SLOT, result);
+        this.shulkerDyeConsumes = new HashSet<>(Set.of(boxSlot, dyeSlot));
+    }
+
     private void rejectFurnaceResultInsert(ItemStackRequestSlotData slot) {
         if (screen instanceof CloudFurnaceContainerScreen && container(slot) == ContainerSlotType.FURNACE_RESULT) {
             throw new IllegalArgumentException("Cannot insert items into a furnace result slot");
@@ -761,6 +822,14 @@ public class InventoryRequest {
     }
 
     private void validateStationSlot(ItemStackRequestSlotData slot, ItemStack item) {
+        if (container(slot) == ContainerSlotType.SHULKER_BOX && !ShulkerBoxItems.accepts(item)) {
+            throw new IllegalArgumentException("Shulker boxes cannot be stored in shulker boxes");
+        }
+
+        if (item.getCount() > 1 && ShulkerBoxItems.TYPES.contains(item.getType())) {
+            throw new IllegalArgumentException("Shulker boxes cannot be stacked");
+        }
+
         if (screen instanceof CloudFurnaceContainerScreen furnace && container(slot) == ContainerSlotType.FURNACE_FUEL && !furnace.furnaceEntity().acceptsFuel(item)) {
             throw new IllegalArgumentException("Item cannot be placed in a furnace fuel slot");
         }

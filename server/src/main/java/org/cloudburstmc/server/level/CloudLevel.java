@@ -1860,12 +1860,17 @@ public class CloudLevel implements Level, BlockStateRegion {
             if (target.getState() == BlockStates.AIR) {
                 return item;
             }
+
             targetBehaviors = target.getComponents();
             correctForDrops = ToolUtils.isCorrectForDrops(item, target.getState());
-            drops = !player.isCreative() && correctForDrops
-                    ? targetBehaviors.require(BlockComponents.GET_LOOT)
-                            .execute(target, lootContext).toArray(ItemStack[]::new)
-                    : new ItemStack[0];
+
+            if (player.isCreative()) {
+                drops = targetBehaviors.require(BlockComponents.GET_CREATIVE_LOOT).execute(target, lootContext)
+                        .toArray(ItemStack[]::new);
+            } else {
+                drops = correctForDrops ? targetBehaviors.require(BlockComponents.GET_LOOT).execute(target, lootContext)
+                        .toArray(ItemStack[]::new) : new ItemStack[0];
+            }
         } else if (!targetBehaviors.require(BlockComponents.IS_BREAKABLE).execute(target, item)) {
             return null;
         } else {
@@ -1908,7 +1913,7 @@ public class CloudLevel implements Level, BlockStateRegion {
                 item = itemBehaviors.require(ItemBehaviors.MINE_BLOCK).execute(item, target, player);
             }
 
-            if (doBlockDrops && player != null && !player.isCreative() && dropItems) {
+            if (doBlockDrops && player != null && dropItems) {
                 for (ItemStack drop : drops) {
                     if (drop != null && !drop.isEmpty() && drop.getCount() > 0) {
                         this.dropBlockItem(pos, drop);
@@ -2117,8 +2122,7 @@ public class CloudLevel implements Level, BlockStateRegion {
     public @Nullable BlockPlacementResult tryPlaceBlock(Block target, Block side, Direction face, Vector3f clickPos, ItemStack item, Player player, boolean playSound) {
         ComponentMap itemBehaviors = this.itemRegistry.requireComponents(item.getType());
 
-        @SuppressWarnings("unchecked")
-        BlockState hand = ((Optional<BlockState>) itemBehaviors.require(ItemBehaviors.GET_BLOCK).execute(item)).orElse(null);
+        BlockState hand = itemBehaviors.require(ItemBehaviors.GET_BLOCK).execute(item).orElse(null);
         if (hand == null) {
             return null;
         }

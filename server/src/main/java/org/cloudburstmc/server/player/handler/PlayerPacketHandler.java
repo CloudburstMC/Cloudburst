@@ -22,6 +22,7 @@ import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.item.component.GetBlockStateHandler;
 import org.cloudburstmc.api.item.component.StabHandler;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Ability;
@@ -53,6 +54,7 @@ import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockPlacementResult;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.blockentity.LecternBlockEntity;
+import org.cloudburstmc.server.blockentity.ShulkerBoxBlockEntity;
 import org.cloudburstmc.server.container.screen.CloudLecternContainerScreen;
 import org.cloudburstmc.server.container.screen.CloudPlayerInventoryScreen;
 import org.cloudburstmc.server.entity.CloudEntity;
@@ -853,8 +855,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
         ItemStack item = player.getInventory().getSelectedItem();
         if (!item.isEmpty()) {
-            Object value = CloudItemRegistry.get().requireComponent(item.getType(), ItemBehaviors.GET_BLOCK).execute(item);
-            if (value instanceof Optional<?> state && state.orElse(null) instanceof BlockState placement && placement.getType().getTraits().contains(BlockTraits.IS_UPPER_BLOCK)) {
+            GetBlockStateHandler blockState = CloudItemRegistry.get()
+                    .requireComponent(item.getType(), ItemBehaviors.GET_BLOCK);
+            BlockState placement = blockState.execute(item).orElse(null);
+            if (placement != null && placement.getType().getTraits().contains(BlockTraits.IS_UPPER_BLOCK)) {
                 positions.add(blockPos.add(0, 1, 0));
                 positions.add(adjacent.add(0, 1, 0));
             }
@@ -1398,6 +1402,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
 
         boolean includeData = player.isCreative() && packet.isAddUserData();
+        if (includeData && level.getLoadedBlockEntity(position) instanceof ShulkerBoxBlockEntity box) {
+            item = box.asItem();
+        }
+
         int sourceSlot = player.getInventory().first(item);
         int targetSlot = ItemPickController.getTargetSlot(player.getInventory(), sourceSlot);
 

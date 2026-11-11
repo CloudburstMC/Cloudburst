@@ -12,6 +12,10 @@ public class BlockTestRegistry {
 
     private static final CloudBlockRegistry REGISTRY = createRegistry();
 
+    public static void ensureInitialized() {
+        // Class initialization creates and binds the shared registry.
+    }
+
     public static CloudBlockRegistry get() {
         return REGISTRY;
     }

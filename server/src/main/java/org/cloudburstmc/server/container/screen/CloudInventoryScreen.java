@@ -177,6 +177,11 @@ public abstract class CloudInventoryScreen implements InventoryScreen {
         return mapping != null ? mapping.getInventorySlot(screenSlot) : -1;
     }
 
+    public int resolveProtocolSlot(ContainerSlotType type, int inventorySlot) {
+        ContainerMapping mapping = this.mappings.get(type);
+        return mapping != null && mapping.containsInventorySlot(inventorySlot) ? mapping.getProtocolSlot(inventorySlot) : -1;
+    }
+
     @Override
     public org.cloudburstmc.api.player.Player getPlayer() {
         return player;

@@ -220,6 +220,7 @@ public class Explosion {
 
             List<ItemStack> drops = block.getComponents().require(BlockComponents.GET_EXPLOSION_LOOT)
                     .execute(block, new BlockLootContext(ItemStack.EMPTY, this.settings.sourceEntity(), this.level.getRandom()));
+            boolean decays = block.getComponents().require(BlockComponents.EXPLOSION_LOOT_DECAYS).execute(block);
             BlockEntity blockEntity = this.level.getLoadedBlockEntity(block.getPosition());
             if (blockEntity != null) {
                 blockEntity.onBreak();
@@ -237,10 +238,13 @@ public class Explosion {
                     continue;
                 }
 
-                int count = 0;
-                for (int i = 0; i < stack.getCount(); i++) {
-                    if (this.level.getRandom().nextFloat() < yield) {
-                        count++;
+                int count = stack.getCount();
+                if (decays) {
+                    count = 0;
+                    for (int i = 0; i < stack.getCount(); i++) {
+                        if (this.level.getRandom().nextFloat() < yield) {
+                            count++;
+                        }
                     }
                 }
 

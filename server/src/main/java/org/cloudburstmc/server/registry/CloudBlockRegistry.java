@@ -204,12 +204,14 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerComponent(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.GET_ENTITY_INSIDE_COLLISION_SHAPE);
         this.registerComponent(BlockComponents.GET_EXPERIENCE, DefaultBlockHandlers.GET_EXPERIENCE);
         this.registerComponent(BlockComponents.GET_EXPLOSION_LOOT, DefaultBlockHandlers.GET_EXPLOSION_LOOT);
+        this.registerComponent(BlockComponents.EXPLOSION_LOOT_DECAYS, block -> true);
         this.registerComponent(BlockComponents.GET_FALLING_DAMAGE_SOURCE, entity -> DamageSource.of(DamageTypes.FALLING_BLOCK, entity));
         this.registerComponent(BlockComponents.GET_FALLING_BREAK_DROP, FallingBlockHandlers.BLOCK_ITEM_DROP);
         this.registerComponent(BlockComponents.GET_GRAVITY, (block) -> 0.02f);
         this.registerComponent(BlockComponents.GET_IGNITED_STATE, block -> null);
         this.registerComponent(BlockComponents.GET_LIGHT_OCCLUSION_SHAPE, state -> CloudVoxelShapes.empty());
         this.registerComponent(BlockComponents.GET_LOOT, DefaultBlockHandlers.GET_LOOT);
+        this.registerComponent(BlockComponents.GET_CREATIVE_LOOT, DefaultBlockHandlers.NO_LOOT);
         this.registerComponent(BlockComponents.GET_MAP_COLOR, (block) -> block.getState().getMapColor());
         this.registerComponent(BlockComponents.GET_OUTLINE_SHAPE, new GetOutlineShapeHandler());
         this.registerComponent(BlockComponents.GET_PICK_BLOCK, DefaultBlockHandlers.GET_PICK_BLOCK);

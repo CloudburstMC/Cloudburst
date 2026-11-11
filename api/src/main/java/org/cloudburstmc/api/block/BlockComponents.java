@@ -153,6 +153,11 @@ public class BlockComponents {
     public static final ComponentType<BlockLootHandler> GET_EXPLOSION_LOOT = ComponentType.of("get_explosion_loot", BlockLootHandler.class);
 
     /**
+     * Whether explosion yield reduces this block's loot.
+     */
+    public static final ComponentType<BooleanBlockHandler> EXPLOSION_LOOT_DECAYS = ComponentType.of("explosion_loot_decays", BooleanBlockHandler.class);
+
+    /**
      * Resolves the damage source used when a falling entity carrying this block lands on another entity.
      */
     public static final ComponentType<FallingBlockDamageSourceHandler> GET_FALLING_DAMAGE_SOURCE = ComponentType.of("get_falling_damage_source", FallingBlockDamageSourceHandler.class);
@@ -183,6 +188,11 @@ public class BlockComponents {
      * Resolves item drops for destruction using the supplied loot context. Does not spawn items.
      */
     public static final ComponentType<BlockLootHandler> GET_LOOT = ComponentType.of("get_loot", BlockLootHandler.class);
+
+    /**
+     * Returns the loot that survives breaking the block in creative mode.
+     */
+    public static final ComponentType<BlockLootHandler> GET_CREATIVE_LOOT = ComponentType.of("get_creative_loot", BlockLootHandler.class);
 
     /**
      * Resolves the color used to render this block on a map.

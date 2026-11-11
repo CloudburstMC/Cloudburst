@@ -19,6 +19,7 @@ import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.block.component.GrowingVines;
 import org.cloudburstmc.server.entity.vehicle.VanillaBoats;
 import org.cloudburstmc.server.item.ArmorMaterial;
+import org.cloudburstmc.server.item.ShulkerBoxItems;
 import org.cloudburstmc.server.item.VanillaArmorMaterials;
 import org.cloudburstmc.server.item.VanillaTools;
 import org.cloudburstmc.server.item.component.*;
@@ -40,6 +41,9 @@ public final class VanillaItemBehaviors {
 
     public static void configure(CloudItemRegistry registry) {
         VanillaCookingData.configureFuels(registry);
+        for (ItemType shulkerBox : ShulkerBoxItems.TYPES) {
+            registry.configure(shulkerBox).set(ItemBehaviors.GET_MAX_STACK_SIZE, _ -> 1);
+        }
         VanillaCompostingData.configure(registry);
         for (ItemType type : List.of(ItemTypes.BOOK, ItemTypes.BOW, ItemTypes.CROSSBOW, ItemTypes.FISHING_ROD, ItemTypes.TRIDENT)) {
             registry.configure(type).set(ItemBehaviors.GET_ENCHANTABILITY, item -> 1);

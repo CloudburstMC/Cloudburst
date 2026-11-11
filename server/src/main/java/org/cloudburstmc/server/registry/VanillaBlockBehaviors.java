@@ -1217,6 +1217,9 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.GET_BLOCK_SUPPORT_SHAPE, DefaultBlockHandlers.SHULKER_BOX_BLOCK_SUPPORT_SHAPE)
                 .set(BlockComponents.GET_COLLISION_SHAPE, DefaultBlockHandlers.SHULKER_BOX_COLLISION_SHAPE)
                 .set(BlockComponents.GET_OUTLINE_SHAPE, DefaultBlockHandlers.SHULKER_BOX_OUTLINE_SHAPE)
+                .set(BlockComponents.GET_LOOT, ShulkerBoxBlockHandlers.GET_LOOT)
+                .set(BlockComponents.GET_CREATIVE_LOOT, ShulkerBoxBlockHandlers.GET_CREATIVE_LOOT)
+                .set(BlockComponents.EXPLOSION_LOOT_DECAYS, block -> false)
                 .set(BlockComponents.ON_PLACE, new ShulkerBoxPlaceHandler())
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);

@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.entity.misc;
 
+import lombok.Getter;
+import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.block.Block;
@@ -15,6 +17,7 @@ import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.item.data.ShulkerBoxContents;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
@@ -29,6 +32,7 @@ import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.item.ItemDisplayNameResolver;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.item.ItemStackPacketCodec;
+import org.cloudburstmc.server.item.ShulkerBoxItems;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
@@ -38,8 +42,14 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.OWNE
 
 public class EntityDroppedItem extends CloudEntity implements DroppedItem {
 
+    @Getter
     protected ItemStack item;
+
+    @Getter
+    @Setter
     protected int pickupDelay;
+
+    @Setter
     private boolean fromFishing;
 
     public EntityDroppedItem(EntityType<DroppedItem> type, Location location) {
@@ -112,12 +122,31 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
 
     @Override
     protected boolean applyDamage(CloudEntityDamageEvent source) {
-        return (source.getDamageType() == DamageTypes.OUT_OF_WORLD ||
+        boolean alive = this.isAlive();
+        boolean applied = (source.getDamageType() == DamageTypes.OUT_OF_WORLD ||
                 source.getDamageType() == DamageTypes.CACTUS ||
                 source.getDamageType() == DamageTypes.ON_FIRE ||
                 source.getDamageType().is(DamageTypeTags.IS_EXPLOSION) &&
                         !this.isInsideOfWater() && (this.item == null ||
                         this.item.getType() != ItemTypes.NETHER_STAR)) && super.applyDamage(source);
+        if (applied && alive && !this.isAlive() && source.getDamageType() != DamageTypes.OUT_OF_WORLD) {
+            this.releaseShulkerContents();
+        }
+
+        return applied;
+    }
+
+    private void releaseShulkerContents() {
+        if (this.item == null || !ShulkerBoxItems.TYPES.contains(this.item.getType())) {
+            return;
+        }
+
+        ShulkerBoxContents contents = this.item.get(ItemDataComponents.SHULKER_BOX_CONTENTS);
+        if (contents != null) {
+            for (ItemStack stack : contents.items().values()) {
+                this.getLevel().dropItem(this.getPosition(), stack);
+            }
+        }
     }
 
     @Override
@@ -168,8 +197,9 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
 
         this.entityBaseTick(tickDiff);
 
-        if (isInsideOfFire()) {
+        if (this.isAlive() && this.isInsideOfFire()) {
             this.kill();
+            this.releaseShulkerContents();
         }
 
         if (this.isAlive()) {
@@ -263,10 +293,6 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
         return ItemDisplayNameResolver.resolve(this.item);
     }
 
-    public ItemStack getItem() {
-        return item;
-    }
-
     @Override
     public void setItem(@NonNull ItemStack item) {
         checkNotNull(item, "item");
@@ -277,22 +303,6 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
     @Override
     public boolean canCollideWith(Entity entity) {
         return false;
-    }
-
-    public int getPickupDelay() {
-        return pickupDelay;
-    }
-
-    public void setPickupDelay(int pickupDelay) {
-        this.pickupDelay = pickupDelay;
-    }
-
-    public boolean isFromFishing() {
-        return this.fromFishing;
-    }
-
-    public void setFromFishing(boolean fromFishing) {
-        this.fromFishing = fromFishing;
     }
 
     @Override

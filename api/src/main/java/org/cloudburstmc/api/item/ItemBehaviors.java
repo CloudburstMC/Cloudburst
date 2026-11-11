@@ -130,7 +130,7 @@ public class ItemBehaviors {
      *
      * <p>The handler returns an {@link java.util.Optional} containing the block state.</p>
      */
-    public static final ComponentType<GetItemHandler> GET_BLOCK = ComponentType.of("get_block", GetItemHandler.class);
+    public static final ComponentType<GetBlockStateHandler> GET_BLOCK = ComponentType.of("get_block", GetBlockStateHandler.class);
 
     /**
      * Supplies how many seconds a successful melee attack disables item blocking.

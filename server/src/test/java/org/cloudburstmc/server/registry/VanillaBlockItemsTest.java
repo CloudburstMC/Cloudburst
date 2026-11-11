@@ -48,9 +48,8 @@ class VanillaBlockItemsTest {
         for (BlockType form : List.of(BlockTypes.OAK_WALL_SIGN, BlockTypes.OAK_DOUBLE_SLAB,
                 BlockTypes.LIT_FURNACE, BlockTypes.POWERED_REPEATER, BlockTypes.BRAIN_CORAL_WALL_FAN)) {
             ItemStack picked = ItemStack.from(form.getDefaultState());
-            BlockState placed = assertInstanceOf(BlockState.class, placement(picked).orElseThrow());
-            BlockState defaultPlacement = assertInstanceOf(BlockState.class,
-                    placement(ItemStack.from(picked.getType())).orElseThrow());
+            BlockState placed = placement(picked).orElseThrow();
+            BlockState defaultPlacement = placement(ItemStack.from(picked.getType())).orElseThrow();
 
             assertSame(defaultPlacement.getType(), placed.getType());
             assertSame(picked.getType(), placed.getType().asItem().orElseThrow());
@@ -106,7 +105,7 @@ class VanillaBlockItemsTest {
         assertSame(ItemTypes.CAKE, picked.getType());
     }
 
-    private static Optional<?> placement(ItemStack item) {
-        return assertInstanceOf(Optional.class, ITEMS.requireComponent(item.getType(), ItemBehaviors.GET_BLOCK).execute(item));
+    private static Optional<BlockState> placement(ItemStack item) {
+        return ITEMS.requireComponent(item.getType(), ItemBehaviors.GET_BLOCK).execute(item);
     }
 }

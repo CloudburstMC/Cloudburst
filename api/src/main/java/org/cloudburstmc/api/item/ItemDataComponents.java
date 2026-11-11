@@ -126,6 +126,11 @@ public class ItemDataComponents {
     public static final ItemDataComponentType<EntitySnapshot> ENTITY_DATA = value("entity_data", EntitySnapshot.class);
 
     /**
+     * Items carried by a portable shulker box.
+     */
+    public static final ItemDataComponentType<ShulkerBoxContents> SHULKER_BOX_CONTENTS = value("shulker_box_contents", ShulkerBoxContents.class);
+
+    /**
      * Blocks the item may destroy in adventure mode.
      */
     public static final ItemDataComponentType<List<BlockType>> CAN_DESTROY = list("can_destroy", BlockType.class);
