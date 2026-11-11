@@ -3,19 +3,28 @@ package org.cloudburstmc.api.inventory.view;
 import org.cloudburstmc.api.item.ItemStack;
 
 /**
- * Represents the item slots of a brewing stand container.
- * Exposes the ingredient slot (item being brewed into potions),
- * the fuel slot (blaze powder), and the three potion bottle output slots,
- * as well as the brew and fuel progress counters.
+ * The ingredient, fuel, bottle slots, and progress of a brewing stand.
  */
 public interface BrewingStandView extends SlotGroup {
 
+    /**
+     * @return the ingredient, or an empty stack
+     */
     ItemStack getIngredient();
 
+    /**
+     * @param item the ingredient to place, or an empty stack to clear the slot
+     */
     void setIngredient(ItemStack item);
 
+    /**
+     * @return the fuel item, or an empty stack
+     */
     ItemStack getFuel();
 
+    /**
+     * @param item the fuel to place, or an empty stack to clear the slot
+     */
     void setFuel(ItemStack item);
 
     /**
@@ -79,65 +88,34 @@ public interface BrewingStandView extends SlotGroup {
     }
 
     /**
-     * Returns the number of ticks the current brew cycle has been running,
-     * counting <em>upward</em> from {@code 0} (just started) to {@link #getBrewDuration()}
-     * (brew complete).
-     *
-     * <p>Note: the underlying block entity stores a countdown timer internally,
-     * but this method always returns the elapsed time (i.e. duration minus remaining),
-     * so callers can treat it as a straightforward progress value.</p>
-     *
-     * @return brew progress in ticks, in the range {@code [0, getBrewDuration()]}
+     * @return elapsed ticks in the active batch, or zero when idle
      */
     int getBrewProgress();
 
     /**
-     * Sets the brew progress to the specified number of elapsed ticks.
+     * Changes the progress of an active batch. This has no effect while idle.
      *
-     * <p>The value is the elapsed time counting <em>upward</em> from {@code 0} to
-     * {@link #getBrewDuration()}. Values are clamped to {@code [0, getBrewDuration()]}
-     * by the implementation. Changing this value sends an immediate update to the client.</p>
-     *
-     * <p><strong>Inversion warning:</strong> the underlying block entity stores this as a
-     * countdown (e.g. {@code 400 → 0}), so the implementation automatically inverts the
-     * value when reading and writing. Always pass and read elapsed ticks (upward) through
-     * this API; do not attempt to pass the raw countdown value directly.</p>
-     *
-     * @param ticks elapsed brew ticks (upward, {@code 0} = just started,
-     *              {@link #getBrewDuration()} = complete)
+     * @param ticks elapsed ticks, clamped so the batch cannot complete before the next tick
      */
     void setBrewProgress(int ticks);
 
     /**
-     * Returns the total number of ticks a single brew cycle takes.
-     * For a standard brewing stand this is 400 (20 seconds at 20 TPS).
-     *
-     * @return brew duration in ticks
+     * @return the active batch's duration, or the default duration while idle
      */
     int getBrewDuration();
 
     /**
-     * Returns the number of brew operations remaining in the current fuel charge
-     * (0 to {@link #getMaxFuelLevel()}).
-     *
-     * @return current fuel level
+     * @return the number of batches remaining in the current fuel charge
      */
     int getFuelLevel();
 
     /**
-     * Sets the current fuel level (number of brew operations remaining).
-     *
-     * <p>Changing this value sends an immediate update to the client.</p>
-     *
-     * @param level the new fuel level, typically in the range {@code [0, getMaxFuelLevel()]}
+     * @param level the number of batches to make available, clamped to zero if negative
      */
     void setFuelLevel(int level);
 
     /**
-     * Returns the maximum number of brew operations one blaze powder provides.
-     * For a standard brewing stand this is 20.
-     *
-     * @return maximum fuel level
+     * @return the default number of batches supplied by one blaze powder
      */
     int getMaxFuelLevel();
 }

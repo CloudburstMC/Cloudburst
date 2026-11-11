@@ -5,8 +5,9 @@ import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.inventory.BrewingStandScreen;
 import org.cloudburstmc.api.inventory.ScreenTypes;
 import org.cloudburstmc.api.inventory.view.BlockBrewingStandView;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
-import org.cloudburstmc.server.blockentity.ContainerBlockEntity;
+import org.cloudburstmc.server.blockentity.BrewingStandBlockEntity;
 import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.server.container.mapping.ContainerMapping;
 import org.cloudburstmc.server.container.view.CloudBrewingStandView;
@@ -17,12 +18,13 @@ import org.cloudburstmc.server.player.CloudPlayer;
  */
 public class CloudBrewingContainerScreen extends CloudBlockContainerScreen implements BrewingStandScreen {
 
-    private final ContainerBlockEntity brewingEntity;
-    private CloudBrewingStandView brewingStandView;
+    private final BrewingStandBlockEntity brewingEntity;
+    private final CloudBrewingStandView brewingStandView;
 
     public CloudBrewingContainerScreen(CloudPlayer player, Block block) {
         super(ScreenTypes.BREWING_STAND, player, block);
         this.brewingEntity = getOrCreateBlockEntity(block, BlockEntityTypes.BREWING_STAND);
+        this.brewingStandView = new CloudBrewingStandView(this.brewingEntity);
     }
 
     @Override
@@ -32,19 +34,30 @@ public class CloudBrewingContainerScreen extends CloudBlockContainerScreen imple
 
     @Override
     public BlockBrewingStandView getBrewingStand() {
-        if (brewingStandView == null) {
-            throw new IllegalStateException(
-                    "getBrewingStand() called before setup(), screen mappings have not been initialised yet");
+        return this.brewingStandView;
+    }
+
+    @Override
+    public void open() {
+        if (this.brewingEntity.hasCustomName()) {
+            this.brewingEntity.spawnTo(this.player);
         }
-        return brewingStandView;
+        super.open();
+        this.brewingEntity.sendProgress(this.player);
+    }
+
+    public boolean acceptsItem(ContainerSlotType type, int slot, ItemStack item) {
+        return switch (type) {
+            case BREWING_INPUT, BREWING_RESULT, BREWING_FUEL -> this.brewingEntity.acceptsItem(this.resolveInventorySlot(type, slot), item);
+            default -> true;
+        };
     }
 
     @Override
     protected void setupMappings() {
         super.setupMappings();
-        this.brewingStandView = new CloudBrewingStandView(getBlock(), brewingEntity.getContainer());
-        this.addMapping(new ContainerMapping(ContainerSlotType.BREWING_INPUT, brewingStandView, 1, 0));
-        this.addMapping(new ContainerMapping(ContainerSlotType.BREWING_RESULT, brewingStandView, 1, 3, 1));
-        this.addMapping(new ContainerMapping(ContainerSlotType.BREWING_FUEL, brewingStandView, 4, 1, 4));
+        this.addMapping(new ContainerMapping(ContainerSlotType.BREWING_INPUT, this.brewingStandView, BrewingStandBlockEntity.INGREDIENT_SLOT, 1, 0));
+        this.addMapping(new ContainerMapping(ContainerSlotType.BREWING_RESULT, this.brewingStandView, BrewingStandBlockEntity.FIRST_BOTTLE_SLOT, BrewingStandBlockEntity.BOTTLE_COUNT, 0));
+        this.addMapping(new ContainerMapping(ContainerSlotType.BREWING_FUEL, this.brewingStandView, BrewingStandBlockEntity.FUEL_SLOT, 1, 0));
     }
 }

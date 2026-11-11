@@ -296,6 +296,7 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
         return item.isEmpty() || fuelTicks(item) > 0;
     }
 
+    @Override
     public boolean canInsertFrom(int slot, Direction side, ItemStack item) {
         return switch (side) {
             case UP -> slot == INGREDIENT_SLOT;
@@ -304,6 +305,7 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
         };
     }
 
+    @Override
     public boolean canExtractBelow(int slot) {
         return switch (slot) {
             case RESULT_SLOT -> true;

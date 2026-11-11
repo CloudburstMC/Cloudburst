@@ -221,7 +221,7 @@ public class ItemStackRequestActionHandler {
         }
 
         ItemStack resolvedDest = event.getResultItem() != null ? event.getResultItem() : newDest;
-        validateFurnaceFuel(dstSlot, resolvedDest);
+        validateStationSlot(dstSlot, resolvedDest);
 
         setSlot(srcSlot, newSource);
         setSlot(dstSlot, resolvedDest);
@@ -399,8 +399,8 @@ public class ItemStackRequestActionHandler {
         }
 
         ItemStack resolvedDest = event.getResultItem() != null ? event.getResultItem() : sourceItem;
-        validateFurnaceFuel(srcSlot, destItem);
-        validateFurnaceFuel(dstSlot, resolvedDest);
+        validateStationSlot(srcSlot, destItem);
+        validateStationSlot(dstSlot, resolvedDest);
 
         setSlot(srcSlot, destItem);
         setSlot(dstSlot, resolvedDest);
@@ -500,10 +500,13 @@ public class ItemStackRequestActionHandler {
         }
     }
 
-    private void validateFurnaceFuel(ItemStackRequestSlotData slot, ItemStack item) {
-        if (screen instanceof CloudFurnaceContainerScreen furnace && container(slot) == ContainerSlotType.FURNACE_FUEL
-                && !furnace.furnaceEntity().acceptsFuel(item)) {
+    private void validateStationSlot(ItemStackRequestSlotData slot, ItemStack item) {
+        if (screen instanceof CloudFurnaceContainerScreen furnace && container(slot) == ContainerSlotType.FURNACE_FUEL && !furnace.furnaceEntity().acceptsFuel(item)) {
             throw new IllegalArgumentException("Item cannot be placed in a furnace fuel slot");
+        }
+
+        if (screen instanceof CloudBrewingContainerScreen brewing && !brewing.acceptsItem(container(slot), slot.getSlot(), item)) {
+            throw new IllegalArgumentException("Item cannot be placed in that brewing stand slot");
         }
     }
 

@@ -137,7 +137,7 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
             }
 
             for (int slot : slots) {
-                if (containerView instanceof FurnaceBlockEntity furnace && !furnace.canExtractBelow(slot)) {
+                if (!containerView.canExtractBelow(slot)) {
                     continue;
                 }
                 ItemStack item = containerView.getItem(slot);
@@ -264,12 +264,10 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
                 int firstPartial = -1;
                 for (int s = 0; s < container.size(); s++) {
                     ItemStack target = container.getItem(s);
-                    if (containerView instanceof FurnaceBlockEntity furnace) {
-                        int count = target.getCount() + 1;
-                        if ((!target.isEmpty() && !target.isStackableWith(item)) || count > maxStackSize
-                                || !furnace.canInsertFrom(s, direction.getOpposite(), item.withCount(count))) {
-                            continue;
-                        }
+                    int count = target.getCount() + 1;
+                    if ((!target.isEmpty() && !target.isStackableWith(item)) || count > maxStackSize
+                            || !containerView.canInsertFrom(s, direction.getOpposite(), item.withCount(count))) {
+                        continue;
                     }
                     if (target.isEmpty()) {
                         if (firstEmpty == -1) firstEmpty = s;

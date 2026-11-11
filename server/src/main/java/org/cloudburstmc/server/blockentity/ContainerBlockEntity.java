@@ -4,6 +4,7 @@ import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.container.CloudContainer;
 
@@ -41,6 +42,14 @@ public abstract class ContainerBlockEntity extends BaseBlockEntity {
 
     public int size() {
         return container.size();
+    }
+
+    public boolean canInsertFrom(int slot, Direction side, ItemStack item) {
+        return true;
+    }
+
+    public boolean canExtractBelow(int slot) {
+        return true;
     }
 
     public BlockEntity getBlockEntity() {

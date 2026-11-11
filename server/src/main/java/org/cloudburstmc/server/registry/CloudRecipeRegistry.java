@@ -12,6 +12,7 @@ import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.crafting.*;
 import org.cloudburstmc.api.item.*;
+import org.cloudburstmc.api.potion.PotionTypes;
 import org.cloudburstmc.api.registry.RecipeRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
@@ -31,6 +32,7 @@ import org.cloudburstmc.protocol.bedrock.packet.UnlockedRecipesPacket;
 import org.cloudburstmc.server.ServerJson;
 import org.cloudburstmc.server.crafting.*;
 import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.serializer.ItemSerializer;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.JsonNode;
 
@@ -157,6 +159,12 @@ public class CloudRecipeRegistry implements RecipeRegistry {
             this.smithingRecipes.remove(smithing);
         }
 
+        if (recipe instanceof CloudBrewingRecipe brewing) {
+            removeMix(this.brewingByBase, brewing);
+        } else if (recipe instanceof CloudContainerRecipe container) {
+            removeMix(this.containerByBase, container);
+        }
+
         if (recipe instanceof CloudCookingRecipe furnace) {
             cookingByBlock.computeIfPresent(normalizeFurnaceBlock(furnace.getBlock()), (_, recipes) -> {
                 recipes.remove(furnace);
@@ -166,6 +174,13 @@ public class CloudRecipeRegistry implements RecipeRegistry {
 
         int netId = netIdMap.removeInt(recipe.getId());
         idNetMap.remove(netId);
+    }
+
+    private static <T extends MixRecipe> void removeMix(Map<Identifier, List<T>> byBase, T recipe) {
+        byBase.computeIfPresent(recipe.getInput().getType().getId(), (_, recipes) -> {
+            recipes.remove(recipe);
+            return recipes.isEmpty() ? null : recipes;
+        });
     }
 
     @Override
@@ -569,13 +584,6 @@ public class CloudRecipeRegistry implements RecipeRegistry {
             return null;
         }
 
-        if (craftingBlock != null) {
-            if (craftingBlock == Identifiers.BREWING_STAND) {
-                List<ItemStack> flat = flattenGrid(inputMap);
-                return matchBrewingRecipe(flat.getFirst(), output);
-            }
-        }
-
         Map<UUID, Identifier> map = recipeHashMap.get(key);
         for (Identifier recipeId : map.values()) {
             Recipe candidate = recipeMap.get(recipeId);
@@ -652,27 +660,63 @@ public class CloudRecipeRegistry implements RecipeRegistry {
 
     @Override
     public MixRecipe matchBrewingRecipe(ItemStack ingredient, ItemStack basePotion) {
+        if (ingredient.isEmpty() || basePotion.isEmpty()) {
+            return null;
+        }
+
         Identifier baseId = basePotion.getType().getId();
 
-        List<CloudBrewingRecipe> brewing = brewingByBase.get(baseId);
-        if (brewing != null) {
-            for (CloudBrewingRecipe mix : brewing) {
-                if (mix.getInput().equals(basePotion) && mix.getIngredient().equals(ingredient)) {
-                    return mix;
-                }
+        for (CloudContainerRecipe mix : this.containerByBase.getOrDefault(baseId, List.of())) {
+            if (this.matchesBrewingIngredient(mix, ingredient)) {
+                return mix;
             }
         }
 
-        List<CloudContainerRecipe> containers = containerByBase.get(baseId);
-        if (containers != null) {
-            for (CloudContainerRecipe mix : containers) {
-                if (mix.getInput().equals(basePotion) && mix.getIngredient().equals(ingredient)) {
-                    return mix;
-                }
+        for (CloudBrewingRecipe mix : this.brewingByBase.getOrDefault(baseId, List.of())) {
+            if (mix.getInput().getOrDefault(ItemDataComponents.POTION_TYPE, PotionTypes.WATER)
+                    == basePotion.getOrDefault(ItemDataComponents.POTION_TYPE, PotionTypes.WATER)
+                    && this.matchesBrewingIngredient(mix, ingredient)) {
+                return mix;
             }
         }
 
         return null;
+    }
+
+    public boolean isBrewingIngredient(ItemStack item) {
+        return !item.isEmpty() && (this.brewingByBase.values().stream().flatMap(List::stream)
+                .anyMatch(recipe -> this.matchesBrewingIngredient(recipe, item))
+                || this.containerByBase.values().stream().flatMap(List::stream)
+                .anyMatch(recipe -> this.matchesBrewingIngredient(recipe, item)));
+    }
+
+    public ItemStack brewPotion(ItemStack ingredient, ItemStack bottle) {
+        if (bottle.getCount() != 1) {
+            return bottle;
+        }
+
+        MixRecipe recipe = this.matchBrewingRecipe(ingredient, bottle);
+        if (recipe == null) {
+            return bottle;
+        }
+
+        ItemStack output = recipe.getResult();
+        ItemStackBuilder result = bottle.toBuilder().itemType(output.getType());
+        if (recipe.getType() == RecipeType.POTION) {
+            result.setData(ItemDataComponents.POTION_TYPE, output.getOrDefault(ItemDataComponents.POTION_TYPE, PotionTypes.WATER));
+        }
+
+        return result.build();
+    }
+
+    private boolean matchesBrewingIngredient(MixRecipe recipe, ItemStack item) {
+        ItemStack ingredient = recipe.getIngredient();
+        if (ingredient.getType() != item.getType() || item.getCount() < ingredient.getCount()) {
+            return false;
+        }
+
+        ItemSerializer serializer = this.itemRegistry.getSerializer(item.getType());
+        return serializer.getAuxValue(ingredient) == serializer.getAuxValue(item);
     }
 
     @Override

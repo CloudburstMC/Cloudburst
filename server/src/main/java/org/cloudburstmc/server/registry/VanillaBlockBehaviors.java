@@ -161,6 +161,10 @@ public class VanillaBlockBehaviors {
         registry.configure(BLUE_ICE).set(BlockComponents.GET_LOOT, VanillaBlockLoot.silkTouchOnly(BLUE_ICE));
         configureShulkerBox(registry, BLUE_SHULKER_BOX);
         configureUsable(registry, BREWING_STAND, ContainerBlockHandlers.BREWING_STAND);
+        registry.configure(BREWING_STAND)
+                .set(BlockComponents.ON_ADDED, BrewingStandBlockHandlers.ON_ADDED)
+                .set(BlockComponents.ON_REMOVE, BrewingStandBlockHandlers.ON_REMOVE)
+                .set(BlockComponents.GET_LOOT, BrewingStandBlockHandlers.GET_LOOT);
         configureSlab(registry, BRICK_SLAB, BRICK_DOUBLE_SLAB);
         configureConcretePowder(registry, BROWN_CONCRETE_POWDER, BROWN_CONCRETE);
         configureShulkerBox(registry, BROWN_SHULKER_BOX);
