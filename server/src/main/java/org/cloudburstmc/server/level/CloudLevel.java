@@ -1739,26 +1739,27 @@ public class CloudLevel implements Level, BlockStateRegion {
     }
 
     public void dropBlockItem(Vector3i position, ItemStack item) {
+        if (this.getGameRules().get(GameRules.DO_TILE_DROPS)) {
+            this.dropBlockContents(position, item);
+        }
+    }
+
+    public void dropBlockContents(Vector3i position, ItemStack item) {
         checkNotNull(position, "position");
         checkNotNull(item, "item");
         checkArgument(!item.isEmpty(), "item must not be empty");
+
         float x = position.getX() + 0.5f + this.random.nextFloat(-0.25f, 0.25f);
         float y = position.getY() + 0.375f + this.random.nextFloat(-0.25f, 0.25f);
         float z = position.getZ() + 0.5f + this.random.nextFloat(-0.25f, 0.25f);
-        this.dropBlockItem(Vector3f.from(x, y, z), item);
-    }
 
-    private void dropBlockItem(Vector3f position, ItemStack item) {
-        if (!this.getGameRules().get(GameRules.DO_TILE_DROPS)) {
-            return;
-        }
-
+        Vector3f dropPosition = Vector3f.from(x, y, z);
         if (this.capturedBlockDrops != null) {
-            this.capturedBlockDrops.add(this.createDroppedItem(position, item, null, false, 10));
+            this.capturedBlockDrops.add(this.createDroppedItem(dropPosition, item, null, false, 10));
             return;
         }
 
-        this.dropItem(position, item);
+        this.dropItem(dropPosition, item);
     }
 
     public ItemStack breakBlock(Vector3i pos) {

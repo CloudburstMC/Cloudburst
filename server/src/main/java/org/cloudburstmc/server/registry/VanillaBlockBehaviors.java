@@ -411,7 +411,13 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.ON_RANDOM_TICK, LiquidBlockHandlers::randomTick)
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> LiquidBlockHandlers.schedule(block))
                 .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.LAVA_ENTITY_INSIDE);
-        configureUsable(registry, LECTERN, LecternBlockHandlers.USE);
+        registry.configure(LECTERN)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, LecternBlockHandlers.USE)
+                .set(BlockComponents.ATTACK, LecternBlockHandlers.ATTACK)
+                .set(BlockComponents.GET_REDSTONE_SIGNAL, LecternBlockHandlers.GET_REDSTONE_SIGNAL)
+                .set(BlockComponents.GET_DIRECT_REDSTONE_SIGNAL, LecternBlockHandlers.GET_DIRECT_REDSTONE_SIGNAL)
+                .set(BlockComponents.ON_TICK, LecternBlockHandlers.ON_TICK);
 
         registry.configure(LEVER)
                 .set(BlockComponents.CAN_SURVIVE, LeverBlockHandlers.CAN_SURVIVE)

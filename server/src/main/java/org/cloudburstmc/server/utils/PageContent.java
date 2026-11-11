@@ -13,14 +13,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class PageContent implements Page {
 
     private static final int MAX_PAGE_LENGTH = 256;
-    private static final String TAG_TEXT = "page";
+    private static final String TAG_TEXT = "text";
     private static final String TAG_PHOTO_NAME = "photoname";
 
     private final String text;
     private final String photoName;
 
     public static PageContent from(NbtMap tag) {
-        String text = tag.getString(TAG_TEXT, "");
+        String text = tag.getString(TAG_TEXT, tag.getString("page", ""));
         String photoName = tag.getString(TAG_PHOTO_NAME, "");
         return from(text, photoName);
     }

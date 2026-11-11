@@ -182,7 +182,7 @@ public class PlayerInventoryManager {
     private void closeWindow(@Nullable ContainerClosePacket request) {
         Window active = this.window;
         this.window = null;
-        if (active == null) {
+        if (active == null || active.type() == ContainerType.LECTERN) {
             return;
         }
 

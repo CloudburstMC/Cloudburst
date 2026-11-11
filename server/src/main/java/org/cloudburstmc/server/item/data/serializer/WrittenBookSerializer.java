@@ -2,6 +2,7 @@ package org.cloudburstmc.server.item.data.serializer;
 
 import com.google.common.collect.ImmutableList;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.Page;
 import org.cloudburstmc.api.item.data.WrittenBook;
 import org.cloudburstmc.api.util.Identifier;
@@ -18,10 +19,6 @@ import java.util.List;
  */
 public class WrittenBookSerializer implements ItemDataComponentSerializer<WrittenBook> {
 
-    private static final int MAX_GENERATION = 2;
-    private static final int MAX_PAGES = 50;
-    private static final int MAX_TITLE_LENGTH = 16;
-
     private static final String TAG_TITLE = "title";
     private static final String TAG_AUTHOR = "author";
     private static final String TAG_XUID = "xuid";
@@ -32,17 +29,18 @@ public class WrittenBookSerializer implements ItemDataComponentSerializer<Writte
 
     @Override
     public void serialize(ItemStack item, NbtMapBuilder tag, WrittenBook value) {
-        tag.putInt(TAG_GENERATION, value.getGeneration());
-        tag.putString(TAG_TITLE, value.getTitle());
-        tag.putString(TAG_AUTHOR, value.getAuthor());
-        tag.putString(TAG_XUID, value.getXuid());
-        tag.putLong(TAG_ID, value.getId());
-        tag.putBoolean(TAG_RESOLVED, value.isResolved());
+        if (item.getType() == ItemTypes.WRITTEN_BOOK) {
+            tag.putInt(TAG_GENERATION, value.getGeneration());
+            tag.putString(TAG_TITLE, value.getTitle());
+            tag.putString(TAG_AUTHOR, value.getAuthor());
+            tag.putString(TAG_XUID, value.getXuid());
+        }
 
         List<NbtMap> pages = new ArrayList<>();
-        for (PageContent page : value.getPages().toArray(new PageContent[0])) {
-            pages.add(page.createTag());
+        for (Page page : value.getPages()) {
+            pages.add(PageContent.from(page.getText(), page.getPhotoName()).createTag());
         }
+
         tag.putList(TAG_PAGES, NbtType.COMPOUND, pages);
     }
 
@@ -66,12 +64,12 @@ public class WrittenBookSerializer implements ItemDataComponentSerializer<Writte
         }
 
         return WrittenBook.of(
-                tag.getInt(TAG_GENERATION),
-                tag.getString(TAG_TITLE),
-                tag.getString(TAG_AUTHOR),
-                tag.getString(TAG_XUID),
-                tag.getLong(TAG_ID),
-                tag.getBoolean(TAG_RESOLVED),
+                tag.getInt(TAG_GENERATION, 0),
+                tag.getString(TAG_TITLE, ""),
+                tag.getString(TAG_AUTHOR, ""),
+                tag.getString(TAG_XUID, ""),
+                tag.getLong(TAG_ID, 0L),
+                tag.getBoolean(TAG_RESOLVED, false),
                 pages
         );
     }

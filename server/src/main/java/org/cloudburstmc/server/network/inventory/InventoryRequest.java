@@ -60,6 +60,10 @@ public class InventoryRequest {
     }
 
     public ItemStackResponse execute() {
+        if (this.screen instanceof CloudLecternContainerScreen) {
+            return new ItemStackResponse(ItemStackResponseStatus.ERROR, this.currentRequest.getRequestId(), List.of());
+        }
+
         ItemStackRequestAction[] actions = this.currentRequest.getActions();
         if (this.screen instanceof CloudEnchantingContainerScreen && actions.length != 0 && actions[0] instanceof CraftRecipeAction selection) {
             this.handleAction(selection);

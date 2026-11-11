@@ -12,11 +12,9 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.component.AttackBlockHandler;
 import org.cloudburstmc.api.blockentity.BlockEntity;
-import org.cloudburstmc.api.blockentity.Lectern;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.misc.ExperienceOrb;
-import org.cloudburstmc.api.event.block.LecternPageChangeEvent;
 import org.cloudburstmc.api.event.entity.PotionEffectCause;
 import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
 import org.cloudburstmc.api.event.player.*;
@@ -47,7 +45,6 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.InventoryActionData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.InventorySource;
-import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.InventoryTransactionType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.ItemUseTransaction;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.*;
@@ -55,6 +52,8 @@ import org.cloudburstmc.protocol.common.PacketSignal;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockPlacementResult;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
+import org.cloudburstmc.server.blockentity.LecternBlockEntity;
+import org.cloudburstmc.server.container.screen.CloudLecternContainerScreen;
 import org.cloudburstmc.server.container.screen.CloudPlayerInventoryScreen;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
@@ -64,6 +63,7 @@ import org.cloudburstmc.server.entity.vehicle.EntityChestBoat;
 import org.cloudburstmc.server.event.server.DataPacketReceiveEvent;
 import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
+import org.cloudburstmc.server.item.BookEditor;
 import org.cloudburstmc.server.item.ItemStackPacketCodec;
 import org.cloudburstmc.server.item.ToolUtils;
 import org.cloudburstmc.server.item.component.ArmorItemHandlers;
@@ -1631,22 +1631,23 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return PacketSignal.HANDLED;
         }
 
-        int packetHotbarSlot = packet.getHotbarSlot();
-        if (packetHotbarSlot >= 0 && packetHotbarSlot <= 8 && player.getSelectedHotbarSlot() != packetHotbarSlot) {
-            applyClientHotbarSlot(packetHotbarSlot);
-        }
-
-        if (packet.getTransactionType() == InventoryTransactionType.NORMAL && packet.getActions().size() == 3) {
-            InventoryActionData bookAction = packet.getActions().get(0);
-            if (bookAction.getSource().getType() == InventorySource.Type.CONTAINER
-                    && player.getSelectedHotbarSlot() == bookAction.getSlot()
-                    && ItemStackPacketCodec.fromNetwork(bookAction.getFromItem()).getType() == ItemTypes.WRITABLE_BOOK) {
-                return PacketSignal.HANDLED;
+        switch (packet.getTransactionType()) {
+            case ITEM_USE, ITEM_USE_ON_ENTITY, ITEM_RELEASE -> {
+                int slot = packet.getHotbarSlot();
+                if (slot >= 0 && slot <= 8 && player.getSelectedHotbarSlot() != slot) {
+                    applyClientHotbarSlot(slot);
+                }
+            }
+            default -> {
             }
         }
 
         switch (packet.getTransactionType()) {
             case NORMAL:
+                if (BookEditor.isInventoryPrediction(packet.getActions())) {
+                    return PacketSignal.HANDLED;
+                }
+
                 if (packet.getActions().size() == 2) {
                     InventoryActionData worldAction = null;
                     InventoryActionData containerAction = null;
@@ -1684,7 +1685,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         return PacketSignal.HANDLED;
                     }
                 }
-                log.debug("Received NORMAL inventory transaction from {} - currently not handled", player.getName());
+                log.debug("Ignoring unsupported normal inventory transaction from {} ({} actions)", player.getName(), packet.getActions().size());
                 return PacketSignal.HANDLED;
             case INVENTORY_MISMATCH:
                 player.getInventoryManager().sendAllInventories();
@@ -1802,23 +1803,48 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     }
 
     @Override
-    public PacketSignal handle(LecternUpdatePacket packet) {
-        Vector3i blockPosition = packet.getBlockPosition();
+    public PacketSignal handle(BookEditPacket packet) {
+        if (!BookEditor.edit(this.player, packet)) {
+            this.player.sendInventoryContents();
+        }
+        return PacketSignal.HANDLED;
+    }
 
-        BlockEntity blockEntity = player.getLevel().getBlockEntity(blockPosition);
-        if (blockEntity instanceof Lectern lectern) {
-            LecternPageChangeEvent lecternPageChangeEvent = new LecternPageChangeEvent(player, lectern, packet.getPage());
-            player.getServer().getEventManager().fire(lecternPageChangeEvent);
-            if (!lecternPageChangeEvent.isCancelled()) {
-                lectern.setPage(lecternPageChangeEvent.getNewRawPage());
-                lectern.spawnToAll();
-                Block block = lectern.getBlock();
-                BlockState state = block.getState();
-                if (state.getType() == BlockTypes.LECTERN) {
-                    block.requireComponent(BlockComponents.ON_REDSTONE_UPDATE).execute(block);
+    @Override
+    public PacketSignal handle(LecternUpdatePacket packet) {
+        if (!(this.player.getInventoryManager().getScreen() instanceof CloudLecternContainerScreen screen) || !screen.getBlock().getPosition().equals(packet.getBlockPosition())) {
+            return PacketSignal.HANDLED;
+        }
+
+        if (!screen.isAvailable()) {
+            this.player.getInventoryManager().closeScreen(InventoryCloseEvent.Reason.CANT_USE);
+            return PacketSignal.HANDLED;
+        }
+
+        LecternBlockEntity lectern = screen.lecternEntity();
+        int oldPage = lectern.getPage();
+        if (packet.getPage() == oldPage) {
+            screen.closeByReader();
+            return PacketSignal.HANDLED;
+        }
+
+        int requested = Math.clamp(packet.getPage(), Math.max(0, oldPage - 1), Math.min(oldPage + 1, lectern.lastPage()));
+        if (requested != oldPage) {
+            PlayerLecternPageChangeEvent event = new PlayerLecternPageChangeEvent(this.player, screen, lectern, requested);
+            this.player.getServer().getEventManager().fire(event);
+            if (this.player.getInventoryManager().getScreen() != screen || !screen.isAvailable()) {
+                return PacketSignal.HANDLED;
+            }
+
+            if (!event.isCancelled() && lectern.getBook().equals(event.getBook()) && lectern.getPage() == oldPage) {
+                lectern.setPage(event.getNewPage());
+                if (lectern.getPage() != oldPage) {
+                    return PacketSignal.HANDLED;
                 }
             }
         }
+
+        lectern.spawnTo(this.player);
         return PacketSignal.HANDLED;
     }
 
