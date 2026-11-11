@@ -24,6 +24,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemS
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseStatus;
 import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.LegacySetItemSlotData;
 import org.cloudburstmc.server.container.screen.*;
+import org.cloudburstmc.server.container.grindstone.GrindstoneResultCalculator;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
@@ -122,6 +123,7 @@ public class ItemStackRequestActionHandler {
             case DropAction drop -> handleDrop(drop);
             case DestroyAction destroy -> handleDestroy(destroy);
             case CraftCreativeAction craft -> handleCraftCreative(craft);
+            case CraftGrindstoneAction _ -> handleCraftGrindstone();
             case RecipeItemStackRequestAction recipe when isCraftRecipeAction(recipe) -> handleCraftRecipe(recipe);
             case CraftRecipeOptionalAction craftOptional -> handleCraftRecipeOptional(craftOptional);
             case ConsumeAction consume -> handleConsume(consume);
@@ -134,8 +136,7 @@ public class ItemStackRequestActionHandler {
         switch (action.getType()) {
             case CRAFT_RESULTS_DEPRECATED, CREATE -> {
             }
-            case CRAFT_REPAIR_AND_DISENCHANT,
-                 CRAFT_LOOM,
+            case CRAFT_LOOM,
                  CRAFT_NON_IMPLEMENTED_DEPRECATED,
                  BEACON_PAYMENT,
                  LAB_TABLE_COMBINE -> {
@@ -298,6 +299,9 @@ public class ItemStackRequestActionHandler {
 
         ItemStack taken = resultScreen.takeResult(sourceItem, count);
         if (taken.isEmpty()) {
+            resultScreen.trackResultSlots(this::trackAffectedSlot);
+            trackAffectedSlot(container(dstSlot), dstSlot.getSlot());
+            this.requiresFullSlotUpdate = true;
             requestFailed = true;
             return;
         }
@@ -508,6 +512,10 @@ public class ItemStackRequestActionHandler {
         if (screen instanceof CloudBrewingContainerScreen brewing && !brewing.acceptsItem(container(slot), slot.getSlot(), item)) {
             throw new IllegalArgumentException("Item cannot be placed in that brewing stand slot");
         }
+
+        if (screen instanceof CloudGrindstoneContainerScreen grindstone && grindstone.isInputSlot(container(slot)) && !GrindstoneResultCalculator.accepts(item)) {
+            throw new IllegalArgumentException("Item cannot be placed in a grindstone input slot");
+        }
     }
 
     private void onFurnaceResultTaken(ItemStackRequestSlotData slot, ItemStack item) {
@@ -551,6 +559,15 @@ public class ItemStackRequestActionHandler {
 
         this.screen.setSlot(ContainerSlotType.CREATED_OUTPUT, CREATED_OUTPUT_PROTOCOL_SLOT, creativeItem);
         trackAffectedSlot(ContainerSlotType.CREATED_OUTPUT, CREATED_OUTPUT_PROTOCOL_SLOT);
+    }
+
+    private void handleCraftGrindstone() {
+        if (!(this.screen instanceof CloudGrindstoneContainerScreen grindstone)) {
+            this.requestFailed = true;
+            return;
+        }
+
+        grindstone.trackResultSlots(this::trackAffectedSlot);
     }
 
     private void handleCraftRecipe(RecipeItemStackRequestAction action) {

@@ -146,7 +146,7 @@ public abstract class CloudInventoryScreen implements InventoryScreen {
         if (mapping instanceof UIContainerMapping) {
             InventorySlotPacket packet = new InventorySlotPacket();
             packet.setContainerId(ContainerId.UI);
-            packet.setContainerNameData(new FullContainerName(type, null));
+            packet.setContainerNameData(uiSlotContainerName(type));
             packet.setSlot(slot);
             packet.setItem(ItemUtils.toNetworkNetId(this.getSlot(type, slot)));
             this.player.sendPacket(packet);
@@ -154,6 +154,10 @@ public abstract class CloudInventoryScreen implements InventoryScreen {
             int inventorySlot = this.resolveInventorySlot(type, slot);
             this.player.onInventorySlotChange(group.getContainer(), group.getContainerSlot(inventorySlot));
         }
+    }
+
+    protected @Nullable FullContainerName uiSlotContainerName(ContainerSlotType type) {
+        return new FullContainerName(type, null);
     }
 
     public boolean sendUIContainerSlot(Container container, int containerSlot) {

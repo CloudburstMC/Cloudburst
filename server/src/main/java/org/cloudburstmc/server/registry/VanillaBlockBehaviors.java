@@ -369,6 +369,12 @@ public class VanillaBlockBehaviors {
         configureConcretePowder(registry, GREEN_CONCRETE_POWDER, GREEN_CONCRETE);
         configureShulkerBox(registry, GREEN_SHULKER_BOX);
         configureUsable(registry, GRINDSTONE, ContainerBlockHandlers.GRINDSTONE);
+        registry.configure(GRINDSTONE)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, GrindstoneBlockHandlers.RESOLVE_PLACEMENT_STATE)
+                .set(BlockComponents.CAN_SURVIVE, GrindstoneBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED,
+                        VegetationBlockHandlers.checkSurvival(GrindstoneBlockHandlers.CAN_SURVIVE))
+                .set(BlockComponents.ON_LIQUID_CHANGED, GrindstoneBlockHandlers.ON_LIQUID_CHANGED);
         configureUsable(registry, HOPPER, ContainerBlockHandlers.HOPPER);
 
         registry.configure(ICE)

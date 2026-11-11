@@ -35,7 +35,7 @@ public class ItemStackNetManager {
     private final Queue<ItemStackRequest> requests = new ArrayDeque<>();
     private final Deque<CloudInventoryScreen> screenStack = new ArrayDeque<>();
     private final Deque<ServerAuthoritativeInventoryUpdate> serverAuthoritativeUpdates = new ArrayDeque<>();
-    private final Set<InventorySlotUpdate> slotsToResend = new LinkedHashSet<>();
+    private final LinkedHashSet<InventorySlotUpdate> slotsToResend = new LinkedHashSet<>();
 
     private boolean processingRequests;
     private boolean currentRequestIsCrafting;
@@ -63,7 +63,7 @@ public class ItemStackNetManager {
     public void resendSlotAfterResponse(CloudInventoryScreen screen, ContainerSlotType container, int slot) {
         if (screen.resolveSlotGroup(container) instanceof CloudSlotGroupBase group) {
             int inventorySlot = screen.resolveInventorySlot(container, slot);
-            this.slotsToResend.add(new InventorySlotUpdate(group.getContainer(), group.getContainerSlot(inventorySlot)));
+            this.slotsToResend.addLast(new InventorySlotUpdate(group.getContainer(), group.getContainerSlot(inventorySlot)));
         }
     }
 

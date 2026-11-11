@@ -1692,6 +1692,7 @@ class VanillaBlockTags {
                 GOLD_BLOCK,
                 GOLD_ORE,
                 GRANITE,
+                GRINDSTONE,
                 HEAVY_WEIGHTED_PRESSURE_PLATE,
                 ICE,
                 IRON_BLOCK,
