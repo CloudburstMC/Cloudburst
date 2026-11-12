@@ -40,6 +40,7 @@ import static org.cloudburstmc.api.item.ItemTypes.*;
 public final class VanillaItemBehaviors {
 
     public static void configure(CloudItemRegistry registry) {
+        registry.configure(ItemTypes.ARMOR_STAND).set(ItemBehaviors.USE_ON, ArmorStandItemHandlers.USE_ON);
         VanillaCookingData.configureFuels(registry);
         for (ItemType shulkerBox : ShulkerBoxItems.TYPES) {
             registry.configure(shulkerBox).set(ItemBehaviors.GET_MAX_STACK_SIZE, _ -> 1);
@@ -428,6 +429,7 @@ public final class VanillaItemBehaviors {
                 .set(ItemBehaviors.GET_ENCHANTABILITY, item -> material.enchantability())
                 .set(ItemBehaviors.ARMOR, new ArmorComponent(material.defense(slot), material.toughness(), material.knockbackResistance()))
                 .set(ItemBehaviors.GET_EQUIPMENT_SLOT, item -> slot)
+                .set(ItemBehaviors.EQUIP_SOUND, material.equipSound())
                 .set(
                         ItemBehaviors.CAN_ENCHANT_WITH,
                         enchantableWith(
@@ -454,6 +456,7 @@ public final class VanillaItemBehaviors {
     private void configureElytra(CloudItemRegistry registry, CanRepairWithHandler repairWith) {
         configureDamageableVanilla(registry, ItemTypes.ELYTRA, 432, repairWith)
                 .set(ItemBehaviors.GET_EQUIPMENT_SLOT, item -> EquipmentSlot.CHEST)
+                .set(ItemBehaviors.EQUIP_SOUND, SoundTypes.ARMOR_EQUIP_ELYTRA)
                 .set(
                         ItemBehaviors.CAN_ENCHANT_WITH,
                         enchantableWith(EnchantmentTarget.BREAKABLE, EnchantmentTarget.VANISHABLE, EnchantmentTarget.WEARABLE)

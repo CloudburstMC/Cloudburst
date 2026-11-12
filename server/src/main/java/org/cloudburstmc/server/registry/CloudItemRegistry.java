@@ -368,6 +368,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         this.registerComponent(ItemBehaviors.GET_BLOCKING_DISABLE_SECONDS, item -> 0f);
         this.registerComponent(ItemBehaviors.GET_DAMAGE_CHANCE, (unbreaking) -> 0);
         this.registerComponent(ItemBehaviors.GET_EQUIPMENT_SLOT, item -> null);
+        this.registerComponent(ItemBehaviors.EQUIP_SOUND);
         this.registerComponent(ItemBehaviors.GET_MAX_DAMAGE, (item) -> 0);
         this.registerComponent(ItemBehaviors.GET_MAX_STACK_SIZE, (item) -> 64);
         this.registerComponent(ItemBehaviors.GET_TOOL, item -> null);

@@ -6,6 +6,7 @@ import org.cloudburstmc.api.block.component.IntTypeHandler;
 import org.cloudburstmc.api.data.ComponentType;
 import org.cloudburstmc.api.entity.damage.DamageType;
 import org.cloudburstmc.api.item.component.*;
+import org.cloudburstmc.api.level.sound.SoundType;
 
 /**
  * Standard {@link ComponentType} constants for item behavioral components.
@@ -146,6 +147,11 @@ public class ItemBehaviors {
      * Obtains the slot occupied when an item is equipped, or {@code null} if it is not equipment.
      */
     public static final ComponentType<GetEquipmentSlotHandler> GET_EQUIPMENT_SLOT = ComponentType.of("get_equipment_slot", GetEquipmentSlotHandler.class);
+
+    /**
+     * Sound played when the item is equipped in its intended slot.
+     */
+    public static final ComponentType<SoundType> EQUIP_SOUND = ComponentType.of("equip_sound", SoundType.class);
 
     /**
      * Calculates an item's maximum durability.

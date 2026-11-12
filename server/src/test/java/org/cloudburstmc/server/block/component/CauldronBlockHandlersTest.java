@@ -411,7 +411,11 @@ class CauldronBlockHandlersTest {
             assertSame(DyeColor.WHITE, data.getBase());
             if (creative) {
                 assertSame(original, held[0]);
+                assertEquals(1, given.size());
+            } else {
+                assertTrue(given.isEmpty());
             }
+            assertSame(cauldron(Bucket.WATER, 5), world.state(POSITION));
             assertEquals(List.of(SoundTypes.CAULDRON_CLEANBANNER), world.getSounds());
         }
     }

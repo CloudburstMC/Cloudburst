@@ -85,6 +85,7 @@ import org.cloudburstmc.server.container.screen.*;
 import org.cloudburstmc.server.container.view.CloudEnderChestView;
 import org.cloudburstmc.server.container.view.CloudHotbarView;
 import org.cloudburstmc.server.container.view.CloudPlayerInventory;
+import org.cloudburstmc.server.entity.CloudDamageResult;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
@@ -3119,8 +3120,10 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
                 .build();
         boolean piercingWeapon = !heldItem.isEmpty() && CloudItemRegistry.get().getComponent(heldItem.getType(), ItemBehaviors.STAB) != null;
 
-        boolean damaged = target.damage(damage, source);
-        if (damaged) {
+        CloudDamageResult result = target instanceof CloudEntity cloudTarget
+                ? cloudTarget.damageWithResult(damage, source)
+                : target.damage(damage, source) ? CloudDamageResult.APPLIED : CloudDamageResult.REJECTED;
+        if (result == CloudDamageResult.APPLIED) {
             CloudEnchantmentRegistry.get().applyPostAttackEffects(heldItem, this, target);
             this.applyAttackKnockback(target, heldItem, damageType);
 
@@ -3132,7 +3135,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
             this.addExhaustion(0.1f, ExhaustionReason.ATTACK);
             this.damageHeldItemAfterAttack(attackSlot, heldItem);
-        } else if (!piercingWeapon) {
+        } else if (result == CloudDamageResult.REJECTED && !piercingWeapon) {
             this.getLevel().addLevelSoundEvent(target.getPosition(), SoundEvent.ATTACK_NODAMAGE, -1, EntityTypes.PLAYER, false, false);
         }
 
@@ -3143,7 +3146,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             CloudServer.broadcastPacket(this.getViewers(), swingPacket);
         }
 
-        return damaged;
+        return result.applied();
     }
 
     private float getAttackDamageMultiplier() {

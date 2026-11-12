@@ -246,7 +246,7 @@ public class CauldronItemInteractions {
             BlockState updated = state(Bucket.WATER, fill(block) - 1);
 
             exchange(block, player, item, output, 1, updated, CauldronContents.PLAIN,
-                    CauldronChangeReason.BANNER_WASH, SoundTypes.CAULDRON_CLEANBANNER, ExchangeMode.TRANSFORM);
+                    CauldronChangeReason.BANNER_WASH, SoundTypes.CAULDRON_CLEANBANNER, ExchangeMode.CREATIVE_COPY);
             return true;
         }
 
@@ -298,7 +298,9 @@ public class CauldronItemInteractions {
             return;
         }
 
-        if (player.isCreative() && mode == ExchangeMode.CONTAINER) {
+        if (player.isCreative() && mode == ExchangeMode.CREATIVE_COPY) {
+            give(player, output);
+        } else if (player.isCreative() && mode == ExchangeMode.CONTAINER) {
             if (!output.isEmpty() && !player.getInventory().contains(output)) {
                 give(player, output);
             }
@@ -368,6 +370,7 @@ public class CauldronItemInteractions {
 
     private enum ExchangeMode {
         CONTAINER,
+        CREATIVE_COPY,
         TRANSFORM
     }
 }

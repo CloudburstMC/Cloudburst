@@ -1913,7 +1913,10 @@ public abstract class CloudEntity implements Entity {
     public CloudDamageResult damageWithResult(float amount, DamageSource source) {
         CloudEntityDamageEvent event = this.createDamageEvent(source, amount);
         boolean applied = this.applyDamage(event);
-        return new CloudDamageResult(applied, event.isCancelled());
+        if (event.isCancelled()) {
+            return CloudDamageResult.CANCELLED;
+        }
+        return applied ? CloudDamageResult.APPLIED : CloudDamageResult.REJECTED;
     }
 
     /**
