@@ -16,7 +16,7 @@ public interface StonecuttingRecipe extends Recipe {
     /**
      * Returns a representative {@link ItemStack} for the input slot.
      * Useful for display and item-based recipe matching.
-     * For tag-based inputs this returns a representative concrete item that satisfies the tag.
+     * A tag-based input may have no representative item and return an empty stack.
      */
     ItemStack getInputItem();
 

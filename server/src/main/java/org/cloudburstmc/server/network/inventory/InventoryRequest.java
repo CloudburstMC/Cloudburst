@@ -52,6 +52,7 @@ public class InventoryRequest {
     private @Nullable PendingResult pendingResult;
     private @Nullable ResultTake preparedTake;
     private @Nullable CraftRecipeAction enchantmentSelection;
+    private @Nullable CraftRecipeAction stonecuttingSelection;
     private @Nullable BeaconPaymentAction beaconPayment;
     private @Nullable String stationRename;
     private final CloudInventoryScreen screen;
@@ -310,6 +311,11 @@ public class InventoryRequest {
 
         ItemStackRequestSlotData dstSlot = action.getDestination();
         rejectResultMutation(dstSlot);
+        if (resultScreen instanceof CloudStonecutterContainerScreen && resultScreen.isInputSlot(container(dstSlot))) {
+            this.requestFailed = true;
+            return;
+        }
+
         ItemStack sourceItem = getSlot(action.getSource());
         ItemStack destItem = getSlot(dstSlot);
         int count = action.getCount();
@@ -325,7 +331,16 @@ public class InventoryRequest {
             return;
         }
 
-        ResultQuote quote = this.quoteRename();
+        ResultQuote quote = this.quoteResult();
+        if (resultScreen instanceof CloudStonecutterContainerScreen) {
+            this.requiresFullSlotUpdate = true;
+            if (quote == null) {
+                this.trackAffectedSlot(container(dstSlot), dstSlot.getSlot());
+                this.requestFailed = true;
+                return;
+            }
+        }
+
         if (quote != null) {
             sourceItem = quote.item();
             if (this.changes.isStale() || this.screen != this.player.getInventoryManager().getScreen()) {
@@ -397,7 +412,13 @@ public class InventoryRequest {
         this.pendingResult = new PendingResult(resultScreen, dstResolvedSlot, sourceItem, destItem, newDest, proposed, quote, count);
     }
 
-    private @Nullable ResultQuote quoteRename() {
+    private @Nullable ResultQuote quoteResult() {
+        if (this.screen instanceof CloudStonecutterContainerScreen stonecutter) {
+            CraftRecipeAction selection = this.stonecuttingSelection;
+            return selection == null ? null
+                    : stonecutter.quoteRecipe(selection.getRecipeNetworkId(), selection.getNumberOfRequestedCrafts());
+        }
+
         String name = this.stationRename;
         if (name == null) {
             return null;
@@ -451,6 +472,19 @@ public class InventoryRequest {
 
         PendingResult result = this.pendingResult;
         if (result == null) {
+            CraftRecipeAction stonecutting = this.stonecuttingSelection;
+            if (stonecutting != null && this.screen instanceof CloudStonecutterContainerScreen stonecutter) {
+                if (this.currentRequest.getActions().length != 1) {
+                    return false;
+                }
+
+                Runnable commit = stonecutter.prepareRecipeSelection(stonecutting.getRecipeNetworkId());
+                if (commit == null) {
+                    return false;
+                }
+
+                this.effects.add(commit);
+            }
             return true;
         }
 
@@ -671,6 +705,16 @@ public class InventoryRequest {
     }
 
     private void handleCraftRecipe(RecipeItemStackRequestAction action) {
+        if (this.screen instanceof CloudStonecutterContainerScreen stonecutter) {
+            stonecutter.trackResultSlots(this::trackAffectedSlot);
+            if (action instanceof CraftRecipeAction selection && this.currentRequest.getActions()[0] == action) {
+                this.stonecuttingSelection = selection;
+            } else {
+                this.requestFailed = true;
+            }
+            return;
+        }
+
         if (screen instanceof CloudEnchantingContainerScreen) {
             if (action instanceof CraftRecipeAction selection && this.currentRequest.getActions()[0] == action) {
                 this.enchantmentSelection = selection;
@@ -741,6 +785,16 @@ public class InventoryRequest {
 
     private void handleConsume(ConsumeAction action) {
         ContainerSlotType sourceContainer = container(action.getSource());
+        if (this.screen instanceof CloudStonecutterContainerScreen) {
+            if (this.stonecuttingSelection == null
+                    || sourceContainer != ContainerSlotType.STONECUTTER_INPUT
+                    || action.getSource().getSlot() != CloudStonecutterContainerScreen.INPUT_UI_SLOT
+                    || action.getCount() <= 0) {
+                this.requestFailed = true;
+            }
+            return;
+        }
+
         if (screen instanceof ResultContainerScreen resultScreen && resultScreen.isInputSlot(sourceContainer)) {
             resultScreen.trackResultSlots(this::trackAffectedSlot);
             return;

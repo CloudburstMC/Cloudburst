@@ -1,57 +1,41 @@
 package org.cloudburstmc.api.inventory.view;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.crafting.StonecuttingRecipe;
 import org.cloudburstmc.api.item.ItemStack;
 
+import java.util.List;
+
 /**
- * Represents the item slots of a stonecutter container.
- * Exposes the stone input slot and the result slot.
+ * The input and prepared result of a stonecutter.
  */
 public interface StonecutterView extends SlotGroup {
 
     /**
-     * Returns the item in the input slot.
-     *
-     * @return the input item
+     * Returns the item in the input slot, or an empty stack.
      */
     ItemStack getInput();
 
     /**
-     * Sets the item in the input slot.
+     * Sets the input item and clears the selection if the input changes.
      *
-     * @param item the item to place
+     * @param item the new input
      */
     void setInput(ItemStack item);
 
     /**
-     * Returns the item in the result slot.
-     *
-     * <p>This slot is computed by the client based on the selected recipe.
-     * The server can read or override the result by setting this slot directly.</p>
-     *
-     * @return the result item
+     * Returns the prepared output for one cut, or an empty stack.
      */
     ItemStack getResult();
 
     /**
-     * Sets the item in the result slot.
-     *
-     * @param item the result item to place
+     * Returns the recipes available for the current input.
      */
-    void setResult(ItemStack item);
+    List<StonecuttingRecipe> getRecipes();
 
     /**
-     * Returns the index of the recipe the player has selected in the stonecutter UI,
-     * or {@code -1} if no recipe is currently selected.
-     *
-     * @return the selected recipe index, or {@code -1}
+     * Returns the accepted recipe selection, or null if no recipe is selected.
      */
-    int getSelectedRecipeIndex();
-
-    /**
-     * Sets the selected recipe index shown in the stonecutter UI.
-     * Use {@code -1} to clear the selection.
-     *
-     * @param index the recipe index, or {@code -1} to clear
-     */
-    void setSelectedRecipeIndex(int index);
+    @Nullable
+    StonecuttingRecipe getSelectedRecipe();
 }

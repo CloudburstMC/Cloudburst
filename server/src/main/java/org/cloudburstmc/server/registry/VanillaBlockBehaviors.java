@@ -689,7 +689,6 @@ public class VanillaBlockBehaviors {
         configureSlab(registry, STONE_BRICK_SLAB, STONE_BRICK_DOUBLE_SLAB);
         configureStoneButton(registry, STONE_BUTTON);
         configureSlab(registry, STONE_SLAB, STONE_DOUBLE_SLAB);
-        configureUsable(registry, STONECUTTER, ContainerBlockHandlers.STONECUTTER);
         configureUsable(registry, STONECUTTER_BLOCK, ContainerBlockHandlers.STONECUTTER);
         configureBed(registry, STRAW_BED);
         configureSlab(registry, SULFUR_BRICK_SLAB, SULFUR_BRICK_DOUBLE_SLAB);

@@ -44,6 +44,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 @Log4j2
 public class CloudRecipeRegistry implements RecipeRegistry {
@@ -89,6 +90,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
 
     private final Map<Identifier, List<CloudCookingRecipe>> cookingByBlock = new HashMap<>();
     private final Map<Identifier, List<CloudStonecuttingRecipe>> stonecuttingByInput = new HashMap<>();
+    private final List<CloudStonecuttingRecipe> taggedStonecutting = new ArrayList<>();
     private final Map<Identifier, List<CloudBrewingRecipe>> brewingByBase = new HashMap<>();
     private final Map<Identifier, List<CloudContainerRecipe>> containerByBase = new HashMap<>();
 
@@ -229,8 +231,12 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                 cookingByBlock.computeIfAbsent(normalizeFurnaceBlock(furnace.getBlock()), _ -> new ArrayList<>()).add(furnace);
             }
             case STONECUTTING -> {
-                CloudStonecuttingRecipe sc = (CloudStonecuttingRecipe) recipe;
-                stonecuttingByInput.computeIfAbsent(sc.getInputItem().getType().getId(), _ -> new ArrayList<>()).add(sc);
+                CloudStonecuttingRecipe stonecutting = (CloudStonecuttingRecipe) recipe;
+                switch (stonecutting.getInput()) {
+                    case RecipeIngredient.Exact(Identifier item) -> this.stonecuttingByInput.computeIfAbsent(item, _ -> new ArrayList<>()).add(stonecutting);
+                    case RecipeIngredient.Tag _ -> this.taggedStonecutting.add(stonecutting);
+                    case null -> {}
+                }
             }
             case POTION -> {
                 CloudBrewingRecipe brewing = (CloudBrewingRecipe) recipe;
@@ -324,7 +330,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         inputs.removeIf(ItemStack::isEmpty);
         inputs.sort(recipeComparator);
 
-        if (block != null && block.getName().equals("stonecutter")) {
+        if (Identifiers.STONECUTTER.equals(block)) {
             ItemStack scInput = inputs.isEmpty() ? ItemStack.EMPTY : inputs.getFirst();
             ItemDescriptorWithCount scDescriptor = inputDescriptors.isEmpty() ? ItemDescriptorWithCount.EMPTY : inputDescriptors.getFirst();
             ItemStack scResult = outputs.isEmpty() ? ItemStack.EMPTY : outputs.getFirst();
@@ -520,12 +526,19 @@ public class CloudRecipeRegistry implements RecipeRegistry {
             if (tag.equals(TRIM_MATERIALS)) {
                 return this.findTrimMaterial(stack.getType().getId()) != null;
             }
-
-            ItemTagKey key = ItemTagKey.of(tag);
-            return this.itemRegistry.getTags().stream().anyMatch(candidate -> candidate.getKey() == key && candidate.isTagged(stack.getType()));
         }
 
-        return ingredient.test(stack) && (!(descriptor.getDescriptor() instanceof DefaultDescriptor exact)
+        return this.matchesRecipeIngredient(stack, ingredient, descriptor);
+    }
+
+    private boolean matchesRecipeIngredient(ItemStack stack, RecipeIngredient ingredient, ItemDescriptorWithCount descriptor) {
+        if (ingredient instanceof RecipeIngredient.Tag(Identifier tag)) {
+            ItemTagKey key = ItemTagKey.of(tag);
+            return this.itemRegistry.getTags().stream()
+                    .anyMatch(candidate -> candidate.getKey() == key && candidate.isTagged(stack.getType()));
+        }
+
+        return ingredient != null && ingredient.test(stack) && (!(descriptor.getDescriptor() instanceof DefaultDescriptor exact)
                 || exact.getAuxValue() == Short.MAX_VALUE
                 || this.itemRegistry.getSerializer(stack.getType()).getAuxValue(stack) == exact.getAuxValue());
     }
@@ -639,25 +652,37 @@ public class CloudRecipeRegistry implements RecipeRegistry {
 
     @Override
     public Recipe matchRecipe(ItemStack input, Identifier craftingBlock) {
-        if (craftingBlock != null && craftingBlock.getName().equals("stonecutter")) {
+        if (Identifiers.STONECUTTER.equals(craftingBlock)) {
             return matchStonecuttingRecipe(input);
         }
         return matchCookingRecipe(input, craftingBlock);
     }
 
     public CloudStonecuttingRecipe matchStonecuttingRecipe(ItemStack input) {
-        List<CloudStonecuttingRecipe> candidates = stonecuttingByInput.get(input.getType().getId());
-        if (candidates == null) {
-            return null;
+        List<CloudStonecuttingRecipe> candidates = this.getStonecuttingRecipes(input);
+        return candidates.isEmpty() ? null : candidates.getFirst();
+    }
+
+    public List<CloudStonecuttingRecipe> getStonecuttingRecipes(ItemStack input) {
+        if (input.isEmpty()) {
+            return List.of();
         }
 
-        for (CloudStonecuttingRecipe sc : candidates) {
-            if (sc.getInputItem().equals(input)) {
-                return sc;
-            }
+        List<CloudStonecuttingRecipe> exact = this.stonecuttingByInput.getOrDefault(input.getType().getId(), List.of());
+        return Stream.concat(exact.stream(), this.taggedStonecutting.stream())
+                .filter(recipe -> this.matchesStonecuttingInput(recipe, input))
+                .sorted(Comparator.comparingInt(CloudStonecuttingRecipe::getPriority)
+                        .thenComparing(recipe -> recipe.getId().toString()))
+                .toList();
+    }
+
+    public boolean matchesStonecuttingInput(CloudStonecuttingRecipe recipe, ItemStack input) {
+        ItemDescriptorWithCount descriptor = recipe.inputDescriptor();
+        if (input.isEmpty() || descriptor.getCount() != 1) {
+            return false;
         }
 
-        return null;
+        return this.matchesRecipeIngredient(input, recipe.getInput(), descriptor);
     }
 
     @Override
@@ -750,6 +775,10 @@ public class CloudRecipeRegistry implements RecipeRegistry {
 
     @Override
     public Collection<Recipe> getRecipesForInput(ItemStack input, Identifier craftingBlock) {
+        if (Identifiers.STONECUTTER.equals(craftingBlock)) {
+            return List.copyOf(this.getStonecuttingRecipes(input));
+        }
+
         ImmutableList.Builder<Recipe> builder = ImmutableList.builder();
         Identifier inputId = input.getType().getId();
 
@@ -760,8 +789,6 @@ public class CloudRecipeRegistry implements RecipeRegistry {
 
             switch (recipe) {
                 case CloudCookingRecipe r when r.getInputItem().getType().getId().equals(inputId) -> builder.add(r);
-                case CloudStonecuttingRecipe r when r.getInputItem().getType().getId().equals(inputId) ->
-                        builder.add(r);
                 case CloudShapelessRecipe r -> {
                     for (ItemStack ingredient : r.getIngredientList()) {
                         if (ingredient.getType().getId().equals(inputId)) {
@@ -951,7 +978,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     private void addStonecuttingToPacket(CraftingDataPacket packet, CloudStonecuttingRecipe recipe, UUID uuid, String blockTag, int netId) {
         packet.getShapelessData().add(ShapelessRecipeData.shapeless(
                 recipe.getId().toString(),
-                RecipeItemCodec.toRecipeDescriptors(recipe.getInputDescriptors()),
+                RecipeItemCodec.toRecipeDescriptors(List.of(recipe.inputDescriptor())),
                 RecipeItemCodec.toNetworkRecipe(List.of(recipe.getResult())),
                 uuid,
                 blockTag,

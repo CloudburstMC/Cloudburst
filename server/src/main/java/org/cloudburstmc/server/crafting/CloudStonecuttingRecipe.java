@@ -5,27 +5,16 @@ import org.cloudburstmc.api.crafting.RecipeType;
 import org.cloudburstmc.api.crafting.StonecuttingRecipe;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.api.util.Identifiers;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 
-import java.util.List;
-
-public class CloudStonecuttingRecipe implements StonecuttingRecipe {
-
-    private static final Identifier STONECUTTER = Identifier.parse("stonecutter");
-
-    private final Identifier id;
-    private final ItemStack inputItem;
-    private final ItemDescriptorWithCount inputDescriptor;
-    private final ItemStack result;
-    private final int priority;
-
-    public CloudStonecuttingRecipe(Identifier id, int priority, ItemStack inputItem, ItemDescriptorWithCount inputDescriptor, ItemStack result) {
-        this.id = id;
-        this.priority = priority;
-        this.inputItem = inputItem;
-        this.inputDescriptor = inputDescriptor;
-        this.result = result;
-    }
+public record CloudStonecuttingRecipe(
+        Identifier id,
+        int priority,
+        ItemStack inputItem,
+        ItemDescriptorWithCount inputDescriptor,
+        ItemStack result
+) implements StonecuttingRecipe {
 
     @Override
     public RecipeIngredient getInput() {
@@ -54,15 +43,11 @@ public class CloudStonecuttingRecipe implements StonecuttingRecipe {
 
     @Override
     public Identifier getBlock() {
-        return STONECUTTER;
+        return Identifiers.STONECUTTER;
     }
 
     @Override
     public int getPriority() {
         return priority;
-    }
-
-    public List<ItemDescriptorWithCount> getInputDescriptors() {
-        return List.of(inputDescriptor);
     }
 }

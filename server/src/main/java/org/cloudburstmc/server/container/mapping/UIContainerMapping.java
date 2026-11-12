@@ -23,7 +23,8 @@ public class UIContainerMapping extends ContainerMapping {
                  ENCHANTING_INPUT, ENCHANTING_MATERIAL, TRADE_INGREDIENT_1, TRADE_INGREDIENT_2,
                  MATERIAL_REDUCER_INPUT, LOOM_INPUT, LOOM_DYE, LOOM_MATERIAL, TRADE2_INGREDIENT_1,
                  TRADE2_INGREDIENT_2, GRINDSTONE_INPUT, GRINDSTONE_ADDITIONAL, STONECUTTER_INPUT, CARTOGRAPHY_INPUT,
-                 CARTOGRAPHY_ADDITIONAL, CARTOGRAPHY_RESULT, ANVIL_RESULT, GRINDSTONE_RESULT, CREATED_OUTPUT, CURSOR -> 1;
+                 CARTOGRAPHY_ADDITIONAL, CARTOGRAPHY_RESULT, ANVIL_RESULT, GRINDSTONE_RESULT,
+                 STONECUTTER_RESULT, CREATED_OUTPUT, CURSOR -> 1;
             case CRAFTING_INPUT, COMPOUND_CREATOR_INPUT, MATERIAL_REDUCER_OUTPUT -> 9;
             default -> throw new UnsupportedOperationException("Unknown UI container slot type " + type);
         };
@@ -55,7 +56,7 @@ public class UIContainerMapping extends ContainerMapping {
             case STONECUTTER_INPUT -> -3;
             case CARTOGRAPHY_INPUT -> -12;
             case CARTOGRAPHY_ADDITIONAL -> -13;
-            case CARTOGRAPHY_RESULT, ANVIL_RESULT, SMITHING_TABLE_RESULT, GRINDSTONE_RESULT, CREATED_OUTPUT -> -50;
+            case CARTOGRAPHY_RESULT, ANVIL_RESULT, SMITHING_TABLE_RESULT, GRINDSTONE_RESULT, STONECUTTER_RESULT, CREATED_OUTPUT -> -50;
             case CURSOR -> 0;
             default -> throw new UnsupportedOperationException("Unknown UI container slot type " + type);
         };
