@@ -110,6 +110,7 @@ public class VanillaBlockBehaviors {
         configureClimbingBlocks(registry);
         configureColoredBuildingBlockSlabs(registry);
         configureAquaticBlocks(registry);
+        configureSkulls(registry);
         configureStairs(registry);
         configureVegetation(registry);
         configureWalls(registry);
@@ -1264,6 +1265,21 @@ public class VanillaBlockBehaviors {
         registry.configure(type)
                 .set(BlockComponents.CAN_SURVIVE, VegetationBlockHandlers.CAN_SURVIVE)
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, VegetationBlockHandlers.NEIGHBOUR_CHANGED);
+    }
+
+    private void configureSkulls(CloudBlockRegistry registry) {
+        for (BlockType type : VanillaBlockEntityBlocks.get(BlockEntityTypes.SKULL)) {
+            registry.configure(type)
+                    .set(BlockComponents.RESOLVE_PLACEMENT_STATE, SkullBlockHandlers.RESOLVE_PLACEMENT_STATE)
+                    .set(BlockComponents.ON_PLACE, SkullBlockHandlers.ON_PLACE)
+                    .set(BlockComponents.ON_ADDED, SkullBlockHandlers.ON_ADDED);
+        }
+
+        for (BlockType type : List.of(DRAGON_HEAD, PIGLIN_HEAD)) {
+            registry.configure(type)
+                    .set(BlockComponents.ON_NEIGHBOUR_CHANGED, SkullBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                    .set(BlockComponents.ON_REDSTONE_UPDATE, SkullBlockHandlers.UPDATE_POWER);
+        }
     }
 
     private void configureSlab(CloudBlockRegistry registry, BlockType slabType, BlockType doubleSlabType) {

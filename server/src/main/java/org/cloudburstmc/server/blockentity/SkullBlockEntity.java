@@ -1,76 +1,99 @@
 package org.cloudburstmc.server.blockentity;
 
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Skull;
 import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.CardinalDirection;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.server.block.util.RedstoneSignals;
+
+import java.util.Objects;
 
 public class SkullBlockEntity extends BaseBlockEntity implements Skull {
-    private float rotation;
-    private int skullType;
-    private boolean mouthMoving;
-    private int mouthTickCount;
+
+    private CardinalDirection rotation = CardinalDirection.SOUTH;
+    private boolean rotationDirty;
+    private boolean powered;
 
     public SkullBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForByte("SkullType", this::setSkullType);
-        tag.listenForFloat("Rotation", this::setRotation);
-        tag.listenForInt("MouthTickCount", this::setMouthTickCount);
-        tag.listenForBoolean("MouthMoving", this::setMouthMoving);
+    public CardinalDirection getRotation() {
+        Direction facing = this.getBlockState().ensureTrait(BlockTraits.FACING_DIRECTION);
+        return isVertical(facing) ? this.rotation : facing.getCardinalDirection();
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    public void setRotation(CardinalDirection rotation) {
+        Objects.requireNonNull(rotation, "rotation");
+        if (!isVertical(this.getBlockState().ensureTrait(BlockTraits.FACING_DIRECTION))) {
+            throw new IllegalStateException("Cannot rotate a wall-mounted head");
+        }
 
-        tag.putByte("SkullType", (byte) this.getSkullType());
-        tag.putFloat("Rotation", this.getRotation());
-        tag.putInt("MouthTickCount", this.getMouthTickCount());
-        tag.putBoolean("MouthMoving", this.isMouthMoving());
-    }
-
-    public float getRotation() {
-        return this.rotation;
-    }
-
-    public void setRotation(float rotation) {
-        this.rotation = rotation;
-    }
-
-    public int getMouthTickCount() {
-        return mouthTickCount;
-    }
-
-    public void setMouthTickCount(int mouthTickCount) {
-        this.mouthTickCount = mouthTickCount;
-    }
-
-    public boolean isMouthMoving() {
-        return mouthMoving;
-    }
-
-    public void setMouthMoving(boolean mouthMoving) {
-        this.mouthMoving = mouthMoving;
-    }
-
-    public int getSkullType() {
-        return skullType;
-    }
-
-    public void setSkullType(int skullType) {
-        this.skullType = skullType;
+        if (this.rotation != rotation) {
+            this.rotation = rotation;
+            this.rotationDirty = true;
+            this.setDirty();
+            this.scheduleUpdate();
+        }
     }
 
     @Override
     public boolean isSpawnable() {
         return true;
+    }
+
+    @Override
+    public boolean onUpdate() {
+        boolean changed = this.updatePower();
+        super.onUpdate();
+        if (changed || this.rotationDirty) {
+            this.rotationDirty = false;
+            this.spawnToAll();
+        }
+        return false;
+    }
+
+    @Override
+    public void loadAdditionalData(NbtMap tag) {
+        super.loadAdditionalData(tag);
+        tag.listenForFloat("Rotation", yaw -> this.rotation = rotationFromYaw(yaw));
+    }
+
+    @Override
+    protected void saveClientData(NbtMapBuilder tag) {
+        if (isVertical(this.getBlockState().ensureTrait(BlockTraits.FACING_DIRECTION))) {
+            tag.putFloat("Rotation", this.rotation.ordinal() * 22.5f);
+        } else {
+            tag.remove("Rotation");
+        }
+
+        tag.putBoolean("MouthMoving", this.powered);
+        tag.putBoolean("DoingAnimation", this.powered);
+    }
+
+    public static CardinalDirection rotationFromYaw(float yaw) {
+        int segment = Math.floorMod(Math.round((yaw % 360f) / 22.5f), 16);
+        return CardinalDirection.values()[segment];
+    }
+
+    private boolean updatePower() {
+        BlockType type = this.getBlockState().getType();
+        boolean powered = (type == BlockTypes.DRAGON_HEAD || type == BlockTypes.PIGLIN_HEAD) && RedstoneSignals.hasNeighborSignal(this.getBlock());
+        boolean changed = this.powered != powered;
+        this.powered = powered;
+        return changed;
+    }
+
+    private static boolean isVertical(Direction facing) {
+        return facing == Direction.UP || facing == Direction.DOWN;
     }
 }

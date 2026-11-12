@@ -41,6 +41,7 @@ public final class VanillaItemBehaviors {
 
     public static void configure(CloudItemRegistry registry) {
         VanillaJukeboxSongs.configure(registry);
+        configureWearableHeads(registry);
         registry.configure(ItemTypes.PAINTING).set(ItemBehaviors.USE_ON, PaintingItemHandlers.USE_ON);
         registry.configure(ItemTypes.ARMOR_STAND).set(ItemBehaviors.USE_ON, ArmorStandItemHandlers.USE_ON);
         VanillaCookingData.configureFuels(registry);
@@ -424,6 +425,16 @@ public final class VanillaItemBehaviors {
         registry.configure(itemType)
                 .set(ItemBehaviors.SPAWN_EGG, new SpawnEggComponent(entityType))
                 .set(ItemBehaviors.USE_ON, SpawnEggItemHandlers.useOn(entityType));
+    }
+
+    private void configureWearableHeads(CloudItemRegistry registry) {
+        for (ItemType head : List.of(SKELETON_SKULL, WITHER_SKELETON_SKULL, ZOMBIE_HEAD, PLAYER_HEAD,
+                CREEPER_HEAD, DRAGON_HEAD, PIGLIN_HEAD)) {
+            registry.configure(head)
+                    .set(ItemBehaviors.GET_EQUIPMENT_SLOT, _ -> EquipmentSlot.HEAD)
+                    .set(ItemBehaviors.EQUIP_SOUND, SoundTypes.ARMOR_EQUIP_GENERIC)
+                    .set(ItemBehaviors.USE, ArmorItemHandlers.equip(EquipmentSlot.HEAD, SoundTypes.ARMOR_EQUIP_GENERIC));
+        }
     }
 
     private void configureArmor(CloudItemRegistry registry, ItemType type, ArmorMaterial material, EquipmentSlot slot) {
