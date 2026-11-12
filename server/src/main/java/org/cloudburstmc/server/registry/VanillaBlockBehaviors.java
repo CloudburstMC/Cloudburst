@@ -135,6 +135,7 @@ public class VanillaBlockBehaviors {
         configureTrapdoor(registry, BAMBOO_TRAPDOOR);
         configureUsable(registry, BARREL, ContainerBlockHandlers.BARREL);
         configureUsable(registry, BEACON, ContainerBlockHandlers.BEACON);
+        configureBell(registry);
         configureBed(registry, BED);
 
         registry.configure(BIG_DRIPLEAF)
@@ -927,6 +928,17 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.ON_DESTROY, BedBlockHandlers.ON_DESTROY)
                 .set(BlockComponents.GET_LOOT, BedBlockHandlers.GET_LOOT)
                 .set(BlockComponents.GET_PICK_BLOCK, BedBlockHandlers.GET_PICK_BLOCK);
+    }
+
+    private void configureBell(CloudBlockRegistry registry) {
+        configureUsable(registry, BELL, BellBlockHandlers.USE);
+        registry.configure(BELL)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, BellBlockHandlers.RESOLVE_PLACEMENT_STATE)
+                .set(BlockComponents.CAN_SURVIVE, BellBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.ON_ADDED, BellBlockHandlers.ON_ADDED)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, BellBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.ON_REDSTONE_UPDATE, BellBlockHandlers.UPDATE_POWER)
+                .set(BlockComponents.ON_PROJECTILE_HIT, BellBlockHandlers.ON_PROJECTILE_HIT);
     }
 
     private void configureCakeSupport(CloudBlockRegistry registry, BlockType type) {

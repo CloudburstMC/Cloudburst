@@ -175,6 +175,7 @@ public final class CloudBlockEntityRegistry implements BlockEntityRegistry {
         registerVanilla(BlockEntityTypes.BARREL, BarrelBlockEntity::new, "Barrel");
         registerVanilla(BlockEntityTypes.BEACON, BeaconBlockEntity::new, "Beacon");
         registerVanilla(BlockEntityTypes.BED, BedBlockEntity::new, "Bed");
+        registerVanilla(BlockEntityTypes.BELL, BellBlockEntity::new, "Bell");
         registerVanilla(BlockEntityTypes.BLAST_FURNACE, BlastFurnaceBlockEntity::new, "BlastFurnace");
         registerVanilla(BlockEntityTypes.BREWING_STAND, BrewingStandBlockEntity::new, "BrewingStand");
         registerVanilla(BlockEntityTypes.CAMPFIRE, CampfireBlockEntity::new, "Campfire");

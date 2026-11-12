@@ -119,7 +119,8 @@ public class ItemFrameBlockHandlers {
     public static final BlockExplosionHandler ON_EXPLOSION_HIT = (block, cause, source) ->
             !(block.getLevel().getBlockEntity(block.getPosition()) instanceof ItemFrame frame) || !frame.isFixed();
 
-    public static final EntityBlockHandler ON_PROJECTILE_HIT = (block, projectile) -> {
+    public static final ProjectileHitBlockHandler ON_PROJECTILE_HIT = (hit, projectile) -> {
+        Block block = hit.block();
         if (!(block.getLevel().getBlockEntity(block.getPosition()) instanceof ItemFrame frame) || frame.isFixed()) {
             return;
         }

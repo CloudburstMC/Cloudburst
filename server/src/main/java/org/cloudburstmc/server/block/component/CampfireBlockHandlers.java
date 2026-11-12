@@ -108,7 +108,8 @@ public class CampfireBlockHandlers {
         }
     };
 
-    public static final EntityBlockHandler ON_PROJECTILE_HIT = (block, projectile) -> {
+    public static final ProjectileHitBlockHandler ON_PROJECTILE_HIT = (hit, projectile) -> {
+        Block block = hit.block();
         if (projectile instanceof SplashPotion potion && potion.getPotionType() == PotionTypes.WATER) {
             extinguish(block);
             return;

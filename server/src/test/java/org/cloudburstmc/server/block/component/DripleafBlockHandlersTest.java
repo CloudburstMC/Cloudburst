@@ -11,6 +11,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.BlockHitResult;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.CardinalDirection;
 import org.cloudburstmc.api.util.data.DripleafTilt;
@@ -259,7 +260,8 @@ class DripleafBlockHandlersTest {
         BlockTestWorld world = world();
         world.setState(POSITION, HEAD);
         Entity projectile = InterfaceProxy.create(Entity.class, Map.of("getType", EntityTypes.ARROW));
-        BigDripleafBlockHandlers.ON_PROJECTILE_HIT.execute(world.block(POSITION), projectile);
+        BigDripleafBlockHandlers.ON_PROJECTILE_HIT.execute(
+                new BlockHitResult(POSITION.toFloat(), world.block(POSITION), Direction.UP, false), projectile);
 
         assertEquals(DripleafTilt.FULL_TILT, world.state(POSITION).ensureTrait(BlockTraits.DRIPLEAF_TILT));
         assertEquals(List.of(100), world.getScheduledDelays());
@@ -280,7 +282,8 @@ class DripleafBlockHandlersTest {
         world.onEvent(EntityChangeBlockEvent.class, event -> event.setCancelled(true));
         Entity projectile = InterfaceProxy.create(Entity.class, Map.of("getType", EntityTypes.ARROW));
 
-        BigDripleafBlockHandlers.ON_PROJECTILE_HIT.execute(world.block(POSITION), projectile);
+        BigDripleafBlockHandlers.ON_PROJECTILE_HIT.execute(
+                new BlockHitResult(POSITION.toFloat(), world.block(POSITION), Direction.UP, false), projectile);
 
         assertSame(HEAD, world.state(POSITION));
         assertTrue(world.getScheduledDelays().isEmpty());

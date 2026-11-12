@@ -6,7 +6,7 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.component.BlockExplosionHandler;
-import org.cloudburstmc.api.block.component.EntityBlockHandler;
+import org.cloudburstmc.api.block.component.ProjectileHitBlockHandler;
 import org.cloudburstmc.api.block.component.UseBlockHandler;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityTypes;
@@ -43,7 +43,8 @@ public class TntBlockHandlers {
                         source, sourceBlock, TntPrimeCause.EXPLOSION, true);
     };
 
-    public static final EntityBlockHandler ON_PROJECTILE_HIT = (block, projectile) -> {
+    public static final ProjectileHitBlockHandler ON_PROJECTILE_HIT = (hit, projectile) -> {
+        Block block = hit.block();
         if (projectile.isOnFire()) {
             prime(block, projectile.getOwner(), TntPrimeCause.PROJECTILE);
         }

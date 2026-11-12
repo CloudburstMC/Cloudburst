@@ -153,7 +153,7 @@ public class DefaultBlockHandlers {
     public static final FallOnBlockHandler ON_FALL_ON = (block, entity, fallDistance) ->
             ((CloudEntity) entity).applyFallDamage(fallDistance);
 
-    public static final EntityBlockHandler ON_PROJECTILE_HIT = (block, entity) -> {
+    public static final ProjectileHitBlockHandler ON_PROJECTILE_HIT = (_, _) -> {
     };
 
     public static final ComplexBlockHandler ON_LIGHTNING_HIT = (block) -> {

@@ -5,6 +5,7 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.blockentity.Bell;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.LiquidState;
 import org.cloudburstmc.api.entity.Entity;
@@ -243,7 +244,12 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
                 this.moveTowardsClosestSpace(pos);
             }
 
+            boolean wasOnGround = this.onGround;
             this.move(this.motion);
+
+            if (!wasOnGround && this.onGround && this.level.getLoadedBlockEntity(this.getLandingBlockPosition()) instanceof Bell bell) {
+                bell.ring(this, null);
+            }
 
             double friction = 1 - this.getDrag();
 

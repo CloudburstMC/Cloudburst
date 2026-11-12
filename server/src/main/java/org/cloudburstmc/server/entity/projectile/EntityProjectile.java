@@ -210,7 +210,7 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
                     this.isCollided = true;
                     this.hadCollision = true;
                     this.onBlockCollision(blockHit);
-                    blockHit.block().requireComponent(BlockComponents.ON_PROJECTILE_HIT).execute(blockHit.block(), this);
+                    blockHit.block().requireComponent(BlockComponents.ON_PROJECTILE_HIT).execute(blockHit, this);
                     this.motion = Vector3f.ZERO;
                     this.updateMovement();
                     this.flushEntityData();

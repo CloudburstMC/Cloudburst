@@ -87,7 +87,8 @@ public class SpeleothemBlockHandlers {
         }
     };
 
-    public static final EntityBlockHandler ON_PROJECTILE_HIT = (block, entity) -> {
+    public static final ProjectileHitBlockHandler ON_PROJECTILE_HIT = (hit, entity) -> {
+        Block block = hit.block();
         if (!(entity instanceof EntityThrownTrident trident) || trident.getMotion().lengthSquared() <= 0.36f
                 || !block.getLevel().getGameRules().get(GameRules.PROJECTILES_CAN_BREAK_BLOCKS)) {
             return;

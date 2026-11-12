@@ -316,7 +316,7 @@ public class BlockComponents {
     /**
      * Handles a projectile hitting a block.
      */
-    public static final ComponentType<EntityBlockHandler> ON_PROJECTILE_HIT = ComponentType.of("on_projectile_hit", EntityBlockHandler.class);
+    public static final ComponentType<ProjectileHitBlockHandler> ON_PROJECTILE_HIT = ComponentType.of("on_projectile_hit", ProjectileHitBlockHandler.class);
 
     /**
      * Handles a randomly selected tick for a block type with {@link #CAN_RANDOM_TICK} enabled.

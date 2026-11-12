@@ -55,7 +55,8 @@ public class ChorusBlockHandlers {
 
     public static final TickBlockHandler FLOWER_RANDOM_TICK = ChorusBlockHandlers::randomTickFlower;
 
-    public static final EntityBlockHandler FLOWER_PROJECTILE_HIT = (block, entity) -> {
+    public static final ProjectileHitBlockHandler FLOWER_PROJECTILE_HIT = (hit, entity) -> {
+        Block block = hit.block();
         if (!(entity instanceof Projectile projectile)) {
             return;
         }
