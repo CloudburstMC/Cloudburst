@@ -9,6 +9,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.BlockLayerRules;
 import org.cloudburstmc.server.block.BlockLayers;
+import org.cloudburstmc.server.item.component.BlockTransformation;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.VanillaBlockTransformations;
 import org.cloudburstmc.server.testutil.BlockTestRegistry;
@@ -188,8 +189,10 @@ class KelpBlockHandlersTest {
 
         BlockState tip = world.state(POSITION);
         assertTrue(tip.ensureTrait(BlockTraits.KELP_AGE) < 25);
-        assertSame(kelp(25), VanillaBlockTransformations.SHEARS.get(BlockTypes.KELP).apply(tip, Direction.UP, false));
-        assertNull(VanillaBlockTransformations.SHEARS.get(BlockTypes.KELP).apply(kelp(25), Direction.UP, false));
+        BlockTransformation pruning = VanillaBlockTransformations.SHEARS.resolve(tip, Direction.UP, false);
+        assertNotNull(pruning);
+        assertSame(kelp(25), pruning.state());
+        assertNull(VanillaBlockTransformations.SHEARS.resolve(kelp(25), Direction.UP, false));
 
         List<ItemStack> drops = KelpBlockHandlers.GET_LOOT.execute(world.block(POSITION), BlockLootContext.empty(new Random(0)));
         assertEquals(List.of(ItemStack.from(ItemTypes.KELP)), drops);

@@ -20,6 +20,9 @@ class VanillaBlockTags {
     private static final Map<BlockTagKey, BlockTag> RESOLVED = new IdentityHashMap<>();
 
     static {
+        tag(LANTERNS, LANTERN, SOUL_LANTERN);
+        tag(LANTERNS, VanillaCopperBlocks.family(COPPER_LANTERN).toArray(BlockType[]::new));
+        inherit(MINEABLE_WITH_PICKAXE, LANTERNS);
         tag(BEACON_BASE_BLOCKS, IRON_BLOCK, GOLD_BLOCK, EMERALD_BLOCK, DIAMOND_BLOCK, NETHERITE_BLOCK);
         initReplaceable();
         initSnowloggable();

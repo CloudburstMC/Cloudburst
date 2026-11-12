@@ -154,6 +154,11 @@ public class BlockTags {
     public static final BlockTagKey INCORRECT_FOR_WOODEN_TOOL = tag("incorrect_for_wooden_tool");
 
     /**
+     * Standing and hanging lanterns, including soul and copper variants.
+     */
+    public static final BlockTagKey LANTERNS = tag("lanterns");
+
+    /**
      * Blocks that are leaves.
      */
     public static final BlockTagKey LEAVES = tag("leaves");

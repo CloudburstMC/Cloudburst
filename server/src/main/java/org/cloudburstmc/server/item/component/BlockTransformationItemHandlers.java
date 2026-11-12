@@ -19,17 +19,16 @@ import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Predicate;
 
 @UtilityClass
 public class BlockTransformationItemHandlers {
 
-    public static UseOnHandler useOn(Map<BlockType, BlockTransformation> rules) {
-        return useOn(rules, block -> true);
+    public static UseOnHandler useOn(BlockTransformation.Resolver resolver) {
+        return useOn(resolver, _ -> true);
     }
 
-    public static UseOnHandler useOn(Map<BlockType, BlockTransformation> rules, Predicate<Block> canApply) {
+    public static UseOnHandler useOn(BlockTransformation.Resolver resolver, Predicate<Block> canApply) {
         return (item, entity, position, face, click) -> {
             if (!(entity instanceof CloudPlayer player)) {
                 return item;
@@ -37,18 +36,13 @@ public class BlockTransformationItemHandlers {
 
             CloudLevel level = player.getLevel();
             Block block = level.getBlock(position);
-            BlockTransformation rule = rules.get(block.getState().getType());
+            boolean airAbove = level.getBlockState(position.add(0, 1, 0)).getType() == BlockTypes.AIR;
+            BlockTransformation rule = resolver.resolve(block.getState(), face, airAbove);
             if (rule == null || !canApply.test(block)) {
                 return item;
             }
 
-            boolean airAbove = level.getBlockState(position.add(0, 1, 0)).getType() == BlockTypes.AIR;
-            BlockState replacement = rule.apply(block.getState(), face, airAbove);
-            if (replacement == null) {
-                return item;
-            }
-
-            List<BlockChange> changes = relatedChanges(level, block, replacement);
+            List<BlockChange> changes = relatedChanges(level, block, rule.state());
             for (BlockChange change : changes) {
                 EntityChangeBlockEvent event = new EntityChangeBlockEvent(player, change.block(), change.newState());
                 level.getServer().getEventManager().fire(event);
@@ -58,14 +52,13 @@ public class BlockTransformationItemHandlers {
             }
 
             for (BlockChange change : changes) {
-                if (level.isOutsideBuildHeight(change.block().getPosition().getY())
-                        || !level.getBlockState(change.block().getPosition()).equals(change.block().getState())) {
+                if (level.isOutsideBuildHeight(change.block().getPosition().getY()) || !level.getBlockState(change.block().getPosition()).equals(change.block().getState())) {
                     return item;
                 }
             }
 
             boolean stillAirAbove = level.getBlockState(position.add(0, 1, 0)).getType() == BlockTypes.AIR;
-            if (!canApply.test(block) || !replacement.equals(rule.apply(block.getState(), face, stillAirAbove))) {
+            if (player.getLevel() != level || !canApply.test(block) || !rule.equals(resolver.resolve(block.getState(), face, stillAirAbove))) {
                 return item;
             }
 
@@ -77,8 +70,7 @@ public class BlockTransformationItemHandlers {
 
             playEffects(level, rule, changes);
             if (rule.drop() != null && level.getGameRules().get(GameRules.DO_TILE_DROPS)) {
-                Vector3f dropPosition = position.toFloat().add(0.5f, 0.5f, 0.5f)
-                        .add(face.relative(Vector3i.ZERO).toFloat().mul(0.65f));
+                Vector3f dropPosition = position.toFloat().add(0.5f, 0.5f, 0.5f).add(face.relative(Vector3i.ZERO).toFloat().mul(0.65f));
                 level.dropItem(dropPosition, ItemStack.from(rule.drop()));
             }
 
@@ -86,8 +78,7 @@ public class BlockTransformationItemHandlers {
                 return item;
             }
 
-            return rule.consumesItem() ? item.decreaseCount()
-                    : CloudItemRegistry.get().requireComponent(item.getType(), ItemBehaviors.ON_DAMAGE).execute(item, 1, player);
+            return rule.consumesItem() ? item.decreaseCount() : CloudItemRegistry.get().requireComponent(item.getType(), ItemBehaviors.ON_DAMAGE).execute(item, 1, player);
         };
     }
 
@@ -96,11 +87,9 @@ public class BlockTransformationItemHandlers {
         changes.add(new BlockChange(block, replacement));
 
         if (block.getState().getTraits().containsKey(BlockTraits.IS_UPPER_BLOCK)) {
-            Vector3i partnerPosition = block.getPosition().add(0,
-                    block.getState().ensureTrait(BlockTraits.IS_UPPER_BLOCK) ? -1 : 1, 0);
+            Vector3i partnerPosition = block.getPosition().add(0, block.getState().ensureTrait(BlockTraits.IS_UPPER_BLOCK) ? -1 : 1, 0);
             Block partner = level.getBlock(partnerPosition);
-            if (partner.getState().getType() == block.getState().getType() && partner.getState().ensureTrait(BlockTraits.IS_UPPER_BLOCK)
-                    != block.getState().ensureTrait(BlockTraits.IS_UPPER_BLOCK)) {
+            if (partner.getState().getType() == block.getState().getType() && partner.getState().ensureTrait(BlockTraits.IS_UPPER_BLOCK) != block.getState().ensureTrait(BlockTraits.IS_UPPER_BLOCK)) {
                 changes.add(new BlockChange(partner, replacement.getType().getDefaultState().copyTraits(partner.getState())));
             }
         } else if (level.getLoadedBlockEntity(block.getPosition()) instanceof Chest chest && chest.isPaired()) {

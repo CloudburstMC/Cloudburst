@@ -110,6 +110,7 @@ public class VanillaBlockBehaviors {
         configureClimbingBlocks(registry);
         configureColoredBuildingBlockSlabs(registry);
         configureAquaticBlocks(registry);
+        configureLanterns(registry);
         configureSkulls(registry);
         configureStairs(registry);
         configureVegetation(registry);
@@ -1183,6 +1184,21 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.GET_LOOT, ItemFrameBlockHandlers.GET_LOOT)
                 .set(BlockComponents.ON_REMOVE, ItemFrameBlockHandlers.ON_REMOVE)
                 .set(BlockComponents.ON_DESTROY, ItemFrameBlockHandlers.ON_DESTROY);
+    }
+
+    private void configureLanterns(CloudBlockRegistry registry) {
+        for (BlockType type : VanillaBlockTags.values(BlockTags.LANTERNS)) {
+            registry.configure(type)
+                    .set(BlockComponents.RESOLVE_PLACEMENT_STATE, LanternBlockHandlers.RESOLVE_PLACEMENT_STATE)
+                    .set(BlockComponents.CAN_SURVIVE, LanternBlockHandlers.CAN_SURVIVE)
+                    .set(BlockComponents.ON_NEIGHBOUR_CHANGED, LanternBlockHandlers.ON_NEIGHBOUR_CHANGED);
+
+            if (VanillaCopperBlocks.next(type) != null) {
+                registry.configure(type)
+                        .set(BlockComponents.CAN_RANDOM_TICK, true)
+                        .set(BlockComponents.ON_RANDOM_TICK, CopperWeatheringBlockHandlers.ON_RANDOM_TICK);
+            }
+        }
     }
 
     private void configureLeaves(CloudBlockRegistry registry, BlockType type, BlockLootHandler loot) {
