@@ -425,6 +425,14 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         } else {
             int breakTicks = ToolUtils.getBreakTicks(player, player.getInventory().getSelectedItem(), targetState);
             if (breakTicks > 0) {
+                target.requireComponent(BlockComponents.ON_START_MINING).execute(target, player);
+                if (player.getLevel().getBlockState(blockPos) != targetState) {
+                    this.blockBreakSession = null;
+                    player.breakingBlock = null;
+                    restorePredictedBlock(blockPos);
+                    return;
+                }
+
                 startBlockBreakAnimation(blockPos, targetState);
                 sendBlockBreakParticle(blockPos, targetState, face);
                 this.blockBreakSession = new BlockBreakSession(blockPos, targetState, face, getDestroyProgress(targetState));

@@ -8,7 +8,6 @@ import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.entity.EntitySnapshot;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.item.data.*;
-import org.cloudburstmc.api.item.data.Record;
 import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.api.potion.PotionType;
 import org.cloudburstmc.api.util.Identifier;
@@ -139,11 +138,6 @@ public class ItemDataComponents {
      * Blocks against which the item may be placed in adventure mode.
      */
     public static final ItemDataComponentType<List<BlockType>> CAN_PLACE_ON = list("can_place_on", BlockType.class);
-
-    /**
-     * Music record represented by the item.
-     */
-    public static final ItemDataComponentType<Record> RECORD_TYPE = value("record_type", Record.class);
 
     /**
      * Entity type represented by a spawn egg.

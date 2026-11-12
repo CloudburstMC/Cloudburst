@@ -103,6 +103,7 @@ public class VanillaBlockBehaviors {
     );
 
     public static void configure(CloudBlockRegistry registry) {
+        VanillaNoteBlockInstruments.configure(registry);
         configureFenceGates(registry);
         configureFences(registry);
         configureBars(registry);
@@ -228,6 +229,8 @@ public class VanillaBlockBehaviors {
         configureTorch(registry, COLORED_TORCH_GREEN);
         configureTorch(registry, COLORED_TORCH_PURPLE);
         configureTorch(registry, COLORED_TORCH_RED);
+        configureComparator(registry, POWERED_COMPARATOR);
+        configureComparator(registry, UNPOWERED_COMPARATOR);
         registry.configure(CONDUIT).set(BlockComponents.ON_STATE_CHANGED, ConduitBlockHandlers.ON_STATE_CHANGED);
         configureDoor(registry, COPPER_DOOR);
         configureOre(registry, COPPER_ORE, OreLoot.copper(COPPER_ORE.getDefaultState()));
@@ -401,6 +404,15 @@ public class VanillaBlockBehaviors {
         configureDoor(registry, IRON_DOOR);
         configureOre(registry, IRON_ORE, OreLoot.iron(IRON_ORE.getDefaultState()));
         configureTrapdoor(registry, IRON_TRAPDOOR);
+
+        configureUsable(registry, JUKEBOX, JukeboxBlockHandlers.USE);
+        registry.configure(JUKEBOX)
+                .set(BlockComponents.ON_ADDED, JukeboxBlockHandlers.ON_ADDED)
+                .set(BlockComponents.ON_REMOVE, JukeboxBlockHandlers.ON_REMOVE)
+                .set(BlockComponents.GET_COMPARATOR_OUTPUT, JukeboxBlockHandlers.GET_COMPARATOR_OUTPUT)
+                .set(BlockComponents.GET_REDSTONE_SIGNAL, JukeboxBlockHandlers.GET_REDSTONE_SIGNAL)
+                .set(BlockComponents.GET_DIRECT_REDSTONE_SIGNAL, JukeboxBlockHandlers.GET_REDSTONE_SIGNAL);
+
         configureWoodenButton(registry, JUNGLE_BUTTON);
         configureDoor(registry, JUNGLE_DOOR);
         configureHangingSign(registry, JUNGLE_HANGING_SIGN);
@@ -477,6 +489,14 @@ public class VanillaBlockBehaviors {
 
         configureSlab(registry, NETHER_BRICK_SLAB, NETHER_BRICK_DOUBLE_SLAB);
         configureOre(registry, NETHER_GOLD_ORE, OreLoot.netherGold(NETHER_GOLD_ORE.getDefaultState()));
+
+        configureUsable(registry, NOTE_BLOCK, NoteBlockHandlers.USE);
+        registry.configure(NOTE_BLOCK)
+                .set(BlockComponents.ON_ADDED, NoteBlockHandlers.UPDATE_POWER)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, NoteBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.ON_REDSTONE_UPDATE, NoteBlockHandlers.UPDATE_POWER)
+                .set(BlockComponents.ON_START_MINING, NoteBlockHandlers.ON_START_MINING);
+
         configureWoodenButton(registry, OAK_BUTTON);
         configureDoor(registry, OAK_DOOR);
         configureHangingSign(registry, OAK_HANGING_SIGN);
@@ -1115,6 +1135,19 @@ public class VanillaBlockBehaviors {
     private void configureHangingSign(CloudBlockRegistry registry, BlockType type) {
         registry.configure(type)
                 .set(BlockComponents.GET_BLOCK_SUPPORT_SHAPE, DefaultBlockHandlers.OUTLINE_BLOCK_SUPPORT_SHAPE);
+    }
+
+    private void configureComparator(CloudBlockRegistry registry, BlockType type) {
+        configureUsable(registry, type, ComparatorBlockHandlers.USE);
+        registry.configure(type)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, ComparatorBlockHandlers.RESOLVE_PLACEMENT_STATE)
+                .set(BlockComponents.ON_ADDED, ComparatorBlockHandlers.SCHEDULE_UPDATE)
+                .set(BlockComponents.ON_REMOVE, ComparatorBlockHandlers.ON_REMOVE)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, ComparatorBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.ON_REDSTONE_UPDATE, ComparatorBlockHandlers.SCHEDULE_UPDATE)
+                .set(BlockComponents.ON_TICK, ComparatorBlockHandlers.ON_TICK)
+                .set(BlockComponents.GET_REDSTONE_SIGNAL, ComparatorBlockHandlers.GET_REDSTONE_SIGNAL)
+                .set(BlockComponents.GET_DIRECT_REDSTONE_SIGNAL, ComparatorBlockHandlers.GET_REDSTONE_SIGNAL);
     }
 
     private void configureItemFrame(CloudBlockRegistry registry, BlockType type) {

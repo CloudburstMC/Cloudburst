@@ -40,6 +40,7 @@ import static org.cloudburstmc.api.item.ItemTypes.*;
 public final class VanillaItemBehaviors {
 
     public static void configure(CloudItemRegistry registry) {
+        VanillaJukeboxSongs.configure(registry);
         registry.configure(ItemTypes.PAINTING).set(ItemBehaviors.USE_ON, PaintingItemHandlers.USE_ON);
         registry.configure(ItemTypes.ARMOR_STAND).set(ItemBehaviors.USE_ON, ArmorStandItemHandlers.USE_ON);
         VanillaCookingData.configureFuels(registry);

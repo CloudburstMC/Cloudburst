@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.inventory.view;
 
 import lombok.experimental.UtilityClass;
+import org.cloudburstmc.api.blockentity.Jukebox;
 import org.cloudburstmc.api.util.Identifier;
 
 /**
@@ -39,6 +40,7 @@ public class SlotGroupTypes {
     public static final SlotGroupType<BlockHopperView> HOPPER = SlotGroupType.of(Identifier.parse("cloudburstmc:slot_group_hopper"), BlockHopperView.class);
     public static final SlotGroupType<HotbarView> HOTBAR = SlotGroupType.of(Identifier.parse("cloudburstmc:slot_group_hotbar"), HotbarView.class);
     public static final SlotGroupType<PlayerInventoryView> INVENTORY = SlotGroupType.of(Identifier.parse("cloudburstmc:slot_group_inventory"), PlayerInventoryView.class);
+    public static final SlotGroupType<Jukebox> JUKEBOX = SlotGroupType.of(Identifier.parse("cloudburstmc:slot_group_jukebox"), Jukebox.class);
     public static final SlotGroupType<BlockLecternView> LECTERN = SlotGroupType.of(Identifier.parse("cloudburstmc:slot_group_lectern"), BlockLecternView.class);
     public static final SlotGroupType<LoomView> LOOM = SlotGroupType.of(Identifier.parse("cloudburstmc:slot_group_loom"), LoomView.class);
     public static final SlotGroupType<OffhandView> OFFHAND = SlotGroupType.of(Identifier.parse("cloudburstmc:slot_group_offhand"), OffhandView.class);

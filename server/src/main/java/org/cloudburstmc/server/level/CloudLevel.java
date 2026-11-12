@@ -61,6 +61,7 @@ import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.*;
+import org.cloudburstmc.server.block.component.ComparatorBlockHandlers;
 import org.cloudburstmc.server.block.component.LiquidBlockHandlers;
 import org.cloudburstmc.server.block.util.BlockShapeTransitions;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
@@ -923,25 +924,20 @@ public class CloudLevel implements Level, BlockStateRegion {
         }
     }
 
-    public void updateComparatorOutputLevel(Vector3i v) {
+    public void updateComparatorOutputLevel(Vector3i position) {
         for (Direction face : Direction.Plane.HORIZONTAL) {
-            Vector3i pos = face.relative(v);
+            Block adjacent = this.getLoadedBlock(face.relative(position));
+            if (adjacent == null) {
+                continue;
+            }
 
-            if (this.isChunkLoaded(pos)) {
-                Block block = this.getBlock(pos);
-
-                ComponentMap behaviors = block.getComponents();
-                // FIXME: Needs reimplementation
-//                if (BlockBehaviorRedstoneDiode.isDiode(behavior)) {
-//                    behavior.onUpdate(block, BLOCK_UPDATE_REDSTONE);
-//                } else if (behavior.isNormalBlock(block)) {
-//                    pos = face.getOffset(pos);
-//                    block = this.getBlock(pos);
-//
-//                    if (BlockBehaviorRedstoneDiode.isDiode(behavior)) {
-//                        behavior.onUpdate(block, BLOCK_UPDATE_REDSTONE);
-//                    }
-//                }
+            if (ComparatorBlockHandlers.isComparator(adjacent)) {
+                ComparatorBlockHandlers.SCHEDULE_UPDATE.execute(adjacent);
+            } else if (adjacent.requireComponent(BlockComponents.CONDUCTS_REDSTONE).execute(adjacent.getState())) {
+                Block through = this.getLoadedBlock(face.relative(adjacent.getPosition()));
+                if (through != null && ComparatorBlockHandlers.isComparator(through)) {
+                    ComparatorBlockHandlers.SCHEDULE_UPDATE.execute(through);
+                }
             }
         }
     }

@@ -361,6 +361,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         this.registerComponent(ItemBehaviors.DAMAGEABLE, () -> false);
         this.registerComponent(ItemBehaviors.FINISH_USE);
         this.registerComponent(ItemBehaviors.FOOD);
+        this.registerComponent(ItemBehaviors.JUKEBOX_PLAYABLE);
         this.registerComponent(ItemBehaviors.FUEL_DURATION, () -> 0);
         this.registerComponent(ItemBehaviors.GET_ATTACK_DAMAGE, (item) -> 1f);
         this.registerComponent(ItemBehaviors.GET_ATTACK_DURABILITY_DAMAGE, item -> 0);

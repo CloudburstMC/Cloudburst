@@ -127,6 +127,11 @@ public class BlockComponents {
     public static final ComponentType<ColorBlockHandler> GET_COLOR = ComponentType.of("get_color", ColorBlockHandler.class);
 
     /**
+     * Reads a block's analog output independently of its normal redstone signal.
+     */
+    public static final ComponentType<ComparatorOutputHandler> GET_COMPARATOR_OUTPUT = ComponentType.of("get_comparator_output", ComparatorOutputHandler.class);
+
+    /**
      * TODO: Implement block description queries.
      */
     public static final ComponentType<DescriptionBlockHandler> GET_DESCRIPTION_ID = ComponentType.of("get_description_id", DescriptionBlockHandler.class);
@@ -231,6 +236,11 @@ public class BlockComponents {
     public static final ComponentType<BooleanBlockStateHandler> IS_SOLID_SUPPORT = ComponentType.of("is_solid_support", BooleanBlockStateHandler.class);
 
     /**
+     * Selects the instrument this block contributes when placed above or below a note block.
+     */
+    public static final ComponentType<NoteBlockInstrument> NOTE_BLOCK_INSTRUMENT = ComponentType.of("note_block_instrument", NoteBlockInstrument.class);
+
+    /**
      * TODO: Implement block pick eligibility checks.
      */
     public static final ComponentType<BooleanBlockHandler> MAY_PICK = ComponentType.of("may_pick", BooleanBlockHandler.class);
@@ -333,6 +343,11 @@ public class BlockComponents {
      * TODO: Implement entity standing callbacks.
      */
     public static final ComponentType<EntityBlockHandler> ON_STAND_ON = ComponentType.of("on_stand_on", EntityBlockHandler.class);
+
+    /**
+     * Handles the start of mining. Creative instant breaking does not call this handler.
+     */
+    public static final ComponentType<EntityBlockHandler> ON_START_MINING = ComponentType.of("on_start_mining", EntityBlockHandler.class);
 
     /**
      * TODO: Implement entity step-off callbacks.

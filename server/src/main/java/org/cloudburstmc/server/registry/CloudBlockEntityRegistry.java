@@ -197,7 +197,7 @@ public final class CloudBlockEntityRegistry implements BlockEntityRegistry {
         registerVanilla(BlockEntityTypes.JUKEBOX, JukeboxBlockEntity::new, "Jukebox");
         registerVanilla(BlockEntityTypes.LECTERN, LecternBlockEntity::new, "Lectern");
         registerVanilla(BlockEntityTypes.MOVING_BLOCK, MovingBlockEntity::new, "MovingBlock");
-        registerVanilla(BlockEntityTypes.NOTEBLOCK, MusicBlockEntity::new, "Music");
+        registerVanilla(BlockEntityTypes.NOTE_BLOCK, NoteBlockEntity::new, "Music");
         registerVanilla(BlockEntityTypes.PISTON, PistonBlockEntity::new, "PistonArm");
         registerVanilla(BlockEntityTypes.SHULKER_BOX, ShulkerBoxBlockEntity::new, "ShulkerBox");
         registerVanilla(BlockEntityTypes.SIGN, SignBlockEntity::new, "Sign");

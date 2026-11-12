@@ -199,6 +199,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerComponent(BlockComponents.GET_BLOCK_SUPPORT_SHAPE, DefaultBlockHandlers.GET_BLOCK_SUPPORT_SHAPE);
         this.registerComponent(BlockComponents.GET_COLLISION_SHAPE, new GetCollisionShapeHandler());
         this.registerComponent(BlockComponents.GET_COLOR, (block) -> null);
+        this.registerComponent(BlockComponents.GET_COMPARATOR_OUTPUT, block -> -1);
         this.registerComponent(BlockComponents.GET_DESCRIPTION_ID, (state) -> state.getType().getId().toString());
         this.registerComponent(BlockComponents.GET_DIRECT_REDSTONE_SIGNAL, (block, face) -> 0);
         this.registerComponent(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.GET_ENTITY_INSIDE_COLLISION_SHAPE);
@@ -216,6 +217,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerComponent(BlockComponents.GET_OUTLINE_SHAPE, new GetOutlineShapeHandler());
         this.registerComponent(BlockComponents.GET_PICK_BLOCK, DefaultBlockHandlers.GET_PICK_BLOCK);
         this.registerComponent(BlockComponents.GET_REDSTONE_SIGNAL, (block, face) -> 0);
+        this.registerComponent(BlockComponents.NOTE_BLOCK_INSTRUMENT, NoteBlockInstrument.HARP);
         this.registerComponent(BlockComponents.IS_BREAKABLE, (block, item) -> true);
         this.registerComponent(BlockComponents.IS_FREE_TO_FALL, (block) -> false);
         this.registerComponent(BlockComponents.IS_SOLID_SUPPORT, BlockState::isSolid);
@@ -238,6 +240,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerComponent(BlockComponents.ON_REDSTONE_UPDATE, DefaultBlockHandlers.ON_REDSTONE_UPDATE);
         this.registerComponent(BlockComponents.ON_REMOVE, DefaultBlockHandlers.ON_REMOVE);
         this.registerComponent(BlockComponents.ON_STAND_ON, DefaultBlockHandlers.ON_STAND_ON);
+        this.registerComponent(BlockComponents.ON_START_MINING, (block, entity) -> {});
         this.registerComponent(BlockComponents.ON_STATE_CHANGED, block -> {});
         this.registerComponent(BlockComponents.ON_STEP_OFF, DefaultBlockHandlers.ON_STEP_OFF);
         this.registerComponent(BlockComponents.ON_STEP_ON, DefaultBlockHandlers.ON_STEP_ON);

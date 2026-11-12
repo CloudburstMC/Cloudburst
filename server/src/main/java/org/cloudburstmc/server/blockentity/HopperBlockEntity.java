@@ -23,6 +23,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.block.component.ComposterBlockHandlers;
+import org.cloudburstmc.server.block.util.RedstoneSignals;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.server.container.ContainerListener;
@@ -102,7 +103,7 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
             this.transferCooldown--;
         }
 
-        if (!this.isOnTransferCooldown()) {
+        if (!this.isOnTransferCooldown() && !RedstoneSignals.hasNeighborSignal(this.getBlock())) {
             Block above = this.getLevel().getLoadedBlock(this.getPosition().add(UP));
             BlockEntity blockEntity = this.getLevel().getBlockEntity(this.getPosition().add(UP));
 
@@ -146,13 +147,13 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
                 if (!containerView.canExtractBelow(slot)) {
                     continue;
                 }
-                ItemStack item = containerView.getItem(slot);
+                ItemStack sourceStack = containerView.getItem(slot);
 
-                if (item.isEmpty()) {
+                if (sourceStack.isEmpty()) {
                     continue;
                 }
 
-                item = item.withCount(1);
+                ItemStack item = sourceStack.withCount(1);
 
                 if (!this.container.canAddItem(item)) {
                     continue;
@@ -161,14 +162,15 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
                 InventoryMoveItemEvent ev = InventoryMoveItemEvent.transfer((SlotGroup) containerView, this, this, item);
                 this.server.getEventManager().fire(ev);
 
-                if (ev.isCancelled()) {
+                if (ev.isCancelled() || this.isClosed() || containerView.isClosed()
+                        || !containerView.canExtractBelow(slot) || !sourceStack.equals(containerView.getItem(slot))) {
                     return false;
                 }
 
                 ItemStack[] items = this.container.addItem(item);
 
                 if (items.length <= 0) {
-                    containerView.getContainer().decrementCount(slot);
+                    containerView.setItem(slot, sourceStack.decreaseCount());
                     return true;
                 }
             }
@@ -296,21 +298,20 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
                 }
 
                 ItemStack target = container.getItem(slot);
+                ItemStack sourceStack = item;
                 item = item.withCount(1);
 
                 InventoryMoveItemEvent event = InventoryMoveItemEvent.transfer(this, (SlotGroup) containerView, this, item);
                 this.server.getEventManager().fire(event);
 
-                if (event.isCancelled()) {
+                ItemStack updated = target.isEmpty() ? item : target.withCount(target.getCount() + 1);
+                if (event.isCancelled() || this.isClosed() || containerView.isClosed()
+                        || !sourceStack.equals(this.container.getItem(i)) || !target.equals(container.getItem(slot))
+                        || !containerView.canInsertFrom(slot, direction.getOpposite(), updated)) {
                     return false;
                 }
 
-                if (target.isEmpty()) {
-                    container.setItem(slot, item);
-                } else {
-                    container.incrementCount(slot);
-                }
-
+                containerView.setItem(slot, updated);
                 this.container.decrementCount(i);
                 return true;
             }

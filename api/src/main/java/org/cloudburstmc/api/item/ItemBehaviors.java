@@ -6,6 +6,7 @@ import org.cloudburstmc.api.block.component.IntTypeHandler;
 import org.cloudburstmc.api.data.ComponentType;
 import org.cloudburstmc.api.entity.damage.DamageType;
 import org.cloudburstmc.api.item.component.*;
+import org.cloudburstmc.api.item.data.JukeboxSong;
 import org.cloudburstmc.api.level.sound.SoundType;
 
 /**
@@ -172,6 +173,11 @@ public class ItemBehaviors {
      * Applies the item changes caused by successfully mining a block.
      */
     public static final ComponentType<MineBlockHandler> MINE_BLOCK = ComponentType.of("mine_block", MineBlockHandler.class);
+
+    /**
+     * The track a jukebox plays when this item is inserted.
+     */
+    public static final ComponentType<JukeboxSong> JUKEBOX_PLAYABLE = ComponentType.of("jukebox_playable", JukeboxSong.class);
 
     /**
      * Applies feedback when an item's durability is exhausted, before its slot is cleared.
