@@ -14,7 +14,6 @@ import org.cloudburstmc.api.event.level.ExplosionEvent;
 import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.*;
-import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.level.particle.ParticleTypes;
 import org.cloudburstmc.api.player.Ability;
 import org.cloudburstmc.api.player.Player;
@@ -229,10 +228,6 @@ public class Explosion {
             }
 
             block.getComponents().require(BlockComponents.ON_DESTROY).execute(block, this.settings.sourceEntity());
-            if (!this.level.getGameRules().get(GameRules.DO_TILE_DROPS)) {
-                continue;
-            }
-
             for (ItemStack stack : drops) {
                 if (stack == null || stack.isEmpty()) {
                     continue;

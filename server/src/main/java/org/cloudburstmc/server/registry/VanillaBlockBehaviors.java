@@ -1127,6 +1127,8 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.ATTACK, ItemFrameBlockHandlers.ATTACK)
                 .set(BlockComponents.ON_PROJECTILE_HIT, ItemFrameBlockHandlers.ON_PROJECTILE_HIT)
                 .set(BlockComponents.ON_EXPLOSION_HIT, ItemFrameBlockHandlers.ON_EXPLOSION_HIT)
+                .set(BlockComponents.GET_EXPLOSION_LOOT, ItemFrameBlockHandlers.GET_LOOT)
+                .set(BlockComponents.EXPLOSION_LOOT_DECAYS, block -> false)
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, ItemFrameBlockHandlers.ON_NEIGHBOUR_CHANGED)
                 .set(BlockComponents.GET_LOOT, ItemFrameBlockHandlers.GET_LOOT)
                 .set(BlockComponents.ON_REMOVE, ItemFrameBlockHandlers.ON_REMOVE)

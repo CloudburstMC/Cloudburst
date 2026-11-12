@@ -94,6 +94,19 @@ class VanillaBlockItemsTest {
     }
 
     @Test
+    void tntPlacementUsesTheItemsUnprimedBlockType() {
+        ItemStack tnt = ItemStack.builder(ItemTypes.TNT)
+                .setData(ItemDataComponents.BLOCK_STATE, BlockTypes.UNDERWATER_TNT.getDefaultState())
+                .build();
+        ItemStack underwater = ItemStack.builder(ItemTypes.UNDERWATER_TNT)
+                .setData(ItemDataComponents.BLOCK_STATE, BlockTypes.UNDERWATER_TNT.getDefaultState().withTrait(BlockTraits.EXPLODE, true))
+                .build();
+
+        assertSame(BlockTypes.TNT.getDefaultState().withTrait(BlockTraits.EXPLODE, false), placement(tnt).orElseThrow());
+        assertSame(BlockTypes.UNDERWATER_TNT.getDefaultState().withTrait(BlockTraits.EXPLODE, false), placement(underwater).orElseThrow());
+    }
+
+    @Test
     void candleCakeHasNoItemButStillPicksCake() {
         BlockTestWorld world = new BlockTestWorld(BLOCKS);
         Vector3i position = Vector3i.from(0, 64, 0);

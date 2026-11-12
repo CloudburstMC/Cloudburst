@@ -9,6 +9,7 @@ import org.cloudburstmc.api.entity.damage.DamageType;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.util.CollisionContext;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.VoxelShape;
@@ -192,7 +193,9 @@ public class DefaultBlockHandlers {
     };
 
     public static final BlockLootHandler GET_EXPLOSION_LOOT = (block, context) ->
-            block.getComponents().require(BlockComponents.GET_LOOT).execute(block, context);
+            block.getLevel().getGameRules().get(GameRules.DO_TILE_DROPS)
+                    ? block.getComponents().require(BlockComponents.GET_LOOT).execute(block, context)
+                    : List.of();
 
     public static final BlockExplosionHandler ON_EXPLOSION_HIT = (block, cause, sourceBlock) -> true;
 

@@ -9,12 +9,14 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.block.component.*;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.blockentity.ItemFrame;
+import org.cloudburstmc.api.entity.misc.Painting;
 import org.cloudburstmc.api.event.player.ItemFrameChangeAction;
 import org.cloudburstmc.api.event.player.PlayerItemFrameChangeEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
@@ -41,6 +43,14 @@ public class ItemFrameBlockHandlers {
     };
 
     public static final PlaceBlockHandler ON_PLACE = (state, player, position, face, click) -> {
+        float x = position.getX();
+        float y = position.getY();
+        float z = position.getZ();
+        BoundingBox cell = new BoundingBox(x, y, z, x + 1, y + 1, z + 1);
+        if (!player.getLevel().getNearbyEntities(cell, entity -> entity instanceof Painting && !entity.isClosed()).isEmpty()) {
+            return false;
+        }
+
         if (!DEFAULT_PLACE.execute(state, player, position, face, click)) {
             return false;
         }

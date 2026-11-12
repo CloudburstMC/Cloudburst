@@ -1,8 +1,11 @@
 package org.cloudburstmc.server.registry;
 
 import lombok.experimental.UtilityClass;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.registry.RegistryException;
@@ -10,6 +13,7 @@ import org.cloudburstmc.api.util.Identifier;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @UtilityClass
@@ -1370,6 +1374,14 @@ public class VanillaBlockItems {
         for (Binding binding : BINDINGS) {
             registry.registerBlockItem(binding.item(), binding.placement(), binding.forms());
         }
+
+        configureTntPlacement(registry, ItemTypes.TNT, BlockTypes.TNT);
+        configureTntPlacement(registry, ItemTypes.UNDERWATER_TNT, BlockTypes.UNDERWATER_TNT);
+    }
+
+    private static void configureTntPlacement(CloudItemRegistry registry, ItemType item, BlockType block) {
+        BlockState unprimed = block.getDefaultState().withTrait(BlockTraits.EXPLODE, false);
+        registry.configure(item).set(ItemBehaviors.GET_BLOCK, stack -> Optional.of(unprimed));
     }
 
     private static void validate() {

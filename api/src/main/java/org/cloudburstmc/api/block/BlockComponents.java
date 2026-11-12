@@ -148,7 +148,7 @@ public class BlockComponents {
     public static final ComponentType<BlockExperienceHandler> GET_EXPERIENCE = ComponentType.of("get_experience", BlockExperienceHandler.class);
 
     /**
-     * Resolves item drops for explosions using the supplied loot context. Does not spawn items.
+     * Resolves explosion drops, including applicable game rules, without spawning items.
      */
     public static final ComponentType<BlockLootHandler> GET_EXPLOSION_LOOT = ComponentType.of("get_explosion_loot", BlockLootHandler.class);
 

@@ -8,6 +8,7 @@ import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageType;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.EnderCrystal;
+import org.cloudburstmc.api.entity.misc.Painting;
 import org.cloudburstmc.api.event.entity.EntityCombustByEntityEvent;
 import org.cloudburstmc.api.event.entity.ProjectileHitEvent;
 import org.cloudburstmc.api.level.BlockShapeMode;
@@ -155,7 +156,7 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
 
     @Override
     public boolean canCollideWith(Entity entity) {
-        return (entity instanceof EntityLiving || entity instanceof EnderCrystal) && !this.onGround;
+        return !this.onGround && (entity instanceof EntityLiving || entity instanceof EnderCrystal || entity instanceof Painting);
     }
 
     @Override
