@@ -27,6 +27,25 @@ class BlockTransformationTest {
     }
 
     @Test
+    void coarseDirtTillsToDirtBeforeItCanBecomeFarmland() {
+        BlockState coarseDirt = COARSE_DIRT.getDefaultState();
+        assertNull(HOE.resolve(coarseDirt, DOWN, true));
+        assertNull(HOE.resolve(coarseDirt, UP, false));
+
+        BlockTransformation firstTill = HOE.resolve(coarseDirt, UP, true);
+        assertNotNull(firstTill);
+        assertSame(DIRT.getDefaultState(), firstTill.state());
+
+        BlockTransformation secondTill = HOE.resolve(firstTill.state(), UP, true);
+        assertNotNull(secondTill);
+        assertSame(FARMLAND.getDefaultState(), secondTill.state());
+
+        BlockTransformation flatten = SHOVEL.resolve(coarseDirt, UP, true);
+        assertNotNull(flatten);
+        assertSame(GRASS_PATH.getDefaultState(), flatten.state());
+    }
+
+    @Test
     void rootedDirtTillsWithoutHeadroomAndDropsRoots() {
         BlockTransformation till = HOE.resolve(DIRT_WITH_ROOTS.getDefaultState(), DOWN, false);
         assertNotNull(till);

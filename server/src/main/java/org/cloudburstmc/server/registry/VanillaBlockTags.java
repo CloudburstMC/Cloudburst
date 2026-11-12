@@ -24,6 +24,7 @@ class VanillaBlockTags {
         tag(LANTERNS, VanillaCopperBlocks.family(COPPER_LANTERN).toArray(BlockType[]::new));
         inherit(MINEABLE_WITH_PICKAXE, LANTERNS);
         tag(BEACON_BASE_BLOCKS, IRON_BLOCK, GOLD_BLOCK, EMERALD_BLOCK, DIAMOND_BLOCK, NETHERITE_BLOCK);
+        tag(CONVERTIBLE_TO_MUD, DIRT, COARSE_DIRT, DIRT_WITH_ROOTS);
         initReplaceable();
         initSnowloggable();
         initSolid();

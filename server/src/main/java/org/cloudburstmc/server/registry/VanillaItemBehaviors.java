@@ -227,6 +227,7 @@ public final class VanillaItemBehaviors {
         configureSpawnEgg(registry, ItemTypes.LLAMA_SPAWN_EGG, EntityTypes.LLAMA);
         registry.configure(ItemTypes.LINGERING_POTION, new PotionItemSerializer())
                 .set(ItemBehaviors.GET_MAX_STACK_SIZE, item -> 1)
+                .set(ItemBehaviors.USE_ON, PotionItemHandlers.POUR_WATER)
                 .set(ItemBehaviors.USE, PotionItemHandlers.THROW_LINGERING);
         configureDamageableEnchantableTool(
                 registry,
@@ -284,6 +285,7 @@ public final class VanillaItemBehaviors {
                 .set(ItemBehaviors.GET_MAX_STACK_SIZE, item -> 1)
                 .set(ItemBehaviors.CONSUMABLE, new ConsumableComponent(ItemTypes.GLASS_BOTTLE, SoundTypes.RANDOM_DRINK, List.of()))
                 .set(ItemBehaviors.USE_DURATION_TICKS, 32)
+                .set(ItemBehaviors.USE_ON, PotionItemHandlers.POUR_WATER)
                 .set(ItemBehaviors.USE, PotionItemHandlers.DRINK)
                 .set(ItemBehaviors.FINISH_USE, PotionItemHandlers.FINISH_DRINK);
         configureSpawnEgg(registry, ItemTypes.POLAR_BEAR_SPAWN_EGG, EntityTypes.POLAR_BEAR);
@@ -319,6 +321,7 @@ public final class VanillaItemBehaviors {
         configureSpawnEgg(registry, ItemTypes.SPIDER_SPAWN_EGG, EntityTypes.SPIDER);
         registry.configure(ItemTypes.SPLASH_POTION, new PotionItemSerializer())
                 .set(ItemBehaviors.GET_MAX_STACK_SIZE, item -> 1)
+                .set(ItemBehaviors.USE_ON, PotionItemHandlers.POUR_WATER)
                 .set(ItemBehaviors.USE, PotionItemHandlers.THROW_SPLASH);
         configureSpawnEgg(registry, ItemTypes.SQUID_SPAWN_EGG, EntityTypes.SQUID);
         configureAxe(registry, ItemTypes.STONE_AXE, ToolMaterials.STONE, 7, repairWith(ItemTags.STONE_TOOL_MATERIALS));

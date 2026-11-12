@@ -2078,7 +2078,7 @@ public class CloudLevel implements Level, BlockStateRegion {
      *
      * @return the updated ItemStack if the item was consumed/used, or null if not handled
      */
-    public ItemStack tryUseItem(Block target, Direction face, Vector3f clickPos, ItemStack item, Player player) {
+    public @Nullable ItemStack tryUseItem(Block target, Direction face, Vector3f clickPos, ItemStack item, Player player) {
         ComponentMap itemBehaviors = this.itemRegistry.requireComponents(item.getType());
 
         UseOnHandler useOnHandler = itemBehaviors.get(ItemBehaviors.USE_ON);
@@ -2086,8 +2086,7 @@ public class CloudLevel implements Level, BlockStateRegion {
             return null;
         }
 
-        ItemStack result = useOnHandler.execute(item, player, target.getPosition(), face, clickPos);
-        return Objects.requireNonNullElse(result, item);
+        return useOnHandler.execute(item, player, target.getPosition(), face, clickPos);
     }
 
     /**

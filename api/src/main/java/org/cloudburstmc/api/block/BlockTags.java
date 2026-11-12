@@ -59,6 +59,11 @@ public class BlockTags {
     public static final BlockTagKey CONDUIT_EFFECT_BLOCK = tag("conduit_effect_block");
 
     /**
+     * Blocks that can be turned into mud with a water potion.
+     */
+    public static final BlockTagKey CONVERTIBLE_TO_MUD = tag("convertible_to_mud");
+
+    /**
      * Living coral blocks on which sea pickles can multiply when fertilized.
      */
     public static final BlockTagKey CORAL_BLOCKS = tag("coral_blocks");
