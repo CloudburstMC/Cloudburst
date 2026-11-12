@@ -318,6 +318,8 @@ public class VanillaBlockBehaviors {
 
         configureSlab(registry, END_STONE_BRICK_SLAB, END_STONE_BRICK_DOUBLE_SLAB);
         configureUsable(registry, ENDER_CHEST, ContainerBlockHandlers.ENDER_CHEST);
+        registry.configure(END_ROD)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, EndRodBlockHandlers.RESOLVE_PLACEMENT_STATE);
         configureDoor(registry, EXPOSED_COPPER_DOOR);
         configureTrapdoor(registry, EXPOSED_COPPER_TRAPDOOR);
         configureSlab(registry, EXPOSED_CUT_COPPER_SLAB, EXPOSED_DOUBLE_CUT_COPPER_SLAB);
