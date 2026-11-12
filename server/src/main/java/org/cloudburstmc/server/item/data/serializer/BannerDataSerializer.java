@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.item.data.serializer;
 
 import com.google.common.collect.ImmutableList;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.data.BannerData;
 import org.cloudburstmc.api.util.Identifier;
@@ -20,6 +21,10 @@ public class BannerDataSerializer implements ItemDataComponentSerializer<BannerD
 
     @Override
     public void serialize(ItemStack item, NbtMapBuilder tag, BannerData value) {
+        write(tag, value);
+    }
+
+    public static void write(NbtMapBuilder tag, BannerData value) {
         tag.putInt("Base", value.getBase().getDyeData());
         tag.putInt("Type", value.getType());
 
@@ -32,11 +37,17 @@ public class BannerDataSerializer implements ItemDataComponentSerializer<BannerD
                         .build());
             }
             tag.putList("Patterns", NbtType.COMPOUND, patternsTag);
+        } else {
+            tag.remove("Patterns");
         }
     }
 
     @Override
-    public BannerData deserialize(Identifier id, NbtMap tag) {
+    public @Nullable BannerData deserialize(Identifier id, NbtMap tag) {
+        return read(tag);
+    }
+
+    public static @Nullable BannerData read(NbtMap tag) {
         if (!tag.containsKey("Base") && !tag.containsKey("Type") && !tag.containsKey("Patterns")) {
             return null;
         }

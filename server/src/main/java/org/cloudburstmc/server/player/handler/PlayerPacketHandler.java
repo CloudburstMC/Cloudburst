@@ -54,6 +54,7 @@ import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockPlacementResult;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.blockentity.LecternBlockEntity;
+import org.cloudburstmc.server.blockentity.BannerBlockEntity;
 import org.cloudburstmc.server.blockentity.ShulkerBoxBlockEntity;
 import org.cloudburstmc.server.container.screen.CloudLecternContainerScreen;
 import org.cloudburstmc.server.container.screen.CloudPlayerInventoryScreen;
@@ -1410,8 +1411,12 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
 
         boolean includeData = player.isCreative() && packet.isAddUserData();
-        if (includeData && level.getLoadedBlockEntity(position) instanceof ShulkerBoxBlockEntity box) {
-            item = box.asItem();
+        if (includeData) {
+            switch (level.getLoadedBlockEntity(position)) {
+                case ShulkerBoxBlockEntity box -> item = box.asItem();
+                case BannerBlockEntity banner -> item = banner.asItem(true);
+                case null, default -> {}
+            }
         }
 
         int sourceSlot = player.getInventory().first(item);

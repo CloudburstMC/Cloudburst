@@ -110,6 +110,7 @@ public class VanillaBlockBehaviors {
         configureClimbingBlocks(registry);
         configureColoredBuildingBlockSlabs(registry);
         configureAquaticBlocks(registry);
+        configureBanners(registry);
         configureLanterns(registry);
         configureSkulls(registry);
         configureStairs(registry);
@@ -910,6 +911,19 @@ public class VanillaBlockBehaviors {
                                 family.deadFan(), family.deadWallFan(), family.deadFan(), family.deadWallFan()
                         ));
             }
+        }
+    }
+
+    private void configureBanners(CloudBlockRegistry registry) {
+        for (BlockType type : List.of(STANDING_BANNER, WALL_BANNER)) {
+            registry.configure(type)
+                    .set(BlockComponents.IS_SOLID_SUPPORT, state -> true)
+                    .set(BlockComponents.RESOLVE_PLACEMENT_STATE, BannerBlockHandlers.RESOLVE_PLACEMENT_STATE)
+                    .set(BlockComponents.CAN_SURVIVE, BannerBlockHandlers.CAN_SURVIVE)
+                    .set(BlockComponents.ON_NEIGHBOUR_CHANGED, BannerBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                    .set(BlockComponents.ON_ADDED, BannerBlockHandlers.ON_ADDED)
+                    .set(BlockComponents.GET_LOOT, BannerBlockHandlers.GET_LOOT)
+                    .set(BlockComponents.GET_PICK_BLOCK, BannerBlockHandlers.GET_PICK_BLOCK);
         }
     }
 

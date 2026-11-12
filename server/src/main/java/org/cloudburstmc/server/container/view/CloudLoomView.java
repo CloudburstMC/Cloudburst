@@ -1,71 +1,98 @@
 package org.cloudburstmc.server.container.view;
 
-import org.cloudburstmc.api.inventory.view.LoomView;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.inventory.view.BlockLoomView;
 import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.data.BannerPattern.Type;
 import org.cloudburstmc.server.container.CloudContainer;
 
-/**
- * Server-side implementation of {@link LoomView}.
- * Wraps a 4-slot ephemeral container:
- * slot 0 = banner, slot 1 = dye, slot 2 = pattern, slot 3 = result.
- * This is an ephemeral section with no block entity backing.
- */
-public class CloudLoomView extends CloudSlotGroupBase implements LoomView {
+public class CloudLoomView extends CloudSlotGroupBase implements BlockLoomView {
 
-    private int selectedPatternIndex = -1;
+    public static final int BANNER_SLOT = 0;
+    public static final int DYE_SLOT = 1;
+    public static final int PATTERN_SLOT = 2;
+    public static final int RESULT_SLOT = 3;
 
-    public CloudLoomView(CloudContainer container) {
-        super(SlotGroupTypes.LOOM, container);
+    private final Block block;
+    private @Nullable Type selectedPattern;
+
+    public CloudLoomView(Block block) {
+        super(SlotGroupTypes.LOOM, new CloudContainer(RESULT_SLOT + 1));
+        this.block = block;
+    }
+
+    @Override
+    public Block getBlock() {
+        return this.block;
     }
 
     @Override
     public ItemStack getBanner() {
-        return getItem(0);
+        return this.getItem(BANNER_SLOT);
     }
 
     @Override
     public void setBanner(ItemStack item) {
-        setItem(0, item);
+        this.setItem(BANNER_SLOT, item);
     }
 
     @Override
     public ItemStack getDye() {
-        return getItem(1);
+        return this.getItem(DYE_SLOT);
     }
 
     @Override
     public void setDye(ItemStack item) {
-        setItem(1, item);
+        this.setItem(DYE_SLOT, item);
     }
 
     @Override
     public ItemStack getPattern() {
-        return getItem(2);
+        return this.getItem(PATTERN_SLOT);
     }
 
     @Override
     public void setPattern(ItemStack item) {
-        setItem(2, item);
+        this.setItem(PATTERN_SLOT, item);
     }
 
     @Override
     public ItemStack getResult() {
-        return getItem(3);
+        return this.getItem(RESULT_SLOT);
     }
 
     @Override
-    public void setResult(ItemStack item) {
-        setItem(3, item);
+    public @Nullable Type getSelectedPattern() {
+        return this.selectedPattern;
     }
 
     @Override
-    public int getSelectedPatternIndex() {
-        return selectedPatternIndex;
+    public void setItem(int slot, ItemStack item) {
+        if (slot == RESULT_SLOT) {
+            throw new IllegalArgumentException("Cannot modify a loom result directly");
+        }
+
+        ItemStack previous = this.getItem(slot);
+        super.setItem(slot, item);
+        if (!previous.equals(this.getItem(slot))) {
+            this.updateResult(null, ItemStack.EMPTY);
+        }
     }
 
-    @Override
-    public void setSelectedPatternIndex(int index) {
-        this.selectedPatternIndex = index;
+    public void finishCraft(ItemStack banner, ItemStack dye, Type pattern, ItemStack output) {
+        super.setItem(BANNER_SLOT, banner);
+        super.setItem(DYE_SLOT, dye);
+        if (banner.isEmpty() || dye.isEmpty()) {
+            this.updateResult(null, ItemStack.EMPTY);
+        } else {
+            this.updateResult(pattern, output);
+        }
+    }
+
+    private void updateResult(@Nullable Type pattern, ItemStack result) {
+        this.selectedPattern = pattern;
+        super.setItem(RESULT_SLOT, result);
     }
 }

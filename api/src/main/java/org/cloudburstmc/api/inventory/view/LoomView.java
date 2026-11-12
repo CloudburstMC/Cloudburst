@@ -1,85 +1,52 @@
 package org.cloudburstmc.api.inventory.view;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.data.BannerPattern.Type;
 
 /**
- * Represents the item slots of a loom container.
- * Exposes the banner, dye, pattern material, and result slots.
+ * The input and prepared result of a loom.
  */
 public interface LoomView extends SlotGroup {
 
     /**
-     * Returns the item in the banner input slot.
-     *
-     * @return the banner item
+     * Returns the banner input.
      */
     ItemStack getBanner();
 
     /**
-     * Sets the item in the banner input slot.
-     *
-     * @param item the item to place
+     * Sets the banner input.
      */
     void setBanner(ItemStack item);
 
     /**
-     * Returns the item in the dye slot.
-     *
-     * @return the dye item
+     * Returns the dye input.
      */
     ItemStack getDye();
 
     /**
-     * Sets the item in the dye slot.
-     *
-     * @param item the item to place
+     * Sets the dye input.
      */
     void setDye(ItemStack item);
 
     /**
-     * Returns the item in the pattern material slot (banner pattern item).
-     *
-     * @return the pattern material item
+     * Returns the pattern input.
      */
     ItemStack getPattern();
 
     /**
-     * Sets the item in the pattern material slot.
-     *
-     * @param item the item to place
+     * Sets the pattern input.
      */
     void setPattern(ItemStack item);
 
     /**
-     * Returns the item in the result slot.
-     *
-     * <p>This slot is computed by the client from the banner, dye, and pattern inputs.
-     * The server can read or override the result by setting this slot directly.</p>
-     *
-     * @return the result item
+     * Returns the prepared banner, or an empty stack.
      */
     ItemStack getResult();
 
     /**
-     * Sets the item in the result slot.
-     *
-     * @param item the result item to place
+     * Returns the selected pattern, or null if none is selected.
      */
-    void setResult(ItemStack item);
-
-    /**
-     * Returns the index of the banner pattern the player has selected in the loom pattern list,
-     * or {@code -1} if no pattern is selected.
-     *
-     * @return the selected pattern index, or {@code -1}
-     */
-    int getSelectedPatternIndex();
-
-    /**
-     * Sets the index of the banner pattern selected in the loom pattern list.
-     * Pass {@code -1} to clear the selection.
-     *
-     * @param index the pattern index, or {@code -1} to clear
-     */
-    void setSelectedPatternIndex(int index);
+    @Nullable
+    Type getSelectedPattern();
 }

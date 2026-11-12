@@ -53,6 +53,7 @@ public class InventoryRequest {
     private @Nullable ResultTake preparedTake;
     private @Nullable CraftRecipeAction enchantmentSelection;
     private @Nullable CraftRecipeAction stonecuttingSelection;
+    private @Nullable CraftLoomAction loomSelection;
     private @Nullable BeaconPaymentAction beaconPayment;
     private @Nullable String stationRename;
     private final CloudInventoryScreen screen;
@@ -152,6 +153,7 @@ public class InventoryRequest {
             case DestroyAction destroy -> handleDestroy(destroy);
             case CraftCreativeAction craft -> handleCraftCreative(craft);
             case CraftGrindstoneAction _ -> handleCraftGrindstone();
+            case CraftLoomAction loom -> handleCraftLoom(loom);
             case RecipeItemStackRequestAction recipe when isCraftRecipeAction(recipe) -> handleCraftRecipe(recipe);
             case CraftRecipeOptionalAction craftOptional -> handleCraftRecipeOptional(craftOptional);
             case ConsumeAction consume -> handleConsume(consume);
@@ -164,8 +166,7 @@ public class InventoryRequest {
         switch (action.getType()) {
             case CRAFT_RESULTS_DEPRECATED, CREATE -> {
             }
-            case CRAFT_LOOM,
-                 CRAFT_NON_IMPLEMENTED_DEPRECATED,
+            case CRAFT_NON_IMPLEMENTED_DEPRECATED,
                  LAB_TABLE_COMBINE -> {
                 log.debug("Unimplemented inventory action type {} for {}", action.getType(), player.getName());
                 requestFailed = true;
@@ -311,7 +312,7 @@ public class InventoryRequest {
 
         ItemStackRequestSlotData dstSlot = action.getDestination();
         rejectResultMutation(dstSlot);
-        if (resultScreen instanceof CloudStonecutterContainerScreen && resultScreen.isInputSlot(container(dstSlot))) {
+        if ((resultScreen instanceof CloudStonecutterContainerScreen || resultScreen instanceof CloudLoomContainerScreen) && resultScreen.isInputSlot(container(dstSlot))) {
             this.requestFailed = true;
             return;
         }
@@ -332,7 +333,7 @@ public class InventoryRequest {
         }
 
         ResultQuote quote = this.quoteResult();
-        if (resultScreen instanceof CloudStonecutterContainerScreen) {
+        if (resultScreen instanceof CloudStonecutterContainerScreen || resultScreen instanceof CloudLoomContainerScreen) {
             this.requiresFullSlotUpdate = true;
             if (quote == null) {
                 this.trackAffectedSlot(container(dstSlot), dstSlot.getSlot());
@@ -413,6 +414,11 @@ public class InventoryRequest {
     }
 
     private @Nullable ResultQuote quoteResult() {
+        if (this.screen instanceof CloudLoomContainerScreen loom) {
+            CraftLoomAction selection = this.loomSelection;
+            return selection == null ? null : loom.quotePattern(selection.getPatternId(), selection.getTimesCrafted());
+        }
+
         if (this.screen instanceof CloudStonecutterContainerScreen stonecutter) {
             CraftRecipeAction selection = this.stonecuttingSelection;
             return selection == null ? null
@@ -472,6 +478,10 @@ public class InventoryRequest {
 
         PendingResult result = this.pendingResult;
         if (result == null) {
+            if (this.loomSelection != null) {
+                return false;
+            }
+
             CraftRecipeAction stonecutting = this.stonecuttingSelection;
             if (stonecutting != null && this.screen instanceof CloudStonecutterContainerScreen stonecutter) {
                 if (this.currentRequest.getActions().length != 1) {
@@ -783,8 +793,28 @@ public class InventoryRequest {
         grindstone.trackResultSlots(this::trackAffectedSlot);
     }
 
+    private void handleCraftLoom(CraftLoomAction action) {
+        if (!(this.screen instanceof CloudLoomContainerScreen loom) || this.currentRequest.getActions()[0] != action) {
+            this.requestFailed = true;
+            return;
+        }
+
+        this.loomSelection = action;
+        loom.trackResultSlots(this::trackAffectedSlot);
+    }
+
     private void handleConsume(ConsumeAction action) {
         ContainerSlotType sourceContainer = container(action.getSource());
+        if (this.screen instanceof CloudLoomContainerScreen) {
+            int slot = action.getSource().getSlot();
+            boolean matchesInput = (sourceContainer == ContainerSlotType.LOOM_INPUT && slot == CloudLoomContainerScreen.BANNER_UI_SLOT)
+                    || (sourceContainer == ContainerSlotType.LOOM_DYE && slot == CloudLoomContainerScreen.DYE_UI_SLOT);
+            if (this.loomSelection == null || !matchesInput || action.getCount() <= 0) {
+                this.requestFailed = true;
+            }
+            return;
+        }
+
         if (this.screen instanceof CloudStonecutterContainerScreen) {
             if (this.stonecuttingSelection == null
                     || sourceContainer != ContainerSlotType.STONECUTTER_INPUT
@@ -921,6 +951,10 @@ public class InventoryRequest {
     }
 
     private void validateStationSlot(ItemStackRequestSlotData slot, ItemStack item) {
+        if (this.screen instanceof CloudLoomContainerScreen loom && loom.rejectsInput(container(slot), item)) {
+            throw new IllegalArgumentException("Item cannot be placed in that loom slot");
+        }
+
         if (container(slot) == ContainerSlotType.BEACON_PAYMENT && !item.isEmpty() && CloudBeaconView.isInvalidPayment(item)) {
             throw new IllegalArgumentException("Item cannot be placed in a beacon payment slot");
         }
