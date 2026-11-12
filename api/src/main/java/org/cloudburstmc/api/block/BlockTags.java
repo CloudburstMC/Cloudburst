@@ -14,6 +14,11 @@ public class BlockTags {
     public static final BlockTagKey BARS = tag("bars");
 
     /**
+     * Blocks that count toward a beacon pyramid.
+     */
+    public static final BlockTagKey BEACON_BASE_BLOCKS = tag("beacon_base_blocks");
+
+    /**
      * Blocks that are beds.
      */
     public static final BlockTagKey BEDS = tag("beds");

@@ -25,6 +25,7 @@ import org.cloudburstmc.server.container.grindstone.GrindstoneResultCalculator;
 import org.cloudburstmc.server.container.screen.*;
 import org.cloudburstmc.server.container.screen.ResultContainerScreen.ResultQuote;
 import org.cloudburstmc.server.container.screen.ResultContainerScreen.ResultTake;
+import org.cloudburstmc.server.container.view.CloudBeaconView;
 import org.cloudburstmc.server.item.ShulkerBoxItems;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -51,6 +52,7 @@ public class InventoryRequest {
     private @Nullable PendingResult pendingResult;
     private @Nullable ResultTake preparedTake;
     private @Nullable CraftRecipeAction enchantmentSelection;
+    private @Nullable BeaconPaymentAction beaconPayment;
     private @Nullable String stationRename;
     private final CloudInventoryScreen screen;
     private final ItemStackRequest currentRequest;
@@ -69,7 +71,12 @@ public class InventoryRequest {
         }
 
         ItemStackRequestAction[] actions = this.currentRequest.getActions();
-        if (this.screen instanceof CloudEnchantingContainerScreen && actions.length != 0 && actions[0] instanceof CraftRecipeAction selection) {
+        if (actions.length != 0 && actions[0] instanceof BeaconPaymentAction payment) {
+            this.requestFailed = !(this.screen instanceof CloudBeaconContainerScreen)
+                    || actions.length != 2
+                    || !(actions[1] instanceof DestroyAction destroy)
+                    || !this.prepareBeaconPayment(payment, destroy);
+        } else if (this.screen instanceof CloudEnchantingContainerScreen && actions.length != 0 && actions[0] instanceof CraftRecipeAction selection) {
             this.handleAction(selection);
         } else if (!isActionOrderValid(actions)) {
             this.requestFailed = true;
@@ -89,7 +96,7 @@ public class InventoryRequest {
         boolean crafting = false;
         for (ItemStackRequestAction action : actions) {
             switch (action.getType()) {
-                case TAKE, PLACE, DROP, DESTROY, LAB_TABLE_COMBINE, BEACON_PAYMENT, MINE_BLOCK -> {
+                case TAKE, PLACE, DROP, DESTROY, LAB_TABLE_COMBINE, MINE_BLOCK -> {
                 }
                 case SWAP, CRAFT_RECIPE, CRAFT_RECIPE_AUTO, CRAFT_CREATIVE, CRAFT_RECIPE_OPTIONAL,
                      CRAFT_REPAIR_AND_DISENCHANT, CRAFT_LOOM, CRAFT_NON_IMPLEMENTED_DEPRECATED -> {
@@ -158,7 +165,6 @@ public class InventoryRequest {
             }
             case CRAFT_LOOM,
                  CRAFT_NON_IMPLEMENTED_DEPRECATED,
-                 BEACON_PAYMENT,
                  LAB_TABLE_COMBINE -> {
                 log.debug("Unimplemented inventory action type {} for {}", action.getType(), player.getName());
                 requestFailed = true;
@@ -418,6 +424,26 @@ public class InventoryRequest {
     }
 
     private boolean prepareStationAction() {
+        BeaconPaymentAction payment = this.beaconPayment;
+        if (payment != null && this.screen instanceof CloudBeaconContainerScreen beacon) {
+            int slot = CloudBeaconContainerScreen.PAYMENT_SLOT;
+            ContainerSlotType type = ContainerSlotType.BEACON_PAYMENT;
+            ResolvedRequestSlot paymentSlot = this.resolveSlot(type, slot);
+            ItemStack item = this.changes.read(paymentSlot.slotGroup(), paymentSlot.inventorySlot());
+            CloudBeaconContainerScreen.PaymentConfirmation confirmation = beacon.preparePayment(payment.getPrimaryEffect(), payment.getSecondaryEffect(), item);
+
+            if (confirmation == null || this.changes.isStale()) {
+                return false;
+            }
+
+            if (confirmation.consumeItem()) {
+                this.stageSlot(type, slot, ItemStack.EMPTY);
+            }
+
+            this.effects.add(confirmation.commit());
+            return true;
+        }
+
         CraftRecipeAction selection = this.enchantmentSelection;
         if (selection != null) {
             return this.screen instanceof CloudEnchantingContainerScreen enchanting && enchanting.selectOffer(selection.getRecipeNetworkId());
@@ -444,6 +470,25 @@ public class InventoryRequest {
         this.preparedTake = take;
 
         this.requiresFullSlotUpdate |= !resolvedDest.equals(result.predicted());
+        return true;
+    }
+
+    private boolean prepareBeaconPayment(BeaconPaymentAction payment, DestroyAction destroy) {
+        ContainerSlotType type = ContainerSlotType.BEACON_PAYMENT;
+        int slot = CloudBeaconContainerScreen.PAYMENT_SLOT;
+        this.trackAffectedSlot(type, slot);
+
+        ItemStackRequestSlotData source = destroy.getSource();
+        if (destroy.getCount() != 1 || container(source) != type || source.getSlot() != slot) {
+            return false;
+        }
+
+        ItemStack item = this.getSlot(source);
+        if (CloudBeaconView.isInvalidPayment(item) || item.get(ItemDataComponents.ITEM_LOCK) != null || ItemStackNetworkIds.get(item) != source.getStackNetworkId()) {
+            return false;
+        }
+
+        this.beaconPayment = payment;
         return true;
     }
 
@@ -822,6 +867,10 @@ public class InventoryRequest {
     }
 
     private void validateStationSlot(ItemStackRequestSlotData slot, ItemStack item) {
+        if (container(slot) == ContainerSlotType.BEACON_PAYMENT && !item.isEmpty() && CloudBeaconView.isInvalidPayment(item)) {
+            throw new IllegalArgumentException("Item cannot be placed in a beacon payment slot");
+        }
+
         if (container(slot) == ContainerSlotType.SHULKER_BOX && !ShulkerBoxItems.accepts(item)) {
             throw new IllegalArgumentException("Shulker boxes cannot be stored in shulker boxes");
         }

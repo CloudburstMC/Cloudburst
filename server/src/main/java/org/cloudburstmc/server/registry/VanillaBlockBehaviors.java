@@ -135,6 +135,11 @@ public class VanillaBlockBehaviors {
         configureTrapdoor(registry, BAMBOO_TRAPDOOR);
         configureUsable(registry, BARREL, ContainerBlockHandlers.BARREL);
         configureUsable(registry, BEACON, ContainerBlockHandlers.BEACON);
+        registry.configure(BEACON).set(BlockComponents.ON_ADDED, block -> {
+            if (block.getLevel().getBlockEntity(block.getPosition()) == null) {
+                CloudBlockEntityRegistry.get().newEntity(BlockEntityTypes.BEACON, block);
+            }
+        });
         configureBell(registry);
         configureBed(registry, BED);
 

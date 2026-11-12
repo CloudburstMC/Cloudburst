@@ -9,6 +9,11 @@ import lombok.experimental.UtilityClass;
 public class ItemTags {
 
     /**
+     * Items accepted as beacon payments.
+     */
+    public static final ItemTagKey BEACON_PAYMENT_ITEMS = tag("beacon_payment_items");
+
+    /**
      * Logs and wood that can be smelted into charcoal.
      */
     public static final ItemTagKey LOGS_THAT_BURN = tag("logs_that_burn");
