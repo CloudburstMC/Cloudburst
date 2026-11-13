@@ -6,9 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Persistent data of an ender dragon: everything shared plus death progress.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

@@ -12,12 +12,6 @@ import org.cloudburstmc.server.nbt.NbtPositional;
 import org.cloudburstmc.server.nbt.NbtTag;
 import org.cloudburstmc.server.nbt.NbtTagType;
 
-/**
- * Persistent data of a creature: living data plus equipment. The armor and
- * offhand containers are the live ones the runtime views wrap; a read fills
- * them in place and a write stores today's {@code Armor}/{@code Offhand} list
- * shapes.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

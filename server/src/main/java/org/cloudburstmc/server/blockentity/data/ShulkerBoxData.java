@@ -11,10 +11,6 @@ import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.nbt.*;
 import org.cloudburstmc.server.nbt.codec.ShulkerFacingCodec;
 
-/**
- * Persistent data of a shulker box: its 27-slot container plus the facing the lid opens towards.
- * The facing is sent to the client so it can render the open lid.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

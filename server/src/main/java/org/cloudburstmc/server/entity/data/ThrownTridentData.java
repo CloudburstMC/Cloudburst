@@ -7,10 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.item.ItemStack;
 
-/**
- * Persistent data of a thrown trident: abstract-arrow data plus its trident
- * item and whether it already dealt damage.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

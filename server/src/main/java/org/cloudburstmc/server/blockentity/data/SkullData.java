@@ -6,9 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Persistent data of a skull: its type, rotation and jaw state.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

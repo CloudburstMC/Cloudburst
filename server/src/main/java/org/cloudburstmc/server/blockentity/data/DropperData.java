@@ -11,9 +11,6 @@ import org.cloudburstmc.server.nbt.NbtContainerSize;
 import org.cloudburstmc.server.nbt.NbtTag;
 import org.cloudburstmc.server.nbt.NbtTagType;
 
-/**
- * Persistent data of a dropper: exactly its 9-slot container.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

@@ -7,10 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.item.ItemStack;
 
-/**
- * Persistent data of a lectern: the book it holds and the displayed page.
- * The keys are only written while a book is present.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

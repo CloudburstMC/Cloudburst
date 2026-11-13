@@ -7,9 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.item.ItemStack;
 
-/**
- * Persistent data of a jukebox: the record it holds, if any.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

@@ -8,11 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.math.vector.Vector3i;
 
-/**
- * Persistent data of a turtle: everything shared plus age and home position.
- * The home position spans three NBT keys and travels through the load/save
- * hooks; the DTO holds it once as a runtime value.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

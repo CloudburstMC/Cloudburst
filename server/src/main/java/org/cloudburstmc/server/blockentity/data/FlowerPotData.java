@@ -7,9 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.block.BlockState;
 
-/**
- * Persistent data of a flower pot: the planted block, if any.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

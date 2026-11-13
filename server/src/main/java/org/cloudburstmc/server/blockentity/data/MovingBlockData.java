@@ -11,11 +11,6 @@ import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 
-/**
- * Persistent data of a moving block: the moved and extra block states plus the
- * nested block-entity tag, if any. An absent moved state reads as air, like today's
- * load code. The piston position is written by the load/save hooks.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

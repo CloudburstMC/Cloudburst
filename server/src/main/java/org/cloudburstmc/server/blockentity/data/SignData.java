@@ -7,10 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.server.nbt.NbtClient;
 
-/**
- * Persistent data of a sign: the joined text lines and the text owner.
- * A cleared sign saves its empty lines joined with newlines, like today's save code.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

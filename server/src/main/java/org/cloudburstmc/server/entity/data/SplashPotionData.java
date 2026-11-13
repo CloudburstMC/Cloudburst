@@ -9,9 +9,6 @@ import org.cloudburstmc.api.potion.PotionType;
 import org.cloudburstmc.server.nbt.NbtTag;
 import org.cloudburstmc.server.nbt.NbtTagType;
 
-/**
- * Persistent data of a splash potion: projectile data plus its potion type.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

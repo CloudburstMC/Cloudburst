@@ -6,9 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Persistent data of a happy ghast: everything shared plus age.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

@@ -20,7 +20,7 @@ public final class EffectTypeDeserializer extends StdDeserializer<EffectType> {
         Object tag = p instanceof NbtParser parser ? parser.currentTag() : null;
         if (!(tag instanceof Number number)) {
             MismatchedInputException mismatch = MismatchedInputException.from(p, EffectType.class,
-                    "Cannot read an effect type from " + NbtTags.describe(tag) + "; expected an int effect id");
+                    "Cannot read an effect type from " + NbtTags.describe(tag) + ". Expected an int effect id");
             mismatch.initCause(new NbtKindMismatchException("Effect types are stored as int effect ids"));
             throw mismatch;
         }

@@ -6,9 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Persistent data of a living entity: everything shared. Health is
- * attribute-backed, so it stays in its runtime holder and travels through the
- * living entity's load/save hooks instead.
+ * Shared persistence type for living entities. Health is saved from the live attribute.
  */
 @Getter
 @Setter

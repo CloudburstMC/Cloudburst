@@ -7,11 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.blockentity.CauldronContents;
 
-/**
- * Persistent data of a cauldron: its potion or dye contents. The network potion
- * and form ids, the custom color, the item list and the stale splash flag travel
- * outside this class, written by the load and save hooks.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

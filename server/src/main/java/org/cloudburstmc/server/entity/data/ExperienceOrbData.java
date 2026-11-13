@@ -8,12 +8,6 @@ import lombok.Setter;
 import org.cloudburstmc.server.nbt.NbtTag;
 import org.cloudburstmc.server.nbt.NbtTagType;
 
-/**
- * Persistent data of an experience orb: everything shared plus its
- * count and pickup delay. Age travels through the load/save hooks, mirroring
- * the live tick counter instead, and the value is metadata-backed so it
- * travels through the hooks too.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

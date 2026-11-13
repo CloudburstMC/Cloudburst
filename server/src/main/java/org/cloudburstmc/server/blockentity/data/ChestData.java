@@ -13,10 +13,6 @@ import org.cloudburstmc.server.nbt.NbtContainerSize;
 import org.cloudburstmc.server.nbt.NbtTag;
 import org.cloudburstmc.server.nbt.NbtTagType;
 
-/**
- * Persistent data of a chest: its container plus whether it can pair.
- * The pair position is written by the load/save hooks, not the mapper.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

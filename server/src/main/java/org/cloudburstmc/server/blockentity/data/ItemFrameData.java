@@ -9,11 +9,6 @@ import lombok.Setter;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.nbt.NbtClient;
 
-/**
- * Persistent data of an item frame: the displayed item, if any, plus whether it is fixed.
- * The rotation and drop chance travel outside this class; they are always written,
- * to saved and client tags alike.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

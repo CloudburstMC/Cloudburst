@@ -50,7 +50,7 @@ public class NbtCodecs {
             constructor.setAccessible(true);
             return (NbtValueCodec<?>) constructor.newInstance();
         } catch (ReflectiveOperationException | RuntimeException e) {
-            throw new IllegalArgumentException("Cannot create NBT codec " + type.getName() + "; it needs an accessible no-arg constructor", e);
+            throw new IllegalArgumentException("Cannot create NBT codec " + type.getName() + ". An accessible no-argument constructor is required.", e);
         }
     }
 

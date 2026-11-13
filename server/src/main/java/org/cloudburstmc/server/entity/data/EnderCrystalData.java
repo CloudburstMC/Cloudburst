@@ -6,9 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Persistent data of an ender crystal: everything shared. Base visibility and
- * the beam target are metadata-backed, so they travel through the load/save
- * hooks instead.
+ * Persistence type for end crystals. Beam target and base visibility are saved from entity metadata.
  */
 @Getter
 @Setter

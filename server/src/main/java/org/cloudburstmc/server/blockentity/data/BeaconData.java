@@ -7,10 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.potion.EffectType;
 
-/**
- * Persistent data of a beacon: its primary and secondary effects.
- * Either is absent while the beacon has no effect set.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

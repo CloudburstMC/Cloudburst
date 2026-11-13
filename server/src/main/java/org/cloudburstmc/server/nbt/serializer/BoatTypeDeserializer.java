@@ -20,7 +20,7 @@ public final class BoatTypeDeserializer extends StdDeserializer<BoatType> {
         Object tag = p instanceof NbtParser parser ? parser.currentTag() : null;
         if (!(tag instanceof Number number)) {
             MismatchedInputException mismatch = MismatchedInputException.from(p, BoatType.class,
-                    "Cannot read a boat type from " + NbtTags.describe(tag) + "; expected an int variant");
+                    "Cannot read a boat type from " + NbtTags.describe(tag) + ". Expected an int variant");
             mismatch.initCause(new NbtKindMismatchException("Boat types are stored as int variants"));
             throw mismatch;
         }

@@ -8,10 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.math.vector.Vector3i;
 
-/**
- * Persistent data of an end gateway: its age and exact-teleport flag. The exit
- * portal and the client form of the age are written by the load/save hooks.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

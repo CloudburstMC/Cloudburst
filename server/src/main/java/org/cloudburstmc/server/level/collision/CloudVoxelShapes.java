@@ -227,7 +227,7 @@ public final class CloudVoxelShapes {
         long cellCount = (long) (xBoundaries.size() - 1) * (yBoundaries.size() - 1) * (zBoundaries.size() - 1);
         if (cellCount > MAX_COVERAGE_CELLS) {
             throw new IllegalArgumentException("Voxel shape coverage would require " + cellCount
-                            + " cells; maximum is " + MAX_COVERAGE_CELLS);
+                            + " cells. The maximum is " + MAX_COVERAGE_CELLS);
         }
 
         for (int x = 1; x < xBoundaries.size(); x++) {

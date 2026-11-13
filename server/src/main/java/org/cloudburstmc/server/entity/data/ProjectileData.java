@@ -6,9 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Persistent data of a projectile: everything shared plus its damage.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

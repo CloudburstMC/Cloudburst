@@ -9,10 +9,6 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.server.nbt.NbtShortBlockState;
 
-/**
- * Persistent data of a falling block: everything shared plus its state, timers,
- * drop and damage behavior, and optional landing and break sounds.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

@@ -69,7 +69,7 @@ public final class ItemContainerDeserializer extends StdDeserializer<ItemContain
     @Override
     public ItemContainer deserialize(JsonParser p, DeserializationContext ctxt) {
         if (size < 0) {
-            throw new IllegalArgumentException("Cannot read an item container with no instance to fill;"
+            throw new IllegalArgumentException("Cannot read an item container without an existing instance."
                     + " declare its slot count with @NbtContainerSize on the property");
         }
         if (!(p instanceof NbtParser parser) || !(parser.currentTag() instanceof List<?> list)) {
@@ -216,7 +216,7 @@ public final class ItemContainerDeserializer extends StdDeserializer<ItemContain
     private static MismatchedInputException mismatch(JsonParser p, Object entry) {
         MismatchedInputException mismatch = MismatchedInputException.from(p, ItemContainer.class,
                 "Cannot read an item container entry " + NbtTags.describe(entry)
-                        + "; expected an item compound");
+                        + ". Expected an item compound");
         mismatch.initCause(new NbtKindMismatchException(
                 "Item container entries need an item compound"));
         return mismatch;

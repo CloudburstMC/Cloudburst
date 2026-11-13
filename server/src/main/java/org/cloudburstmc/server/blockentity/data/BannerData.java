@@ -17,12 +17,6 @@ import org.cloudburstmc.server.nbt.codec.DyeDataIntCodec;
 
 import java.util.List;
 
-/**
- * Persistent data of a banner: the base color and banner type, plus the pattern
- * layers if any. The base defaults to white, like today's save code. Whether an
- * empty pattern list was explicitly loaded is tracked outside the tag, so a fresh
- * banner and a loaded empty list save their client tags as today.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

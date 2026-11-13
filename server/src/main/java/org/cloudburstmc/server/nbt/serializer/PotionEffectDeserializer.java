@@ -21,7 +21,7 @@ public final class PotionEffectDeserializer extends StdDeserializer<PotionEffect
         Object tag = p instanceof NbtParser parser ? parser.currentTag() : null;
         if (!(tag instanceof NbtMap map)) {
             MismatchedInputException mismatch = MismatchedInputException.from(p, PotionEffect.class,
-                    "Cannot read a potion effect from " + NbtTags.describe(tag) + "; expected a compound");
+                    "Cannot read a potion effect from " + NbtTags.describe(tag) + ". Expected a compound");
             mismatch.initCause(new NbtKindMismatchException("Potion effects are stored as compounds"));
             throw mismatch;
         }

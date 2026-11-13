@@ -7,10 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.entity.vehicle.BoatType;
 
-/**
- * Persistent data of a boat: everything shared plus its hull variant.
- * The setter keeps the client metadata in sync.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

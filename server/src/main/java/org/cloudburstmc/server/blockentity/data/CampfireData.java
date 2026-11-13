@@ -9,10 +9,6 @@ import lombok.Setter;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.nbt.NbtClient;
 
-/**
- * Persistent data of a campfire: the item on each of its four slots plus its cook time.
- * A slot's keys are only written while the slot holds an item.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

@@ -11,10 +11,6 @@ import org.cloudburstmc.server.nbt.NbtContainerSize;
 import org.cloudburstmc.server.nbt.NbtTag;
 import org.cloudburstmc.server.nbt.NbtTagType;
 
-/**
- * Persistent data of a furnace: its slotted items plus the cook, burn and burn-duration counters.
- * The furnace is not loot-capable, so it declares its items separately.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

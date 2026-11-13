@@ -6,9 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Persistent data of a TNT minecart: abstract-minecart data plus its fuse.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

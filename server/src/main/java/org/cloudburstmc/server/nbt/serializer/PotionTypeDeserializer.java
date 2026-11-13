@@ -20,7 +20,7 @@ public final class PotionTypeDeserializer extends StdDeserializer<PotionType> {
         Object tag = p instanceof NbtParser parser ? parser.currentTag() : null;
         if (!(tag instanceof Number number)) {
             MismatchedInputException mismatch = MismatchedInputException.from(p, PotionType.class,
-                    "Cannot read a potion type from " + NbtTags.describe(tag) + "; expected a short potion id");
+                    "Cannot read a potion type from " + NbtTags.describe(tag) + ". Expected a short potion id");
             mismatch.initCause(new NbtKindMismatchException("Potion types are stored as short potion ids"));
             throw mismatch;
         }

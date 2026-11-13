@@ -12,11 +12,6 @@ import org.cloudburstmc.server.nbt.NbtSkipEmpty;
 import org.cloudburstmc.server.nbt.NbtTag;
 import org.cloudburstmc.server.nbt.NbtTagType;
 
-/**
- * Persistent data of a chest boat: boat data plus its stored items. The container
- * is the live one the chest boat's inventory view wraps; a read fills it in place.
- * Only non-empty slots are written, each with its {@code Slot} byte.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

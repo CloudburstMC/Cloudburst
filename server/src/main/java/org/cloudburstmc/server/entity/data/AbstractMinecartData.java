@@ -6,9 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Persistent data of an abstract minecart. Display state is metadata-backed, so
- * it travels through the load/save hooks and this class stays an empty marker
- * for the branch.
+ * Shared persistence type for minecarts. Display state is saved separately.
  */
 @Getter
 @Setter

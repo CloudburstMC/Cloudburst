@@ -10,9 +10,6 @@ import org.cloudburstmc.server.nbt.NbtClient;
 import org.cloudburstmc.server.nbt.NbtCodec;
 import org.cloudburstmc.server.nbt.codec.WoolColorCodec;
 
-/**
- * Persistent data of a bed: its color as wool data. White by default, like today's save code.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

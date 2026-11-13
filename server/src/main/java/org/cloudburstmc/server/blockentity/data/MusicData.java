@@ -6,9 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Persistent data of a music (note) block: its note and powered state.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

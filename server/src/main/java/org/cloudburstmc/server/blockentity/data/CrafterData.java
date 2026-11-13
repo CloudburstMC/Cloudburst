@@ -11,10 +11,6 @@ import org.cloudburstmc.server.nbt.NbtContainerSize;
 import org.cloudburstmc.server.nbt.NbtTag;
 import org.cloudburstmc.server.nbt.NbtTagType;
 
-/**
- * Persistent data of a crafter: its 9-slot container plus the per-slot disable flags.
- * The crafter is not loot-capable, so it declares its items separately.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

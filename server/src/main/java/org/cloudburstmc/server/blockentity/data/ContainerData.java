@@ -4,9 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 /**
- * Persistent data shared by every loot-capable item container: an optional loot-table
- * reference. Each concrete container DTO declares its own items property with the slot
- * count of its block-entity type.
+ * Loot table reference and seed shared by loot-capable containers.
  */
 @Getter
 @Setter

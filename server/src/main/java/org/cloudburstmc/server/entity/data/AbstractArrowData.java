@@ -13,12 +13,6 @@ import org.cloudburstmc.server.nbt.NbtTag;
 import org.cloudburstmc.server.nbt.NbtTagType;
 import org.cloudburstmc.server.nbt.codec.ArrowPickupStatusCodec;
 
-/**
- * Persistent data of an abstract arrow: projectile data plus its stuck state,
- * pierce level and pickup rule. The embedded block position is conditional: it
- * is only written while the arrow is stuck, so it travels through the load/save
- * hooks.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

@@ -7,9 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.entity.misc.PaintingVariant;
 
-/**
- * Persistent data of a painting: hanging data plus its motive.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

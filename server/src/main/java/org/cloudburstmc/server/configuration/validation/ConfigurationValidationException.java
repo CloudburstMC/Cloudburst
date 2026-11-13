@@ -18,7 +18,7 @@ public class ConfigurationValidationException extends IllegalArgumentException {
     public ConfigurationValidationException(Path file, List<ConfigurationProblem> problems) {
         super("Invalid configuration " + file + ": " + problems.stream()
                 .map(problem -> problem.path() + " = " + problem.value() + " " + problem.requirement())
-                .collect(Collectors.joining("; ")));
+                .collect(Collectors.joining(" | ")));
         this.file = file;
         this.problems = List.copyOf(problems);
     }

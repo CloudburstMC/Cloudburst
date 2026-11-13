@@ -12,11 +12,6 @@ import org.cloudburstmc.server.nbt.NbtContainerSize;
 import org.cloudburstmc.server.nbt.NbtTag;
 import org.cloudburstmc.server.nbt.NbtTagType;
 
-/**
- * Persistent data of a brewing stand: its slotted items plus the brew timer and the fuel state.
- * The fuel keys are only written by the client view, but they are always present there.
- * The brewing stand is not loot-capable, so it declares its items separately.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

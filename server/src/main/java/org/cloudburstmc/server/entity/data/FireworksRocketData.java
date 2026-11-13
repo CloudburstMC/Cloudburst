@@ -6,10 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Persistent data of a fireworks rocket: projectile data plus its life,
- * lifetime and launch angle.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)

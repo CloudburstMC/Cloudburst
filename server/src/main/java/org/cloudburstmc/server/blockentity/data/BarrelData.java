@@ -11,9 +11,6 @@ import org.cloudburstmc.server.nbt.NbtContainerSize;
 import org.cloudburstmc.server.nbt.NbtTag;
 import org.cloudburstmc.server.nbt.NbtTagType;
 
-/**
- * Persistent data of a barrel: exactly its 27-slot container.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
