@@ -189,9 +189,7 @@ class EntityPersistenceTest {
     void legacyCreatureRegistrationRoundTripsWithCreatureData() {
         CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(TestEntities.LEGACY_CREATURE_TYPE);
 
-        assertEquals(CloudEntityData.class,
-                CloudEntityRegistry.get().getDataClass(TestEntities.LEGACY_CREATURE_TYPE));
-        assertEquals(org.cloudburstmc.server.entity.data.CloudCreatureData.class, entity.dataClass());
+        assertEquals(org.cloudburstmc.server.entity.data.CloudCreatureData.class, entity.data().getClass());
 
         entity.loadAdditionalData(NbtMap.builder()
                 .putList("Pos", NbtType.FLOAT, List.of(1f, 2f, 3f))
@@ -226,12 +224,6 @@ class EntityPersistenceTest {
                 entity = (CloudEntity) PersistenceFixtures.entity(type);
             } catch (Exception e) {
                 failures.add(type.getId() + ": construction failed (" + e + ")");
-                continue;
-            }
-            if ("minecraft".equals(type.getId().getNamespace())
-                    && !entity.minimumDataClass().isAssignableFrom(CloudEntityRegistry.get().getDataClass(type))) {
-                failures.add(type.getId() + ": registered " + CloudEntityRegistry.get().getDataClass(type).getName()
-                        + " is not usable by runtime minimum " + entity.minimumDataClass().getName());
                 continue;
             }
             NbtMap saved;
@@ -272,10 +264,6 @@ class EntityPersistenceTest {
             failures.forEach(System.out::println);
         }
         assertTrue(failures.isEmpty(), "Entity round-trip failures: " + failures);
-        assertEquals(org.cloudburstmc.server.entity.data.CloudCreatureData.class,
-                CloudEntityRegistry.get().getDataClass(EntityTypes.PIG));
-        assertEquals(org.cloudburstmc.server.entity.data.CloudPaintingData.class,
-                CloudEntityRegistry.get().getDataClass(EntityTypes.PAINTING));
     }
 
 

@@ -6,22 +6,20 @@ import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.blockentity.data.CloudBedData;
-import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 
 public class BedBlockEntity extends BaseBlockEntity implements Bed {
 
-    public BedBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position);
-    }
+    private final CloudBedData persistenceState;
 
-    @Override
-    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
-        return CloudBedData.class;
+    public BedBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
+        CloudBedData state = new CloudBedData();
+        super(type, chunk, position, state);
+        this.persistenceState = state;
     }
 
     @Override
     protected CloudBedData data() {
-        return (CloudBedData) super.data();
+        return this.persistenceState;
     }
 
     @Override

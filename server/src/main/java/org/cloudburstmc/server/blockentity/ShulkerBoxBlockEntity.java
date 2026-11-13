@@ -25,7 +25,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEventPacket;
 import org.cloudburstmc.server.block.util.ShulkerBoxGeometry;
-import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.blockentity.data.CloudShulkerBoxData;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.ContainerListener;
@@ -53,19 +52,18 @@ public class ShulkerBoxBlockEntity extends ContainerBlockEntity implements Shulk
     private float previousOpenProgress;
     private int viewerCount;
 
+    private final CloudShulkerBoxData persistenceState;
+
     public ShulkerBoxBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position);
+        CloudShulkerBoxData state = new CloudShulkerBoxData();
+        super(type, chunk, position, state);
+        this.persistenceState = state;
         this.data().setItems(new BoxStorage((CloudChunk) chunk));
     }
 
     @Override
-    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
-        return CloudShulkerBoxData.class;
-    }
-
-    @Override
     protected CloudShulkerBoxData data() {
-        return (CloudShulkerBoxData) super.data();
+        return this.persistenceState;
     }
 
     @Override
@@ -277,7 +275,7 @@ public class ShulkerBoxBlockEntity extends ContainerBlockEntity implements Shulk
 
     @Override
     public void close() {
-        if (!closed) {
+        if (!this.isClosed()) {
             for (ContainerListener listener : new HashSet<>(this.getContainer().getListeners())) {
                 if (listener instanceof CloudPlayer) {
                     ((CloudPlayer) listener).closeInventory();

@@ -9,7 +9,6 @@ import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.blockentity.data.CloudMovingBlockData;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 
@@ -24,18 +23,17 @@ public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
      */
     private BaseBlockEntity blockEntity;
 
-    public MovingBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position);
-    }
+    private final CloudMovingBlockData persistenceState;
 
-    @Override
-    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
-        return CloudMovingBlockData.class;
+    public MovingBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
+        CloudMovingBlockData state = new CloudMovingBlockData();
+        super(type, chunk, position, state);
+        this.persistenceState = state;
     }
 
     @Override
     protected CloudMovingBlockData data() {
-        return (CloudMovingBlockData) super.data();
+        return this.persistenceState;
     }
 
     @Override

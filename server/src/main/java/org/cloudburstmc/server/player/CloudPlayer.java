@@ -88,7 +88,6 @@ import org.cloudburstmc.server.entity.CloudDamageResult;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
-import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.entity.data.CloudPlayerData;
 import org.cloudburstmc.server.entity.misc.EntityExperienceOrb;
 import org.cloudburstmc.server.entity.projectile.EntityFishingHook;
@@ -260,8 +259,13 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     private int lastCompletedItemUseTick = Integer.MIN_VALUE;
     private int spinAttackEndTick = -1;
 
+    private boolean firstMove = true;
+    private final CloudPlayerData persistenceState;
+
     public CloudPlayer(BedrockServerSession session, AuthenticatedPlayerData connectionData) {
-        super(EntityTypes.PLAYER, Location.from(CloudServer.getInstance().getDefaultLevel()));
+        CloudPlayerData state = new CloudPlayerData();
+        super(EntityTypes.PLAYER, Location.from(CloudServer.getInstance().getDefaultLevel()), state);
+        this.persistenceState = state;
         this.session = session;
         this.packetHandler = new PlayerPacketHandler(this);
         this.server = CloudServer.getInstance();
@@ -510,12 +514,12 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         if (this.spawned && player.spawned && this.isAlive() && player.isAlive() &&
                 player.getLevel() == this.getLevel() && player.canSee(this) && !this.isSpectator() &&
                 this.chunk != null && player.isChunkSent(this.chunk.getX(), this.chunk.getZ())) {
-            if (this == player || this.hasSpawned.contains(player)) {
+            if (this == player || this.hasViewer(player)) {
                 return;
             }
 
             super.spawnTo(player);
-            if (!this.hasSpawned.contains(player)) {
+            if (!this.hasViewer(player)) {
                 return;
             }
 
@@ -2915,7 +2919,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
                     "§b" + (this.getName() == null ? "" : this.getName()) + "§r",
                     this.getLoggableAddress(),
                     this.getServer().getLanguage().translate(reason)));
-            this.hasSpawned.clear();
+            this.clearViewers();
             this.spawnLocation = null;
             this.respawnConfig = null;
 
@@ -3382,13 +3386,8 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     @Override
-    protected Class<? extends CloudEntityData> minimumDataClass() {
-        return CloudPlayerData.class;
-    }
-
-    @Override
     protected CloudPlayerData data() {
-        return (CloudPlayerData) super.data();
+        return this.persistenceState;
     }
 
     /**
@@ -3682,7 +3681,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         deathPacket.setRuntimeEntityId(this.getRuntimeId());
         deathPacket.setType(EntityEventType.DEATH);
         this.sendPacket(deathPacket);
-        CloudServer.broadcastPacket(this.hasSpawned, deathPacket);
+        this.broadcastToViewers(deathPacket);
 
         this.enterDeathState();
         this.updateBlockingState();

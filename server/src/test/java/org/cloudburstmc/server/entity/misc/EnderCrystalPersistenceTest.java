@@ -8,7 +8,6 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.data.CloudEnderCrystalData;
-import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +31,6 @@ class EnderCrystalPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudEnderCrystalData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.ENDER_CRYSTAL));
 
         EntityEnderCrystal crystal = (EntityEnderCrystal) PersistenceFixtures.entity(EntityTypes.ENDER_CRYSTAL);
         NbtMap beam = NbtMap.builder().putInt("X", 1).putInt("Y", 2).putInt("Z", 3).build();

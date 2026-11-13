@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.utils;
 
-import tools.jackson.databind.JsonNode;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.player.skin.Skin;
 import org.cloudburstmc.api.player.skin.data.ImageData;
@@ -8,8 +7,9 @@ import org.cloudburstmc.api.player.skin.data.PersonaPiece;
 import org.cloudburstmc.api.player.skin.data.PersonaPieceTint;
 import org.cloudburstmc.api.player.skin.data.SkinAnimation;
 import org.cloudburstmc.protocol.bedrock.data.skin.*;
+import tools.jackson.databind.JsonNode;
 
-import java.awt.Color;
+import java.awt.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;

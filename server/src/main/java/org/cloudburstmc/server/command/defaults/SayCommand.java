@@ -7,10 +7,10 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.command.CommandSourceStack;
 import org.cloudburstmc.api.command.Commands;
-import org.cloudburstmc.api.command.argument.CommandArguments;
 import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
-import org.cloudburstmc.server.command.CloudConsoleCommandSender;
+import org.cloudburstmc.api.command.argument.CommandArguments;
 import org.cloudburstmc.server.command.AdvertisedCommand;
+import org.cloudburstmc.server.command.CloudConsoleCommandSender;
 import org.cloudburstmc.server.command.network.CommandNetworkData;
 import org.cloudburstmc.server.player.CloudPlayer;
 

@@ -21,7 +21,6 @@ import org.cloudburstmc.protocol.bedrock.data.sound.StopSoundData;
 import org.cloudburstmc.protocol.bedrock.packet.ClientboundUpdateSoundDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RecordStartedPacket;
-import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.blockentity.data.CloudJukeboxData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.network.SoundPacketFactory;
@@ -45,18 +44,17 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox, Auto
     private int playbackTicks;
     private long soundHandle;
 
-    public JukeboxBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position);
-    }
+    private final CloudJukeboxData persistenceState;
 
-    @Override
-    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
-        return CloudJukeboxData.class;
+    public JukeboxBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
+        CloudJukeboxData state = new CloudJukeboxData();
+        super(type, chunk, position, state);
+        this.persistenceState = state;
     }
 
     @Override
     protected CloudJukeboxData data() {
-        return (CloudJukeboxData) super.data();
+        return this.persistenceState;
     }
 
     @Override

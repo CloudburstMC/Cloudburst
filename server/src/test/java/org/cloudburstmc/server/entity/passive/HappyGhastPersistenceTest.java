@@ -6,7 +6,6 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.data.CloudHappyGhastData;
-import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -27,7 +26,6 @@ class HappyGhastPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudHappyGhastData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.HAPPY_GHAST));
 
         EntityHappyGhast ghast = (EntityHappyGhast) PersistenceFixtures.entity(EntityTypes.HAPPY_GHAST);
         ghast.loadAdditionalData(NbtMap.builder()

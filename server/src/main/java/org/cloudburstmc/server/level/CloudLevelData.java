@@ -1,6 +1,9 @@
 package org.cloudburstmc.server.level;
 
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.gamerule.GameRules;

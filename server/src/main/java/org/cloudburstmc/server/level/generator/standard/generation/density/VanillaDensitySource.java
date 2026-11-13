@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.level.generator.standard.generation.density;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import tools.jackson.databind.annotation.JsonDeserialize;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.noise.NoiseSource;
@@ -13,6 +12,7 @@ import org.cloudburstmc.server.level.generator.standard.biome.BiomeTerrainCache;
 import org.cloudburstmc.server.level.generator.standard.biome.map.BiomeMap;
 import org.cloudburstmc.server.level.generator.standard.generation.noise.NoiseGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.AbstractGenerationPass;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import static java.lang.Math.signum;
 import static java.util.Objects.requireNonNull;

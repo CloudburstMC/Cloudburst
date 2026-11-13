@@ -13,7 +13,6 @@ import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.blockentity.data.CloudChestData;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.ContainerListener;
@@ -31,8 +30,12 @@ public class ChestBlockEntity extends ContainerBlockEntity implements Chest, Blo
     private CloudContainer combinedContainer = null;
     private boolean pairlead;
 
+    private final CloudChestData persistenceState;
+
     public ChestBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position);
+        CloudChestData state = new CloudChestData();
+        super(type, chunk, position, state);
+        this.persistenceState = state;
     }
 
     @Override
@@ -41,13 +44,8 @@ public class ChestBlockEntity extends ContainerBlockEntity implements Chest, Blo
     }
 
     @Override
-    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
-        return CloudChestData.class;
-    }
-
-    @Override
     protected CloudChestData data() {
-        return (CloudChestData) super.data();
+        return this.persistenceState;
     }
 
     @Override
@@ -122,7 +120,7 @@ public class ChestBlockEntity extends ContainerBlockEntity implements Chest, Blo
 
     @Override
     public void close() {
-        if (!closed) {
+        if (!this.isClosed()) {
             for (ContainerListener listener : new HashSet<>(this.getContainer().getListeners())) {
                 if (listener instanceof CloudPlayer) {
                     ((CloudPlayer) listener).closeInventory();

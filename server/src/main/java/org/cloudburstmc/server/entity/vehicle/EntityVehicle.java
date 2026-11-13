@@ -11,6 +11,7 @@ import org.cloudburstmc.api.event.vehicle.VehicleDamageEvent;
 import org.cloudburstmc.api.event.vehicle.VehicleDestroyEvent;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -19,7 +20,11 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
 public abstract class EntityVehicle extends CloudEntity implements Vehicle, Interactable {
 
     public EntityVehicle(EntityType<?> type, Location location) {
-        super(type, location);
+        this(type, location, new CloudEntityData());
+    }
+
+    protected EntityVehicle(EntityType<?> type, Location location, CloudEntityData state) {
+        super(type, location, state);
         this.data.set(HURT_TICKS, 0);
         this.data.set(HURT_DIRECTION, 1);
     }

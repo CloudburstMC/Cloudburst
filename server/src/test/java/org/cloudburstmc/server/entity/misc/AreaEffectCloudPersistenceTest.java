@@ -13,7 +13,6 @@ import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.data.CloudAreaEffectCloudData;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.potion.PotionEffectDataSerializer;
-import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -42,7 +41,6 @@ class AreaEffectCloudPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudAreaEffectCloudData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.AREA_EFFECT_CLOUD));
 
         EntityAreaEffectCloud cloud = (EntityAreaEffectCloud) PersistenceFixtures.entity(EntityTypes.AREA_EFFECT_CLOUD);
         PotionEffect effect = new PotionEffect(EffectTypes.POISON, 200, 1, true, true);

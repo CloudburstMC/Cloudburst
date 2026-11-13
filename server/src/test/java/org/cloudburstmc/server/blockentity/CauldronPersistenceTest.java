@@ -9,7 +9,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.data.CloudCauldronData;
 import org.cloudburstmc.server.network.NetworkUtils;
-import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -42,8 +41,6 @@ class CauldronPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudCauldronData.class,
-                CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.CAULDRON));
 
         CauldronBlockEntity entity = (CauldronBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CAULDRON, POSITION);
         NbtMap input = cauldronTag();

@@ -10,7 +10,6 @@ import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.data.CloudThrownTridentData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
-import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -34,7 +33,6 @@ class ThrownTridentPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudThrownTridentData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.THROWN_TRIDENT));
 
         EntityThrownTrident trident = (EntityThrownTrident) PersistenceFixtures.entity(EntityTypes.THROWN_TRIDENT);
         ItemStack stack = ItemStack.from(ItemTypes.TRIDENT);

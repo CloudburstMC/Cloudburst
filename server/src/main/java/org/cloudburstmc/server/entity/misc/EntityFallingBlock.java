@@ -24,7 +24,6 @@ import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.BlockStateCodec;
 import org.cloudburstmc.server.block.component.FallingBlockHandlers;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.entity.data.CloudFallingBlockData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 
@@ -62,18 +61,17 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
     private boolean landingPending;
     private int settledRemovalDelay;
 
-    public EntityFallingBlock(EntityType<FallingBlock> type, Location location) {
-        super(type, location);
-    }
+    private final CloudFallingBlockData persistenceState;
 
-    @Override
-    protected Class<? extends CloudEntityData> minimumDataClass() {
-        return CloudFallingBlockData.class;
+    public EntityFallingBlock(EntityType<FallingBlock> type, Location location) {
+        CloudFallingBlockData state = new CloudFallingBlockData();
+        super(type, location, state);
+        this.persistenceState = state;
     }
 
     @Override
     protected CloudFallingBlockData data() {
-        return (CloudFallingBlockData) super.data();
+        return this.persistenceState;
     }
 
     @Override
@@ -347,7 +345,7 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
         Block target = this.level.getBlock(position);
         this.damageEntities();
 
-        float distance = Math.max(this.fallDistance, this.highestPosition - this.getY());
+        float distance = Math.max(this.fallDistance, this.getHighestPosition() - this.getY());
         this.level.getServer().getBlockRegistry()
                 .requireComponent(this.data().getBlockState().getType(), BlockComponents.ON_FALLING_LAND)
                 .execute(this, target, distance);
@@ -398,7 +396,7 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
             return;
         }
 
-        float distance = Math.max(this.fallDistance, this.highestPosition - this.getY());
+        float distance = Math.max(this.fallDistance, this.getHighestPosition() - this.getY());
         int effectiveDistance = (int) Math.ceil(distance - 1);
         float damage = Math.min((float) Math.floor(effectiveDistance * this.data().getDamagePerBlock()), this.data().getMaximumDamage());
         if (damage <= 0) {

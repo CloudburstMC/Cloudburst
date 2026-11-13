@@ -7,7 +7,6 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.component.UseHandler;
 import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.map.MapScale;
-import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.map.CloudMapView;
 import org.cloudburstmc.server.player.CloudPlayer;
 

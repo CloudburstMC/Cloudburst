@@ -11,7 +11,6 @@ import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.data.CloudArrowData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
-import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -35,7 +34,6 @@ class ArrowPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudArrowData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.ARROW));
 
         EntityArrow arrow = (EntityArrow) PersistenceFixtures.entity(EntityTypes.ARROW);
         ItemStack stack = ItemStack.from(ItemTypes.ARROW);

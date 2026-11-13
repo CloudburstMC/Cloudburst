@@ -11,7 +11,6 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.entity.data.CloudPrimedTntData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 
@@ -20,8 +19,12 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.IGNITED;
 
 public class EntityPrimedTnt extends CloudEntity implements PrimedTnt, Explosive {
 
+    private final CloudPrimedTntData persistenceState;
+
     public EntityPrimedTnt(EntityType<PrimedTnt> type, Location location) {
-        super(type, location);
+        CloudPrimedTntData state = new CloudPrimedTntData();
+        super(type, location, state);
+        this.persistenceState = state;
     }
 
     @Override
@@ -76,12 +79,7 @@ public class EntityPrimedTnt extends CloudEntity implements PrimedTnt, Explosive
 
     @Override
     protected CloudPrimedTntData data() {
-        return (CloudPrimedTntData) super.data();
-    }
-
-    @Override
-    protected Class<? extends CloudEntityData> minimumDataClass() {
-        return CloudPrimedTntData.class;
+        return this.persistenceState;
     }
 
     @Override

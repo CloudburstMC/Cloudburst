@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.component;
 
 import lombok.experimental.UtilityClass;
-import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;

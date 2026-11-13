@@ -12,7 +12,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.data.CloudEnderDragonData;
-import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -90,9 +89,8 @@ class EnderDragonPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudEnderDragonData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.ENDER_DRAGON));
-
         EntityEnderDragon dragon = dragon();
+        assertEquals(CloudEnderDragonData.class, dragon.data().getClass());
         dragon.loadAdditionalData(NbtMap.builder()
                 .putInt("DragonDeathTime", 5)
                 .putInt("DragonDeathExperience", 500)

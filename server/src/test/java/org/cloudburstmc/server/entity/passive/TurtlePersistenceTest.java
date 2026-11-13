@@ -7,7 +7,6 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.data.CloudTurtleData;
-import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -29,7 +28,6 @@ class TurtlePersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudTurtleData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.TURTLE));
 
         EntityTurtle turtle = (EntityTurtle) PersistenceFixtures.entity(EntityTypes.TURTLE);
         turtle.loadAdditionalData(NbtMap.builder()

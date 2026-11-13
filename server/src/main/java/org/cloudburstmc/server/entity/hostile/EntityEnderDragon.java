@@ -24,7 +24,6 @@ import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.boss.CloudStandaloneBossBar;
 import org.cloudburstmc.server.entity.data.CloudEnderDragonData;
-import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.network.NetworkUtils;
 
@@ -50,8 +49,12 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
     private boolean dying;
     private int ambientSoundDelay;
 
+    private final CloudEnderDragonData persistenceState;
+
     public EntityEnderDragon(EntityType<EnderDragon> type, Location location) {
-        super(type, location);
+        CloudEnderDragonData state = new CloudEnderDragonData();
+        super(type, location, state);
+        this.persistenceState = state;
     }
 
     @Override
@@ -117,13 +120,8 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
     }
 
     @Override
-    protected Class<? extends CloudEntityData> minimumDataClass() {
-        return CloudEnderDragonData.class;
-    }
-
-    @Override
     protected CloudEnderDragonData data() {
-        return (CloudEnderDragonData) super.data();
+        return this.persistenceState;
     }
 
     @Override

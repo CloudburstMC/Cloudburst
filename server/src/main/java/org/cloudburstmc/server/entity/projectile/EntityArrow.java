@@ -15,7 +15,6 @@ import org.cloudburstmc.api.util.BlockHitResult;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.entity.data.CloudArrowData;
-import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.potion.CloudPotion;
 
@@ -26,8 +25,12 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.CUST
 
 public class EntityArrow extends EntityAbstractArrow implements Arrow {
 
+    private final CloudArrowData persistenceState;
+
     public EntityArrow(EntityType<Arrow> type, Location location) {
-        super(type, location);
+        CloudArrowData state = new CloudArrowData();
+        super(type, location, state);
+        this.persistenceState = state;
     }
 
     @Override
@@ -38,12 +41,7 @@ public class EntityArrow extends EntityAbstractArrow implements Arrow {
 
     @Override
     protected CloudArrowData data() {
-        return (CloudArrowData) super.data();
-    }
-
-    @Override
-    protected Class<? extends CloudEntityData> minimumDataClass() {
-        return CloudArrowData.class;
+        return this.persistenceState;
     }
 
     @Override

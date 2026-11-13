@@ -7,7 +7,6 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.data.CloudFireworksRocketData;
-import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +31,6 @@ class FireworksRocketPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudFireworksRocketData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.FIREWORKS_ROCKET));
 
         EntityFireworksRocket rocket = (EntityFireworksRocket) PersistenceFixtures.entity(EntityTypes.FIREWORKS_ROCKET);
         NbtMap input = NbtMap.builder()

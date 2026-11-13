@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.form;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import tools.jackson.databind.JsonNode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -13,6 +12,7 @@ import org.cloudburstmc.server.form.ModalForm.ModalFormBuilder;
 import org.cloudburstmc.server.form.SimpleForm.SimpleFormBuilder;
 import org.cloudburstmc.server.form.util.FormType;
 import org.cloudburstmc.server.player.CloudPlayer;
+import tools.jackson.databind.JsonNode;
 
 import java.util.LinkedList;
 import java.util.List;

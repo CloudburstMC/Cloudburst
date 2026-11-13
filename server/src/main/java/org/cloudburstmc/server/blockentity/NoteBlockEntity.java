@@ -6,23 +6,21 @@ import org.cloudburstmc.api.blockentity.NoteBlock;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.component.NoteBlockHandlers;
-import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.blockentity.data.CloudMusicData;
 
 public class NoteBlockEntity extends BaseBlockEntity implements NoteBlock {
 
-    public NoteBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position);
-    }
+    private final CloudMusicData persistenceState;
 
-    @Override
-    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
-        return CloudMusicData.class;
+    public NoteBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
+        CloudMusicData state = new CloudMusicData();
+        super(type, chunk, position, state);
+        this.persistenceState = state;
     }
 
     @Override
     protected CloudMusicData data() {
-        return (CloudMusicData) super.data();
+        return this.persistenceState;
     }
 
     @Override

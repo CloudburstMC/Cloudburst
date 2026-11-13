@@ -12,7 +12,6 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.entity.data.CloudExperienceOrbData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -29,8 +28,12 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
 
     private @Nullable CloudPlayer closestPlayer;
 
+    private final CloudExperienceOrbData persistenceState;
+
     public EntityExperienceOrb(EntityType<ExperienceOrb> type, Location location) {
-        super(type, location);
+        CloudExperienceOrbData state = new CloudExperienceOrbData();
+        super(type, location, state);
+        this.persistenceState = state;
         this.data.set(VALUE, 1);
     }
 
@@ -76,12 +79,7 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
 
     @Override
     protected CloudExperienceOrbData data() {
-        return (CloudExperienceOrbData) super.data();
-    }
-
-    @Override
-    protected Class<? extends CloudEntityData> minimumDataClass() {
-        return CloudExperienceOrbData.class;
+        return this.persistenceState;
     }
 
     @Override

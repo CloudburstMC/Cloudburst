@@ -18,7 +18,6 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.data.CloudEnderCrystalData;
-import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.level.CloudLevel;
 
@@ -30,8 +29,12 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMU
 
 public class EntityEnderCrystal extends CloudEntity implements EnderCrystal, Explosive {
 
+    private final CloudEnderCrystalData persistenceState;
+
     public EntityEnderCrystal(EntityType<EnderCrystal> type, Location location) {
-        super(type, location);
+        CloudEnderCrystalData state = new CloudEnderCrystalData();
+        super(type, location, state);
+        this.persistenceState = state;
     }
 
     @Override
@@ -116,12 +119,7 @@ public class EntityEnderCrystal extends CloudEntity implements EnderCrystal, Exp
 
     @Override
     protected CloudEnderCrystalData data() {
-        return (CloudEnderCrystalData) super.data();
-    }
-
-    @Override
-    protected Class<? extends CloudEntityData> minimumDataClass() {
-        return CloudEnderCrystalData.class;
+        return this.persistenceState;
     }
 
     @Override

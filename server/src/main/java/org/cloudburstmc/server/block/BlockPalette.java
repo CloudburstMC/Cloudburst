@@ -17,8 +17,8 @@ import org.cloudburstmc.server.block.util.BlockStateHash;
 import org.cloudburstmc.server.registry.RegistryUtils;
 import org.cloudburstmc.server.registry.VanillaRegistryDiagnostics;
 
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 

@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.form;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import tools.jackson.databind.JsonNode;
 import lombok.Getter;
 import lombok.ToString;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.server.form.util.FormType;
 import org.cloudburstmc.server.player.CloudPlayer;
+import tools.jackson.databind.JsonNode;
 
 import java.util.List;
 import java.util.function.BiConsumer;

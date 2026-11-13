@@ -8,7 +8,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.data.CloudCampfireData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
-import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -39,8 +38,6 @@ class CampfirePersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudCampfireData.class,
-                CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.CAMPFIRE));
 
         CampfireBlockEntity entity = (CampfireBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CAMPFIRE, POSITION);
         NbtMap input = campfireTag();

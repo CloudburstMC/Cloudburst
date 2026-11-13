@@ -14,7 +14,6 @@ import org.cloudburstmc.server.entity.data.CloudPlayerData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.nbt.ServerNbt;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 import tools.jackson.core.JacksonException;
@@ -39,18 +38,9 @@ class PlayerPersistenceTest {
     }
 
     @Test
-    void playerUsesPlayerData() {
-        PersistenceFixtures.ensureInitialized();
-        assertEquals(CloudHumanData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.PLAYER));
-        assertTrue(new CloudPlayerData() instanceof CloudHumanData);
-    }
-
-    @Test
-    void cloudPlayerResolvesPlayerData() throws Exception {
-        assertEquals(CloudPlayer.class,
-                CloudPlayer.class.getDeclaredMethod("minimumDataClass").getDeclaringClass());
-        assertEquals(CloudHumanData.class,
-                ((CloudEntity) PersistenceFixtures.entity(EntityTypes.PLAYER)).minimumDataClass());
+    void playerEntityFactoryCreatesAnNpcWithHumanData() {
+        EntityHuman human = assertInstanceOf(EntityHuman.class, PersistenceFixtures.entity(EntityTypes.PLAYER));
+        assertEquals(CloudHumanData.class, human.data().getClass());
     }
 
     @Test

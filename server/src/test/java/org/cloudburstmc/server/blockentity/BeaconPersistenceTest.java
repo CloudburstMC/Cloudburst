@@ -7,7 +7,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.data.CloudBeaconData;
 import org.cloudburstmc.server.network.NetworkUtils;
-import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -37,8 +36,6 @@ class BeaconPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudBeaconData.class,
-                CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.BEACON));
 
         BeaconBlockEntity entity = (BeaconBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.BEACON, POSITION);
         NbtMap input = beaconTag();

@@ -9,7 +9,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.data.CloudFurnaceData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
-import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -60,8 +59,6 @@ class FurnacePersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudFurnaceData.class,
-                CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.FURNACE));
 
         FurnaceBlockEntity entity = (FurnaceBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.FURNACE, POSITION);
         NbtMap input = furnaceTag();
@@ -120,12 +117,8 @@ class FurnacePersistenceTest {
 
     @Test
     void blastFurnaceAndSmokerShareFurnaceData() {
-        assertEquals(CloudFurnaceData.class,
-                CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.BLAST_FURNACE));
-        assertEquals(CloudFurnaceData.class,
-                CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.SMOKER));
-
         BlastFurnaceBlockEntity blast = (BlastFurnaceBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.BLAST_FURNACE, POSITION);
+        assertEquals(CloudFurnaceData.class, blast.data().getClass());
         NbtMap input = furnaceTag().toBuilder().putString("id", "BlastFurnace").build();
         blast.loadAdditionalData(input);
 

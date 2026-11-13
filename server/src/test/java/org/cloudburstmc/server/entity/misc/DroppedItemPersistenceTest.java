@@ -10,7 +10,6 @@ import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.data.CloudDroppedItemData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
-import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -34,7 +33,6 @@ class DroppedItemPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudDroppedItemData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.ITEM));
 
         EntityDroppedItem item = (EntityDroppedItem) PersistenceFixtures.entity(EntityTypes.ITEM);
         ItemStack stack = ItemStack.from(ItemTypes.DIAMOND, 1);

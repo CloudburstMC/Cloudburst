@@ -60,18 +60,17 @@ public final class TestBlockEntities {
 
         private boolean flag;
 
-        public MigratedBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-            super(type, chunk, position);
-        }
+        private final MigratedData persistenceState;
 
-        @Override
-        protected Class<? extends CloudBlockEntityData> minimumDataClass() {
-            return MigratedData.class;
+        public MigratedBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
+            MigratedData state = new MigratedData();
+            super(type, chunk, position, state);
+            this.persistenceState = state;
         }
 
         @Override
         public MigratedData data() {
-            return (MigratedData) super.data();
+            return this.persistenceState;
         }
 
         @Override

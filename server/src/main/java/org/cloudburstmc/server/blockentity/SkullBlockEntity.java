@@ -11,7 +11,6 @@ import org.cloudburstmc.api.util.data.CardinalDirection;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.util.RedstoneSignals;
-import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.blockentity.data.CloudSkullData;
 
 import java.util.Objects;
@@ -21,18 +20,17 @@ public class SkullBlockEntity extends BaseBlockEntity implements Skull {
     private boolean rotationDirty;
     private boolean powered;
 
-    public SkullBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position);
-    }
+    private final CloudSkullData persistenceState;
 
-    @Override
-    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
-        return CloudSkullData.class;
+    public SkullBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
+        CloudSkullData state = new CloudSkullData();
+        super(type, chunk, position, state);
+        this.persistenceState = state;
     }
 
     @Override
     protected CloudSkullData data() {
-        return (CloudSkullData) super.data();
+        return this.persistenceState;
     }
 
     @Override

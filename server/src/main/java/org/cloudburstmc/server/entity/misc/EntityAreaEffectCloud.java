@@ -18,7 +18,6 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.data.CloudAreaEffectCloudData;
-import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.potion.CloudPotionColor;
@@ -37,8 +36,12 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
     private boolean particleColorSet;
     private int lastAge;
 
+    private final CloudAreaEffectCloudData persistenceState;
+
     public EntityAreaEffectCloud(EntityType<?> type, Location location) {
-        super(type, location);
+        CloudAreaEffectCloudData state = new CloudAreaEffectCloudData();
+        super(type, location, state);
+        this.persistenceState = state;
         this.data.set(AREA_EFFECT_CLOUD_RADIUS, 3.0F);
         this.data.set(AREA_EFFECT_CLOUD_WAITING, 10);
         this.data.set(AREA_EFFECT_CLOUD_PARTICLE, NetworkUtils.particleToNetwork(ParticleTypes.MOB_SPELL_AMBIENT));
@@ -271,12 +274,7 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
 
     @Override
     protected CloudAreaEffectCloudData data() {
-        return (CloudAreaEffectCloudData) super.data();
-    }
-
-    @Override
-    protected Class<? extends CloudEntityData> minimumDataClass() {
-        return CloudAreaEffectCloudData.class;
+        return this.persistenceState;
     }
 
     @Override

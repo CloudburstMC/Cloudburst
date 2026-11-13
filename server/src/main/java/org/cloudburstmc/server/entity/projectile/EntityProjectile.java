@@ -20,7 +20,6 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
-import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.entity.data.CloudProjectileData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -32,8 +31,15 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
     private boolean leftShooter;
     private @Nullable ProjectileSource shooter;
 
+    private final CloudProjectileData persistenceState;
+
     public EntityProjectile(EntityType<?> type, Location location) {
-        super(type, location);
+        this(type, location, new CloudProjectileData());
+    }
+
+    protected EntityProjectile(EntityType<?> type, Location location, CloudProjectileData state) {
+        super(type, location, state);
+        this.persistenceState = state;
     }
 
     @Override
@@ -66,12 +72,7 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
 
     @Override
     protected CloudProjectileData data() {
-        return (CloudProjectileData) super.data();
-    }
-
-    @Override
-    protected Class<? extends CloudEntityData> minimumDataClass() {
-        return CloudProjectileData.class;
+        return this.persistenceState;
     }
 
     @Override

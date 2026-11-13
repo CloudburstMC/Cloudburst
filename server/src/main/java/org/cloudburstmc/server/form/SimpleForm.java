@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.form;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import tools.jackson.databind.JsonNode;
 import com.google.common.base.Preconditions;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -13,6 +12,7 @@ import org.cloudburstmc.server.form.response.SimpleFormResponse;
 import org.cloudburstmc.server.form.util.FormType;
 import org.cloudburstmc.server.form.util.ImageType;
 import org.cloudburstmc.server.player.CloudPlayer;
+import tools.jackson.databind.JsonNode;
 
 import java.util.ArrayList;
 import java.util.Arrays;

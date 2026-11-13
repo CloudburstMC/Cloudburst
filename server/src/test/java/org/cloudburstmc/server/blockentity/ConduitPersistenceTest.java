@@ -5,7 +5,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
-import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -21,8 +20,6 @@ class ConduitPersistenceTest {
 
     @Test
     void roundTripStripsTargetAndActiveFromServerTag() {
-        assertEquals(CloudBlockEntityData.class,
-                CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.CONDUIT));
 
         ConduitBlockEntity entity = (ConduitBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CONDUIT, POSITION);
         entity.loadAdditionalData(NbtMap.builder()

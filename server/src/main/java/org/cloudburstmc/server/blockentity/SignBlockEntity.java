@@ -8,7 +8,6 @@ import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
-import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.blockentity.data.CloudSignData;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -19,8 +18,12 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
 
     private static final String[] LEGACY_TEXT_TAGS = {"Text1", "Text2", "Text3", "Text4"};
 
+    private final CloudSignData persistenceState;
+
     public SignBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position);
+        CloudSignData state = new CloudSignData();
+        super(type, chunk, position, state);
+        this.persistenceState = state;
     }
 
     private static void sanitizeText(String[] lines) {
@@ -33,13 +36,8 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
     }
 
     @Override
-    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
-        return CloudSignData.class;
-    }
-
-    @Override
     protected CloudSignData data() {
-        return (CloudSignData) super.data();
+        return this.persistenceState;
     }
 
     @Override
@@ -82,7 +80,7 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
     }
 
     @Override
-    public boolean updateNbtMap(NbtMap tag, CloudPlayer player) {
+    protected boolean applyClientUpdate(NbtMap tag, CloudPlayer player) {
         String[] splitText = tag.getString("Text").split("\n", 4);
         String[] text = new String[4];
 

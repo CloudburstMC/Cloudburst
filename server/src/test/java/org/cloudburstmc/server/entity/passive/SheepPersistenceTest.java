@@ -9,7 +9,6 @@ import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.data.CloudCreatureData;
 import org.cloudburstmc.server.entity.data.SyncedEntityData;
-import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -31,7 +30,6 @@ class SheepPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudCreatureData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.SHEEP));
 
         EntitySheep sheep = (EntitySheep) PersistenceFixtures.entity(EntityTypes.SHEEP);
         sheep.loadAdditionalData(NbtMap.builder()

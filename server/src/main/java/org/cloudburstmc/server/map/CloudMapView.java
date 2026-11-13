@@ -18,8 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-import java.util.*;
-
 public class CloudMapView implements MapView {
 
     private static final Logger log = LoggerFactory.getLogger(CloudMapView.class);

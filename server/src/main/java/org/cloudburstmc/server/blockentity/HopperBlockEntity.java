@@ -22,7 +22,6 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.component.ComposterBlockHandlers;
 import org.cloudburstmc.server.block.util.RedstoneSignals;
-import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.blockentity.data.CloudHopperData;
 import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -40,8 +39,12 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
 
     private final BoundingBox pickupArea = new BoundingBox(this.getPosition(), this.getPosition().add(1, 2, 1));
 
+    private final CloudHopperData persistenceState;
+
     public HopperBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position);
+        CloudHopperData state = new CloudHopperData();
+        super(type, chunk, position, state);
+        this.persistenceState = state;
     }
 
     @Override
@@ -55,13 +58,8 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
     }
 
     @Override
-    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
-        return CloudHopperData.class;
-    }
-
-    @Override
     protected CloudHopperData data() {
-        return (CloudHopperData) super.data();
+        return this.persistenceState;
     }
 
     @Override
@@ -99,7 +97,7 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
 
     @Override
     public boolean onUpdate() {
-        if (this.closed) {
+        if (this.isClosed()) {
             return false;
         }
 
@@ -232,7 +230,7 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
 
     @Override
     public void close() {
-        if (!closed) {
+        if (!this.isClosed()) {
             for (ContainerListener listener : new HashSet<>(this.getContainer().getListeners())) {
                 if (listener instanceof CloudPlayer) {
                     ((CloudPlayer) listener).closeInventory();

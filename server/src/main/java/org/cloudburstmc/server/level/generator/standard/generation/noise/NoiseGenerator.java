@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.level.generator.standard.generation.noise;
 
-import tools.jackson.databind.annotation.JsonDeserialize;
 import lombok.NonNull;
 import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.random.PRandom;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.random.RandomGenerator;
 

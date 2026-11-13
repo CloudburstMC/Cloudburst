@@ -17,7 +17,6 @@ import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.screen.CloudChestBoatScreen;
 import org.cloudburstmc.server.container.view.CloudEntityStorageView;
 import org.cloudburstmc.server.entity.data.CloudChestBoatData;
-import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.HashSet;
@@ -30,8 +29,12 @@ public class EntityChestBoat extends EntityBoat implements ChestBoat {
     private final CloudEntityStorageView inventory;
     private final Set<CloudPlayer> inventoryViewers = new HashSet<>();
 
+    private final CloudChestBoatData persistenceState;
+
     public EntityChestBoat(EntityType<ChestBoat> type, Location location) {
-        super(type, location);
+        CloudChestBoatData state = new CloudChestBoatData();
+        super(type, location, state);
+        this.persistenceState = state;
         CloudContainer container = new CloudContainer(27);
         this.data().setItems(container);
         this.inventory = new CloudEntityStorageView(container);
@@ -47,12 +50,7 @@ public class EntityChestBoat extends EntityBoat implements ChestBoat {
 
     @Override
     protected CloudChestBoatData data() {
-        return (CloudChestBoatData) super.data();
-    }
-
-    @Override
-    protected Class<? extends CloudEntityData> minimumDataClass() {
-        return CloudChestBoatData.class;
+        return this.persistenceState;
     }
 
     @Override

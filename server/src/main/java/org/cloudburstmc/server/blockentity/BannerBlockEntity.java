@@ -13,7 +13,6 @@ import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.blockentity.data.CloudBannerData;
-import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.item.data.serializer.BannerDataSerializer;
 
 import java.util.List;
@@ -21,18 +20,17 @@ import java.util.Objects;
 
 public class BannerBlockEntity extends BaseBlockEntity implements Banner {
 
-    public BannerBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position);
-    }
+    private final CloudBannerData persistenceState;
 
-    @Override
-    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
-        return CloudBannerData.class;
+    public BannerBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
+        CloudBannerData state = new CloudBannerData();
+        super(type, chunk, position, state);
+        this.persistenceState = state;
     }
 
     @Override
     protected CloudBannerData data() {
-        return (CloudBannerData) super.data();
+        return this.persistenceState;
     }
 
     @Override

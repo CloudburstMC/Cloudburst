@@ -15,7 +15,6 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.data.CloudAbstractArrowData;
-import org.cloudburstmc.server.entity.data.CloudEntityData;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -29,8 +28,15 @@ public abstract class EntityAbstractArrow extends EntityProjectile implements Ab
     private Entity deflectedFrom;
     private BlockState embeddedState;
 
+    private final CloudAbstractArrowData persistenceState;
+
     public EntityAbstractArrow(EntityType<? extends AbstractArrow> type, Location location) {
-        super(type, location);
+        this(type, location, new CloudAbstractArrowData());
+    }
+
+    protected EntityAbstractArrow(EntityType<? extends AbstractArrow> type, Location location, CloudAbstractArrowData state) {
+        super(type, location, state);
+        this.persistenceState = state;
     }
 
     @Override
@@ -69,12 +75,7 @@ public abstract class EntityAbstractArrow extends EntityProjectile implements Ab
 
     @Override
     protected CloudAbstractArrowData data() {
-        return (CloudAbstractArrowData) super.data();
-    }
-
-    @Override
-    protected Class<? extends CloudEntityData> minimumDataClass() {
-        return CloudAbstractArrowData.class;
+        return this.persistenceState;
     }
 
     @Override

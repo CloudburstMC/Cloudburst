@@ -24,7 +24,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerSetDataPacket;
-import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.blockentity.data.CloudBrewingStandData;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.ContainerListener;
@@ -51,24 +50,23 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
     private boolean inputsChanged = true;
     private boolean inventoryChanged;
 
+    private final CloudBrewingStandData persistenceState;
+
     public BrewingStandBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         this(type, chunk, position, new BrewingStorage());
     }
 
     private BrewingStandBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position, BrewingStorage storage) {
-        super(type, chunk, position);
+        CloudBrewingStandData state = new CloudBrewingStandData();
+        super(type, chunk, position, state);
+        this.persistenceState = state;
         this.data().setItems(storage);
         storage.owner = this;
     }
 
     @Override
-    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
-        return CloudBrewingStandData.class;
-    }
-
-    @Override
     protected CloudBrewingStandData data() {
-        return (CloudBrewingStandData) super.data();
+        return this.persistenceState;
     }
 
     @Override

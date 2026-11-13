@@ -30,7 +30,6 @@ import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.data.CloudDroppedItemData;
-import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.item.ItemDisplayNameResolver;
 import org.cloudburstmc.server.item.ItemStackPacketCodec;
@@ -47,18 +46,17 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
     @Setter
     private boolean fromFishing;
 
-    public EntityDroppedItem(EntityType<DroppedItem> type, Location location) {
-        super(type, location);
-    }
+    private final CloudDroppedItemData persistenceState;
 
-    @Override
-    protected Class<? extends CloudEntityData> minimumDataClass() {
-        return CloudDroppedItemData.class;
+    public EntityDroppedItem(EntityType<DroppedItem> type, Location location) {
+        CloudDroppedItemData state = new CloudDroppedItemData();
+        super(type, location, state);
+        this.persistenceState = state;
     }
 
     @Override
     protected CloudDroppedItemData data() {
-        return (CloudDroppedItemData) super.data();
+        return this.persistenceState;
     }
 
     @Override

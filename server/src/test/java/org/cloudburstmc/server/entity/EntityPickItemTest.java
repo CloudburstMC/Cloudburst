@@ -2,6 +2,7 @@ package org.cloudburstmc.server.entity;
 
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
+import org.cloudburstmc.api.entity.vehicle.BoatType;
 import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
@@ -9,7 +10,6 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.component.SpawnEggComponent;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.api.entity.vehicle.BoatType;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.entity.component.PickItemEntityHandlers;
 import org.cloudburstmc.server.entity.vehicle.EntityBoat;

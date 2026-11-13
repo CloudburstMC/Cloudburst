@@ -14,7 +14,6 @@ import org.cloudburstmc.api.util.BlockHitResult;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.entity.data.CloudThrownTridentData;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudEnchantmentRegistry;
@@ -23,8 +22,12 @@ import java.util.Map;
 
 public class EntityThrownTrident extends EntityAbstractArrow implements ThrownTrident {
 
+    private final CloudThrownTridentData persistenceState;
+
     public EntityThrownTrident(EntityType<ThrownTrident> type, Location location) {
-        super(type, location);
+        CloudThrownTridentData state = new CloudThrownTridentData();
+        super(type, location, state);
+        this.persistenceState = state;
     }
 
     @Override
@@ -65,12 +68,7 @@ public class EntityThrownTrident extends EntityAbstractArrow implements ThrownTr
 
     @Override
     protected CloudThrownTridentData data() {
-        return (CloudThrownTridentData) super.data();
-    }
-
-    @Override
-    protected Class<? extends CloudEntityData> minimumDataClass() {
-        return CloudThrownTridentData.class;
+        return this.persistenceState;
     }
 
     @Override

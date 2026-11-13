@@ -6,7 +6,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.data.CloudBedData;
-import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -34,8 +33,6 @@ class BedPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudBedData.class,
-                CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.BED));
 
         BedBlockEntity entity = (BedBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.BED, POSITION);
         NbtMap input = bedTag();

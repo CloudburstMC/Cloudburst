@@ -56,9 +56,7 @@ import org.cloudburstmc.server.level.biome.CloudBiome;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import org.cloudburstmc.server.math.MathHelper;
-import org.cloudburstmc.server.nbt.ServerNbt;
 import org.cloudburstmc.server.network.NetworkUtils;
-import org.cloudburstmc.server.persistence.CloudPersistentDataContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.potion.ActivePotionEffect;
 import org.cloudburstmc.server.registry.CloudBiomeRegistry;
@@ -82,15 +80,7 @@ public abstract class CloudEntity implements Entity {
     private static final int DEFAULT_MAX_FREEZE_TICKS = 140;
     private static final int MAX_SCOREBOARD_TAGS = 1024;
 
-    private static final ConcurrentHashMap<DataClassKey, Class<? extends CloudEntityData>> EFFECTIVE_DATA_CLASSES =
-            new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<Class<?>, java.lang.reflect.Constructor<?>> DATA_CONSTRUCTORS =
-            new ConcurrentHashMap<>();
-
-    private record DataClassKey(Class<?> runtimeClass, EntityType<?> type) {
-    }
-
-    protected final Set<CloudPlayer> hasSpawned = ConcurrentHashMap.newKeySet();
+    private final Set<CloudPlayer> viewers = ConcurrentHashMap.newKeySet();
 
     protected final Reference2ObjectOpenHashMap<EffectType, ActivePotionEffect> effects = new Reference2ObjectOpenHashMap<>();
     protected final List<Entity> passengers = new ArrayList<>();
@@ -98,21 +88,12 @@ public abstract class CloudEntity implements Entity {
     private final long runtimeId = CloudEntityRegistry.get().newEntityId();
     @Getter
     protected final SyncedEntityData data = new SyncedEntityData();
-    /**
-     * The data instance holding this entity's state. The base keys the hooks
-     * own (movement, fire, air, scale, name tag, effects) live in their runtime
-     * holders instead.
-     */
-    private final CloudEntityData entityData;
+    private final EntityPersistence persistence;
     @Getter
     private final EntityType<?> type;
     @Getter
     public CloudChunk chunk;
-    @Getter
-    private final CloudPersistentDataContainer persistentData = new CloudPersistentDataContainer(this::markChunkDirty);
-    public NbtMap tag;
-    public float highestPosition;
-    public boolean firstMove = true;
+    private float highestPosition;
     @Getter
     protected Vector3f position = Vector3f.ZERO;
     protected Vector3f lastPosition = Vector3f.ZERO;
@@ -186,6 +167,10 @@ public abstract class CloudEntity implements Entity {
     };
 
     public CloudEntity(EntityType<?> type, Location location) {
+        this(type, location, new CloudEntityData());
+    }
+
+    protected CloudEntity(EntityType<?> type, Location location, CloudEntityData state) {
         this.type = Objects.requireNonNull(type, "type");
         Objects.requireNonNull(location, "location");
 
@@ -199,7 +184,7 @@ public abstract class CloudEntity implements Entity {
         this.data.set(FREEZING_EFFECT_STRENGTH, 0f);
         this.data.set(SEAT_OFFSET, Vector3f.ZERO);
 
-        this.entityData = this.newData();
+        this.persistence = new EntityPersistence(Objects.requireNonNull(state, "state"), this::markChunkDirty);
     }
 
     /**
@@ -250,44 +235,26 @@ public abstract class CloudEntity implements Entity {
     }
 
     public final void loadAdditionalData(NbtMap tag) {
-        this.tag = tag;
-        this.persistentData.load(tag);
-
-        ServerNbt.MAPPER.readInto(tag, this.data());
+        this.persistence.load(tag);
         this.normalizeData();
         this.loadBaseCustom(tag);
         this.loadCustom(tag);
     }
 
     public final void saveAdditionalData(NbtMapBuilder tag) {
-        Class<? extends CloudEntityData> dataClass = this.dataClass();
-        Set<String> owned = ServerNbt.MAPPER.ownedKeys(dataClass);
-        Set<String> custom = this.customKeys();
-
-        if (this.tag != null && !this.tag.isEmpty()) {
-            for (Map.Entry<String, Object> entry : this.tag.entrySet()) {
-                String key = entry.getKey();
-                if (key.equals("identifier") || owned.contains(key) || custom.contains(key) || key.equals(CloudPersistentDataContainer.STORAGE_KEY)) {
-                    continue;
-                }
-                tag.put(key, entry.getValue());
-            }
-        }
-
-        CloudEntityData data = this.data();
-        tag.putAll(ServerNbt.MAPPER.write(data));
+        this.persistence.writeState(tag, this.customKeys());
 
         if (!(this instanceof CloudPlayer)) {
             tag.putString("identifier", this.type.getId().toString());
         }
 
         this.saveCustom(tag);
-        this.persistentData.save(tag);
+        this.persistence.writePluginData(tag);
     }
 
     @Override
     public PersistentDataContainer getPersistentDataContainer() {
-        return this.persistentData;
+        return this.persistence.pluginData();
     }
 
     /**
@@ -301,65 +268,8 @@ public abstract class CloudEntity implements Entity {
         }
     }
 
-    /**
-     * Returns the data instance holding this entity's state. Subclasses
-     * override this with a covariant return for their own data type.
-     *
-     * @return the held data instance
-     */
     protected CloudEntityData data() {
-        return this.entityData;
-    }
-
-    /**
-     * The narrowest data class this runtime class can apply and fill. Subclasses
-     * that cast the data to their own type override this to return that type.
-     *
-     * @return the minimum data class of this runtime class
-     */
-    protected Class<? extends CloudEntityData> minimumDataClass() {
-        return CloudEntityData.class;
-    }
-
-    /**
-     * Resolves the data class for this instance: the class registered for the
-     * entity type when this runtime class can apply it, otherwise this runtime
-     * class's minimum data class. Both the resolution and the data constructors
-     * are cached; registration is closed before instances load or save.
-     *
-     * @return the data class for load, save and fresh instances
-     */
-    protected Class<? extends CloudEntityData> dataClass() {
-        Class<?> runtimeClass = this.getClass();
-        EntityType<?> type = this.type;
-        Class<? extends CloudEntityData> minimum = this.minimumDataClass();
-        return EFFECTIVE_DATA_CLASSES.computeIfAbsent(new DataClassKey(runtimeClass, type), key -> {
-            Class<? extends CloudEntityData> registered = CloudEntityRegistry.get().getDataClass(key.type());
-            return minimum.isAssignableFrom(registered) ? registered : minimum;
-        });
-    }
-
-    /**
-     * Creates a fresh data object of the type registered for this entity.
-     *
-     * @return a new data object
-     */
-    protected final CloudEntityData newData() {
-        Class<? extends CloudEntityData> dataClass = this.dataClass();
-        try {
-            java.lang.reflect.Constructor<?> constructor = DATA_CONSTRUCTORS.computeIfAbsent(dataClass, key -> {
-                try {
-                    java.lang.reflect.Constructor<?> found = key.getDeclaredConstructor();
-                    found.setAccessible(true);
-                    return found;
-                } catch (NoSuchMethodException e) {
-                    throw new IllegalStateException("Cannot instantiate data class " + key.getName(), e);
-                }
-            });
-            return (CloudEntityData) constructor.newInstance();
-        } catch (ReflectiveOperationException e) {
-            throw new IllegalStateException("Cannot instantiate data class " + dataClass.getName(), e);
-        }
+        return this.persistence.state();
     }
 
     /**
@@ -1072,14 +982,14 @@ public abstract class CloudEntity implements Entity {
             packet.setTick(((CloudPlayer) this).getClientTick());
         }
 
-        CloudServer.broadcastPacket(this.hasSpawned, packet);
+        this.broadcastToViewers(packet);
     }
 
     public void sendAuthoritativeDisplacement() {
         this.lastPosition = this.position;
         this.lastYaw = this.yaw;
         this.lastPitch = this.pitch;
-        CloudServer.broadcastPacket(this.hasSpawned, this.createAuthoritativeDisplacementPacket());
+        this.broadcastToViewers(this.createAuthoritativeDisplacementPacket());
     }
 
     protected MoveEntityAbsolutePacket createAuthoritativeDisplacementPacket() {
@@ -1294,27 +1204,9 @@ public abstract class CloudEntity implements Entity {
             this.dismount(this.vehicle, false);
         }
 
-        updatePassengers();
+        this.updatePassengers();
 
-        if (!this.effects.isEmpty()) {
-            for (ActivePotionEffect effect : List.copyOf(this.effects.values())) {
-                for (int elapsed = 0; elapsed < tickDiff && this.isAlive() && this.effects.get(effect.getType()) == effect; elapsed++) {
-                    if (effect.shouldApplyTick(this.age + elapsed)) {
-                        effect.applyTick(this);
-                    }
-
-                    if (this.effects.get(effect.getType()) != effect) {
-                        break;
-                    }
-
-                    effect.decreaseDuration(1);
-                    if (!effect.isInfinite() && effect.getDuration() == 0) {
-                        this.removePotionEffect(effect.getType(), PotionEffectCause.EXPIRATION);
-                        break;
-                    }
-                }
-            }
-        }
+        this.tickPotionEffects(tickDiff);
 
         boolean hasUpdate = false;
 
@@ -1338,35 +1230,67 @@ public abstract class CloudEntity implements Entity {
             hasUpdate = true;
         }
 
-        if (this.fireTicks > 0) {
-            if (this.fireProof) {
-                this.fireTicks -= 4 * tickDiff;
-                if (this.fireTicks < 0) {
-                    this.fireTicks = 0;
-                }
-            } else {
-                if (!this.hasPotionEffect(EffectTypes.FIRE_RESISTANCE) && ((this.fireTicks % 20) == 0 || tickDiff > 20)) {
-                    this.damage(1, DamageSource.of(DamageTypes.ON_FIRE));
-                }
+        hasUpdate |= this.tickFire(tickDiff);
+        this.noDamageTicks = Math.max(0, this.noDamageTicks - tickDiff);
+        this.tickPortalTransition();
 
-                this.fireTicks -= tickDiff;
-            }
+        this.age += tickDiff;
+        this.ticksLived += tickDiff;
 
-            if (this.fireTicks <= 0) {
-                this.extinguish();
-            } else if (!this.fireProof && (!(this instanceof CloudPlayer) || !((CloudPlayer) this).isSpectator())) {
-                this.data.setFlag(ON_FIRE, true);
-                hasUpdate = true;
-            }
+        return hasUpdate;
+    }
+
+    private boolean tickFire(int tickDiff) {
+        if (this.fireTicks <= 0) {
+            return false;
         }
 
-        if (this.noDamageTicks > 0) {
-            this.noDamageTicks -= tickDiff;
-            if (this.noDamageTicks < 0) {
-                this.noDamageTicks = 0;
+        if (this.fireProof) {
+            this.fireTicks = (int) Math.max(0, this.fireTicks - 4L * tickDiff);
+        } else {
+            boolean damageDue = this.fireTicks % 20 == 0 || tickDiff > 20;
+            if (damageDue && !this.hasPotionEffect(EffectTypes.FIRE_RESISTANCE)) {
+                this.damage(1, DamageSource.of(DamageTypes.ON_FIRE));
             }
+            this.fireTicks -= tickDiff;
         }
 
+        if (this.fireTicks <= 0) {
+            this.extinguish();
+            return false;
+        }
+
+        if (this.fireProof || this instanceof CloudPlayer player && player.isSpectator()) {
+            return false;
+        }
+
+        this.data.setFlag(ON_FIRE, true);
+        return true;
+    }
+
+    private void tickPotionEffects(int tickDiff) {
+        if (!this.effects.isEmpty()) {
+            for (ActivePotionEffect effect : List.copyOf(this.effects.values())) {
+                for (int elapsed = 0; elapsed < tickDiff && this.isAlive() && this.effects.get(effect.getType()) == effect; elapsed++) {
+                    if (effect.shouldApplyTick(this.age + elapsed)) {
+                        effect.applyTick(this);
+                    }
+
+                    if (this.effects.get(effect.getType()) != effect) {
+                        break;
+                    }
+
+                    effect.decreaseDuration(1);
+                    if (!effect.isInfinite() && effect.getDuration() == 0) {
+                        this.removePotionEffect(effect.getType(), PotionEffectCause.EXPIRATION);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    private void tickPortalTransition() {
         if (this.isOnPortalCooldown()) {
             tickPortalCooldown();
         } else {
@@ -1389,11 +1313,6 @@ public abstract class CloudEntity implements Entity {
                 }
             }
         }
-
-        this.age += tickDiff;
-        this.ticksLived += tickDiff;
-
-        return hasUpdate;
     }
 
     protected void onBelowLevel() {
@@ -2554,10 +2473,7 @@ public abstract class CloudEntity implements Entity {
             return;
         }
 
-        boolean sent = player.isChunkSent(this.chunk.getX(), this.chunk.getZ());
-        boolean added = sent && this.hasSpawned.add(player);
-        if (!sent || !added) {
-            // chunk not yet received by client, or entity already spawned
+        if (!player.isChunkSent(this.chunk.getX(), this.chunk.getZ()) || !this.addViewer(player)) {
             return;
         }
 
@@ -2622,7 +2538,7 @@ public abstract class CloudEntity implements Entity {
     }
 
     public void despawnFrom(CloudPlayer player) {
-        if (this.hasSpawned.remove(player)) {
+        if (this.viewers.remove(player)) {
             RemoveEntityPacket packet = new RemoveEntityPacket();
             packet.setUniqueEntityId(this.getUniqueId());
             player.sendPacket(packet);
@@ -2630,40 +2546,59 @@ public abstract class CloudEntity implements Entity {
     }
 
     public void despawnFromAll() {
-        for (Player player : this.hasSpawned) {
+        for (CloudPlayer player : this.viewers) {
             this.despawnFrom(player);
         }
     }
 
     public Set<CloudPlayer> getViewers() {
-        return Set.copyOf(this.hasSpawned);
+        return Set.copyOf(this.viewers);
+    }
+
+    protected final boolean hasViewer(CloudPlayer player) {
+        return this.viewers.contains(player);
+    }
+
+    protected final boolean addViewer(CloudPlayer player) {
+        return this.viewers.add(player);
+    }
+
+    protected final void clearViewers() {
+        this.viewers.clear();
+    }
+
+    protected final void broadcastToViewers(BedrockPacket packet) {
+        CloudServer.broadcastPacket(this.viewers, packet);
     }
 
     protected void checkChunks() {
-        Vector3f pos = this.getPosition();
-        if (this.chunk == null || (this.chunk.getX() != pos.getFloorX() >> 4 || this.chunk.getZ() != pos.getFloorZ() >> 4)) {
-            if (this.chunk != null) {
-                this.chunk.unregisterEntity(this);
-            }
-            this.chunk = this.level.getLoadedChunk(pos);
-            if (chunk == null) {
-                return; // Converter will throw NPE otherwise.
-            }
+        Vector3f position = this.getPosition();
+        CloudChunk previous = this.chunk;
+        int chunkX = position.getFloorX() >> 4;
+        int chunkZ = position.getFloorZ() >> 4;
+        if (previous != null && previous.getX() == chunkX && previous.getZ() == chunkZ) {
+            return;
+        }
 
-            if (!this.justCreated) {
-                this.updateViewers(chunk.getViewers());
-            }
+        CloudChunk destination = this.level.getLoadedChunk(position);
+        if (previous != null) {
+            previous.unregisterEntity(this);
+        }
 
-            if (this.chunk == null) {
-                return;
-            }
+        this.chunk = destination;
+        if (destination == null) {
+            this.despawnFromAll();
+            return;
+        }
 
-            this.chunk.registerEntity(this);
+        destination.registerEntity(this);
+        if (!this.justCreated) {
+            this.updateViewers(destination.getViewers());
         }
     }
 
     protected final void updateViewers(Set<CloudPlayer> viewers) {
-        for (CloudPlayer viewer : this.hasSpawned) {
+        for (CloudPlayer viewer : this.viewers) {
             if (!viewers.contains(viewer)) {
                 this.despawnFrom(viewer);
             }
@@ -2762,7 +2697,7 @@ public abstract class CloudEntity implements Entity {
         packet.setRuntimeEntityId(this.getRuntimeId());
         packet.getMetadata().putAll(map);
 
-        CloudServer.broadcastPacket(this.getViewers(), packet);
+        this.broadcastToViewers(packet);
     }
 
     public void close() {

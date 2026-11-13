@@ -8,7 +8,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.data.CloudItemFrameData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
-import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -39,10 +38,6 @@ class ItemFramePersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudItemFrameData.class,
-                CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.ITEM_FRAME));
-        assertEquals(CloudItemFrameData.class,
-                CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.GLOW_ITEM_FRAME));
 
         ItemFrameBlockEntity entity = (ItemFrameBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.ITEM_FRAME, POSITION);
         NbtMap input = itemFrameTag();

@@ -12,7 +12,6 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.data.CloudCreatureData;
-import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -52,7 +51,6 @@ class CreeperPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudCreatureData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.CREEPER));
 
         LoadableCreeper creeper = loadable();
         creeper.loadAdditionalData(NbtMap.builder()

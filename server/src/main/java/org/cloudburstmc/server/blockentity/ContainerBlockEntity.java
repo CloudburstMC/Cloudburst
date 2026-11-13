@@ -6,6 +6,7 @@ import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.container.CloudContainer;
 
 /**
@@ -27,7 +28,11 @@ import org.cloudburstmc.server.container.CloudContainer;
 public abstract class ContainerBlockEntity extends BaseBlockEntity implements AutomatedBlockStorage {
 
     public ContainerBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position);
+        this(type, chunk, position, new CloudBlockEntityData());
+    }
+
+    protected ContainerBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position, CloudBlockEntityData state) {
+        super(type, chunk, position, state);
     }
 
     /**

@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.diagnostics;
 
-import org.junit.jupiter.api.Test;
 import org.cloudburstmc.server.ServerFileLayout;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;

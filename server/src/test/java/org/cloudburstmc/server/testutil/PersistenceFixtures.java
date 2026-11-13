@@ -75,11 +75,8 @@ public class PersistenceFixtures {
             Object provider = getProviderMethod.invoke(serviceProvider);
             java.lang.reflect.Method getValueMethod = provider.getClass().getDeclaredMethod("getValue");
             getValueMethod.setAccessible(true);
-            Object factoryData = getValueMethod.invoke(provider);
-            java.lang.reflect.Method factoryMethod = factoryData.getClass().getDeclaredMethod("factory");
-            factoryMethod.setAccessible(true);
             org.cloudburstmc.api.entity.EntityFactory<T> factory =
-                    (org.cloudburstmc.api.entity.EntityFactory<T>) factoryMethod.invoke(factoryData);
+                    (org.cloudburstmc.api.entity.EntityFactory<T>) getValueMethod.invoke(provider);
             T entity = factory.create(type, location);
             // Initialize synced metadata (e.g. Sheep COLOR) without needing a live world.
             // initialize() itself requires chunk/level/server, but initEntity() only

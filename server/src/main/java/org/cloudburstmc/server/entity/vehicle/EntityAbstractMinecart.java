@@ -30,7 +30,6 @@ import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.data.CloudAbstractMinecartData;
-import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.math.MathHelper;
 
@@ -57,8 +56,15 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     @Setter
     private float inputMotionY = 0;
 
+    private final CloudAbstractMinecartData persistenceState;
+
     public EntityAbstractMinecart(EntityType<?> type, Location location) {
-        super(type, location);
+        this(type, location, new CloudAbstractMinecartData());
+    }
+
+    protected EntityAbstractMinecart(EntityType<?> type, Location location, CloudAbstractMinecartData state) {
+        super(type, location, state);
+        this.persistenceState = state;
         this.data.set(CUSTOM_DISPLAY, (byte) 0);
         this.data.set(DISPLAY_OFFSET, DEFAULT_DISPLAY_OFFSET);
     }
@@ -75,12 +81,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
 
     @Override
     protected CloudAbstractMinecartData data() {
-        return (CloudAbstractMinecartData) super.data();
-    }
-
-    @Override
-    protected Class<? extends CloudEntityData> minimumDataClass() {
-        return CloudAbstractMinecartData.class;
+        return this.persistenceState;
     }
 
     @Override

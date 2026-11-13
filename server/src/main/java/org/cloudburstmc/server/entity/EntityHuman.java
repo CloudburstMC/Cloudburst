@@ -11,7 +11,6 @@ import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Ability;
-import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.player.skin.Skin;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
@@ -22,9 +21,11 @@ import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
-import org.cloudburstmc.protocol.bedrock.packet.*;
+import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
+import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PlayerSkinPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.cloudburstmc.server.container.CloudContainer;
-import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.entity.data.CloudHumanData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.item.ItemStackPacketCodec;
@@ -61,8 +62,15 @@ public class EntityHuman extends EntityCreature implements Human {
     protected final CloudContainer container = new CloudContainer(36);
     protected UUID identity;
 
+    private final CloudHumanData persistenceState;
+
     public EntityHuman(EntityType<Human> type, Location location) {
-        super(type, location);
+        this(type, location, new CloudHumanData());
+    }
+
+    protected EntityHuman(EntityType<Human> type, Location location, CloudHumanData state) {
+        super(type, location, state);
+        this.persistenceState = state;
     }
 
     @Override
@@ -74,13 +82,8 @@ public class EntityHuman extends EntityCreature implements Human {
     }
 
     @Override
-    protected Class<? extends CloudEntityData> minimumDataClass() {
-        return CloudHumanData.class;
-    }
-
-    @Override
     protected CloudHumanData data() {
-        return (CloudHumanData) super.data();
+        return this.persistenceState;
     }
 
     public Skin getSkin() {
@@ -316,8 +319,8 @@ public class EntityHuman extends EntityCreature implements Human {
 
     @Override
     public void spawnTo(CloudPlayer player) {
-        if (this == player || this.hasSpawned.contains(player) || this.chunk == null || !player.isChunkSent(this.chunk.getX(),
-                this.chunk.getZ())) {
+        if (this == player || this.isClosed() || this.hasViewer(player) || this.chunk == null
+                || !player.isChunkSent(this.chunk.getX(), this.chunk.getZ())) {
             return;
         }
 
@@ -326,7 +329,9 @@ public class EntityHuman extends EntityCreature implements Human {
             throw new IllegalStateException(this.getClass().getSimpleName() + " must have a valid skin set");
         }
 
-        this.hasSpawned.add(player);
+        if (!this.addViewer(player)) {
+            return;
+        }
 
         SerializedSkin playerSkin = null;
         if (this instanceof CloudPlayer cloudPlayer) {
@@ -404,16 +409,6 @@ public class EntityHuman extends EntityCreature implements Human {
         packet.setNewSkinName(skin.getSkinId());
         packet.setOldSkinName("");
         return packet;
-    }
-
-    @Override
-    public void despawnFrom(Player player) {
-        if (this.hasSpawned.contains(player)) {
-            RemoveEntityPacket packet = new RemoveEntityPacket();
-            packet.setUniqueEntityId(this.getUniqueId());
-            ((CloudPlayer) player).sendPacket(packet);
-            this.hasSpawned.remove(player);
-        }
     }
 
     @Override

@@ -10,7 +10,6 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.persistence.CloudPersistentDataContainer;
-import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -47,6 +46,35 @@ class BlockEntityPersistenceTest {
         assertEquals(3, entity.getClientTag().getInt("Count"));
         assertFalse(entity.getClientTag().containsKey("Mystery"));
         assertFalse(entity.getChunkTag().containsKey("Mystery"));
+    }
+
+    @Test
+    void tagMetadataUsesTheBlockEntityPosition() {
+        MigratedBlockEntity entity = PersistenceFixtures.blockEntity(MIGRATED_TYPE, POSITION);
+        entity.loadAdditionalData(NbtMap.builder()
+                .putString("id", "stale")
+                .putInt("x", -1)
+                .putInt("y", -1)
+                .putInt("z", -1)
+                .build());
+
+        NbtMap saved = entity.getServerTag();
+        NbtMap update = entity.getClientTag();
+        NbtMap chunk = entity.getChunkTag();
+
+        for (NbtMap tag : List.of(saved, chunk)) {
+            assertEquals(POSITION.getX(), tag.getInt("x"));
+            assertEquals(POSITION.getY(), tag.getInt("y"));
+            assertEquals(POSITION.getZ(), tag.getInt("z"));
+        }
+
+        for (NbtMap tag : List.of(saved, update, chunk)) {
+            assertEquals("TestMigrated", tag.getString("id"));
+        }
+
+        assertFalse(update.containsKey("x"));
+        assertFalse(update.containsKey("y"));
+        assertFalse(update.containsKey("z"));
     }
 
     @Test
@@ -174,10 +202,8 @@ class BlockEntityPersistenceTest {
 
     @Test
     void legacyRegistrationUsesBaseDataAndKeepsRawKeys() {
-        assertEquals(CloudBlockEntityData.class,
-                CloudBlockEntityRegistry.get().getDataClass(LEGACY_TYPE));
-
         LegacyBlockEntity entity = PersistenceFixtures.blockEntity(LEGACY_TYPE, POSITION);
+        assertEquals(CloudBlockEntityData.class, entity.data().getClass());
         entity.loadAdditionalData(NbtMap.builder()
                 .putString("id", "TestLegacy")
                 .putInt("x", 1)
@@ -195,9 +221,6 @@ class BlockEntityPersistenceTest {
 
     @Test
     void legacyChestRegistrationUsesChestData() {
-        assertEquals(CloudBlockEntityData.class,
-                CloudBlockEntityRegistry.get().getDataClass(PLUGIN_CHEST_TYPE));
-
         PluginChestBlockEntity entity = PersistenceFixtures.blockEntity(PLUGIN_CHEST_TYPE, POSITION);
         entity.loadAdditionalData(NbtMap.builder()
                 .putString("id", "TestPluginChest")

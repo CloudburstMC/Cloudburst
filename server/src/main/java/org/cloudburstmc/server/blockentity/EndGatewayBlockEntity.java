@@ -10,7 +10,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEventPacket;
-import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.blockentity.data.CloudEndGatewayData;
 
 import java.util.List;
@@ -23,18 +22,17 @@ public class EndGatewayBlockEntity extends BaseBlockEntity implements EndGateway
 
     private int teleportCooldown;
 
-    public EndGatewayBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position);
-    }
+    private final CloudEndGatewayData persistenceState;
 
-    @Override
-    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
-        return CloudEndGatewayData.class;
+    public EndGatewayBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
+        CloudEndGatewayData state = new CloudEndGatewayData();
+        super(type, chunk, position, state);
+        this.persistenceState = state;
     }
 
     @Override
     protected CloudEndGatewayData data() {
-        return (CloudEndGatewayData) super.data();
+        return this.persistenceState;
     }
 
     @Override

@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.level.generator.standard.generation.decorator;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import tools.jackson.databind.annotation.JsonDeserialize;
 import lombok.NonNull;
 import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.random.impl.FastPRandom;
@@ -12,6 +11,7 @@ import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.generation.noise.NoiseGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.ConstantBlock;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Arrays;
 import java.util.Objects;

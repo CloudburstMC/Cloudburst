@@ -5,7 +5,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.data.CloudEndGatewayData;
-import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -37,8 +36,6 @@ class EndGatewayPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudEndGatewayData.class,
-                CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.END_GATEWAY));
 
         EndGatewayBlockEntity entity = (EndGatewayBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.END_GATEWAY, POSITION);
         NbtMap input = endGatewayTag();

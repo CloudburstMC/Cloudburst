@@ -10,7 +10,6 @@ import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.data.CloudFallingBlockData;
-import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -38,7 +37,6 @@ class FallingBlockPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudFallingBlockData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.FALLING_BLOCK));
 
         EntityFallingBlock block = (EntityFallingBlock) PersistenceFixtures.entity(EntityTypes.FALLING_BLOCK);
         NbtMap state = stateTag(BlockStates.SAND);

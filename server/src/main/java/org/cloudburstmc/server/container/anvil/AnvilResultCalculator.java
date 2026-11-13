@@ -6,8 +6,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.item.*;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.CloudEnchantmentRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.HashMap;
 import java.util.Map;

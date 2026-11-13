@@ -8,7 +8,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.data.CloudBannerData;
-import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -42,8 +41,6 @@ class BannerPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudBannerData.class,
-                CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.BANNER));
 
         BannerBlockEntity entity = (BannerBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.BANNER, POSITION);
         NbtMap input = bannerTag();

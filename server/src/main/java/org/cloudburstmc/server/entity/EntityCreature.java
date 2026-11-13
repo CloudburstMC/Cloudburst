@@ -19,7 +19,6 @@ import org.cloudburstmc.server.container.view.CloudArmorView;
 import org.cloudburstmc.server.container.view.CloudOffhandView;
 import org.cloudburstmc.server.enchantment.EquipmentEnchantmentEffects;
 import org.cloudburstmc.server.entity.data.CloudCreatureData;
-import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.registry.CloudEnchantmentRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -36,20 +35,22 @@ public abstract class EntityCreature extends EntityLiving implements Creature {
     protected final CloudArmorView armor = new CloudArmorView(this, new CloudContainer(4));
     protected final CloudOffhandView offhand = new CloudOffhandView(this, new CloudContainer(1));
 
+    private final CloudCreatureData persistenceState;
+
     public EntityCreature(EntityType<?> type, Location location) {
-        super(type, location);
-        data().setArmor(this.armor.getContainer());
-        data().setOffhand(this.offhand.getContainer());
+        this(type, location, new CloudCreatureData());
     }
 
-    @Override
-    protected Class<? extends CloudEntityData> minimumDataClass() {
-        return CloudCreatureData.class;
+    protected EntityCreature(EntityType<?> type, Location location, CloudCreatureData state) {
+        super(type, location, state);
+        this.persistenceState = state;
+        state.setArmor(this.armor.getContainer());
+        state.setOffhand(this.offhand.getContainer());
     }
 
     @Override
     protected CloudCreatureData data() {
-        return (CloudCreatureData) super.data();
+        return this.persistenceState;
     }
 
     public ArmorView getArmor() {

@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.entity.vehicle;
 
-import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.vehicle.BoatType;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.server.testutil.InterfaceProxy;

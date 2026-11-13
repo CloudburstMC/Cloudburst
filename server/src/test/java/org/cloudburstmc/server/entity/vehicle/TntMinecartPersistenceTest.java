@@ -9,7 +9,6 @@ import org.cloudburstmc.server.block.BlockStateCodec;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.data.CloudTntMinecartData;
-import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -33,7 +32,6 @@ class TntMinecartPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudTntMinecartData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.TNT_MINECART));
 
         EntityTntMinecart minecart = (EntityTntMinecart) PersistenceFixtures.entity(EntityTypes.TNT_MINECART);
         NbtMap input = NbtMap.builder()

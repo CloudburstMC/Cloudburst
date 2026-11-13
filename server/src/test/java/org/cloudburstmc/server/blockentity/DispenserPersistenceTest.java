@@ -8,7 +8,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.data.CloudDispenserData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
-import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -53,8 +52,6 @@ class DispenserPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudDispenserData.class,
-                CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.DISPENSER));
 
         DispenserBlockEntity entity = (DispenserBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.DISPENSER, POSITION);
         NbtMap input = dispenserTag();

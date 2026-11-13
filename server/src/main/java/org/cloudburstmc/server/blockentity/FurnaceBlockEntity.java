@@ -27,7 +27,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerSetDataPacket;
-import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.blockentity.data.CloudFurnaceData;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.ContainerListener;
@@ -55,24 +54,23 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
     private @Nullable Identifier activeRecipe;
     private @Nullable RecipeLookup recipeLookup;
 
+    private final CloudFurnaceData persistenceState;
+
     public FurnaceBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         this(type, chunk, position, new FurnaceStorage());
     }
 
     private FurnaceBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position, FurnaceStorage storage) {
-        super(type, chunk, position);
+        CloudFurnaceData state = new CloudFurnaceData();
+        super(type, chunk, position, state);
+        this.persistenceState = state;
         this.data().setItems(storage);
         storage.owner = this;
     }
 
     @Override
-    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
-        return CloudFurnaceData.class;
-    }
-
-    @Override
     protected CloudFurnaceData data() {
-        return (CloudFurnaceData) super.data();
+        return this.persistenceState;
     }
 
     @Override

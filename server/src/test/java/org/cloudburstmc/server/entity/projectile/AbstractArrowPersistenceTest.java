@@ -66,8 +66,9 @@ class AbstractArrowPersistenceTest {
         NbtMap written = save(arrow);
 
         Set<String> expectedKeys = new HashSet<>(BASE_KEYS);
-        expectedKeys.addAll(Set.of("damage", "inGround", "PierceLevel", "inBlockX", "inBlockY", "inBlockZ", "pickup",
-                "PotionGroundTicks", "identifier"));
+        expectedKeys.addAll(Set.of(
+                "damage", "inGround", "PierceLevel", "inBlockX", "inBlockY", "inBlockZ", "pickup", "identifier"
+        ));
         assertEquals(expectedKeys, written.keySet());
         assertEquals(NbtType.BYTE, NbtType.byClass(written.get("inGround").getClass()), "inGround must be a byte");
         assertTrue(written.getBoolean("inGround"));
@@ -88,7 +89,7 @@ class AbstractArrowPersistenceTest {
         NbtMap written = save(arrow);
 
         Set<String> expectedKeys = new HashSet<>(BASE_KEYS);
-        expectedKeys.addAll(Set.of("damage", "inGround", "PierceLevel", "pickup", "PotionGroundTicks", "identifier"));
+        expectedKeys.addAll(Set.of("damage", "inGround", "PierceLevel", "pickup", "identifier"));
         assertEquals(expectedKeys, written.keySet());
         assertEquals(NbtType.BYTE, NbtType.byClass(written.get("inGround").getClass()), "inGround must be a byte");
         assertFalse(written.getBoolean("inGround"));

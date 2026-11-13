@@ -18,7 +18,6 @@ import org.cloudburstmc.api.util.data.MinecartType;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
-import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.entity.data.CloudTntMinecartData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.item.component.DefaultItemHandlers;
@@ -29,8 +28,12 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
 
     private static final int DEFAULT_FUSE = 80;
 
+    private final CloudTntMinecartData persistenceState;
+
     public EntityTntMinecart(EntityType<TntMinecart> type, Location location) {
-        super(type, location);
+        CloudTntMinecartData state = new CloudTntMinecartData();
+        super(type, location, state);
+        this.persistenceState = state;
     }
 
     @Override
@@ -43,12 +46,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
 
     @Override
     protected CloudTntMinecartData data() {
-        return (CloudTntMinecartData) super.data();
-    }
-
-    @Override
-    protected Class<? extends CloudEntityData> minimumDataClass() {
-        return CloudTntMinecartData.class;
+        return this.persistenceState;
     }
 
     @Override

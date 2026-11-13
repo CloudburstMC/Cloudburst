@@ -8,7 +8,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.data.CloudBarrelData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
-import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -53,8 +52,6 @@ class BarrelPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudBarrelData.class,
-                CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.BARREL));
 
         BarrelBlockEntity entity = (BarrelBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.BARREL, POSITION);
         NbtMap input = barrelTag();

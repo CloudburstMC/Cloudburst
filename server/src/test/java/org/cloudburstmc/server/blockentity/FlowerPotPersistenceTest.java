@@ -9,7 +9,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.blockentity.data.CloudFlowerPotData;
-import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.BlockTestRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -40,8 +39,6 @@ class FlowerPotPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudFlowerPotData.class,
-                CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.FLOWER_POT));
 
         FlowerPotBlockEntity entity = (FlowerPotBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.FLOWER_POT, POSITION);
         NbtMap input = flowerPotTag();

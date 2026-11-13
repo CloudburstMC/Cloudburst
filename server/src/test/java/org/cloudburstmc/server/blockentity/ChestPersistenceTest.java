@@ -12,7 +12,6 @@ import org.cloudburstmc.server.blockentity.data.CloudChestData;
 import org.cloudburstmc.server.blockentity.data.CloudContainerData;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
-import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -62,8 +61,6 @@ class ChestPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudChestData.class,
-                CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.CHEST));
 
         ChestBlockEntity entity = (ChestBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CHEST, POSITION);
         NbtMap input = chestTag();

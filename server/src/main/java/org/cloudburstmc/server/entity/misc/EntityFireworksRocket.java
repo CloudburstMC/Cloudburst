@@ -28,7 +28,6 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.entity.data.CloudFireworksRocketData;
 import org.cloudburstmc.server.entity.projectile.EntityProjectile;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
@@ -51,8 +50,12 @@ public class EntityFireworksRocket extends EntityProjectile implements Fireworks
     private ItemStack firework;
     private CloudPlayer boostedPlayer;
 
+    private final CloudFireworksRocketData persistenceState;
+
     public EntityFireworksRocket(EntityType<FireworksRocket> type, Location location) {
-        super(type, location);
+        CloudFireworksRocketData state = new CloudFireworksRocketData();
+        super(type, location, state);
+        this.persistenceState = state;
     }
 
     @Override
@@ -69,12 +72,7 @@ public class EntityFireworksRocket extends EntityProjectile implements Fireworks
 
     @Override
     protected CloudFireworksRocketData data() {
-        return (CloudFireworksRocketData) super.data();
-    }
-
-    @Override
-    protected Class<? extends CloudEntityData> minimumDataClass() {
-        return CloudFireworksRocketData.class;
+        return this.persistenceState;
     }
 
     @Override

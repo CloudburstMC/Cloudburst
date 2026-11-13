@@ -11,7 +11,6 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.blockentity.data.CloudBarrelData;
-import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.container.ContainerListener;
 
 import java.util.HashSet;
@@ -21,8 +20,12 @@ import java.util.HashSet;
  */
 public class BarrelBlockEntity extends ContainerBlockEntity implements Barrel, BlockStorageView {
 
+    private final CloudBarrelData persistenceState;
+
     public BarrelBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position);
+        CloudBarrelData state = new CloudBarrelData();
+        super(type, chunk, position, state);
+        this.persistenceState = state;
     }
 
     @Override
@@ -31,13 +34,8 @@ public class BarrelBlockEntity extends ContainerBlockEntity implements Barrel, B
     }
 
     @Override
-    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
-        return CloudBarrelData.class;
-    }
-
-    @Override
     protected CloudBarrelData data() {
-        return (CloudBarrelData) super.data();
+        return this.persistenceState;
     }
 
     @Override
@@ -63,7 +61,7 @@ public class BarrelBlockEntity extends ContainerBlockEntity implements Barrel, B
 
     @Override
     public void close() {
-        if (!closed) {
+        if (!this.isClosed()) {
             for (ContainerListener listener : new HashSet<>(this.getContainer().getListeners())) {
                 listener.onInventoryRemoved(this.getContainer());
             }

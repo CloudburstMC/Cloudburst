@@ -10,7 +10,6 @@ import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.blockentity.data.CloudDropperData;
 import org.cloudburstmc.server.container.ContainerListener;
 
@@ -22,8 +21,12 @@ import java.util.HashSet;
  */
 public class DropperBlockEntity extends ContainerBlockEntity implements Dropper, BlockDropperView {
 
+    private final CloudDropperData persistenceState;
+
     public DropperBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position);
+        CloudDropperData state = new CloudDropperData();
+        super(type, chunk, position, state);
+        this.persistenceState = state;
     }
 
     @Override
@@ -37,13 +40,8 @@ public class DropperBlockEntity extends ContainerBlockEntity implements Dropper,
     }
 
     @Override
-    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
-        return CloudDropperData.class;
-    }
-
-    @Override
     protected CloudDropperData data() {
-        return (CloudDropperData) super.data();
+        return this.persistenceState;
     }
 
     @Override
@@ -69,7 +67,7 @@ public class DropperBlockEntity extends ContainerBlockEntity implements Dropper,
 
     @Override
     public void close() {
-        if (!closed) {
+        if (!this.isClosed()) {
             for (ContainerListener listener : new HashSet<>(this.getContainer().getListeners())) {
                 listener.onInventoryRemoved(this.getContainer());
             }

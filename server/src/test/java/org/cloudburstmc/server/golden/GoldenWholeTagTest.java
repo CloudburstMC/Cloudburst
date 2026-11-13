@@ -8,11 +8,7 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NBTInputStream;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.nbt.NbtUtils;
+import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
@@ -22,13 +18,7 @@ import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -259,11 +249,8 @@ class GoldenWholeTagTest {
             Object provider = getProviderMethod.invoke(serviceProvider);
             java.lang.reflect.Method getValueMethod = provider.getClass().getDeclaredMethod("getValue");
             getValueMethod.setAccessible(true);
-            Object factoryData = getValueMethod.invoke(provider);
-            java.lang.reflect.Method factoryMethod = factoryData.getClass().getDeclaredMethod("factory");
-            factoryMethod.setAccessible(true);
             org.cloudburstmc.api.entity.EntityFactory factory =
-                    (org.cloudburstmc.api.entity.EntityFactory) factoryMethod.invoke(factoryData);
+                    (org.cloudburstmc.api.entity.EntityFactory) getValueMethod.invoke(provider);
             return (T) factory.create(type, location);
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException("Cannot create entity of type " + type.getId(), e);

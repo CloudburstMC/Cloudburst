@@ -19,7 +19,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.blockentity.data.CloudBeaconData;
-import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.level.chunk.LockedChunk;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -43,18 +42,17 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
     private double effectRange = -1;
     private int nextUpdate;
 
-    public BeaconBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position);
-    }
+    private final CloudBeaconData persistenceState;
 
-    @Override
-    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
-        return CloudBeaconData.class;
+    public BeaconBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
+        CloudBeaconData state = new CloudBeaconData();
+        super(type, chunk, position, state);
+        this.persistenceState = state;
     }
 
     @Override
     protected CloudBeaconData data() {
-        return (CloudBeaconData) super.data();
+        return this.persistenceState;
     }
 
     @Override

@@ -7,7 +7,6 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.data.CloudPaintingData;
-import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -31,7 +30,6 @@ class PaintingPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudPaintingData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.PAINTING));
 
         EntityPainting painting = (EntityPainting) PersistenceFixtures.entity(EntityTypes.PAINTING);
         NbtMap input = NbtMap.builder()

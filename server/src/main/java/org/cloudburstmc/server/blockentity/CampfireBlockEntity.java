@@ -14,7 +14,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.blockentity.data.CloudCampfireData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
@@ -26,18 +25,17 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
     private static final int SLOT_COUNT = 4;
     private static final int AVERAGE_CRACKLE_INTERVAL = 60;
 
-    public CampfireBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position);
-    }
+    private final CloudCampfireData persistenceState;
 
-    @Override
-    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
-        return CloudCampfireData.class;
+    public CampfireBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
+        CloudCampfireData state = new CloudCampfireData();
+        super(type, chunk, position, state);
+        this.persistenceState = state;
     }
 
     @Override
     protected CloudCampfireData data() {
-        return (CloudCampfireData) super.data();
+        return this.persistenceState;
     }
 
     @Override

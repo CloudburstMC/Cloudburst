@@ -16,7 +16,6 @@ import org.cloudburstmc.server.network.nethernet.CloudNetherNetPeer;
 
 import java.net.InetSocketAddress;
 import java.util.Collection;
-import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 

@@ -6,7 +6,6 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.data.CloudPrimedTntData;
-import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -30,7 +29,6 @@ class PrimedTntPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudPrimedTntData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.TNT));
 
         EntityPrimedTnt tnt = (EntityPrimedTnt) PersistenceFixtures.entity(EntityTypes.TNT);
         NbtMap input = NbtMap.builder()

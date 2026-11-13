@@ -15,7 +15,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.component.LecternBlockHandlers;
-import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.blockentity.data.CloudLecternData;
 import org.cloudburstmc.server.container.screen.CloudLecternContainerScreen;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
@@ -25,8 +24,12 @@ import java.util.Objects;
 
 public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
 
+    private final CloudLecternData persistenceState;
+
     public LecternBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position);
+        CloudLecternData state = new CloudLecternData();
+        super(type, chunk, position, state);
+        this.persistenceState = state;
     }
 
     public static boolean isBook(ItemStack item) {
@@ -34,13 +37,8 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
     }
 
     @Override
-    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
-        return CloudLecternData.class;
-    }
-
-    @Override
     protected CloudLecternData data() {
-        return (CloudLecternData) super.data();
+        return this.persistenceState;
     }
 
     @Override

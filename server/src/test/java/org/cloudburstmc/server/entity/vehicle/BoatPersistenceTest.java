@@ -10,8 +10,6 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.data.CloudBoatData;
-import org.cloudburstmc.server.entity.data.CloudChestBoatData;
-import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -38,8 +36,6 @@ class BoatPersistenceTest {
 
     @Test
     void dataRoundTripPreservesKeysAndTypes() {
-        assertEquals(CloudBoatData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.BOAT));
-        assertEquals(CloudChestBoatData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.CHEST_BOAT));
 
         EntityBoat boat = boat();
         int variant = VanillaBoats.definition(BoatType.BAMBOO).variant();

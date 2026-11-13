@@ -41,11 +41,11 @@ class EntityLandingTest {
         assertEquals(0.75f, entity.fallDistance);
         entity.resetFallDistance();
         assertEquals(0, entity.fallDistance);
-        assertEquals(-19.5f, entity.highestPosition);
+        assertEquals(-19.5f, entity.getHighestPosition());
         entity.position = Vector3f.from(0, -20, 0);
         entity.updateFallState(true);
         assertEquals(0, entity.fallDistance);
-        assertEquals(-20, entity.highestPosition);
+        assertEquals(-20, entity.getHighestPosition());
     }
 
     private static CloudEntity entity(Vector3f position) {

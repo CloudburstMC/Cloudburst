@@ -9,7 +9,6 @@ import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.data.CloudSplashPotionData;
 import org.cloudburstmc.server.network.NetworkUtils;
-import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -33,8 +32,6 @@ class SplashPotionPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CloudSplashPotionData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.SPLASH_POTION));
-        assertEquals(CloudSplashPotionData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.LINGERING_POTION));
 
         EntitySplashPotion potion = (EntitySplashPotion) PersistenceFixtures.entity(EntityTypes.SPLASH_POTION);
         PotionType type = PotionTypes.STRONG_POISON;
