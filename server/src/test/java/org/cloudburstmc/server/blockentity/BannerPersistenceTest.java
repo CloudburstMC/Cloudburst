@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
-import org.cloudburstmc.api.blockentity.data.BannerData;
 import org.cloudburstmc.api.util.data.BannerPattern;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.blockentity.data.BannerData;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -16,9 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Round-trip tests for the banner data path: every key today's load/saveClientData

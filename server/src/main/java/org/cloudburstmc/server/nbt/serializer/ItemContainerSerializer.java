@@ -2,10 +2,10 @@ package org.cloudburstmc.server.nbt.serializer;
 
 import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.nbt.NbtSkipEmpty;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.nbt.NbtSkipEmpty;
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.databind.BeanProperty;
 import tools.jackson.databind.SerializationContext;

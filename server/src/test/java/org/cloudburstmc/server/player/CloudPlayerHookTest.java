@@ -14,9 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Drives the production player save and load hook bodies
@@ -29,15 +27,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class CloudPlayerHookTest {
 
-    private static org.cloudburstmc.api.entity.data.PlayerData newData() {
-        return new org.cloudburstmc.api.entity.data.PlayerData();
+    private static org.cloudburstmc.server.entity.data.PlayerData newData() {
+        return new org.cloudburstmc.server.entity.data.PlayerData();
     }
 
     /**
      * Emulates the production save order for the hook keys: the base writes the
      * data instance first, then the save hook adds its keys.
      */
-    private static NbtMap save(org.cloudburstmc.api.entity.data.PlayerData data, PlayerData holder,
+    private static NbtMap save(org.cloudburstmc.server.entity.data.PlayerData data, PlayerData holder,
                                CloudPlayer.FoodHookState food) {
         NbtMapBuilder tag = NbtMap.builder();
         tag.putAll(ServerNbt.MAPPER.write(data));
@@ -48,7 +46,7 @@ class CloudPlayerHookTest {
     @Test
     void newPlayerSaveWritesCreditsZero() {
         PersistenceFixtures.ensureInitialized();
-        org.cloudburstmc.api.entity.data.PlayerData data = newData();
+        org.cloudburstmc.server.entity.data.PlayerData data = newData();
         PlayerData holder = new PlayerData();
         // No stored tag: an empty load leaves the defaults alone.
         CloudPlayer.FoodHookState food = CloudPlayer.loadHookKeys(NbtMap.EMPTY, holder, data);
@@ -79,7 +77,7 @@ class CloudPlayerHookTest {
         PersistenceFixtures.ensureInitialized();
 
         // firstPlayed without lastPlayed is written back with its loaded value.
-        org.cloudburstmc.api.entity.data.PlayerData data = newData();
+        org.cloudburstmc.server.entity.data.PlayerData data = newData();
         PlayerData holder = new PlayerData();
         CloudPlayer.FoodHookState food = CloudPlayer.loadHookKeys(
                 NbtMap.builder().putLong("firstPlayed", 1000L).build(), holder, data);
@@ -106,7 +104,7 @@ class CloudPlayerHookTest {
         PersistenceFixtures.ensureInitialized();
 
         // A spawn level without coordinates is written back on its own.
-        org.cloudburstmc.api.entity.data.PlayerData data = newData();
+        org.cloudburstmc.server.entity.data.PlayerData data = newData();
         PlayerData holder = new PlayerData();
         CloudPlayer.FoodHookState food = CloudPlayer.loadHookKeys(
                 NbtMap.builder().putString("SpawnLevel", "world").build(), holder, data);
@@ -150,7 +148,7 @@ class CloudPlayerHookTest {
         // A lone SpawnX was kept and rewritten at 62b3ea0b0: the three spawn
         // coordinates were independent Integer fields, so a partial tag kept
         // the good ones when the holder condition failed.
-        org.cloudburstmc.api.entity.data.PlayerData data = newData();
+        org.cloudburstmc.server.entity.data.PlayerData data = newData();
         PlayerData holder = new PlayerData();
         CloudPlayer.FoodHookState food = CloudPlayer.loadHookKeys(
                 NbtMap.builder().putInt("SpawnX", 5).build(), holder, data);
@@ -166,7 +164,7 @@ class CloudPlayerHookTest {
         PersistenceFixtures.ensureInitialized();
 
         // SpawnX + SpawnY without SpawnZ are both written back.
-        org.cloudburstmc.api.entity.data.PlayerData data = newData();
+        org.cloudburstmc.server.entity.data.PlayerData data = newData();
         PlayerData holder = new PlayerData();
         CloudPlayer.FoodHookState food = CloudPlayer.loadHookKeys(NbtMap.builder()
                 .putInt("SpawnX", 1)
@@ -185,7 +183,7 @@ class CloudPlayerHookTest {
         PersistenceFixtures.ensureInitialized();
 
         // A mistyped SpawnZ next to good X/Y keeps the good coordinates.
-        org.cloudburstmc.api.entity.data.PlayerData data = newData();
+        org.cloudburstmc.server.entity.data.PlayerData data = newData();
         PlayerData holder = new PlayerData();
         CloudPlayer.FoodHookState food = CloudPlayer.loadHookKeys(NbtMap.builder()
                 .putInt("SpawnX", 1)
@@ -201,7 +199,7 @@ class CloudPlayerHookTest {
     @Test
     void savedBaselineRefreshesWriteBack() {
         PersistenceFixtures.ensureInitialized();
-        org.cloudburstmc.api.entity.data.PlayerData data = newData();
+        org.cloudburstmc.server.entity.data.PlayerData data = newData();
         PlayerData holder = new PlayerData();
         CloudPlayer.FoodHookState food = CloudPlayer.loadHookKeys(NbtMap.builder()
                 .putString("SpawnLevel", "world")
@@ -252,7 +250,7 @@ class CloudPlayerHookTest {
                 .putInt("playerGameType", 1)
                 .build();
 
-        org.cloudburstmc.api.entity.data.PlayerData data = newData();
+        org.cloudburstmc.server.entity.data.PlayerData data = newData();
         data.setSeenCredits(true);
         PlayerData holder = new PlayerData();
         CloudPlayer.FoodHookState food = CloudPlayer.loadHookKeys(stored, holder, data);
@@ -301,7 +299,7 @@ class CloudPlayerHookTest {
     @Test
     void mistypedHookKeysStayDropped() {
         PersistenceFixtures.ensureInitialized();
-        org.cloudburstmc.api.entity.data.PlayerData data = newData();
+        org.cloudburstmc.server.entity.data.PlayerData data = newData();
         PlayerData holder = new PlayerData();
         // Keys of another kind never bind, so the save omits them instead of
         // passing them through or writing holder defaults.
@@ -337,7 +335,7 @@ class CloudPlayerHookTest {
         List<NbtMap> entries = List.of(shortBuilder.build(), intBuilder.build(), stringBuilder.build());
         for (NbtMap entry : entries) {
             // Only a byte Slot tag binds; any other kind lands on slot 0.
-            org.cloudburstmc.api.entity.data.PlayerData data = newData();
+            org.cloudburstmc.server.entity.data.PlayerData data = newData();
             data.setInventory(org.cloudburstmc.api.inventory.ItemContainers.detached(36));
             data.setEnderChest(org.cloudburstmc.api.inventory.ItemContainers.detached(27));
             ServerNbt.MAPPER.readInto(NbtMap.builder()

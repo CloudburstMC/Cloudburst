@@ -1,12 +1,6 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.api.blockentity.data.FlowerPotData;
-import org.cloudburstmc.api.blockentity.data.BlockEntityData;
-import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockStates;
-import org.cloudburstmc.api.block.BlockTags;
-import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.FlowerPot;
 import org.cloudburstmc.api.level.chunk.Chunk;
@@ -14,6 +8,8 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.BlockPalette;
+import org.cloudburstmc.server.blockentity.data.BlockEntityData;
+import org.cloudburstmc.server.blockentity.data.FlowerPotData;
 
 import java.util.Objects;
 
@@ -40,7 +36,6 @@ public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
         if (tag.containsKey("item") || tag.containsKey("mData")) {
             throw new UnsupportedOperationException("Numeric flower pot data is no longer supported");
         }
-
     }
 
     @Override

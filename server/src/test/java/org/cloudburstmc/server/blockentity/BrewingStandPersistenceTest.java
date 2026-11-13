@@ -1,13 +1,13 @@
 package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
-import org.cloudburstmc.api.blockentity.data.BrewingStandData;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.blockentity.data.BrewingStandData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -18,9 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Round-trip tests for the brewing-stand data path: every key today's load/save/saveClientData

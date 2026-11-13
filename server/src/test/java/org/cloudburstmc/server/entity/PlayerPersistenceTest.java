@@ -1,8 +1,6 @@
 package org.cloudburstmc.server.entity;
 
 import org.cloudburstmc.api.entity.EntityTypes;
-import org.cloudburstmc.api.entity.data.HumanData;
-import org.cloudburstmc.api.entity.data.PlayerData;
 import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.inventory.ItemContainers;
 import org.cloudburstmc.api.item.ItemStack;
@@ -10,28 +8,21 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import tools.jackson.core.JacksonException;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
+import org.cloudburstmc.server.entity.data.HumanData;
+import org.cloudburstmc.server.entity.data.PlayerData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.nbt.ServerNbt;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
 
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Data-path tests for players. Production {@code CloudPlayer} instances need a

@@ -23,11 +23,10 @@ import org.cloudburstmc.api.event.vehicle.VehicleEnterEvent;
 import org.cloudburstmc.api.event.vehicle.VehicleExitEvent;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.api.nbt.NbtMapper;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.level.sound.SoundTypes;
+import org.cloudburstmc.api.persistence.PersistentDataContainer;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.EffectTypes;
@@ -49,6 +48,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.data.BuoyancyDataSerializer;
+import org.cloudburstmc.server.entity.data.EntityData;
 import org.cloudburstmc.server.entity.data.SyncedEntityData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.level.*;
@@ -56,10 +56,11 @@ import org.cloudburstmc.server.level.biome.CloudBiome;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import org.cloudburstmc.server.math.MathHelper;
+import org.cloudburstmc.server.nbt.ServerNbt;
 import org.cloudburstmc.server.network.NetworkUtils;
+import org.cloudburstmc.server.persistence.CloudPersistentDataContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.potion.ActivePotionEffect;
-import org.cloudburstmc.server.nbt.ServerNbt;
 import org.cloudburstmc.server.registry.CloudBiomeRegistry;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
@@ -108,6 +109,7 @@ public abstract class CloudEntity implements Entity {
     @Getter
     public CloudChunk chunk;
     @Getter
+    private final CloudPersistentDataContainer persistentData = new CloudPersistentDataContainer(this::markChunkDirty);
     public NbtMap tag;
     public float highestPosition;
     public boolean firstMove = true;
@@ -249,6 +251,7 @@ public abstract class CloudEntity implements Entity {
 
     public final void loadAdditionalData(NbtMap tag) {
         this.tag = tag;
+        this.persistentData.load(tag);
 
         ServerNbt.MAPPER.readInto(tag, this.data());
         this.normalizeData();
@@ -264,7 +267,7 @@ public abstract class CloudEntity implements Entity {
         if (this.tag != null && !this.tag.isEmpty()) {
             for (Map.Entry<String, Object> entry : this.tag.entrySet()) {
                 String key = entry.getKey();
-                if (key.equals("identifier") || owned.contains(key) || custom.contains(key)) {
+                if (key.equals("identifier") || owned.contains(key) || custom.contains(key) || key.equals(CloudPersistentDataContainer.STORAGE_KEY)) {
                     continue;
                 }
                 tag.put(key, entry.getValue());
@@ -279,53 +282,12 @@ public abstract class CloudEntity implements Entity {
         }
 
         this.saveCustom(tag);
+        this.persistentData.save(tag);
     }
 
     @Override
-    public Optional<NbtMap> getPluginData(String pluginId) {
-        checkNotNull(pluginId, "pluginId");
-        if (this.tag == null) {
-            return Optional.empty();
-        }
-        NbtMap root = this.tag.getCompound(NbtMapper.PLUGIN_DATA_KEY, null);
-        if (root == null) {
-            return Optional.empty();
-        }
-        return Optional.ofNullable(root.getCompound(pluginId, null));
-    }
-
-    @Override
-    public void setPluginData(String pluginId, NbtMap data) {
-        checkNotNull(pluginId, "pluginId");
-        checkNotNull(data, "data");
-        NbtMap tag = this.tag == null ? NbtMap.EMPTY : this.tag;
-        NbtMapBuilder root = tag.getCompound(NbtMapper.PLUGIN_DATA_KEY, NbtMap.EMPTY).toBuilder();
-        root.putCompound(pluginId, data);
-        NbtMapBuilder builder = tag.toBuilder();
-        builder.putCompound(NbtMapper.PLUGIN_DATA_KEY, root.build());
-        this.tag = builder.build();
-        this.markChunkDirty();
-    }
-
-    @Override
-    public void removePluginData(String pluginId) {
-        checkNotNull(pluginId, "pluginId");
-        if (this.tag == null) {
-            return;
-        }
-        if (!this.tag.getCompound(NbtMapper.PLUGIN_DATA_KEY, NbtMap.EMPTY).containsKey(pluginId)) {
-            return;
-        }
-        NbtMapBuilder root = this.tag.getCompound(NbtMapper.PLUGIN_DATA_KEY).toBuilder();
-        root.remove(pluginId);
-        NbtMapBuilder builder = this.tag.toBuilder();
-        if (root.isEmpty()) {
-            builder.remove(NbtMapper.PLUGIN_DATA_KEY);
-        } else {
-            builder.putCompound(NbtMapper.PLUGIN_DATA_KEY, root.build());
-        }
-        this.tag = builder.build();
-        this.markChunkDirty();
+    public PersistentDataContainer getPersistentDataContainer() {
+        return this.persistentData;
     }
 
     /**

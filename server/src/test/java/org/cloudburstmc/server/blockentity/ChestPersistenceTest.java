@@ -1,8 +1,6 @@
 package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
-import org.cloudburstmc.api.blockentity.data.ChestData;
-import org.cloudburstmc.api.blockentity.data.ContainerData;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -10,25 +8,17 @@ import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.blockentity.data.ChestData;
+import org.cloudburstmc.server.blockentity.data.ContainerData;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Round-trip tests for the chest data path: every key today's load/save/saveClientData

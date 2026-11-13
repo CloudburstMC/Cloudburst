@@ -1,11 +1,11 @@
 package org.cloudburstmc.server.entity.passive;
 
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.data.EntityData;
-import org.cloudburstmc.api.entity.data.HappyGhastData;
 import org.cloudburstmc.api.entity.passive.HappyGhast;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.server.entity.data.EntityData;
+import org.cloudburstmc.server.entity.data.HappyGhastData;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BABY;
 

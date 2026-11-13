@@ -3,7 +3,6 @@ package org.cloudburstmc.server.entity.vehicle;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
-import org.cloudburstmc.api.entity.data.AbstractMinecartData;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.data.MinecartType;
@@ -14,18 +13,15 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.block.BlockStateCodec;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.entity.data.AbstractMinecartData;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Data-path tests for the abstract-minecart branch. {@link EntityAbstractMinecart} is

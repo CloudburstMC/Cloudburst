@@ -3,8 +3,6 @@ package org.cloudburstmc.server.blockentity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Cauldron;
 import org.cloudburstmc.api.blockentity.CauldronContents;
-import org.cloudburstmc.api.blockentity.data.BlockEntityData;
-import org.cloudburstmc.api.blockentity.data.CauldronData;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.potion.PotionForm;
 import org.cloudburstmc.api.potion.PotionType;
@@ -12,6 +10,8 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.blockentity.data.BlockEntityData;
+import org.cloudburstmc.server.blockentity.data.CauldronData;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.potion.CloudPotionColor;
 

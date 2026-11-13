@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.entity.misc;
 
-import org.cloudburstmc.api.entity.data.PaintingData;
-import org.cloudburstmc.api.entity.data.EntityData;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockStates;
@@ -31,6 +29,8 @@ import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.packet.AddPaintingPacket;
 import org.cloudburstmc.server.entity.CloudDamageResult;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.entity.data.EntityData;
+import org.cloudburstmc.server.entity.data.PaintingData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.network.LevelEffectPacketFactory;

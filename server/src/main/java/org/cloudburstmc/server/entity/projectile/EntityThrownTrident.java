@@ -6,8 +6,6 @@ import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.data.EntityData;
-import org.cloudburstmc.api.entity.data.ThrownTridentData;
 import org.cloudburstmc.api.entity.projectile.ThrownTrident;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
@@ -16,6 +14,8 @@ import org.cloudburstmc.api.util.BlockHitResult;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.server.entity.data.EntityData;
+import org.cloudburstmc.server.entity.data.ThrownTridentData;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudEnchantmentRegistry;
 

@@ -5,8 +5,6 @@ import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.ItemFrame;
-import org.cloudburstmc.api.blockentity.data.BlockEntityData;
-import org.cloudburstmc.api.blockentity.data.ItemFrameData;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.chunk.Chunk;
@@ -14,6 +12,8 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.server.blockentity.data.BlockEntityData;
+import org.cloudburstmc.server.blockentity.data.ItemFrameData;
 
 import java.util.Objects;
 import java.util.Set;

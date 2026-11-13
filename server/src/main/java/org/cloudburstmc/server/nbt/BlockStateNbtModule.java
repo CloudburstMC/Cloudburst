@@ -1,11 +1,10 @@
 package org.cloudburstmc.server.nbt;
 
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.nbt.NbtShortBlockState;
-import org.cloudburstmc.api.nbt.internal.NbtParser;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.BlockStateCodec;
+import org.cloudburstmc.server.nbt.internal.NbtParser;
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.JsonParser;
 import tools.jackson.databind.BeanProperty;

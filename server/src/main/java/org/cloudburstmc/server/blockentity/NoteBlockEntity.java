@@ -1,13 +1,13 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.api.blockentity.data.MusicData;
-import org.cloudburstmc.api.blockentity.data.BlockEntityData;
 import org.cloudburstmc.api.block.NoteBlockInstrument;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.NoteBlock;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.component.NoteBlockHandlers;
+import org.cloudburstmc.server.blockentity.data.BlockEntityData;
+import org.cloudburstmc.server.blockentity.data.MusicData;
 
 public class NoteBlockEntity extends BaseBlockEntity implements NoteBlock {
 

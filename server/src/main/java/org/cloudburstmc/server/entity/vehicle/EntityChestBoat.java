@@ -1,8 +1,6 @@
 package org.cloudburstmc.server.entity.vehicle;
 
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.data.ChestBoatData;
-import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.entity.vehicle.ChestBoat;
 import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
 import org.cloudburstmc.api.inventory.view.StorageView;
@@ -13,12 +11,14 @@ import org.cloudburstmc.api.level.sound.SoundPlayback;
 import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.screen.CloudChestBoatScreen;
 import org.cloudburstmc.server.container.view.CloudEntityStorageView;
+import org.cloudburstmc.server.entity.data.ChestBoatData;
+import org.cloudburstmc.server.entity.data.EntityData;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.nbt.NbtMap;
 
 import java.util.HashSet;
 import java.util.Set;

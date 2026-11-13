@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.nbt.serializer;
 
 import org.cloudburstmc.api.entity.vehicle.BoatType;
-import org.cloudburstmc.api.nbt.NbtKindMismatchException;
-import org.cloudburstmc.api.nbt.internal.NbtParser;
 import org.cloudburstmc.server.entity.vehicle.VanillaBoats;
+import org.cloudburstmc.server.nbt.NbtKindMismatchException;
+import org.cloudburstmc.server.nbt.internal.NbtParser;
 import tools.jackson.core.JsonParser;
 import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.deser.std.StdDeserializer;

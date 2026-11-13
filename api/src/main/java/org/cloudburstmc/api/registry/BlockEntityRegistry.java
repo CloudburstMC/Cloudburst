@@ -5,7 +5,6 @@ import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityFactory;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
-import org.cloudburstmc.api.blockentity.data.BlockEntityData;
 import org.cloudburstmc.api.event.server.ServerInitializationEvent;
 import org.cloudburstmc.api.util.Identifier;
 
@@ -31,23 +30,6 @@ public interface BlockEntityRegistry extends KeyedRegistry<BlockEntityType<?>> {
     boolean isValid(BlockEntityType<?> type, BlockState state);
 
     /**
-     * Registers a custom block-entity type with the base data class. Plugins should register types while handling
-     * {@link ServerInitializationEvent}. Calls made after registries close are rejected.
-     *
-     * @param type         custom, non-{@code minecraft} namespaced type key
-     * @param factory      factory used to create instances
-     * @param persistentId unique persistent identifier
-     * @param validBlocks  non-empty set of block types that may host the entity
-     * @throws RegistryException if registration is closed, the type is already registered,
-     *                           or the persistent identifier is already in use
-     * @see ServerInitializationEvent
-     */
-    default <T extends BlockEntity> void register(BlockEntityType<T> type, BlockEntityFactory<T> factory,
-                                                  String persistentId, Set<BlockType> validBlocks) throws RegistryException {
-        this.register(type, factory, persistentId, validBlocks, BlockEntityData.class);
-    }
-
-    /**
      * Registers a custom block-entity type. Plugins should register types while handling
      * {@link ServerInitializationEvent}. Calls made after registries close are rejected.
      *
@@ -55,20 +37,9 @@ public interface BlockEntityRegistry extends KeyedRegistry<BlockEntityType<?>> {
      * @param factory      factory used to create instances
      * @param persistentId unique persistent identifier
      * @param validBlocks  non-empty set of block types that may host the entity
-     * @param dataClass    persistent data class of the type
      * @throws RegistryException if registration is closed, the type is already registered,
      *                           or the persistent identifier is already in use
      * @see ServerInitializationEvent
      */
-    <T extends BlockEntity> void register(BlockEntityType<T> type, BlockEntityFactory<T> factory,
-                                          String persistentId, Set<BlockType> validBlocks,
-                                          Class<? extends BlockEntityData> dataClass) throws RegistryException;
-
-    /**
-     * Returns the persistent data class of a block-entity type.
-     *
-     * @param type block-entity type
-     * @return the data class, or the base class when the type has none
-     */
-    Class<? extends BlockEntityData> getDataClass(BlockEntityType<?> type);
+    <T extends BlockEntity> void register(BlockEntityType<T> type, BlockEntityFactory<T> factory, String persistentId, Set<BlockType> validBlocks) throws RegistryException;
 }

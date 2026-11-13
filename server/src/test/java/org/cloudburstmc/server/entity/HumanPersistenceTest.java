@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.entity;
 
 import org.cloudburstmc.api.entity.EntityTypes;
-import org.cloudburstmc.api.entity.data.HumanData;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.player.skin.data.ImageData;
@@ -10,8 +9,8 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
+import org.cloudburstmc.server.entity.data.HumanData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
-import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.cloudburstmc.server.utils.Utils;
 import org.junit.jupiter.api.Test;
@@ -23,13 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Round-trip tests for the human data path: every key today's load/save handle,

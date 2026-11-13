@@ -3,8 +3,6 @@ package org.cloudburstmc.server.blockentity;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.EndGateway;
-import org.cloudburstmc.api.blockentity.data.BlockEntityData;
-import org.cloudburstmc.api.blockentity.data.EndGatewayData;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -12,6 +10,8 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEventPacket;
+import org.cloudburstmc.server.blockentity.data.BlockEntityData;
+import org.cloudburstmc.server.blockentity.data.EndGatewayData;
 
 import java.util.List;
 import java.util.Set;

@@ -6,14 +6,14 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
-import org.cloudburstmc.api.entity.data.EntityData;
-import org.cloudburstmc.api.entity.data.ExperienceOrbData;
 import org.cloudburstmc.api.entity.misc.ExperienceOrb;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.entity.data.EntityData;
+import org.cloudburstmc.server.entity.data.ExperienceOrbData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.player.CloudPlayer;
 

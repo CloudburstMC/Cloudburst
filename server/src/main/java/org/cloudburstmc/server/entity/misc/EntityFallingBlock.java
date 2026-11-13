@@ -1,13 +1,9 @@
 package org.cloudburstmc.server.entity.misc;
 
-import org.cloudburstmc.api.entity.data.FallingBlockData;
-import org.cloudburstmc.api.entity.data.EntityData;
-import lombok.Setter;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockChange;
 import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.component.FallingBlockDropHandler;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
@@ -24,11 +20,12 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.BlockStateCodec;
 import org.cloudburstmc.server.block.component.FallingBlockHandlers;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.entity.data.EntityData;
+import org.cloudburstmc.server.entity.data.FallingBlockData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 
 import java.util.List;
@@ -61,8 +58,6 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
     private static final int OUTSIDE_LEVEL_TIMEOUT = 100;
     private static final int MAX_LIFETIME = 600;
     private static final int SETTLED_REMOVAL_DELAY = 3;
-
-
 
     private boolean landingPending;
     private int settledRemovalDelay;

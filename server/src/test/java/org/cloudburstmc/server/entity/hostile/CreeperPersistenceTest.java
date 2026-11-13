@@ -2,7 +2,6 @@ package org.cloudburstmc.server.entity.hostile;
 
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
-import org.cloudburstmc.api.entity.data.CreatureData;
 import org.cloudburstmc.api.entity.hostile.Creeper;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
@@ -12,6 +11,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.entity.data.CreatureData;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -23,9 +23,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.POWERED;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Round-trip tests for the creeper data path: every key today's load/save handle,

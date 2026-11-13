@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.nbt.serializer;
 
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import tools.jackson.core.JsonParser;
 import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.deser.std.StdDeserializer;
@@ -13,6 +14,6 @@ public final class ItemStackDeserializer extends StdDeserializer<ItemStack> {
 
     @Override
     public ItemStack deserialize(JsonParser p, DeserializationContext ctxt) {
-        return org.cloudburstmc.server.item.ItemStackNbtCodec.deserializeItem(NbtTags.readTag(p, ctxt));
+        return ItemStackNbtCodec.deserializeItem(NbtTags.readTag(p, ctxt));
     }
 }

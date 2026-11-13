@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.api.blockentity.data.LecternData;
-import org.cloudburstmc.api.blockentity.data.BlockEntityData;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Lectern;
 import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
@@ -17,6 +15,8 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.component.LecternBlockHandlers;
+import org.cloudburstmc.server.blockentity.data.BlockEntityData;
+import org.cloudburstmc.server.blockentity.data.LecternData;
 import org.cloudburstmc.server.container.screen.CloudLecternContainerScreen;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.player.CloudPlayer;

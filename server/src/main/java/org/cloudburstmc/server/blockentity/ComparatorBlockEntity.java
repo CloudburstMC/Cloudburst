@@ -2,10 +2,10 @@ package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Comparator;
-import org.cloudburstmc.api.blockentity.data.BlockEntityData;
-import org.cloudburstmc.api.blockentity.data.ComparatorData;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.blockentity.data.BlockEntityData;
+import org.cloudburstmc.server.blockentity.data.ComparatorData;
 
 public class ComparatorBlockEntity extends BaseBlockEntity implements Comparator {
 

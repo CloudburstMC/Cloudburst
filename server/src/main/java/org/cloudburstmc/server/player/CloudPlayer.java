@@ -24,7 +24,6 @@ import org.cloudburstmc.api.blockentity.EnderChest;
 import org.cloudburstmc.api.blockentity.Sign;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.*;
-import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.entity.damage.*;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.projectile.*;
@@ -89,6 +88,7 @@ import org.cloudburstmc.server.entity.CloudDamageResult;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
+import org.cloudburstmc.server.entity.data.EntityData;
 import org.cloudburstmc.server.entity.misc.EntityExperienceOrb;
 import org.cloudburstmc.server.entity.projectile.EntityFishingHook;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
@@ -98,10 +98,10 @@ import org.cloudburstmc.server.form.Form;
 import org.cloudburstmc.server.item.ItemStackPacketCodec;
 import org.cloudburstmc.server.item.component.ArmorItemHandlers;
 import org.cloudburstmc.server.item.component.ConsumableItemHandlers;
-import org.cloudburstmc.server.nbt.SkinNbt;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.EndPortals;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.server.nbt.SkinNbt;
 import org.cloudburstmc.server.network.*;
 import org.cloudburstmc.server.network.inventory.InventoryRequestQueue;
 import org.cloudburstmc.server.network.nethernet.CloudLoginTimeoutHandler;
@@ -3382,12 +3382,12 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     @Override
     protected Class<? extends EntityData> minimumDataClass() {
-        return org.cloudburstmc.api.entity.data.PlayerData.class;
+        return org.cloudburstmc.server.entity.data.PlayerData.class;
     }
 
     @Override
-    protected org.cloudburstmc.api.entity.data.PlayerData data() {
-        return (org.cloudburstmc.api.entity.data.PlayerData) super.data();
+    protected org.cloudburstmc.server.entity.data.PlayerData data() {
+        return (org.cloudburstmc.server.entity.data.PlayerData) super.data();
     }
 
     /**
@@ -3395,7 +3395,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
      * state. The transfer is plain tag math so tests can drive it without a player;
      * only applying it to the live objects needs the player itself.
      */
-    static record FoodHookState(int level, float saturation, float exhaustion, int tickTimer) {
+    record FoodHookState(int level, float saturation, float exhaustion, int tickTimer) {
     }
 
     /**
@@ -3413,8 +3413,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
      * @param data   the data instance holding the experience
      * @return the food values with today's defaults for absent or mistyped keys
      */
-    static FoodHookState loadHookKeys(NbtMap tag, PlayerData holder,
-                                      org.cloudburstmc.api.entity.data.PlayerData data) {
+    static FoodHookState loadHookKeys(NbtMap tag, PlayerData holder, org.cloudburstmc.server.entity.data.PlayerData data) {
         if (tag.get("firstPlayed") instanceof Number firstPlayed) {
             holder.setFirstPlayed(firstPlayed.longValue());
             holder.setLoadedFirstPlayed(firstPlayed.longValue());

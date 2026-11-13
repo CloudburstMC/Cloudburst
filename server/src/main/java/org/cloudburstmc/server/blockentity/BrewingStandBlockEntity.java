@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.api.blockentity.data.BrewingStandData;
-import org.cloudburstmc.api.blockentity.data.BlockEntityData;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -24,11 +22,11 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerSetDataPacket;
+import org.cloudburstmc.server.blockentity.data.BlockEntityData;
+import org.cloudburstmc.server.blockentity.data.BrewingStandData;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.ContainerListener;
-import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 

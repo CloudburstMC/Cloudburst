@@ -6,8 +6,6 @@ import org.cloudburstmc.api.boss.BossBarColor;
 import org.cloudburstmc.api.boss.BossBarStyle;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.data.EnderDragonData;
-import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.entity.hostile.EnderDragon;
 import org.cloudburstmc.api.event.entity.EntityDeathEvent;
 import org.cloudburstmc.api.level.Location;
@@ -25,6 +23,8 @@ import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.boss.CloudStandaloneBossBar;
+import org.cloudburstmc.server.entity.data.EnderDragonData;
+import org.cloudburstmc.server.entity.data.EntityData;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.network.NetworkUtils;
 

@@ -6,8 +6,6 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Explosive;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
-import org.cloudburstmc.api.entity.data.EnderCrystalData;
-import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.entity.hostile.EnderDragon;
 import org.cloudburstmc.api.entity.misc.EnderCrystal;
 import org.cloudburstmc.api.level.ExplosionBlockInteraction;
@@ -19,6 +17,8 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.entity.data.EnderCrystalData;
+import org.cloudburstmc.server.entity.data.EntityData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.level.CloudLevel;
 

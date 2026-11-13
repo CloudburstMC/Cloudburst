@@ -2,7 +2,6 @@ package org.cloudburstmc.server.entity.projectile;
 
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
-import org.cloudburstmc.api.entity.data.AbstractArrowData;
 import org.cloudburstmc.api.entity.projectile.AbstractArrow;
 import org.cloudburstmc.api.entity.projectile.ArrowPickupStatus;
 import org.cloudburstmc.api.level.Level;
@@ -13,6 +12,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.entity.data.AbstractArrowData;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -21,9 +21,7 @@ import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Data-path tests for the abstract-arrow branch. {@link EntityAbstractArrow} is abstract

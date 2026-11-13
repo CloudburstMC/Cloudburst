@@ -1,30 +1,23 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.api.blockentity.data.BlockEntityData;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
-import org.cloudburstmc.api.nbt.NbtMapper;
+import org.cloudburstmc.api.persistence.PersistentDataType;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.blockentity.data.BlockEntityData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
+import org.cloudburstmc.server.persistence.CloudPersistentDataContainer;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
-import org.cloudburstmc.server.testutil.TestBlockEntities.LegacyBlockEntity;
-import org.cloudburstmc.server.testutil.TestBlockEntities.MigratedBlockEntity;
-import org.cloudburstmc.server.testutil.TestBlockEntities.PluginChestBlockEntity;
+import org.cloudburstmc.server.testutil.TestBlockEntities.*;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.cloudburstmc.server.testutil.TestBlockEntities.LEGACY_TYPE;
-import static org.cloudburstmc.server.testutil.TestBlockEntities.MIGRATED_TYPE;
-import static org.cloudburstmc.server.testutil.TestBlockEntities.PLUGIN_CHEST_TYPE;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Round-trip tests for the block-entity data path: unknown keys survive in the
@@ -32,6 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * plugin data stays server-side, and legacy registrations keep raw keys.
  */
 class BlockEntityPersistenceTest {
+
+    private static final Identifier PLUGIN_KEY = Identifier.parse("myplugin:a");
 
     private static final Vector3i POSITION = Vector3i.from(1, 2, 3);
 
@@ -107,22 +102,22 @@ class BlockEntityPersistenceTest {
                 .putInt("z", 3)
                 .build());
 
-        entity.setPluginData("myplugin", NbtMap.builder().putInt("a", 1).build());
+        entity.getPersistentDataContainer().set(PLUGIN_KEY, PersistentDataType.INTEGER, 1);
 
         NbtMap saved = entity.getServerTag();
-        assertEquals(1, saved.getCompound(NbtMapper.PLUGIN_DATA_KEY).getCompound("myplugin").getInt("a"));
-        assertFalse(entity.getClientTag().containsKey(NbtMapper.PLUGIN_DATA_KEY));
-        assertFalse(entity.getChunkTag().containsKey(NbtMapper.PLUGIN_DATA_KEY));
+        assertEquals(1, saved.getCompound(CloudPersistentDataContainer.STORAGE_KEY).getInt("myplugin:a"));
+        assertFalse(entity.getClientTag().containsKey(CloudPersistentDataContainer.STORAGE_KEY));
+        assertFalse(entity.getChunkTag().containsKey(CloudPersistentDataContainer.STORAGE_KEY));
 
         MigratedBlockEntity reloaded = PersistenceFixtures.blockEntity(MIGRATED_TYPE, POSITION);
         reloaded.loadAdditionalData(saved);
 
-        assertEquals(1, reloaded.getPluginData("myplugin").orElseThrow().getInt("a"));
+        assertEquals(1, reloaded.getPersistentDataContainer().get(PLUGIN_KEY, PersistentDataType.INTEGER).orElseThrow().intValue());
 
-        reloaded.removePluginData("myplugin");
+        reloaded.getPersistentDataContainer().remove(PLUGIN_KEY);
 
-        assertTrue(reloaded.getPluginData("myplugin").isEmpty());
-        assertFalse(reloaded.getServerTag().containsKey(NbtMapper.PLUGIN_DATA_KEY));
+        assertTrue(reloaded.getPersistentDataContainer().get(PLUGIN_KEY, PersistentDataType.INTEGER).isEmpty());
+        assertFalse(reloaded.getServerTag().containsKey(CloudPersistentDataContainer.STORAGE_KEY));
     }
 
     @Test
@@ -136,11 +131,11 @@ class BlockEntityPersistenceTest {
                 .build());
 
         long revision = entity.getChunk().captureSaveRevision();
-        entity.setPluginData("myplugin", NbtMap.builder().putInt("a", 1).build());
+        entity.getPersistentDataContainer().set(PLUGIN_KEY, PersistentDataType.INTEGER, 1);
         assertNotEquals(revision, entity.getChunk().captureSaveRevision());
 
         revision = entity.getChunk().captureSaveRevision();
-        entity.removePluginData("myplugin");
+        entity.getPersistentDataContainer().remove(PLUGIN_KEY);
         assertNotEquals(revision, entity.getChunk().captureSaveRevision());
     }
 

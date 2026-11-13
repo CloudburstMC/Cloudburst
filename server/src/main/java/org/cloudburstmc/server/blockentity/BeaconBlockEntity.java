@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.api.blockentity.data.BeaconData;
-import org.cloudburstmc.api.blockentity.data.BlockEntityData;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.blockentity.Beacon;
@@ -20,6 +18,8 @@ import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.server.blockentity.data.BeaconData;
+import org.cloudburstmc.server.blockentity.data.BlockEntityData;
 import org.cloudburstmc.server.level.chunk.LockedChunk;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;

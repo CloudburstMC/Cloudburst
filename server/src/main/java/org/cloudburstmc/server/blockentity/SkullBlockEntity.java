@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.api.blockentity.data.SkullData;
-import org.cloudburstmc.api.blockentity.data.BlockEntityData;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
@@ -13,6 +11,8 @@ import org.cloudburstmc.api.util.data.CardinalDirection;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.util.RedstoneSignals;
+import org.cloudburstmc.server.blockentity.data.BlockEntityData;
+import org.cloudburstmc.server.blockentity.data.SkullData;
 
 import java.util.Objects;
 

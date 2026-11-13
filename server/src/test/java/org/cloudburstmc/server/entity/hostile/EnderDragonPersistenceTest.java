@@ -3,7 +3,6 @@ package org.cloudburstmc.server.entity.hostile;
 import org.cloudburstmc.api.boss.BossBar;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
-import org.cloudburstmc.api.entity.data.EnderDragonData;
 import org.cloudburstmc.api.entity.hostile.EnderDragon;
 import org.cloudburstmc.api.event.entity.EntityDeathEvent;
 import org.cloudburstmc.api.level.Level;
@@ -12,6 +11,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
+import org.cloudburstmc.server.entity.data.EnderDragonData;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -22,9 +22,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Round-trip tests for the ender dragon data path: every key today's load/save handle,

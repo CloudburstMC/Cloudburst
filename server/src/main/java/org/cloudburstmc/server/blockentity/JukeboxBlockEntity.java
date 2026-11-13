@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.api.blockentity.data.JukeboxData;
-import org.cloudburstmc.api.blockentity.data.BlockEntityData;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Jukebox;
@@ -23,6 +21,8 @@ import org.cloudburstmc.protocol.bedrock.data.sound.StopSoundData;
 import org.cloudburstmc.protocol.bedrock.packet.ClientboundUpdateSoundDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RecordStartedPacket;
+import org.cloudburstmc.server.blockentity.data.BlockEntityData;
+import org.cloudburstmc.server.blockentity.data.JukeboxData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.network.SoundPacketFactory;
 import org.cloudburstmc.server.player.CloudPlayer;

@@ -2,12 +2,12 @@ package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.blockentity.CauldronContents;
-import org.cloudburstmc.api.blockentity.data.CauldronData;
 import org.cloudburstmc.api.potion.PotionForm;
 import org.cloudburstmc.api.potion.PotionTypes;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.blockentity.data.CauldronData;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;

@@ -1,15 +1,12 @@
 package org.cloudburstmc.server.entity.misc;
 
-import org.cloudburstmc.api.entity.data.DroppedItemData;
-import org.cloudburstmc.api.entity.data.EntityData;
-import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.blockentity.Bell;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.LiquidState;
+import org.cloudburstmc.api.blockentity.Bell;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
@@ -31,9 +28,10 @@ import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.entity.data.DroppedItemData;
+import org.cloudburstmc.server.entity.data.EntityData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.item.ItemDisplayNameResolver;
-import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.item.ItemStackPacketCodec;
 import org.cloudburstmc.server.item.ShulkerBoxItems;
 import org.cloudburstmc.server.player.CloudPlayer;

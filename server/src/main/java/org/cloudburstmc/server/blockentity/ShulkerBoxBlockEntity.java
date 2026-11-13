@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.api.blockentity.data.ShulkerBoxData;
-import org.cloudburstmc.api.blockentity.data.BlockEntityData;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.ShulkerBox;
@@ -26,6 +24,8 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEventPacket;
 import org.cloudburstmc.server.block.util.ShulkerBoxGeometry;
+import org.cloudburstmc.server.blockentity.data.BlockEntityData;
+import org.cloudburstmc.server.blockentity.data.ShulkerBoxData;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.server.entity.CloudEntity;

@@ -7,7 +7,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 
 public class DaylightDetectorBlockEntity extends BaseBlockEntity implements DaylightDetector {
 
-
     public DaylightDetectorBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }

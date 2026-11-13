@@ -6,10 +6,9 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
-import org.cloudburstmc.api.blockentity.data.BlockEntityData;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.api.nbt.NbtMapper;
+import org.cloudburstmc.api.persistence.PersistentDataContainer;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
@@ -17,19 +16,17 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.blockentity.data.BlockEntityData;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.server.nbt.ClientNbt;
 import org.cloudburstmc.server.nbt.ServerNbt;
+import org.cloudburstmc.server.persistence.CloudPersistentDataContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -40,13 +37,10 @@ public abstract class BaseBlockEntity implements BlockEntity {
 
     private static final Map<BlockEntityType<?>, NbtMap> tags = new HashMap<>();
 
-    private static final ConcurrentHashMap<DataClassKey, Class<? extends BlockEntityData>> EFFECTIVE_DATA_CLASSES =
-            new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<Class<?>, java.lang.reflect.Constructor<?>> DATA_CONSTRUCTORS =
-            new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<DataClassKey, Class<? extends BlockEntityData>> EFFECTIVE_DATA_CLASSES = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Class<?>, java.lang.reflect.Constructor<?>> DATA_CONSTRUCTORS = new ConcurrentHashMap<>();
 
-    private record DataClassKey(Class<?> runtimeClass, BlockEntityType<?> type) {
-    }
+    private record DataClassKey(Class<?> runtimeClass, BlockEntityType<?> type) { }
 
     public static AtomicLong ID_ALLOCATOR = new AtomicLong(1);
     public final long id;
@@ -60,6 +54,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
 
     protected long lastUpdate;
     protected CloudServer server;
+    private final CloudPersistentDataContainer persistentData = new CloudPersistentDataContainer(this::setDirty);
     private NbtMap tag;
 
     private boolean justCreated = true;
@@ -112,6 +107,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
 
     public final void loadAdditionalData(NbtMap tag) {
         this.tag = tag;
+        this.persistentData.load(tag);
         tags.putIfAbsent(this.getType(), tag);
 
         ServerNbt.MAPPER.readInto(tag, this.data);
@@ -127,7 +123,8 @@ public abstract class BaseBlockEntity implements BlockEntity {
             for (Map.Entry<String, Object> entry : this.tag.entrySet()) {
                 String key = entry.getKey();
                 if (key.equals("id") || key.equals("x") || key.equals("y") || key.equals("z")
-                        || owned.contains(key) || custom.contains(key)) {
+                        || owned.contains(key) || custom.contains(key)
+                        || key.equals(CloudPersistentDataContainer.STORAGE_KEY)) {
                     continue;
                 }
                 tag.put(key, entry.getValue());
@@ -138,6 +135,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
         tag.putAll(ServerNbt.MAPPER.write(data));
 
         this.saveCustom(tag);
+        this.persistentData.save(tag);
 
 //        NbtMap nbt = tag.build();
 //        checkNbt(this.tag, nbt);
@@ -159,50 +157,8 @@ public abstract class BaseBlockEntity implements BlockEntity {
     }
 
     @Override
-    public Optional<NbtMap> getPluginData(String pluginId) {
-        checkNotNull(pluginId, "pluginId");
-        if (this.tag == null) {
-            return Optional.empty();
-        }
-        NbtMap root = this.tag.getCompound(NbtMapper.PLUGIN_DATA_KEY, null);
-        if (root == null) {
-            return Optional.empty();
-        }
-        return Optional.ofNullable(root.getCompound(pluginId, null));
-    }
-
-    @Override
-    public void setPluginData(String pluginId, NbtMap data) {
-        checkNotNull(pluginId, "pluginId");
-        checkNotNull(data, "data");
-        NbtMap tag = this.tag == null ? NbtMap.EMPTY : this.tag;
-        NbtMapBuilder root = tag.getCompound(NbtMapper.PLUGIN_DATA_KEY, NbtMap.EMPTY).toBuilder();
-        root.putCompound(pluginId, data);
-        NbtMapBuilder builder = tag.toBuilder();
-        builder.putCompound(NbtMapper.PLUGIN_DATA_KEY, root.build());
-        this.tag = builder.build();
-        this.setDirty();
-    }
-
-    @Override
-    public void removePluginData(String pluginId) {
-        checkNotNull(pluginId, "pluginId");
-        if (this.tag == null) {
-            return;
-        }
-        if (!this.tag.getCompound(NbtMapper.PLUGIN_DATA_KEY, NbtMap.EMPTY).containsKey(pluginId)) {
-            return;
-        }
-        NbtMapBuilder root = this.tag.getCompound(NbtMapper.PLUGIN_DATA_KEY).toBuilder();
-        root.remove(pluginId);
-        NbtMapBuilder builder = this.tag.toBuilder();
-        if (root.isEmpty()) {
-            builder.remove(NbtMapper.PLUGIN_DATA_KEY);
-        } else {
-            builder.putCompound(NbtMapper.PLUGIN_DATA_KEY, root.build());
-        }
-        this.tag = builder.build();
-        this.setDirty();
+    public PersistentDataContainer getPersistentDataContainer() {
+        return this.persistentData;
     }
 
     /**
@@ -347,7 +303,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
 //            log.info(NbtUtils.toString(tag.build()));
 //            log.info("\n\n\n");
         } else {
-            tag.putAll(ServerNbt.MAPPER.writeClient(this.data));
+            tag.putAll(ClientNbt.write(ServerNbt.MAPPER, this.data));
             this.saveCustomClient(tag);
         }
 

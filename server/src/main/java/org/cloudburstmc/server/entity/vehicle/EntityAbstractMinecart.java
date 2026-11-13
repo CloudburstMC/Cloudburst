@@ -8,8 +8,6 @@ import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
-import org.cloudburstmc.api.entity.data.AbstractMinecartData;
-import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.event.vehicle.VehicleMoveEvent;
 import org.cloudburstmc.api.event.vehicle.VehicleUpdateEvent;
 import org.cloudburstmc.api.item.ItemStack;
@@ -31,6 +29,8 @@ import org.cloudburstmc.server.block.util.RailConnector;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
+import org.cloudburstmc.server.entity.data.AbstractMinecartData;
+import org.cloudburstmc.server.entity.data.EntityData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.math.MathHelper;
 

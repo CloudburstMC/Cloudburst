@@ -3,10 +3,7 @@ package org.cloudburstmc.server.blockentity;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Crafter;
-import org.cloudburstmc.api.blockentity.data.BlockEntityData;
-import org.cloudburstmc.api.blockentity.data.CrafterData;
 import org.cloudburstmc.api.inventory.ItemContainer;
-import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.api.inventory.view.CrafterView;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.api.inventory.view.SlotGroupType;
@@ -14,6 +11,9 @@ import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.blockentity.data.BlockEntityData;
+import org.cloudburstmc.server.blockentity.data.CrafterData;
+import org.cloudburstmc.server.container.ContainerListener;
 
 import java.util.HashSet;
 

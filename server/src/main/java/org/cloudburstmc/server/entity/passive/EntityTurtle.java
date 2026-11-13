@@ -1,8 +1,6 @@
 package org.cloudburstmc.server.entity.passive;
 
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.data.EntityData;
-import org.cloudburstmc.api.entity.data.TurtleData;
 import org.cloudburstmc.api.entity.passive.Turtle;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -11,6 +9,8 @@ import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.server.entity.data.EntityData;
+import org.cloudburstmc.server.entity.data.TurtleData;
 
 import java.util.HashSet;
 import java.util.Set;

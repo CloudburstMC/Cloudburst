@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.nbt.serializer;
 
-import org.cloudburstmc.api.nbt.NbtKindMismatchException;
-import org.cloudburstmc.api.nbt.internal.NbtParser;
 import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.server.nbt.NbtKindMismatchException;
+import org.cloudburstmc.server.nbt.internal.NbtParser;
 import org.cloudburstmc.server.potion.PotionEffectDataSerializer;
 import tools.jackson.core.JsonParser;
 import tools.jackson.databind.DeserializationContext;

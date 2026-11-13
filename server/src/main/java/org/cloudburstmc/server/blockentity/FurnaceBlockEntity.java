@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.api.blockentity.data.FurnaceData;
-import org.cloudburstmc.api.blockentity.data.BlockEntityData;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
@@ -26,19 +24,18 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerSetDataPacket;
+import org.cloudburstmc.server.blockentity.data.BlockEntityData;
+import org.cloudburstmc.server.blockentity.data.FurnaceData;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.server.crafting.CloudCookingRecipe;
-import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 import org.cloudburstmc.server.registry.VanillaCookingData;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

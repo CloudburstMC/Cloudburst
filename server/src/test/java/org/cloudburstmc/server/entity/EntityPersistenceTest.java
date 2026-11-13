@@ -4,27 +4,29 @@ import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
-import org.cloudburstmc.api.entity.data.CreatureData;
-import org.cloudburstmc.api.entity.data.EntityData;
-import org.cloudburstmc.api.entity.data.LivingData;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Level;
-import org.cloudburstmc.api.nbt.NbtMapper;
+import org.cloudburstmc.api.persistence.PersistentDataType;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.potion.PotionEffect;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
+import org.cloudburstmc.server.entity.data.CreatureData;
+import org.cloudburstmc.server.entity.data.EntityData;
+import org.cloudburstmc.server.entity.data.LivingData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.nbt.ServerNbt;
 import org.cloudburstmc.server.network.NetworkUtils;
+import org.cloudburstmc.server.persistence.CloudPersistentDataContainer;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -32,18 +34,9 @@ import org.cloudburstmc.server.testutil.TestEntities;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Round-trip tests for the entity data path: unknown keys survive in the
@@ -51,6 +44,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * plugin data stays server-side, and every registration round-trips.
  */
 class EntityPersistenceTest {
+
+    private static final Identifier PLUGIN_KEY = Identifier.parse("myplugin:a");
 
     @Test
     void entityUnknownKeysSurvive() {
@@ -110,26 +105,26 @@ class EntityPersistenceTest {
         CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
         entity.loadAdditionalData(NbtMap.EMPTY);
 
-        entity.setPluginData("myplugin", NbtMap.builder().putInt("a", 1).build());
+        entity.getPersistentDataContainer().set(PLUGIN_KEY, PersistentDataType.INTEGER, 1);
 
         NbtMapBuilder builder = NbtMap.builder();
         entity.saveAdditionalData(builder);
         NbtMap saved = builder.build();
 
-        assertEquals(1, saved.getCompound(NbtMapper.PLUGIN_DATA_KEY).getCompound("myplugin").getInt("a"));
+        assertEquals(1, saved.getCompound(CloudPersistentDataContainer.STORAGE_KEY).getInt("myplugin:a"));
 
         CloudEntity reloaded = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
         reloaded.loadAdditionalData(saved);
 
-        assertEquals(1, reloaded.getPluginData("myplugin").orElseThrow().getInt("a"));
+        assertEquals(1, reloaded.getPersistentDataContainer().get(PLUGIN_KEY, PersistentDataType.INTEGER).orElseThrow().intValue());
 
-        reloaded.removePluginData("myplugin");
+        reloaded.getPersistentDataContainer().remove(PLUGIN_KEY);
 
-        assertTrue(reloaded.getPluginData("myplugin").isEmpty());
+        assertTrue(reloaded.getPersistentDataContainer().get(PLUGIN_KEY, PersistentDataType.INTEGER).isEmpty());
 
         NbtMapBuilder afterRemove = NbtMap.builder();
         reloaded.saveAdditionalData(afterRemove);
-        assertFalse(afterRemove.build().containsKey(NbtMapper.PLUGIN_DATA_KEY));
+        assertFalse(afterRemove.build().containsKey(CloudPersistentDataContainer.STORAGE_KEY));
     }
 
     @Test
@@ -142,11 +137,11 @@ class EntityPersistenceTest {
         entity.chunk = new CloudChunk(0, 0, InterfaceProxy.create(Level.class));
 
         long revision = entity.chunk.captureSaveRevision();
-        entity.setPluginData("myplugin", NbtMap.builder().putInt("a", 1).build());
+        entity.getPersistentDataContainer().set(PLUGIN_KEY, PersistentDataType.INTEGER, 1);
         assertNotEquals(revision, entity.chunk.captureSaveRevision());
 
         revision = entity.chunk.captureSaveRevision();
-        entity.removePluginData("myplugin");
+        entity.getPersistentDataContainer().remove(PLUGIN_KEY);
         assertNotEquals(revision, entity.chunk.captureSaveRevision());
     }
 
@@ -155,8 +150,8 @@ class EntityPersistenceTest {
         CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
         entity.loadAdditionalData(NbtMap.EMPTY);
 
-        entity.setPluginData("myplugin", NbtMap.builder().putInt("a", 1).build());
-        entity.removePluginData("myplugin");
+        entity.getPersistentDataContainer().set(PLUGIN_KEY, PersistentDataType.INTEGER, 1);
+        entity.getPersistentDataContainer().remove(PLUGIN_KEY);
     }
 
     @Test
@@ -202,7 +197,7 @@ class EntityPersistenceTest {
         // minimum resolves the effective class so the creature cast cannot fail.
         assertEquals(EntityData.class,
                 CloudEntityRegistry.get().getDataClass(TestEntities.LEGACY_CREATURE_TYPE));
-        assertEquals(org.cloudburstmc.api.entity.data.CreatureData.class, entity.dataClass());
+        assertEquals(org.cloudburstmc.server.entity.data.CreatureData.class, entity.dataClass());
 
         entity.loadAdditionalData(NbtMap.builder()
                 .putList("Pos", NbtType.FLOAT, List.of(1f, 2f, 3f))
@@ -284,9 +279,9 @@ class EntityPersistenceTest {
             failures.forEach(System.out::println);
         }
         assertTrue(failures.isEmpty(), "Entity round-trip failures: " + failures);
-        assertEquals(org.cloudburstmc.api.entity.data.CreatureData.class,
+        assertEquals(org.cloudburstmc.server.entity.data.CreatureData.class,
                 CloudEntityRegistry.get().getDataClass(EntityTypes.PIG));
-        assertEquals(org.cloudburstmc.api.entity.data.PaintingData.class,
+        assertEquals(org.cloudburstmc.server.entity.data.PaintingData.class,
                 CloudEntityRegistry.get().getDataClass(EntityTypes.PAINTING));
     }
 

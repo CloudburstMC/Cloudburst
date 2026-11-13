@@ -3,11 +3,11 @@ package org.cloudburstmc.server.blockentity;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
-import org.cloudburstmc.api.blockentity.data.MovingBlockData;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.block.BlockPalette;
+import org.cloudburstmc.server.blockentity.data.MovingBlockData;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.BlockTestRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -17,10 +17,7 @@ import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Round-trip tests for the moving-block data path: every key today's load/save

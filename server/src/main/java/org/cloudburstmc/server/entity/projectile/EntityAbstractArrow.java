@@ -3,8 +3,6 @@ package org.cloudburstmc.server.entity.projectile;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.data.AbstractArrowData;
-import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.entity.projectile.AbstractArrow;
 import org.cloudburstmc.api.entity.projectile.ArrowPickupStatus;
 import org.cloudburstmc.api.level.Location;
@@ -16,6 +14,8 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.entity.data.AbstractArrowData;
+import org.cloudburstmc.server.entity.data.EntityData;
 
 import java.util.HashSet;
 import java.util.Set;

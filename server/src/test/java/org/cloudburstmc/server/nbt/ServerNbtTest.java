@@ -6,9 +6,6 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
-import org.cloudburstmc.api.nbt.NbtMapper;
-import org.cloudburstmc.api.nbt.NbtTag;
-import org.cloudburstmc.api.nbt.NbtTagType;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
@@ -62,11 +59,11 @@ class ServerNbtTest {
         // Free-standing DTOs hold a detached container; the server's factory is discovered
         // as a service on first use, so building a DTO needs no owner and no prior setup.
 
-        assertEquals(27, new org.cloudburstmc.api.blockentity.data.ChestData().getItems().size());
-        assertEquals(27, new org.cloudburstmc.api.entity.data.ChestBoatData().getItems().size());
+        assertEquals(27, new org.cloudburstmc.server.blockentity.data.ChestData().getItems().size());
+        assertEquals(27, new org.cloudburstmc.server.entity.data.ChestBoatData().getItems().size());
         // Player containers stay null until the player wires its live ones; constructing
         // the DTO itself must not throw either.
-        new org.cloudburstmc.api.entity.data.PlayerData();
+        new org.cloudburstmc.server.entity.data.PlayerData();
     }
 
     @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)

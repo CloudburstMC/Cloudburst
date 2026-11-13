@@ -3,13 +3,13 @@ package org.cloudburstmc.server.blockentity;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Sign;
-import org.cloudburstmc.api.blockentity.data.BlockEntityData;
-import org.cloudburstmc.api.blockentity.data.SignData;
 import org.cloudburstmc.api.event.block.SignChangeEvent;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
+import org.cloudburstmc.server.blockentity.data.BlockEntityData;
+import org.cloudburstmc.server.blockentity.data.SignData;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.Arrays;

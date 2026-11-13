@@ -10,36 +10,12 @@ import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityFactory;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
-import org.cloudburstmc.api.blockentity.data.BannerData;
-import org.cloudburstmc.api.blockentity.data.BarrelData;
-import org.cloudburstmc.api.blockentity.data.BeaconData;
-import org.cloudburstmc.api.blockentity.data.BedData;
-import org.cloudburstmc.api.blockentity.data.BlockEntityData;
-import org.cloudburstmc.api.blockentity.data.BrewingStandData;
-import org.cloudburstmc.api.blockentity.data.CampfireData;
-import org.cloudburstmc.api.blockentity.data.CauldronData;
-import org.cloudburstmc.api.blockentity.data.ChestData;
-import org.cloudburstmc.api.blockentity.data.ComparatorData;
-import org.cloudburstmc.api.blockentity.data.CrafterData;
-import org.cloudburstmc.api.blockentity.data.DispenserData;
-import org.cloudburstmc.api.blockentity.data.DropperData;
-import org.cloudburstmc.api.blockentity.data.EndGatewayData;
-import org.cloudburstmc.api.blockentity.data.FlowerPotData;
-import org.cloudburstmc.api.blockentity.data.FurnaceData;
-import org.cloudburstmc.api.blockentity.data.HopperData;
-import org.cloudburstmc.api.blockentity.data.ItemFrameData;
-import org.cloudburstmc.api.blockentity.data.JukeboxData;
-import org.cloudburstmc.api.blockentity.data.LecternData;
-import org.cloudburstmc.api.blockentity.data.MovingBlockData;
-import org.cloudburstmc.api.blockentity.data.MusicData;
-import org.cloudburstmc.api.blockentity.data.ShulkerBoxData;
-import org.cloudburstmc.api.blockentity.data.SignData;
-import org.cloudburstmc.api.blockentity.data.SkullData;
 import org.cloudburstmc.api.registry.BlockEntityRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.blockentity.*;
+import org.cloudburstmc.server.blockentity.data.*;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 
 import java.util.*;
@@ -79,7 +55,6 @@ public final class CloudBlockEntityRegistry implements BlockEntityRegistry {
         checkNotNull(type, "type");
         checkNotNull(factory, "factory");
         checkNotNull(persistentId, "persistentId");
-        checkNotNull(dataClass, "dataClass");
 
         this.persistentMap.put(type, persistentId);
         this.providers.put(type, new RegistryServiceProvider<>(new RegistryProvider<>(factory, null, 1000)));
@@ -91,14 +66,12 @@ public final class CloudBlockEntityRegistry implements BlockEntityRegistry {
     public synchronized <T extends BlockEntity> void register(BlockEntityType<T> type,
                                                               BlockEntityFactory<T> factory,
                                                               String persistentId,
-                                                              Set<BlockType> validBlocks,
-                                                              Class<? extends BlockEntityData> dataClass) throws RegistryException {
+                                                              Set<BlockType> validBlocks) throws RegistryException {
         checkClosed();
         checkNotNull(type, "type");
         checkNotNull(factory, "factory");
         checkNotNull(persistentId, "persistentId");
         checkNotNull(validBlocks, "validBlocks");
-        checkNotNull(dataClass, "dataClass");
         checkArgument(!type.getId().getNamespace().equals("minecraft"),
                 "Custom block entity types must use a non-minecraft namespace: %s", type.getId());
         checkArgument(!persistentId.isBlank(), "persistentId cannot be blank");
@@ -109,10 +82,8 @@ public final class CloudBlockEntityRegistry implements BlockEntityRegistry {
         this.persistentMap.put(type, persistentId);
         this.providers.put(type, new RegistryServiceProvider<>(new RegistryProvider<>(factory, null, 0)));
         this.validBlocks.put(type, Set.copyOf(validBlocks));
-        this.dataClasses.put(type, dataClass);
     }
 
-    @Override
     public Class<? extends BlockEntityData> getDataClass(BlockEntityType<?> type) {
         checkNotNull(type, "type");
         return this.dataClasses.getOrDefault(type, BlockEntityData.class);

@@ -6,10 +6,6 @@ import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.inventory.ItemContainers;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
-import org.cloudburstmc.api.nbt.NbtContainerSize;
-import org.cloudburstmc.api.nbt.NbtMapper;
-import org.cloudburstmc.api.nbt.NbtTag;
-import org.cloudburstmc.api.nbt.NbtTagType;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.nbt.NbtList;
@@ -24,12 +20,7 @@ import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests the server's serializers for the runtime types data objects hold:

@@ -1,0 +1,30 @@
+package org.cloudburstmc.server.blockentity.data;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.cloudburstmc.api.inventory.ItemContainer;
+import org.cloudburstmc.api.inventory.ItemContainers;
+import org.cloudburstmc.server.nbt.NbtContainerSize;
+import org.cloudburstmc.server.nbt.NbtTag;
+import org.cloudburstmc.server.nbt.NbtTagType;
+
+/**
+ * Persistent data of a hopper: its 5-slot container plus the pull/push cooldown.
+ */
+@Getter
+@Setter
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+public class HopperData extends ContainerData {
+
+    @JsonProperty("Items")
+    @NbtTag(value = NbtTagType.LIST, element = NbtTagType.COMPOUND)
+    @NbtContainerSize(5)
+    private ItemContainer items = ItemContainers.detached(5);
+
+    @JsonProperty("TransferCooldown")
+    private int transferCooldown = 8;
+}

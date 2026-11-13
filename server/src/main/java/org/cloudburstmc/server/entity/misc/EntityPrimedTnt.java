@@ -4,17 +4,16 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Explosive;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
-import org.cloudburstmc.api.entity.data.EntityData;
-import org.cloudburstmc.api.entity.data.PrimedTntData;
 import org.cloudburstmc.api.entity.misc.PrimedTnt;
 import org.cloudburstmc.api.level.ExplosionBlockInteraction;
 import org.cloudburstmc.api.level.ExplosionSettings;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
-import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
-
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.entity.data.EntityData;
+import org.cloudburstmc.server.entity.data.PrimedTntData;
+import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.FUSE_TIME;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.IGNITED;

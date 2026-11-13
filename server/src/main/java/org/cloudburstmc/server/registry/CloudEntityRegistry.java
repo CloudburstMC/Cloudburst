@@ -13,28 +13,6 @@ import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.LiquidTypes;
 import org.cloudburstmc.api.entity.*;
-import org.cloudburstmc.api.entity.data.AbstractArrowData;
-import org.cloudburstmc.api.entity.data.AbstractMinecartData;
-import org.cloudburstmc.api.entity.data.AreaEffectCloudData;
-import org.cloudburstmc.api.entity.data.ArrowData;
-import org.cloudburstmc.api.entity.data.BoatData;
-import org.cloudburstmc.api.entity.data.ChestBoatData;
-import org.cloudburstmc.api.entity.data.CreatureData;
-import org.cloudburstmc.api.entity.data.DroppedItemData;
-import org.cloudburstmc.api.entity.data.EnderCrystalData;
-import org.cloudburstmc.api.entity.data.EnderDragonData;
-import org.cloudburstmc.api.entity.data.ExperienceOrbData;
-import org.cloudburstmc.api.entity.data.FallingBlockData;
-import org.cloudburstmc.api.entity.data.FireworksRocketData;
-import org.cloudburstmc.api.entity.data.HappyGhastData;
-import org.cloudburstmc.api.entity.data.HumanData;
-import org.cloudburstmc.api.entity.data.PaintingData;
-import org.cloudburstmc.api.entity.data.PrimedTntData;
-import org.cloudburstmc.api.entity.data.ProjectileData;
-import org.cloudburstmc.api.entity.data.SplashPotionData;
-import org.cloudburstmc.api.entity.data.ThrownTridentData;
-import org.cloudburstmc.api.entity.data.TntMinecartData;
-import org.cloudburstmc.api.entity.data.TurtleData;
 import org.cloudburstmc.api.entity.component.Buoyancy;
 import org.cloudburstmc.api.entity.component.InteractEntityHandler;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
@@ -58,6 +36,7 @@ import org.cloudburstmc.server.entity.UnknownEntity;
 import org.cloudburstmc.server.entity.component.BucketableEntityHandlers;
 import org.cloudburstmc.server.entity.component.PickItemEntityHandlers;
 import org.cloudburstmc.server.entity.component.SnowGolemEntityHandlers;
+import org.cloudburstmc.server.entity.data.*;
 import org.cloudburstmc.server.entity.hostile.*;
 import org.cloudburstmc.server.entity.misc.*;
 import org.cloudburstmc.server.entity.passive.*;
@@ -85,8 +64,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
 
     private static final EntityData<UnknownEntity> UNKNOWN_ENTITY_DATA =
             new EntityData<>(false, new RegistryProvider<>(
-                    new EntityFactoryData<>(UnknownEntity::new,
-                            org.cloudburstmc.api.entity.data.EntityData.class), null, 0));
+                    new EntityFactoryData<>(UnknownEntity::new, org.cloudburstmc.server.entity.data.EntityData.class), null, 0));
 
     static {
         try (InputStream stream = RegistryUtils.getOrAssertResource("legacy/entity_names.json")) {
@@ -158,46 +136,38 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
     @Override
     public synchronized <T extends Entity> void register(EntityType<T> type, EntityFactory<T> factory,
                                                          int priority, boolean hasSpawnEgg) {
-        this.register(type, factory, priority, hasSpawnEgg, org.cloudburstmc.api.entity.data.EntityData.class);
-    }
-
-    @Override
-    public synchronized <T extends Entity> void register(EntityType<T> type, EntityFactory<T> factory,
-                                                         int priority, boolean hasSpawnEgg,
-                                                         Class<? extends org.cloudburstmc.api.entity.data.EntityData> dataClass) {
-        this.registerInternal(null, type, factory, this.runtimeTypeAllocator++, priority, hasSpawnEgg, dataClass);
+        this.registerInternal(null, type, factory, this.runtimeTypeAllocator++, priority, hasSpawnEgg, org.cloudburstmc.server.entity.data.EntityData.class);
     }
 
     public synchronized <T extends Entity> void register(Object plugin, EntityType<T> type, EntityFactory<T> factory,
                                                          int priority, boolean hasSpawnEgg) {
         this.register(plugin, type, factory, priority, hasSpawnEgg,
-                org.cloudburstmc.api.entity.data.EntityData.class);
+                org.cloudburstmc.server.entity.data.EntityData.class);
     }
 
     public synchronized <T extends Entity> void register(Object plugin, EntityType<T> type, EntityFactory<T> factory,
                                                          int priority, boolean hasSpawnEgg,
-                                                         Class<? extends org.cloudburstmc.api.entity.data.EntityData> dataClass) {
+                                                         Class<? extends org.cloudburstmc.server.entity.data.EntityData> dataClass) {
         this.registerInternal(plugin, type, factory, this.runtimeTypeAllocator++, priority, hasSpawnEgg, dataClass);
     }
 
-    @Override
-    public Class<? extends org.cloudburstmc.api.entity.data.EntityData> getDataClass(EntityType<?> type) {
+    public Class<? extends org.cloudburstmc.server.entity.data.EntityData> getDataClass(EntityType<?> type) {
         checkNotNull(type, "type");
         EntityData<?> data = this.dataMap.get(type);
         if (data == null) {
-            return org.cloudburstmc.api.entity.data.EntityData.class;
+            return org.cloudburstmc.server.entity.data.EntityData.class;
         }
         return data.serviceProvider().getProvider().getValue().dataClass();
     }
 
     private <T extends Entity> void registerVanilla(EntityType<T> type, EntityFactory<T> factory, int legacyId,
-                                                      Class<? extends org.cloudburstmc.api.entity.data.EntityData> dataClass) {
+                                                      Class<? extends org.cloudburstmc.server.entity.data.EntityData> dataClass) {
         this.registerInternal(null, type, factory, legacyId, 1000, false, dataClass);
     }
 
     private synchronized <T extends Entity> void registerInternal(Object plugin, EntityType<T> type, EntityFactory<T> factory,
                                                                   int runtimeType, int priority, boolean hasSpawnEgg,
-                                                                  Class<? extends org.cloudburstmc.api.entity.data.EntityData> dataClass)
+                                                                  Class<? extends org.cloudburstmc.server.entity.data.EntityData> dataClass)
             throws RegistryException {
         checkClosed();
         checkNotNull(type, "type");
@@ -454,7 +424,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         registerVanilla(SQUID, EntitySquid::new, 17, CreatureData.class);
         registerVanilla(RABBIT, EntityRabbit::new, 18, CreatureData.class);
         registerVanilla(BAT, EntityBat::new, 19, CreatureData.class);
-        registerVanilla(IRON_GOLEM, EntityIronGolem::new, 20, org.cloudburstmc.api.entity.data.EntityData.class);
+        registerVanilla(IRON_GOLEM, EntityIronGolem::new, 20, org.cloudburstmc.server.entity.data.EntityData.class);
         registerVanilla(SNOW_GOLEM, EntitySnowGolem::new, 21, CreatureData.class);
         registerVanilla(OCELOT, EntityOcelot::new, 22, CreatureData.class);
         registerVanilla(HORSE, EntityHorse::new, 23, CreatureData.class);
@@ -485,7 +455,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         registerVanilla(WITHER_SKELETON, EntityWitherSkeleton::new, 48, CreatureData.class);
         registerVanilla(GUARDIAN, EntityGuardian::new, 49, CreatureData.class);
         registerVanilla(ELDER_GUARDIAN, EntityElderGuardian::new, 50, CreatureData.class);
-        registerVanilla(NPC, EntityNpc::new, 51, org.cloudburstmc.api.entity.data.EntityData.class);
+        registerVanilla(NPC, EntityNpc::new, 51, org.cloudburstmc.server.entity.data.EntityData.class);
         registerVanilla(WITHER, EntityWither::new, 52, CreatureData.class);
         registerVanilla(ENDER_DRAGON, EntityEnderDragon::new, 53, EnderDragonData.class);
         registerVanilla(SHULKER, EntityShulker::new, 54, CreatureData.class);
@@ -494,8 +464,8 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         registerVanilla(VINDICATOR, EntityVindicator::new, 57, CreatureData.class);
         registerVanilla(PHANTOM, EntityPhantom::new, 58, CreatureData.class);
         registerVanilla(RAVAGER, EntityRavager::new, 59, CreatureData.class);
-        registerVanilla(ARMOR_STAND, EntityArmorStand::new, 61, org.cloudburstmc.api.entity.data.LivingData.class);
-        registerVanilla(TRIPOD_CAMERA, EntityTripodCamera::new, 62, org.cloudburstmc.api.entity.data.EntityData.class);
+        registerVanilla(ARMOR_STAND, EntityArmorStand::new, 61, org.cloudburstmc.server.entity.data.LivingData.class);
+        registerVanilla(TRIPOD_CAMERA, EntityTripodCamera::new, 62, org.cloudburstmc.server.entity.data.EntityData.class);
         registerVanilla(ITEM, EntityItem::new, 64, DroppedItemData.class);
         registerVanilla(TNT, EntityPrimedTnt::new, 65, PrimedTntData.class);
         registerVanilla(FALLING_BLOCK, EntityFallingBlock::new, 66, FallingBlockData.class);
@@ -518,11 +488,11 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         registerVanilla(FIREBALL, EntityFireball::new, 85, ProjectileData.class);
         registerVanilla(SPLASH_POTION, EntitySplashPotion::new, 86, SplashPotionData.class);
         registerVanilla(ENDER_PEARL, EntityEnderPearl::new, 87, ProjectileData.class);
-        registerVanilla(LEASH_KNOT, EntityLeashKnot::new, 88, org.cloudburstmc.api.entity.data.EntityData.class);
+        registerVanilla(LEASH_KNOT, EntityLeashKnot::new, 88, org.cloudburstmc.server.entity.data.EntityData.class);
         registerVanilla(WITHER_SKULL, EntityWitherSkull::new, 89, ProjectileData.class);
         registerVanilla(BOAT, EntityBoat::new, 90, BoatData.class);
         registerVanilla(WITHER_SKULL_DANGEROUS, EntityWitherSkullDangerous::new, 91, ProjectileData.class);
-        registerVanilla(LIGHTNING_BOLT, EntityLightningBolt::new, 93, org.cloudburstmc.api.entity.data.EntityData.class);
+        registerVanilla(LIGHTNING_BOLT, EntityLightningBolt::new, 93, org.cloudburstmc.server.entity.data.EntityData.class);
         registerVanilla(SMALL_FIREBALL, EntitySmallFireball::new, 94, ProjectileData.class);
         registerVanilla(AREA_EFFECT_CLOUD, EntityAreaEffectCloud::new, 95, AreaEffectCloudData.class);
         registerVanilla(HOPPER_MINECART, EntityHopperMinecart::new, 96, AbstractMinecartData.class);
@@ -531,11 +501,11 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         registerVanilla(COMMAND_BLOCK_MINECART, EntityCommandBlockMinecart::new, 100, AbstractMinecartData.class);
         registerVanilla(LINGERING_POTION, EntityLingeringPotion::new, 101, SplashPotionData.class);
         registerVanilla(LLAMA_SPIT, EntityLlamaSpit::new, 102, ProjectileData.class);
-        registerVanilla(EVOCATION_FANG, EntityEvocationFang::new, 103, org.cloudburstmc.api.entity.data.EntityData.class);
+        registerVanilla(EVOCATION_FANG, EntityEvocationFang::new, 103, org.cloudburstmc.server.entity.data.EntityData.class);
         registerVanilla(EVOCATION_ILLAGER, EntityEvocationIllager::new, 104, CreatureData.class);
         registerVanilla(VEX, EntityVex::new, 105, CreatureData.class);
-        registerVanilla(ICE_BOMB, EntityIceBomb::new, 106, org.cloudburstmc.api.entity.data.EntityData.class);
-        registerVanilla(BALLOON, EntityBalloon::new, 107, org.cloudburstmc.api.entity.data.EntityData.class);
+        registerVanilla(ICE_BOMB, EntityIceBomb::new, 106, org.cloudburstmc.server.entity.data.EntityData.class);
+        registerVanilla(BALLOON, EntityBalloon::new, 107, org.cloudburstmc.server.entity.data.EntityData.class);
         registerVanilla(PUFFERFISH, EntityPufferfish::new, 108, CreatureData.class);
         registerVanilla(SALMON, EntitySalmon::new, 109, CreatureData.class);
         registerVanilla(DROWNED, EntityDrowned::new, 110, CreatureData.class);
@@ -568,7 +538,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         registerVanilla(ARMADILLO, EntityArmadillo::new, 142, CreatureData.class);
         registerVanilla(WIND_CHARGE_PROJECTILE, EntityWindChargeProjectile::new, 143, ProjectileData.class);
         registerVanilla(BOGGED, EntityBogged::new, 144, CreatureData.class);
-        registerVanilla(OMINOUS_ITEM_SPAWNER, EntityOminousItemSpawner::new, 145, org.cloudburstmc.api.entity.data.EntityData.class);
+        registerVanilla(OMINOUS_ITEM_SPAWNER, EntityOminousItemSpawner::new, 145, org.cloudburstmc.server.entity.data.EntityData.class);
         registerVanilla(CREAKING, EntityCreaking::new, 146, CreatureData.class);
         registerVanilla(HAPPY_GHAST, EntityHappyGhast::new, 147, HappyGhastData.class);
         registerVanilla(COPPER_GOLEM, EntityCopperGolem::new, 148, CreatureData.class);
@@ -630,7 +600,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
     }
 
     private record EntityFactoryData<T extends Entity>(EntityFactory<T> factory,
-                                                       Class<? extends org.cloudburstmc.api.entity.data.EntityData> dataClass) {
+                                                       Class<? extends org.cloudburstmc.server.entity.data.EntityData> dataClass) {
     }
 
     private record EntityData<T extends Entity>(boolean hasSpawnEgg, RegistryServiceProvider<EntityFactoryData<T>> serviceProvider) {
