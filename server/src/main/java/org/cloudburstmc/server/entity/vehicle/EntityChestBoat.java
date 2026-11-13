@@ -16,8 +16,8 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.screen.CloudChestBoatScreen;
 import org.cloudburstmc.server.container.view.CloudEntityStorageView;
-import org.cloudburstmc.server.entity.data.ChestBoatData;
-import org.cloudburstmc.server.entity.data.EntityData;
+import org.cloudburstmc.server.entity.data.CloudChestBoatData;
+import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.HashSet;
@@ -46,13 +46,13 @@ public class EntityChestBoat extends EntityBoat implements ChestBoat {
     }
 
     @Override
-    protected ChestBoatData data() {
-        return (ChestBoatData) super.data();
+    protected CloudChestBoatData data() {
+        return (CloudChestBoatData) super.data();
     }
 
     @Override
-    protected Class<? extends EntityData> minimumDataClass() {
-        return ChestBoatData.class;
+    protected Class<? extends CloudEntityData> minimumDataClass() {
+        return CloudChestBoatData.class;
     }
 
     @Override

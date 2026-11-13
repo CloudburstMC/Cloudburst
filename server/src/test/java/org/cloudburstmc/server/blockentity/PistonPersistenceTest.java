@@ -4,7 +4,7 @@ import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.blockentity.data.BlockEntityData;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -16,10 +16,6 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Round-trip tests for the piston data path. Today's save writes none of the piston
- * keys; they survive through the raw tag, which the data path preserves untouched.
- */
 class PistonPersistenceTest {
 
     private static final Vector3i POSITION = Vector3i.from(10, 64, -5);
@@ -45,7 +41,7 @@ class PistonPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(BlockEntityData.class,
+        assertEquals(CloudBlockEntityData.class,
                 CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.PISTON));
 
         PistonBlockEntity entity = (PistonBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.PISTON, POSITION);
@@ -88,6 +84,6 @@ class PistonPersistenceTest {
 
     @Test
     void pistonBlockEntityKeepsNoDuplicateState() {
-        DtoStateChecks.assertKeepsNoDuplicateState(PistonBlockEntity.class, BlockEntityData.class);
+        DtoStateChecks.assertKeepsNoDuplicateState(PistonBlockEntity.class, CloudBlockEntityData.class);
     }
 }

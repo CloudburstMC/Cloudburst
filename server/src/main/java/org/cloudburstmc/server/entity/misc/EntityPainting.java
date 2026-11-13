@@ -29,8 +29,8 @@ import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.packet.AddPaintingPacket;
 import org.cloudburstmc.server.entity.CloudDamageResult;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.EntityData;
-import org.cloudburstmc.server.entity.data.PaintingData;
+import org.cloudburstmc.server.entity.data.CloudEntityData;
+import org.cloudburstmc.server.entity.data.CloudPaintingData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.network.LevelEffectPacketFactory;
@@ -53,13 +53,13 @@ public class EntityPainting extends CloudEntity implements Painting {
     }
 
     @Override
-    protected Class<? extends EntityData> minimumDataClass() {
-        return PaintingData.class;
+    protected Class<? extends CloudEntityData> minimumDataClass() {
+        return CloudPaintingData.class;
     }
 
     @Override
-    protected PaintingData data() {
-        return (PaintingData) super.data();
+    protected CloudPaintingData data() {
+        return (CloudPaintingData) super.data();
     }
 
     @Override

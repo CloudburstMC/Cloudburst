@@ -14,8 +14,8 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.entity.data.AbstractArrowData;
-import org.cloudburstmc.server.entity.data.EntityData;
+import org.cloudburstmc.server.entity.data.CloudAbstractArrowData;
+import org.cloudburstmc.server.entity.data.CloudEntityData;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -68,13 +68,13 @@ public abstract class EntityAbstractArrow extends EntityProjectile implements Ab
     }
 
     @Override
-    protected AbstractArrowData data() {
-        return (AbstractArrowData) super.data();
+    protected CloudAbstractArrowData data() {
+        return (CloudAbstractArrowData) super.data();
     }
 
     @Override
-    protected Class<? extends EntityData> minimumDataClass() {
-        return AbstractArrowData.class;
+    protected Class<? extends CloudEntityData> minimumDataClass() {
+        return CloudAbstractArrowData.class;
     }
 
     @Override

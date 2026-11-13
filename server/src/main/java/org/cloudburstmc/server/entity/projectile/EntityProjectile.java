@@ -20,8 +20,8 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
-import org.cloudburstmc.server.entity.data.EntityData;
-import org.cloudburstmc.server.entity.data.ProjectileData;
+import org.cloudburstmc.server.entity.data.CloudEntityData;
+import org.cloudburstmc.server.entity.data.CloudProjectileData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
@@ -65,13 +65,13 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
     }
 
     @Override
-    protected ProjectileData data() {
-        return (ProjectileData) super.data();
+    protected CloudProjectileData data() {
+        return (CloudProjectileData) super.data();
     }
 
     @Override
-    protected Class<? extends EntityData> minimumDataClass() {
-        return ProjectileData.class;
+    protected Class<? extends CloudEntityData> minimumDataClass() {
+        return CloudProjectileData.class;
     }
 
     @Override

@@ -3,8 +3,8 @@ package org.cloudburstmc.server.nbt;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.blockentity.data.BlockEntityData;
-import org.cloudburstmc.server.entity.data.EntityData;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
+import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.junit.jupiter.api.Test;
 import tools.jackson.dataformat.yaml.YAMLMapper;
 
@@ -24,7 +24,7 @@ class BaseDataTest {
                 .putString("CustomName", "Box")
                 .build();
 
-        BlockEntityData read = mapper.read(tag, BlockEntityData.class);
+        CloudBlockEntityData read = mapper.read(tag, CloudBlockEntityData.class);
 
         assertFalse(read.isMovable());
         assertEquals("Box", read.getCustomName());
@@ -43,7 +43,7 @@ class BaseDataTest {
                 .putList("Tags", NbtType.STRING, List.of("one", "two"))
                 .build();
 
-        EntityData read = mapper.read(tag, EntityData.class);
+        CloudEntityData read = mapper.read(tag, CloudEntityData.class);
 
         assertTrue(read.isInvulnerable());
         assertEquals(new LinkedHashSet<>(List.of("one", "two")), read.getTags());
@@ -56,34 +56,34 @@ class BaseDataTest {
 
     @Test
     void ownedKeysExcludeIdentity() {
-        assertFalse(mapper.ownedKeys(BlockEntityData.class).contains("id"));
-        assertFalse(mapper.ownedKeys(BlockEntityData.class).contains("x"));
-        assertFalse(mapper.ownedKeys(EntityData.class).contains("identifier"));
+        assertFalse(mapper.ownedKeys(CloudBlockEntityData.class).contains("id"));
+        assertFalse(mapper.ownedKeys(CloudBlockEntityData.class).contains("x"));
+        assertFalse(mapper.ownedKeys(CloudEntityData.class).contains("identifier"));
     }
 
     @Test
     void baseDataBindsFromYaml() throws Exception {
-        BlockEntityData read = new YAMLMapper().readValue("CustomName: Box", BlockEntityData.class);
+        CloudBlockEntityData read = new YAMLMapper().readValue("CustomName: Box", CloudBlockEntityData.class);
 
         assertEquals("Box", read.getCustomName());
     }
 
     @Test
     void baseDataUsesValueEquality() {
-        BlockEntityData firstBlock = new BlockEntityData();
+        CloudBlockEntityData firstBlock = new CloudBlockEntityData();
         firstBlock.setMovable(false);
         firstBlock.setCustomName("Box");
-        BlockEntityData secondBlock = new BlockEntityData();
+        CloudBlockEntityData secondBlock = new CloudBlockEntityData();
         secondBlock.setMovable(false);
         secondBlock.setCustomName("Box");
 
         assertEquals(firstBlock, secondBlock);
         assertEquals(firstBlock.hashCode(), secondBlock.hashCode());
 
-        EntityData firstEntity = new EntityData();
+        CloudEntityData firstEntity = new CloudEntityData();
         firstEntity.setInvulnerable(true);
         firstEntity.setTags(new LinkedHashSet<>(List.of("one", "two")));
-        EntityData secondEntity = new EntityData();
+        CloudEntityData secondEntity = new CloudEntityData();
         secondEntity.setInvulnerable(true);
         secondEntity.setTags(new LinkedHashSet<>(List.of("one", "two")));
 
@@ -95,6 +95,6 @@ class BaseDataTest {
                 .putString("CustomName", "Box")
                 .build();
 
-        assertEquals(mapper.read(tag, BlockEntityData.class), mapper.read(tag, BlockEntityData.class));
+        assertEquals(mapper.read(tag, CloudBlockEntityData.class), mapper.read(tag, CloudBlockEntityData.class));
     }
 }

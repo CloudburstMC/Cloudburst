@@ -6,7 +6,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.ExperienceOrbData;
+import org.cloudburstmc.server.entity.data.CloudExperienceOrbData;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -17,10 +17,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the experience-orb data path: every key today's load/save handle,
- * plus an unknown key, survive with the same NBT types.
- */
 class ExperienceOrbPersistenceTest {
 
     private static final Set<String> BASE_KEYS = Set.of(
@@ -35,7 +31,7 @@ class ExperienceOrbPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(ExperienceOrbData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.XP_ORB));
+        assertEquals(CloudExperienceOrbData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.XP_ORB));
 
         EntityExperienceOrb orb = (EntityExperienceOrb) PersistenceFixtures.entity(EntityTypes.XP_ORB);
         NbtMap input = NbtMap.builder()
@@ -74,7 +70,6 @@ class ExperienceOrbPersistenceTest {
         expectedKeys.addAll(Set.of("experience value", "Age", "Count", "PickupDelay", "identifier"));
         assertEquals(expectedKeys, saved.keySet());
 
-        // Today's save always writes the constructor value, zero age and delays, and a single orb.
         assertTrue(saved.get("experience value") instanceof Integer, "experience value must be an int");
         assertEquals(1, saved.getInt("experience value"));
         assertTrue(saved.get("Age") instanceof Short, "Age must be a short");
@@ -107,23 +102,23 @@ class ExperienceOrbPersistenceTest {
     @Test
     void experienceOrbKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntityExperienceOrb.class, ExperienceOrbData.class);
+                EntityExperienceOrb.class, CloudExperienceOrbData.class);
         Set<String> fields = new HashSet<>();
         for (Field field : EntityExperienceOrb.class.getDeclaredFields()) {
             fields.add(field.getName());
         }
         for (String removed : Set.of("count", "pickupDelay")) {
             assertFalse(fields.contains(removed),
-                    "EntityExperienceOrb keeps " + removed + "; state must live in ExperienceOrbData only");
+                    "EntityExperienceOrb keeps " + removed + "; state must live in CloudExperienceOrbData only");
         }
     }
 
     @Test
     void experienceValueIsMetadataOnly() {
-        assertFalse(hasDtoField(ExperienceOrbData.class, "experienceValue"),
-                "ExperienceOrbData keeps experienceValue; state must live in metadata only");
-        assertFalse(hasDtoField(ExperienceOrbData.class, "experiencevalue"),
-                "ExperienceOrbData keeps experienceValue; state must live in metadata only");
+        assertFalse(hasDtoField(CloudExperienceOrbData.class, "experienceValue"),
+                "CloudExperienceOrbData keeps experienceValue; state must live in metadata only");
+        assertFalse(hasDtoField(CloudExperienceOrbData.class, "experiencevalue"),
+                "CloudExperienceOrbData keeps experienceValue; state must live in metadata only");
     }
 
     private static boolean hasDtoField(Class<?> type, String name) {

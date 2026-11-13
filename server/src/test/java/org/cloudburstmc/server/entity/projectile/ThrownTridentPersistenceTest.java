@@ -8,7 +8,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.ThrownTridentData;
+import org.cloudburstmc.server.entity.data.CloudThrownTridentData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -20,10 +20,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the thrown-trident data path: every key today's load/save handle,
- * plus an unknown key, survive with the same NBT types.
- */
 class ThrownTridentPersistenceTest {
 
     private static final Set<String> BASE_KEYS = Set.of(
@@ -38,7 +34,7 @@ class ThrownTridentPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(ThrownTridentData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.THROWN_TRIDENT));
+        assertEquals(CloudThrownTridentData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.THROWN_TRIDENT));
 
         EntityThrownTrident trident = (EntityThrownTrident) PersistenceFixtures.entity(EntityTypes.THROWN_TRIDENT);
         ItemStack stack = ItemStack.from(ItemTypes.TRIDENT);
@@ -80,7 +76,6 @@ class ThrownTridentPersistenceTest {
                 "Trident", "DealtDamage", "identifier"));
         assertEquals(expectedKeys, saved.keySet());
 
-        // Today's save always writes the empty trident, no dealt damage and the base damage.
         assertEquals(ItemStackNbtCodec.serializeItem(ItemStack.EMPTY), saved.getCompound("Trident"));
         assertEquals(NbtType.BYTE, NbtType.byClass(saved.get("DealtDamage").getClass()), "DealtDamage must be a byte");
         assertEquals(false, saved.getBoolean("DealtDamage"));
@@ -108,14 +103,14 @@ class ThrownTridentPersistenceTest {
     @Test
     void thrownTridentKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntityThrownTrident.class, ThrownTridentData.class);
+                EntityThrownTrident.class, CloudThrownTridentData.class);
         Set<String> fields = new HashSet<>();
         for (Field field : EntityThrownTrident.class.getDeclaredFields()) {
             fields.add(field.getName());
         }
         for (String removed : Set.of("trident", "dealtDamage")) {
             assertFalse(fields.contains(removed),
-                    "EntityThrownTrident keeps " + removed + "; state must live in ThrownTridentData only");
+                    "EntityThrownTrident keeps " + removed + "; state must live in CloudThrownTridentData only");
         }
     }
 }

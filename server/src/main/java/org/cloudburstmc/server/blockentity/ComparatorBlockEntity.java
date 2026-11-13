@@ -4,8 +4,8 @@ import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Comparator;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.server.blockentity.data.BlockEntityData;
-import org.cloudburstmc.server.blockentity.data.ComparatorData;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
+import org.cloudburstmc.server.blockentity.data.CloudComparatorData;
 
 public class ComparatorBlockEntity extends BaseBlockEntity implements Comparator {
 
@@ -14,13 +14,13 @@ public class ComparatorBlockEntity extends BaseBlockEntity implements Comparator
     }
 
     @Override
-    protected Class<? extends BlockEntityData> minimumDataClass() {
-        return ComparatorData.class;
+    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
+        return CloudComparatorData.class;
     }
 
     @Override
-    protected ComparatorData data() {
-        return (ComparatorData) super.data();
+    protected CloudComparatorData data() {
+        return (CloudComparatorData) super.data();
     }
 
     public int getOutputSignal() {

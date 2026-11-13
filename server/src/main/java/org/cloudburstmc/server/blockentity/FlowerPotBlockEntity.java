@@ -8,8 +8,8 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.BlockPalette;
-import org.cloudburstmc.server.blockentity.data.BlockEntityData;
-import org.cloudburstmc.server.blockentity.data.FlowerPotData;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
+import org.cloudburstmc.server.blockentity.data.CloudFlowerPotData;
 
 import java.util.Objects;
 
@@ -22,13 +22,13 @@ public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
     }
 
     @Override
-    protected Class<? extends BlockEntityData> minimumDataClass() {
-        return FlowerPotData.class;
+    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
+        return CloudFlowerPotData.class;
     }
 
     @Override
-    protected FlowerPotData data() {
-        return (FlowerPotData) super.data();
+    protected CloudFlowerPotData data() {
+        return (CloudFlowerPotData) super.data();
     }
 
     @Override

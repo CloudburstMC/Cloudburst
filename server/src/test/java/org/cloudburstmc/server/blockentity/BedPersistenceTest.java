@@ -5,7 +5,7 @@ import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.blockentity.data.BedData;
+import org.cloudburstmc.server.blockentity.data.CloudBedData;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -15,10 +15,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Round-trip tests for the bed data path: every key today's load/saveClientData
- * handle, plus an unknown key, survive with the same NBT types.
- */
 class BedPersistenceTest {
 
     private static final Vector3i POSITION = Vector3i.from(10, 64, -5);
@@ -38,7 +34,7 @@ class BedPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(BedData.class,
+        assertEquals(CloudBedData.class,
                 CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.BED));
 
         BedBlockEntity entity = (BedBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.BED, POSITION);
@@ -86,6 +82,6 @@ class BedPersistenceTest {
 
     @Test
     void bedBlockEntityKeepsNoDuplicateState() {
-        DtoStateChecks.assertKeepsNoDuplicateState(BedBlockEntity.class, BedData.class);
+        DtoStateChecks.assertKeepsNoDuplicateState(BedBlockEntity.class, CloudBedData.class);
     }
 }

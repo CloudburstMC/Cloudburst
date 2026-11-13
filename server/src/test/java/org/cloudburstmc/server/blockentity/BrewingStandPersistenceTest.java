@@ -7,7 +7,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.blockentity.data.BrewingStandData;
+import org.cloudburstmc.server.blockentity.data.CloudBrewingStandData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -20,10 +20,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the brewing-stand data path: every key today's load/save/saveClientData
- * handle, plus an unknown key, survive with the same NBT types.
- */
 class BrewingStandPersistenceTest {
 
     private static final Vector3i POSITION = Vector3i.from(10, 64, -5);
@@ -61,7 +57,7 @@ class BrewingStandPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(BrewingStandData.class,
+        assertEquals(CloudBrewingStandData.class,
                 CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.BREWING_STAND));
 
         BrewingStandBlockEntity entity = (BrewingStandBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.BREWING_STAND, POSITION);
@@ -140,7 +136,6 @@ class BrewingStandPersistenceTest {
                 .putInt("z", -5)
                 .build());
 
-        // A fresh stand idles at the full brew timer with no fuel and empty slots.
         assertEquals(400, entity.data().getCookTime());
         assertEquals(0, entity.getFuelLevel());
         assertEquals((short) 0, entity.data().getFuelTotal());
@@ -153,7 +148,6 @@ class BrewingStandPersistenceTest {
 
     @Test
     void brewingStandBlockEntityKeepsNoDuplicateState() {
-        // No retained fields: the container, timer and fuel state live in BrewingStandData.
-        DtoStateChecks.assertKeepsNoDuplicateState(BrewingStandBlockEntity.class, BrewingStandData.class);
+        DtoStateChecks.assertKeepsNoDuplicateState(BrewingStandBlockEntity.class, CloudBrewingStandData.class);
     }
 }

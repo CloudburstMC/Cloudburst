@@ -4,7 +4,7 @@ import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.blockentity.data.ComparatorData;
+import org.cloudburstmc.server.blockentity.data.CloudComparatorData;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -14,10 +14,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Round-trip tests for the comparator data path: every key today's load/save
- * handle, plus an unknown key, survive with the same NBT types.
- */
 class ComparatorPersistenceTest {
 
     private static final Vector3i POSITION = Vector3i.from(10, 64, -5);
@@ -37,7 +33,7 @@ class ComparatorPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(ComparatorData.class,
+        assertEquals(CloudComparatorData.class,
                 CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.COMPARATOR));
 
         ComparatorBlockEntity entity = (ComparatorBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.COMPARATOR, POSITION);
@@ -81,6 +77,6 @@ class ComparatorPersistenceTest {
 
     @Test
     void comparatorBlockEntityKeepsNoDuplicateState() {
-        DtoStateChecks.assertKeepsNoDuplicateState(ComparatorBlockEntity.class, ComparatorData.class);
+        DtoStateChecks.assertKeepsNoDuplicateState(ComparatorBlockEntity.class, CloudComparatorData.class);
     }
 }

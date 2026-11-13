@@ -10,8 +10,8 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.blockentity.data.BlockEntityData;
-import org.cloudburstmc.server.blockentity.data.CauldronData;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
+import org.cloudburstmc.server.blockentity.data.CloudCauldronData;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.potion.CloudPotionColor;
 
@@ -26,13 +26,13 @@ public class CauldronBlockEntity extends BaseBlockEntity implements Cauldron {
     }
 
     @Override
-    protected Class<? extends BlockEntityData> minimumDataClass() {
-        return CauldronData.class;
+    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
+        return CloudCauldronData.class;
     }
 
     @Override
-    protected CauldronData data() {
-        return (CauldronData) super.data();
+    protected CloudCauldronData data() {
+        return (CloudCauldronData) super.data();
     }
 
     @Override

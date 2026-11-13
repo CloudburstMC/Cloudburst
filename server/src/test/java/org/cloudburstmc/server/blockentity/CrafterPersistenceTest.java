@@ -6,7 +6,7 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.blockentity.data.CrafterData;
+import org.cloudburstmc.server.blockentity.data.CloudCrafterData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -19,10 +19,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the crafter data path: every key today's load/save handle,
- * plus an unknown key, survive with the same NBT types.
- */
 class CrafterPersistenceTest {
 
     private static final Vector3i POSITION = Vector3i.from(10, 64, -5);
@@ -56,7 +52,7 @@ class CrafterPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CrafterData.class,
+        assertEquals(CloudCrafterData.class,
                 CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.CRAFTER));
 
         CrafterBlockEntity entity = (CrafterBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CRAFTER, POSITION);
@@ -83,6 +79,6 @@ class CrafterPersistenceTest {
 
     @Test
     void crafterBlockEntityKeepsNoDuplicateState() {
-        DtoStateChecks.assertKeepsNoDuplicateState(CrafterBlockEntity.class, CrafterData.class);
+        DtoStateChecks.assertKeepsNoDuplicateState(CrafterBlockEntity.class, CloudCrafterData.class);
     }
 }

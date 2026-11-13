@@ -10,8 +10,8 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEventPacket;
-import org.cloudburstmc.server.blockentity.data.BlockEntityData;
-import org.cloudburstmc.server.blockentity.data.EndGatewayData;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
+import org.cloudburstmc.server.blockentity.data.CloudEndGatewayData;
 
 import java.util.List;
 import java.util.Set;
@@ -28,13 +28,13 @@ public class EndGatewayBlockEntity extends BaseBlockEntity implements EndGateway
     }
 
     @Override
-    protected Class<? extends BlockEntityData> minimumDataClass() {
-        return EndGatewayData.class;
+    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
+        return CloudEndGatewayData.class;
     }
 
     @Override
-    protected EndGatewayData data() {
-        return (EndGatewayData) super.data();
+    protected CloudEndGatewayData data() {
+        return (CloudEndGatewayData) super.data();
     }
 
     @Override

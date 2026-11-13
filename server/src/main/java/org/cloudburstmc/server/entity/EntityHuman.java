@@ -24,8 +24,8 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.container.CloudContainer;
-import org.cloudburstmc.server.entity.data.EntityData;
-import org.cloudburstmc.server.entity.data.HumanData;
+import org.cloudburstmc.server.entity.data.CloudEntityData;
+import org.cloudburstmc.server.entity.data.CloudHumanData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.item.ItemStackPacketCodec;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -67,20 +67,20 @@ public class EntityHuman extends EntityCreature implements Human {
 
     @Override
     protected void initEntity() {
-        //this.data.setBoolean(EntityData.CAN_START_SLEEP, false); // TODO: what did this change to?
+        //this.data.setBoolean(CloudEntityData.CAN_START_SLEEP, false); // TODO: what did this change to?
         this.data.setFlag(HAS_GRAVITY, true);
 
         super.initEntity();
     }
 
     @Override
-    protected Class<? extends EntityData> minimumDataClass() {
-        return HumanData.class;
+    protected Class<? extends CloudEntityData> minimumDataClass() {
+        return CloudHumanData.class;
     }
 
     @Override
-    protected HumanData data() {
-        return (HumanData) super.data();
+    protected CloudHumanData data() {
+        return (CloudHumanData) super.data();
     }
 
     public Skin getSkin() {

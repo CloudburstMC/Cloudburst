@@ -9,7 +9,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.ProjectileData;
+import org.cloudburstmc.server.entity.data.CloudProjectileData;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -20,11 +20,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Data-path tests for the projectile branch. {@link EntityProjectile} is abstract and has
- * no registered type mapping to {@link ProjectileData}, so the tests drive the production
- * load and save paths through a minimal subclass and assert the mapped NBT types.
- */
 class ProjectilePersistenceTest {
 
     private static final class TestProjectile extends EntityProjectile {
@@ -67,7 +62,6 @@ class ProjectilePersistenceTest {
 
         NbtMap written = save(projectile);
 
-        // Today's save always writes the unset damage as zero.
         assertTrue(written.get("damage") instanceof Float, "damage must be a float");
         assertEquals(0f, written.getFloat("damage"));
     }
@@ -77,7 +71,6 @@ class ProjectilePersistenceTest {
         TestProjectile projectile = projectile();
         projectile.setDamage(3f);
 
-        // A tag without keys keeps the current values, as today's load did.
         projectile.loadAdditionalData(NbtMap.EMPTY);
 
         assertEquals(3f, projectile.getDamage());
@@ -86,14 +79,14 @@ class ProjectilePersistenceTest {
     @Test
     void projectileKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntityProjectile.class, ProjectileData.class);
+                EntityProjectile.class, CloudProjectileData.class);
         Set<String> fields = new HashSet<>();
         for (Field field : EntityProjectile.class.getDeclaredFields()) {
             fields.add(field.getName());
         }
         for (String removed : Set.of("damage")) {
             assertFalse(fields.contains(removed),
-                    "EntityProjectile keeps " + removed + "; state must live in ProjectileData only");
+                    "EntityProjectile keeps " + removed + "; state must live in CloudProjectileData only");
         }
     }
 }

@@ -88,7 +88,8 @@ import org.cloudburstmc.server.entity.CloudDamageResult;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
-import org.cloudburstmc.server.entity.data.EntityData;
+import org.cloudburstmc.server.entity.data.CloudEntityData;
+import org.cloudburstmc.server.entity.data.CloudPlayerData;
 import org.cloudburstmc.server.entity.misc.EntityExperienceOrb;
 import org.cloudburstmc.server.entity.projectile.EntityFishingHook;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
@@ -3381,13 +3382,13 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     @Override
-    protected Class<? extends EntityData> minimumDataClass() {
-        return org.cloudburstmc.server.entity.data.PlayerData.class;
+    protected Class<? extends CloudEntityData> minimumDataClass() {
+        return CloudPlayerData.class;
     }
 
     @Override
-    protected org.cloudburstmc.server.entity.data.PlayerData data() {
-        return (org.cloudburstmc.server.entity.data.PlayerData) super.data();
+    protected CloudPlayerData data() {
+        return (CloudPlayerData) super.data();
     }
 
     /**
@@ -3413,7 +3414,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
      * @param data   the data instance holding the experience
      * @return the food values with today's defaults for absent or mistyped keys
      */
-    static FoodHookState loadHookKeys(NbtMap tag, PlayerData holder, org.cloudburstmc.server.entity.data.PlayerData data) {
+    static FoodHookState loadHookKeys(NbtMap tag, PlayerData holder, CloudPlayerData data) {
         if (tag.get("firstPlayed") instanceof Number firstPlayed) {
             holder.setFirstPlayed(firstPlayed.longValue());
             holder.setLoadedFirstPlayed(firstPlayed.longValue());

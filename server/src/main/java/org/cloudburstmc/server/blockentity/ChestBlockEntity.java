@@ -13,8 +13,8 @@ import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.blockentity.data.BlockEntityData;
-import org.cloudburstmc.server.blockentity.data.ChestData;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
+import org.cloudburstmc.server.blockentity.data.CloudChestData;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -41,13 +41,13 @@ public class ChestBlockEntity extends ContainerBlockEntity implements Chest, Blo
     }
 
     @Override
-    protected Class<? extends BlockEntityData> minimumDataClass() {
-        return ChestData.class;
+    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
+        return CloudChestData.class;
     }
 
     @Override
-    protected ChestData data() {
-        return (ChestData) super.data();
+    protected CloudChestData data() {
+        return (CloudChestData) super.data();
     }
 
     @Override

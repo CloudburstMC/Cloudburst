@@ -7,7 +7,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.SplashPotionData;
+import org.cloudburstmc.server.entity.data.CloudSplashPotionData;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -19,11 +19,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the splash-potion data path: every key today's load/save handle,
- * plus an unknown key, survive with the same NBT types. The lingering potion shares
- * this path without its own keys.
- */
 class SplashPotionPersistenceTest {
 
     private static final Set<String> BASE_KEYS = Set.of(
@@ -38,8 +33,8 @@ class SplashPotionPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(SplashPotionData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.SPLASH_POTION));
-        assertEquals(SplashPotionData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.LINGERING_POTION));
+        assertEquals(CloudSplashPotionData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.SPLASH_POTION));
+        assertEquals(CloudSplashPotionData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.LINGERING_POTION));
 
         EntitySplashPotion potion = (EntitySplashPotion) PersistenceFixtures.entity(EntityTypes.SPLASH_POTION);
         PotionType type = PotionTypes.STRONG_POISON;
@@ -74,7 +69,6 @@ class SplashPotionPersistenceTest {
         expectedKeys.addAll(Set.of("PotionId", "damage", "identifier"));
         assertEquals(expectedKeys, saved.keySet());
 
-        // Today's save always writes the water potion.
         assertTrue(saved.get("PotionId") instanceof Short, "PotionId must be a short");
         assertEquals(NetworkUtils.potionToNetwork(PotionTypes.WATER), saved.getShort("PotionId"));
     }
@@ -92,14 +86,14 @@ class SplashPotionPersistenceTest {
     @Test
     void splashPotionKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntitySplashPotion.class, SplashPotionData.class);
+                EntitySplashPotion.class, CloudSplashPotionData.class);
         Set<String> fields = new HashSet<>();
         for (Field field : EntitySplashPotion.class.getDeclaredFields()) {
             fields.add(field.getName());
         }
         for (String removed : Set.of("type")) {
             assertFalse(fields.contains(removed),
-                    "EntitySplashPotion keeps " + removed + "; state must live in SplashPotionData only");
+                    "EntitySplashPotion keeps " + removed + "; state must live in CloudSplashPotionData only");
         }
     }
 }

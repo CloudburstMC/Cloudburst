@@ -18,8 +18,8 @@ import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.view.CloudArmorView;
 import org.cloudburstmc.server.container.view.CloudOffhandView;
 import org.cloudburstmc.server.enchantment.EquipmentEnchantmentEffects;
-import org.cloudburstmc.server.entity.data.CreatureData;
-import org.cloudburstmc.server.entity.data.EntityData;
+import org.cloudburstmc.server.entity.data.CloudCreatureData;
+import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.registry.CloudEnchantmentRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -43,13 +43,13 @@ public abstract class EntityCreature extends EntityLiving implements Creature {
     }
 
     @Override
-    protected Class<? extends EntityData> minimumDataClass() {
-        return CreatureData.class;
+    protected Class<? extends CloudEntityData> minimumDataClass() {
+        return CloudCreatureData.class;
     }
 
     @Override
-    protected CreatureData data() {
-        return (CreatureData) super.data();
+    protected CloudCreatureData data() {
+        return (CloudCreatureData) super.data();
     }
 
     public ArmorView getArmor() {

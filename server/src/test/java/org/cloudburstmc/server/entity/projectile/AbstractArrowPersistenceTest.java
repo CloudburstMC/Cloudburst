@@ -12,7 +12,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.AbstractArrowData;
+import org.cloudburstmc.server.entity.data.CloudAbstractArrowData;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -23,11 +23,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Data-path tests for the abstract-arrow branch. {@link EntityAbstractArrow} is abstract
- * and has no registered type mapping to its data, so the tests drive the production
- * load and save paths through a minimal subclass and assert the mapped NBT types.
- */
 class AbstractArrowPersistenceTest {
 
     private static final class TestArrow extends EntityAbstractArrow {
@@ -92,7 +87,6 @@ class AbstractArrowPersistenceTest {
 
         NbtMap written = save(arrow);
 
-        // Today's save always writes the flying state, no pierce or block, and open pickup.
         Set<String> expectedKeys = new HashSet<>(BASE_KEYS);
         expectedKeys.addAll(Set.of("damage", "inGround", "PierceLevel", "pickup", "PotionGroundTicks", "identifier"));
         assertEquals(expectedKeys, written.keySet());
@@ -111,10 +105,8 @@ class AbstractArrowPersistenceTest {
         arrow.loadAdditionalData(NbtMap.builder()
                 .putBoolean("inGround", true)
                 .build());
-        // The pickup rule has no presence bit: it always falls back to open pickup.
         assertEquals(ArrowPickupStatus.ALLOWED, arrow.getPickupStatus());
 
-        // A tag without keys keeps the current values, as today's load did.
         arrow.loadAdditionalData(NbtMap.EMPTY);
 
         assertEquals(3, arrow.getPierceLevel());
@@ -130,7 +122,6 @@ class AbstractArrowPersistenceTest {
                 .putInt("inBlockZ", 3)
                 .build());
 
-        // Pulling the arrow out clears the stuck state, so the block position is not written.
         arrow.loadAdditionalData(NbtMap.builder()
                 .putBoolean("inGround", false)
                 .build());
@@ -158,14 +149,14 @@ class AbstractArrowPersistenceTest {
     @Test
     void abstractArrowKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntityAbstractArrow.class, AbstractArrowData.class);
+                EntityAbstractArrow.class, CloudAbstractArrowData.class);
         Set<String> fields = new HashSet<>();
         for (Field field : EntityAbstractArrow.class.getDeclaredFields()) {
             fields.add(field.getName());
         }
         for (String removed : Set.of("pickupStatus", "pierceLevel", "inGround", "embeddedPosition")) {
             assertFalse(fields.contains(removed),
-                    "EntityAbstractArrow keeps " + removed + "; state must live in AbstractArrowData only");
+                    "EntityAbstractArrow keeps " + removed + "; state must live in CloudAbstractArrowData only");
         }
     }
 }

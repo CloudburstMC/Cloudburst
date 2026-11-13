@@ -24,8 +24,8 @@ import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.BlockStateCodec;
 import org.cloudburstmc.server.block.component.FallingBlockHandlers;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.EntityData;
-import org.cloudburstmc.server.entity.data.FallingBlockData;
+import org.cloudburstmc.server.entity.data.CloudEntityData;
+import org.cloudburstmc.server.entity.data.CloudFallingBlockData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 
 import java.util.List;
@@ -67,13 +67,13 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
     }
 
     @Override
-    protected Class<? extends EntityData> minimumDataClass() {
-        return FallingBlockData.class;
+    protected Class<? extends CloudEntityData> minimumDataClass() {
+        return CloudFallingBlockData.class;
     }
 
     @Override
-    protected FallingBlockData data() {
-        return (FallingBlockData) super.data();
+    protected CloudFallingBlockData data() {
+        return (CloudFallingBlockData) super.data();
     }
 
     @Override

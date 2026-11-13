@@ -16,7 +16,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.blockentity.data.BlockEntityData;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.nbt.ClientNbt;
@@ -37,7 +37,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
 
     private static final Map<BlockEntityType<?>, NbtMap> tags = new HashMap<>();
 
-    private static final ConcurrentHashMap<DataClassKey, Class<? extends BlockEntityData>> EFFECTIVE_DATA_CLASSES = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<DataClassKey, Class<? extends CloudBlockEntityData>> EFFECTIVE_DATA_CLASSES = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Class<?>, java.lang.reflect.Constructor<?>> DATA_CONSTRUCTORS = new ConcurrentHashMap<>();
 
     private record DataClassKey(Class<?> runtimeClass, BlockEntityType<?> type) { }
@@ -49,7 +49,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
     private final CloudChunk chunk;
     private final CloudLevel level;
 
-    private final BlockEntityData data;
+    private final CloudBlockEntityData data;
     public boolean closed = false;
 
     protected long lastUpdate;
@@ -115,7 +115,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
     }
 
     public final void saveAdditionalData(NbtMapBuilder tag) {
-        Class<? extends BlockEntityData> dataClass = this.dataClass();
+        Class<? extends CloudBlockEntityData> dataClass = this.dataClass();
         Set<String> owned = ServerNbt.MAPPER.ownedKeys(dataClass);
         Set<String> custom = this.customKeys();
 
@@ -131,7 +131,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
             }
         }
 
-        BlockEntityData data = this.data;
+        CloudBlockEntityData data = this.data;
         tag.putAll(ServerNbt.MAPPER.write(data));
 
         this.saveCustom(tag);
@@ -167,7 +167,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
      *
      * @return the held data instance
      */
-    protected BlockEntityData data() {
+    protected CloudBlockEntityData data() {
         return this.data;
     }
 
@@ -176,11 +176,11 @@ public abstract class BaseBlockEntity implements BlockEntity {
      *
      * @return a new data object
      */
-    protected final BlockEntityData newData() {
+    protected final CloudBlockEntityData newData() {
         return newDataInstance(this.dataClass());
     }
 
-    private static BlockEntityData newDataInstance(Class<? extends BlockEntityData> dataClass) {
+    private static CloudBlockEntityData newDataInstance(Class<? extends CloudBlockEntityData> dataClass) {
         try {
             java.lang.reflect.Constructor<?> constructor = DATA_CONSTRUCTORS.computeIfAbsent(dataClass, key -> {
                 try {
@@ -191,7 +191,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
                     throw new IllegalStateException("Cannot instantiate data class " + key.getName(), e);
                 }
             });
-            return (BlockEntityData) constructor.newInstance();
+            return (CloudBlockEntityData) constructor.newInstance();
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException("Cannot instantiate data class " + dataClass.getName(), e);
         }
@@ -203,8 +203,8 @@ public abstract class BaseBlockEntity implements BlockEntity {
      *
      * @return the minimum data class of this runtime class
      */
-    protected Class<? extends BlockEntityData> minimumDataClass() {
-        return BlockEntityData.class;
+    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
+        return CloudBlockEntityData.class;
     }
 
     /**
@@ -214,12 +214,12 @@ public abstract class BaseBlockEntity implements BlockEntity {
      *
      * @return the data class for load, save and fresh instances
      */
-    protected final Class<? extends BlockEntityData> dataClass() {
+    protected final Class<? extends CloudBlockEntityData> dataClass() {
         Class<?> runtimeClass = this.getClass();
         BlockEntityType<?> type = this.type;
-        Class<? extends BlockEntityData> minimum = this.minimumDataClass();
+        Class<? extends CloudBlockEntityData> minimum = this.minimumDataClass();
         return EFFECTIVE_DATA_CLASSES.computeIfAbsent(new DataClassKey(runtimeClass, type), key -> {
-            Class<? extends BlockEntityData> registered =
+            Class<? extends CloudBlockEntityData> registered =
                     CloudBlockEntityRegistry.get().getDataClass(key.type());
             return minimum.isAssignableFrom(registered) ? registered : minimum;
         });

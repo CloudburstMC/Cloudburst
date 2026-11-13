@@ -6,7 +6,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.PaintingData;
+import org.cloudburstmc.server.entity.data.CloudPaintingData;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -17,11 +17,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the painting data path: every key today's load/save handle,
- * plus an unknown key, survive with the same NBT types. Tile coordinates are
- * recomputed from the position on save, so the input values are replaced.
- */
 class PaintingPersistenceTest {
 
     private static final Set<String> BASE_KEYS = Set.of(
@@ -36,7 +31,7 @@ class PaintingPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(PaintingData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.PAINTING));
+        assertEquals(CloudPaintingData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.PAINTING));
 
         EntityPainting painting = (EntityPainting) PersistenceFixtures.entity(EntityTypes.PAINTING);
         NbtMap input = NbtMap.builder()
@@ -63,7 +58,6 @@ class PaintingPersistenceTest {
         assertTrue(saved.get("Motive") instanceof String, "Motive must be a string");
         assertEquals("Sunset", saved.getString("Motive"));
         assertEquals(7, saved.getInt("Mystery"));
-        // Tiles are recomputed from the stub position, which is the origin.
         assertTrue(saved.get("TileX") instanceof Integer, "TileX must be an int");
         assertEquals(0, saved.getInt("TileX"));
         assertEquals(0, saved.getInt("TileY"));
@@ -80,7 +74,6 @@ class PaintingPersistenceTest {
         expectedKeys.addAll(Set.of("Direction", "TileX", "TileY", "TileZ", "Motive", "identifier"));
         assertEquals(expectedKeys, saved.keySet());
 
-        // Today's save always writes direction zero, origin tiles and the Kebab motive.
         assertTrue(saved.get("Direction") instanceof Byte, "Direction must be a byte");
         assertEquals((byte) 0, saved.getByte("Direction"));
         assertEquals(0, saved.getInt("TileX"));
@@ -106,14 +99,14 @@ class PaintingPersistenceTest {
     @Test
     void paintingKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntityPainting.class, PaintingData.class);
+                EntityPainting.class, CloudPaintingData.class);
         Set<String> fields = new HashSet<>();
         for (Field field : EntityPainting.class.getDeclaredFields()) {
             fields.add(field.getName());
         }
         for (String removed : Set.of("motive")) {
             assertFalse(fields.contains(removed),
-                    "EntityPainting keeps " + removed + "; state must live in PaintingData only");
+                    "EntityPainting keeps " + removed + "; state must live in CloudPaintingData only");
         }
     }
 }

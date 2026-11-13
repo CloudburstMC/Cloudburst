@@ -4,6 +4,7 @@ import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.server.container.CloudContainer;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.nbt.NbtContainerSize;
 import org.cloudburstmc.server.nbt.NbtKeepUnlisted;
 import org.cloudburstmc.server.nbt.NbtKindMismatchException;
@@ -149,7 +150,7 @@ public final class ItemContainerDeserializer extends StdDeserializer<ItemContain
                         "Slot " + index + " is out of range for a container of size " + size);
             }
             staged.add(new StagedEntry(index,
-                    org.cloudburstmc.server.item.ItemStackNbtCodec.deserializeItem(item)));
+                    ItemStackNbtCodec.deserializeItem(item)));
         }
         return staged;
     }
@@ -186,7 +187,7 @@ public final class ItemContainerDeserializer extends StdDeserializer<ItemContain
                         "Slot " + index + " is out of range for a container of size " + size);
             }
             staged.add(new StagedEntry(index,
-                    org.cloudburstmc.server.item.ItemStackNbtCodec.deserializeItem(item)));
+                    ItemStackNbtCodec.deserializeItem(item)));
         }
         return staged;
     }
@@ -205,7 +206,7 @@ public final class ItemContainerDeserializer extends StdDeserializer<ItemContain
                 throw mismatch(p, entry);
             }
             staged.add(new StagedEntry(index,
-                    org.cloudburstmc.server.item.ItemStackNbtCodec.deserializeItem(item)));
+                    ItemStackNbtCodec.deserializeItem(item)));
         }
         return staged;
     }

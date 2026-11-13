@@ -48,7 +48,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.data.BuoyancyDataSerializer;
-import org.cloudburstmc.server.entity.data.EntityData;
+import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.entity.data.SyncedEntityData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.level.*;
@@ -82,7 +82,7 @@ public abstract class CloudEntity implements Entity {
     private static final int DEFAULT_MAX_FREEZE_TICKS = 140;
     private static final int MAX_SCOREBOARD_TAGS = 1024;
 
-    private static final ConcurrentHashMap<DataClassKey, Class<? extends EntityData>> EFFECTIVE_DATA_CLASSES =
+    private static final ConcurrentHashMap<DataClassKey, Class<? extends CloudEntityData>> EFFECTIVE_DATA_CLASSES =
             new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Class<?>, java.lang.reflect.Constructor<?>> DATA_CONSTRUCTORS =
             new ConcurrentHashMap<>();
@@ -103,7 +103,7 @@ public abstract class CloudEntity implements Entity {
      * own (movement, fire, air, scale, name tag, effects) live in their runtime
      * holders instead.
      */
-    private final EntityData entityData;
+    private final CloudEntityData entityData;
     @Getter
     private final EntityType<?> type;
     @Getter
@@ -260,7 +260,7 @@ public abstract class CloudEntity implements Entity {
     }
 
     public final void saveAdditionalData(NbtMapBuilder tag) {
-        Class<? extends EntityData> dataClass = this.dataClass();
+        Class<? extends CloudEntityData> dataClass = this.dataClass();
         Set<String> owned = ServerNbt.MAPPER.ownedKeys(dataClass);
         Set<String> custom = this.customKeys();
 
@@ -274,7 +274,7 @@ public abstract class CloudEntity implements Entity {
             }
         }
 
-        EntityData data = this.data();
+        CloudEntityData data = this.data();
         tag.putAll(ServerNbt.MAPPER.write(data));
 
         if (!(this instanceof CloudPlayer)) {
@@ -307,7 +307,7 @@ public abstract class CloudEntity implements Entity {
      *
      * @return the held data instance
      */
-    protected EntityData data() {
+    protected CloudEntityData data() {
         return this.entityData;
     }
 
@@ -317,8 +317,8 @@ public abstract class CloudEntity implements Entity {
      *
      * @return the minimum data class of this runtime class
      */
-    protected Class<? extends EntityData> minimumDataClass() {
-        return EntityData.class;
+    protected Class<? extends CloudEntityData> minimumDataClass() {
+        return CloudEntityData.class;
     }
 
     /**
@@ -329,12 +329,12 @@ public abstract class CloudEntity implements Entity {
      *
      * @return the data class for load, save and fresh instances
      */
-    protected Class<? extends EntityData> dataClass() {
+    protected Class<? extends CloudEntityData> dataClass() {
         Class<?> runtimeClass = this.getClass();
         EntityType<?> type = this.type;
-        Class<? extends EntityData> minimum = this.minimumDataClass();
+        Class<? extends CloudEntityData> minimum = this.minimumDataClass();
         return EFFECTIVE_DATA_CLASSES.computeIfAbsent(new DataClassKey(runtimeClass, type), key -> {
-            Class<? extends EntityData> registered = CloudEntityRegistry.get().getDataClass(key.type());
+            Class<? extends CloudEntityData> registered = CloudEntityRegistry.get().getDataClass(key.type());
             return minimum.isAssignableFrom(registered) ? registered : minimum;
         });
     }
@@ -344,8 +344,8 @@ public abstract class CloudEntity implements Entity {
      *
      * @return a new data object
      */
-    protected final EntityData newData() {
-        Class<? extends EntityData> dataClass = this.dataClass();
+    protected final CloudEntityData newData() {
+        Class<? extends CloudEntityData> dataClass = this.dataClass();
         try {
             java.lang.reflect.Constructor<?> constructor = DATA_CONSTRUCTORS.computeIfAbsent(dataClass, key -> {
                 try {
@@ -356,7 +356,7 @@ public abstract class CloudEntity implements Entity {
                     throw new IllegalStateException("Cannot instantiate data class " + key.getName(), e);
                 }
             });
-            return (EntityData) constructor.newInstance();
+            return (CloudEntityData) constructor.newInstance();
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException("Cannot instantiate data class " + dataClass.getName(), e);
         }
@@ -369,7 +369,7 @@ public abstract class CloudEntity implements Entity {
      * never keeps a bucket value, and tags skip blanks and stop at the cap.
      */
     private void normalizeData() {
-        EntityData data = this.data();
+        CloudEntityData data = this.data();
 
         Integer frozen = data.getTicksFrozen();
         if (frozen != null) {

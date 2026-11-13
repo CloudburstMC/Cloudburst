@@ -9,7 +9,7 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.FallingBlockData;
+import org.cloudburstmc.server.entity.data.CloudFallingBlockData;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -20,10 +20,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the falling-block data path: every key today's load/save handle,
- * plus an unknown key, survive with the same NBT types.
- */
 class FallingBlockPersistenceTest {
 
     private static final Set<String> BASE_KEYS = Set.of(
@@ -31,8 +27,6 @@ class FallingBlockPersistenceTest {
             "OnGround", "Invulnerable", "Scale", "Tags");
 
     private static NbtMap stateTag(BlockState state) {
-        // Today's save writes the definition's state compound ({name, states}), not the
-        // full serialized form (which carries a version int).
         return BlockPalette.INSTANCE.getDefinition(state).getState();
     }
 
@@ -44,7 +38,7 @@ class FallingBlockPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(FallingBlockData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.FALLING_BLOCK));
+        assertEquals(CloudFallingBlockData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.FALLING_BLOCK));
 
         EntityFallingBlock block = (EntityFallingBlock) PersistenceFixtures.entity(EntityTypes.FALLING_BLOCK);
         NbtMap state = stateTag(BlockStates.SAND);
@@ -98,8 +92,6 @@ class FallingBlockPersistenceTest {
                 "DamagePerBlock", "MaximumDamage", "AutoExpire", "identifier"));
         assertEquals(expectedKeys, saved.keySet());
 
-        // Today's save always writes sand, zero time and damage, drops and expiry on,
-        // a 40-point cap, and no sounds.
         assertEquals(stateTag(BlockStates.SAND), saved.getCompound("BlockState"));
         assertFalse(saved.getCompound("BlockState").containsKey("version"),
                 "BlockState must keep today's {name, states} form with no version");
@@ -125,11 +117,6 @@ class FallingBlockPersistenceTest {
         block.setHurtEntities(true);
         block.setDamagePerBlock(2.0f);
 
-        // The block state key is required, so the absent-keys tag keeps it.
-        // Time, DropItem, CancelDrop, HurtEntities, DamagePerBlock, MaximumDamage
-        // and AutoExpire have no presence bit: they always fall back to today's
-        // defaults, exactly as the get-with-default loads do. Only the sounds
-        // keep state when absent.
         block.loadAdditionalData(NbtMap.builder()
                 .putCompound("BlockState", stateTag(custom))
                 .build());
@@ -154,8 +141,6 @@ class FallingBlockPersistenceTest {
                 .putInt("Time", 5)
                 .build());
 
-        // Time has no presence bit: it always falls back to zero, exactly as the
-        // get-with-default load did.
         block.loadAdditionalData(NbtMap.builder()
                 .putCompound("BlockState", stateTag(BlockStates.SAND))
                 .build());
@@ -218,14 +203,14 @@ class FallingBlockPersistenceTest {
     @Test
     void fallingBlockKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntityFallingBlock.class, FallingBlockData.class);
+                EntityFallingBlock.class, CloudFallingBlockData.class);
         Set<String> fields = new HashSet<>();
         for (Field field : EntityFallingBlock.class.getDeclaredFields()) {
             fields.add(field.getName());
         }
         for (String removed : Set.of("blockState", "landingSound", "breakSound", "time", "dropItem", "cancelDrop", "hurtEntities", "damagePerBlock", "maximumDamage", "autoExpire")) {
             assertFalse(fields.contains(removed),
-                    "EntityFallingBlock keeps " + removed + "; state must live in FallingBlockData only");
+                    "EntityFallingBlock keeps " + removed + "; state must live in CloudFallingBlockData only");
         }
     }
 }

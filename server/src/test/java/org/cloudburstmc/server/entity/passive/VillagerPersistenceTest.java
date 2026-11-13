@@ -5,7 +5,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.CreatureData;
+import org.cloudburstmc.server.entity.data.CloudCreatureData;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -17,10 +17,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the villager data path: every key today's load/save handle,
- * plus an unknown key, survive with the same NBT types.
- */
 class VillagerPersistenceTest {
 
     private static NbtMap save(CloudEntity entity) {
@@ -31,7 +27,7 @@ class VillagerPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CreatureData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.VILLAGER));
+        assertEquals(CloudCreatureData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.VILLAGER));
 
         EntityVillager villager = (EntityVillager) PersistenceFixtures.entity(EntityTypes.VILLAGER);
         villager.loadAdditionalData(NbtMap.builder()
@@ -54,7 +50,6 @@ class VillagerPersistenceTest {
 
         NbtMap saved = save(villager);
 
-        // The constructor defaults the profession to generic (5), which today's save writes.
         assertTrue(saved.get("Profession") instanceof Integer, "Profession must be an int");
         assertEquals(EntityVillager.PROFESSION_GENERIC, saved.getInt("Profession"));
     }
@@ -72,7 +67,7 @@ class VillagerPersistenceTest {
     @Test
     void villagerKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntityVillager.class, CreatureData.class,
+                EntityVillager.class, CloudCreatureData.class,
                 Map.of(
                         "armor", "an armor view over the live container in data().getArmor()",
                         "offhand", "an offhand view over the live container in data().getOffhand()"));

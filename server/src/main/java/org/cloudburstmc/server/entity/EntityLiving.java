@@ -37,8 +37,8 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.entity.data.EntityData;
-import org.cloudburstmc.server.entity.data.LivingData;
+import org.cloudburstmc.server.entity.data.CloudEntityData;
+import org.cloudburstmc.server.entity.data.CloudLivingData;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -78,13 +78,13 @@ public abstract class EntityLiving extends CloudEntity implements Living {
     }
 
     @Override
-    protected Class<? extends EntityData> minimumDataClass() {
-        return LivingData.class;
+    protected Class<? extends CloudEntityData> minimumDataClass() {
+        return CloudLivingData.class;
     }
 
     @Override
-    protected LivingData data() {
-        return (LivingData) super.data();
+    protected CloudLivingData data() {
+        return (CloudLivingData) super.data();
     }
 
     @Override

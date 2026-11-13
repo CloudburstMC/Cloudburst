@@ -10,7 +10,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.AreaEffectCloudData;
+import org.cloudburstmc.server.entity.data.CloudAreaEffectCloudData;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.potion.PotionEffectDataSerializer;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
@@ -24,11 +24,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the area-effect-cloud data path: every key today's load/save handle,
- * plus an unknown key, survive with the same NBT types. The duration scale is only
- * written while it differs from one.
- */
 class AreaEffectCloudPersistenceTest {
 
     private static final Set<String> BASE_KEYS = Set.of(
@@ -47,7 +42,7 @@ class AreaEffectCloudPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(AreaEffectCloudData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.AREA_EFFECT_CLOUD));
+        assertEquals(CloudAreaEffectCloudData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.AREA_EFFECT_CLOUD));
 
         EntityAreaEffectCloud cloud = (EntityAreaEffectCloud) PersistenceFixtures.entity(EntityTypes.AREA_EFFECT_CLOUD);
         PotionEffect effect = new PotionEffect(EffectTypes.POISON, 200, 1, true, true);
@@ -98,8 +93,6 @@ class AreaEffectCloudPersistenceTest {
         expectedKeys.add("identifier");
         assertEquals(expectedKeys, saved.keySet());
 
-        // Today's save always writes the initialized timers and radius, the water potion,
-        // no custom effects and the derived color, and omits the default duration scale.
         assertEquals(List.of(), saved.getList("mobEffects", NbtType.COMPOUND));
         assertEquals(NbtType.COMPOUND, ((NbtList<?>) saved.get("mobEffects")).getType(),
                 "empty mobEffects must keep today's COMPOUND element type");
@@ -169,21 +162,21 @@ class AreaEffectCloudPersistenceTest {
     @Test
     void areaEffectCloudKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntityAreaEffectCloud.class, AreaEffectCloudData.class);
+                EntityAreaEffectCloud.class, CloudAreaEffectCloudData.class);
         Set<String> fields = new HashSet<>();
         for (Field field : EntityAreaEffectCloud.class.getDeclaredFields()) {
             fields.add(field.getName());
         }
         for (String removed : Set.of("customEffects", "reapplicationDelay", "durationOnUse", "radiusOnUse", "particleColor", "duration", "radiusPerTick", "potionDurationScale", "potionType")) {
             assertFalse(fields.contains(removed),
-                    "EntityAreaEffectCloud keeps " + removed + "; state must live in AreaEffectCloudData only");
+                    "EntityAreaEffectCloud keeps " + removed + "; state must live in CloudAreaEffectCloudData only");
         }
-        assertFalse(hasDtoField(AreaEffectCloudData.class, "radius"),
-                "AreaEffectCloudData keeps radius; state must live in metadata only");
-        assertFalse(hasDtoField(AreaEffectCloudData.class, "waitTime"),
-                "AreaEffectCloudData keeps waitTime; state must live in metadata only");
-        assertFalse(hasDtoField(AreaEffectCloudData.class, "particleColor"),
-                "AreaEffectCloudData keeps particleColor; state must live in metadata only");
+        assertFalse(hasDtoField(CloudAreaEffectCloudData.class, "radius"),
+                "CloudAreaEffectCloudData keeps radius; state must live in metadata only");
+        assertFalse(hasDtoField(CloudAreaEffectCloudData.class, "waitTime"),
+                "CloudAreaEffectCloudData keeps waitTime; state must live in metadata only");
+        assertFalse(hasDtoField(CloudAreaEffectCloudData.class, "particleColor"),
+                "CloudAreaEffectCloudData keeps particleColor; state must live in metadata only");
     }
 
     private static boolean hasDtoField(Class<?> type, String name) {

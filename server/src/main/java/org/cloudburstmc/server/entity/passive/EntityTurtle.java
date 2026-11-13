@@ -9,8 +9,8 @@ import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.entity.data.EntityData;
-import org.cloudburstmc.server.entity.data.TurtleData;
+import org.cloudburstmc.server.entity.data.CloudEntityData;
+import org.cloudburstmc.server.entity.data.CloudTurtleData;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -47,13 +47,13 @@ public class EntityTurtle extends Animal implements Turtle {
     }
 
     @Override
-    protected Class<? extends EntityData> minimumDataClass() {
-        return TurtleData.class;
+    protected Class<? extends CloudEntityData> minimumDataClass() {
+        return CloudTurtleData.class;
     }
 
     @Override
-    protected TurtleData data() {
-        return (TurtleData) super.data();
+    protected CloudTurtleData data() {
+        return (CloudTurtleData) super.data();
     }
 
     @Override

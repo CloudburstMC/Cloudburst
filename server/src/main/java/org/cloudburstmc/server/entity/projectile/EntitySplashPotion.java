@@ -13,8 +13,8 @@ import org.cloudburstmc.api.potion.PotionTypes;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.server.entity.data.EntityData;
-import org.cloudburstmc.server.entity.data.SplashPotionData;
+import org.cloudburstmc.server.entity.data.CloudEntityData;
+import org.cloudburstmc.server.entity.data.CloudSplashPotionData;
 import org.cloudburstmc.server.network.LevelEffectPacketFactory;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.potion.CloudPotion;
@@ -137,13 +137,13 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
     }
 
     @Override
-    protected SplashPotionData data() {
-        return (SplashPotionData) super.data();
+    protected CloudSplashPotionData data() {
+        return (CloudSplashPotionData) super.data();
     }
 
     @Override
-    protected Class<? extends EntityData> minimumDataClass() {
-        return SplashPotionData.class;
+    protected Class<? extends CloudEntityData> minimumDataClass() {
+        return CloudSplashPotionData.class;
     }
 
     @Override

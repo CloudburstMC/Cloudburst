@@ -23,8 +23,8 @@ import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.boss.CloudStandaloneBossBar;
-import org.cloudburstmc.server.entity.data.EnderDragonData;
-import org.cloudburstmc.server.entity.data.EntityData;
+import org.cloudburstmc.server.entity.data.CloudEnderDragonData;
+import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.network.NetworkUtils;
 
@@ -117,13 +117,13 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
     }
 
     @Override
-    protected Class<? extends EntityData> minimumDataClass() {
-        return EnderDragonData.class;
+    protected Class<? extends CloudEntityData> minimumDataClass() {
+        return CloudEnderDragonData.class;
     }
 
     @Override
-    protected EnderDragonData data() {
-        return (EnderDragonData) super.data();
+    protected CloudEnderDragonData data() {
+        return (CloudEnderDragonData) super.data();
     }
 
     @Override

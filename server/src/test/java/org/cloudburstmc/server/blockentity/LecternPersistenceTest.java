@@ -6,7 +6,7 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.blockentity.data.LecternData;
+import org.cloudburstmc.server.blockentity.data.CloudLecternData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -17,10 +17,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the lectern data path: every key today's load/save handle,
- * plus an unknown key, survive with the same NBT types.
- */
 class LecternPersistenceTest {
 
     private static final Vector3i POSITION = Vector3i.from(10, 64, -5);
@@ -43,7 +39,7 @@ class LecternPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(LecternData.class,
+        assertEquals(CloudLecternData.class,
                 CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.LECTERN));
 
         LecternBlockEntity entity = (LecternBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.LECTERN, POSITION);
@@ -69,7 +65,10 @@ class LecternPersistenceTest {
                     NbtType.byClass(saved.get(key).getClass()), "type of " + key);
         }
 
-        assertEquals(Set.of("id", "x", "y", "z", "BlockEntityVersion", "hasBook", "book", "page", "totalPages"), entity.getClientTag().keySet());
+        Set<String> clientKeys = Set.of(
+                "id", "x", "y", "z", "BlockEntityVersion", "hasBook", "book", "page", "totalPages"
+        );
+        assertEquals(clientKeys, entity.getClientTag().keySet());
     }
 
     @Test
@@ -93,10 +92,7 @@ class LecternPersistenceTest {
         LecternBlockEntity entity = (LecternBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.LECTERN, POSITION);
         entity.loadAdditionalData(lecternTag());
 
-        // setBook() itself updates redstone, which needs a live level; replicate its
-        // local state change (taking the book clears it) through the DTO so the
-        // save path can be tested standalone.
-        LecternData data = (LecternData) entity.data();
+        CloudLecternData data = (CloudLecternData) entity.data();
         data.setBook(null);
         data.setHasBook(null);
         data.setPage(null);
@@ -124,8 +120,6 @@ class LecternPersistenceTest {
 
         assertFalse(entity.hasBook());
 
-        // A client packet can drive setPage while no book is present; the page must
-        // stay pageless instead of writing page: 0 to the tags.
         entity.setPage(3);
 
         assertFalse(entity.hasBook());
@@ -154,7 +148,6 @@ class LecternPersistenceTest {
 
         assertFalse(entity.hasBook());
 
-        // An empty lectern stores no book keys; a loaded hasBook:0b stays dropped, exactly as before.
         assertFalse(entity.getServerTag().containsKey("hasBook"), "server tag gained hasBook");
         assertFalse(entity.getClientTag().getBoolean("hasBook"));
     }
@@ -169,7 +162,6 @@ class LecternPersistenceTest {
                 .putInt("z", -5)
                 .build());
 
-        // A fresh lectern holds no book and shows page zero of zero.
         assertFalse(entity.hasBook());
         assertTrue(entity.getBook().isEmpty());
         assertEquals(0, entity.getPage());
@@ -191,7 +183,6 @@ class LecternPersistenceTest {
                 .putInt("totalPages", 5)
                 .build());
 
-        // Without the book flag the book keys are ignored, exactly as before.
         assertFalse(entity.hasBook());
         assertTrue(entity.getBook().isEmpty());
         assertEquals(0, entity.getPage());
@@ -215,8 +206,6 @@ class LecternPersistenceTest {
                 .putCompound("book", ItemStackNbtCodec.serializeItem(ItemStack.from(ItemTypes.WRITTEN_BOOK, 1)))
                 .build());
 
-        // The book flag promises a complete book record; missing page keys read
-        // zero, exactly as before, so the save writes them back.
         assertTrue(entity.hasBook());
         assertEquals(0, entity.getPage());
         assertEquals(0, entity.getTotalPages());
@@ -238,7 +227,6 @@ class LecternPersistenceTest {
 
     @Test
     void lecternBlockEntityKeepsNoDuplicateState() {
-        // No retained fields: the book, page and totals live in LecternData.
-        DtoStateChecks.assertKeepsNoDuplicateState(LecternBlockEntity.class, LecternData.class);
+        DtoStateChecks.assertKeepsNoDuplicateState(LecternBlockEntity.class, CloudLecternData.class);
     }
 }

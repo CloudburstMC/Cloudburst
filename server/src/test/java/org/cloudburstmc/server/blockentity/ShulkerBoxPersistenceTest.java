@@ -7,7 +7,7 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.blockentity.data.ShulkerBoxData;
+import org.cloudburstmc.server.blockentity.data.CloudShulkerBoxData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -20,10 +20,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the shulker box data path: every key today's load/save/saveClientData
- * handle, plus an unknown key, survive with the same NBT types.
- */
 class ShulkerBoxPersistenceTest {
 
     private static final Vector3i POSITION = Vector3i.from(10, 64, -5);
@@ -59,7 +55,7 @@ class ShulkerBoxPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(ShulkerBoxData.class,
+        assertEquals(CloudShulkerBoxData.class,
                 CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.SHULKER_BOX));
 
         ShulkerBoxBlockEntity entity = (ShulkerBoxBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.SHULKER_BOX, POSITION);
@@ -124,14 +120,11 @@ class ShulkerBoxPersistenceTest {
 
     @Test
     void shulkerLoadedWithoutFacingIsDown() {
-        // Fresh shulkers keep the UP data default; placement sets facing anyway.
         ShulkerBoxBlockEntity fresh =
                 (ShulkerBoxBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.SHULKER_BOX, POSITION);
         assertEquals(Direction.UP, fresh.getFacing());
         fresh.close();
 
-        // A stored tag without the facing key loads with today's default (DOWN,
-        // the old byte default of 0) on both the server and the client tag.
         ShulkerBoxBlockEntity entity =
                 (ShulkerBoxBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.SHULKER_BOX, POSITION);
         entity.loadAdditionalData(NbtMap.builder()
@@ -152,8 +145,6 @@ class ShulkerBoxPersistenceTest {
 
     @Test
     void shulkerBoxBlockEntityKeepsNoDuplicateState() {
-        // Retained fields and why they hold no DTO state: animationState, openProgress,
-        // previousOpenProgress and viewerCount are live lid-animation state, never persisted.
-        DtoStateChecks.assertKeepsNoDuplicateState(ShulkerBoxBlockEntity.class, ShulkerBoxData.class);
+        DtoStateChecks.assertKeepsNoDuplicateState(ShulkerBoxBlockEntity.class, CloudShulkerBoxData.class);
     }
 }

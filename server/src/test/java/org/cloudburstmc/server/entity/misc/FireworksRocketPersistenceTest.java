@@ -6,7 +6,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.FireworksRocketData;
+import org.cloudburstmc.server.entity.data.CloudFireworksRocketData;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -18,10 +18,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the fireworks-rocket data path: every key today's load/save handle,
- * plus an unknown key, survive with the same NBT types.
- */
 class FireworksRocketPersistenceTest {
 
     private static final Set<String> BASE_KEYS = Set.of(
@@ -36,7 +32,7 @@ class FireworksRocketPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(FireworksRocketData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.FIREWORKS_ROCKET));
+        assertEquals(CloudFireworksRocketData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.FIREWORKS_ROCKET));
 
         EntityFireworksRocket rocket = (EntityFireworksRocket) PersistenceFixtures.entity(EntityTypes.FIREWORKS_ROCKET);
         NbtMap input = NbtMap.builder()
@@ -75,7 +71,6 @@ class FireworksRocketPersistenceTest {
         expectedKeys.addAll(Set.of("Life", "LifeTime", "ShotAtAngle", "damage", "identifier"));
         assertEquals(expectedKeys, saved.keySet());
 
-        // Today's save always writes a fresh life, a randomized lifetime and a level flight.
         assertTrue(saved.get("Life") instanceof Integer, "Life must be an int");
         assertEquals(0, saved.getInt("Life"));
         assertTrue(saved.get("LifeTime") instanceof Integer, "LifeTime must be an int");
@@ -102,7 +97,7 @@ class FireworksRocketPersistenceTest {
     @Test
     void fireworksRocketKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntityFireworksRocket.class, FireworksRocketData.class,
+                EntityFireworksRocket.class, CloudFireworksRocketData.class,
                 Map.of("firework", "the live firework item, never persisted; rebuilt through setFireworkData"));
         Set<String> fields = new HashSet<>();
         for (Field field : EntityFireworksRocket.class.getDeclaredFields()) {
@@ -110,7 +105,7 @@ class FireworksRocketPersistenceTest {
         }
         for (String removed : Set.of("life", "lifetime", "shotAtAngle")) {
             assertFalse(fields.contains(removed),
-                    "EntityFireworksRocket keeps " + removed + "; state must live in FireworksRocketData only");
+                    "EntityFireworksRocket keeps " + removed + "; state must live in CloudFireworksRocketData only");
         }
     }
 }

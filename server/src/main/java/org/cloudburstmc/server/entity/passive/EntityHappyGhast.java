@@ -4,8 +4,8 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.passive.HappyGhast;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.server.entity.data.EntityData;
-import org.cloudburstmc.server.entity.data.HappyGhastData;
+import org.cloudburstmc.server.entity.data.CloudEntityData;
+import org.cloudburstmc.server.entity.data.CloudHappyGhastData;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BABY;
 
@@ -42,13 +42,13 @@ public class EntityHappyGhast extends Animal implements HappyGhast {
     }
 
     @Override
-    protected Class<? extends EntityData> minimumDataClass() {
-        return HappyGhastData.class;
+    protected Class<? extends CloudEntityData> minimumDataClass() {
+        return CloudHappyGhastData.class;
     }
 
     @Override
-    protected HappyGhastData data() {
-        return (HappyGhastData) super.data();
+    protected CloudHappyGhastData data() {
+        return (CloudHappyGhastData) super.data();
     }
 
     @Override

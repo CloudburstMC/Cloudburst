@@ -6,7 +6,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.CreatureData;
+import org.cloudburstmc.server.entity.data.CloudCreatureData;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -18,10 +18,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the snow golem data path: every key today's load/save handle,
- * plus an unknown key, survive with the same NBT types.
- */
 class SnowGolemPersistenceTest {
 
     private static NbtMap save(CloudEntity entity) {
@@ -32,7 +28,7 @@ class SnowGolemPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CreatureData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.SNOW_GOLEM));
+        assertEquals(CloudCreatureData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.SNOW_GOLEM));
 
         EntitySnowGolem golem = (EntitySnowGolem) PersistenceFixtures.entity(EntityTypes.SNOW_GOLEM);
         golem.loadAdditionalData(NbtMap.builder()
@@ -55,7 +51,6 @@ class SnowGolemPersistenceTest {
 
         NbtMap saved = save(golem);
 
-        // Today's save always writes Pumpkin true for a fresh golem.
         assertEquals(NbtType.BYTE, NbtType.byClass(saved.get("Pumpkin").getClass()), "Pumpkin must be a byte");
         assertEquals(true, saved.getBoolean("Pumpkin"));
     }
@@ -73,7 +68,7 @@ class SnowGolemPersistenceTest {
     @Test
     void snowGolemKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntitySnowGolem.class, CreatureData.class,
+                EntitySnowGolem.class, CloudCreatureData.class,
                 Map.of(
                         "armor", "an armor view over the live container in data().getArmor()",
                         "offhand", "an offhand view over the live container in data().getOffhand()"));

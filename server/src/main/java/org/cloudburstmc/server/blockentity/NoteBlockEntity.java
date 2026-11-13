@@ -6,8 +6,8 @@ import org.cloudburstmc.api.blockentity.NoteBlock;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.component.NoteBlockHandlers;
-import org.cloudburstmc.server.blockentity.data.BlockEntityData;
-import org.cloudburstmc.server.blockentity.data.MusicData;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
+import org.cloudburstmc.server.blockentity.data.CloudMusicData;
 
 public class NoteBlockEntity extends BaseBlockEntity implements NoteBlock {
 
@@ -16,13 +16,13 @@ public class NoteBlockEntity extends BaseBlockEntity implements NoteBlock {
     }
 
     @Override
-    protected Class<? extends BlockEntityData> minimumDataClass() {
-        return MusicData.class;
+    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
+        return CloudMusicData.class;
     }
 
     @Override
-    protected MusicData data() {
-        return (MusicData) super.data();
+    protected CloudMusicData data() {
+        return (CloudMusicData) super.data();
     }
 
     @Override

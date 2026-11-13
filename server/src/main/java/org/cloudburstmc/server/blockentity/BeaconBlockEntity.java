@@ -18,8 +18,8 @@ import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.blockentity.data.BeaconData;
-import org.cloudburstmc.server.blockentity.data.BlockEntityData;
+import org.cloudburstmc.server.blockentity.data.CloudBeaconData;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.level.chunk.LockedChunk;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -48,13 +48,13 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
     }
 
     @Override
-    protected Class<? extends BlockEntityData> minimumDataClass() {
-        return BeaconData.class;
+    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
+        return CloudBeaconData.class;
     }
 
     @Override
-    protected BeaconData data() {
-        return (BeaconData) super.data();
+    protected CloudBeaconData data() {
+        return (CloudBeaconData) super.data();
     }
 
     @Override

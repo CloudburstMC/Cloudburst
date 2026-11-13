@@ -13,7 +13,7 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.block.BlockStateCodec;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.AbstractMinecartData;
+import org.cloudburstmc.server.entity.data.CloudAbstractMinecartData;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -23,12 +23,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Data-path tests for the abstract-minecart branch. {@link EntityAbstractMinecart} is
- * abstract and has no registered type mapping to its data, so the tests drive the
- * production load and save paths through a minimal subclass and assert the mapped
- * NBT types. Numeric display data is still rejected outside the data path.
- */
 class AbstractMinecartPersistenceTest {
 
     private static final Set<String> BASE_KEYS = Set.of(
@@ -96,7 +90,6 @@ class AbstractMinecartPersistenceTest {
 
         NbtMap written = save(minecart);
 
-        // Today's save omits every display key for a plain cart at the default offset.
         Set<String> expectedKeys = new HashSet<>(BASE_KEYS);
         expectedKeys.add("identifier");
         assertEquals(expectedKeys, written.keySet());
@@ -111,7 +104,6 @@ class AbstractMinecartPersistenceTest {
         minecart.setDisplayBlock(BlockStates.SAND);
         minecart.setDisplayBlockOffset(9);
 
-        // A tag without keys keeps the current values, as today's load did.
         minecart.loadAdditionalData(NbtMap.EMPTY);
 
         assertTrue(minecart.hasDisplay());
@@ -136,8 +128,6 @@ class AbstractMinecartPersistenceTest {
                 .putCompound("DisplayBlock", NbtMap.builder().putInt("val", 1).build())
                 .build();
 
-        // A legacy numeric block must fail on the skip-entity path, never the
-        // chunk-aborting one, exactly as today.
         assertThrows(IllegalArgumentException.class, () -> minecart.loadAdditionalData(tag));
     }
 
@@ -148,14 +138,12 @@ class AbstractMinecartPersistenceTest {
                 .putCompound("DisplayBlock", NbtMap.builder().putString("name", "no_such_block_xyz").build())
                 .build();
 
-        // The block is decoded whenever its key is present, as the mapper did before,
-        // even when the display flag is unset.
         assertThrows(IllegalArgumentException.class, () -> minecart.loadAdditionalData(tag));
     }
 
     @Test
     void abstractMinecartKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntityAbstractMinecart.class, AbstractMinecartData.class);
+                EntityAbstractMinecart.class, CloudAbstractMinecartData.class);
     }
 }

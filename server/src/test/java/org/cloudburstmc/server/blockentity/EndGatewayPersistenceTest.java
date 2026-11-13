@@ -4,7 +4,7 @@ import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.blockentity.data.EndGatewayData;
+import org.cloudburstmc.server.blockentity.data.CloudEndGatewayData;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -16,11 +16,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the end-gateway data path: every key today's load/save
- * handle, plus an unknown key, survive with the same NBT types. The client carries
- * the age as an int and always carries the exit portal.
- */
 class EndGatewayPersistenceTest {
 
     private static final Vector3i POSITION = Vector3i.from(10, 64, -5);
@@ -42,7 +37,7 @@ class EndGatewayPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(EndGatewayData.class,
+        assertEquals(CloudEndGatewayData.class,
                 CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.END_GATEWAY));
 
         EndGatewayBlockEntity entity = (EndGatewayBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.END_GATEWAY, POSITION);
@@ -95,15 +90,12 @@ class EndGatewayPersistenceTest {
 
     @Test
     void endGatewayBlockEntityKeepsNoDuplicateState() {
-        DtoStateChecks.assertKeepsNoDuplicateState(EndGatewayBlockEntity.class, EndGatewayData.class);
-        // The old shape kept the exit in a runtime field named exitPosition, which
-        // matches no DTO property, so the shared check stays blind to it. Forbid it
-        // explicitly; this fails on the pre-migration class.
+        DtoStateChecks.assertKeepsNoDuplicateState(EndGatewayBlockEntity.class, CloudEndGatewayData.class);
         Set<String> fields = new HashSet<>();
         for (Field field : EndGatewayBlockEntity.class.getDeclaredFields()) {
             fields.add(field.getName());
         }
         assertFalse(fields.contains("exitPosition"),
-                "EndGatewayBlockEntity keeps exitPosition; state must live in EndGatewayData only");
+                "EndGatewayBlockEntity keeps exitPosition; state must live in CloudEndGatewayData only");
     }
 }

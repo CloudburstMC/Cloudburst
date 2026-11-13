@@ -8,7 +8,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.block.BlockPalette;
-import org.cloudburstmc.server.blockentity.data.FlowerPotData;
+import org.cloudburstmc.server.blockentity.data.CloudFlowerPotData;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.BlockTestRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -19,10 +19,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Round-trip tests for the flower-pot data path: every key today's load/save
- * handle, plus an unknown key, survive with the same NBT types.
- */
 class FlowerPotPersistenceTest {
 
     private static final Vector3i POSITION = Vector3i.from(10, 64, -5);
@@ -44,7 +40,7 @@ class FlowerPotPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(FlowerPotData.class,
+        assertEquals(CloudFlowerPotData.class,
                 CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.FLOWER_POT));
 
         FlowerPotBlockEntity entity = (FlowerPotBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.FLOWER_POT, POSITION);
@@ -107,6 +103,6 @@ class FlowerPotPersistenceTest {
 
     @Test
     void flowerPotBlockEntityKeepsNoDuplicateState() {
-        DtoStateChecks.assertKeepsNoDuplicateState(FlowerPotBlockEntity.class, FlowerPotData.class);
+        DtoStateChecks.assertKeepsNoDuplicateState(FlowerPotBlockEntity.class, CloudFlowerPotData.class);
     }
 }

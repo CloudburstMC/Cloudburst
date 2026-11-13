@@ -6,7 +6,7 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.blockentity.data.JukeboxData;
+import org.cloudburstmc.server.blockentity.data.CloudJukeboxData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -18,10 +18,6 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Round-trip tests for the jukebox data path: every key today's load/save handle,
- * plus an unknown key, survive with the same NBT types.
- */
 class JukeboxPersistenceTest {
 
     private static final Vector3i POSITION = Vector3i.from(10, 64, -5);
@@ -41,7 +37,7 @@ class JukeboxPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(JukeboxData.class,
+        assertEquals(CloudJukeboxData.class,
                 CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.JUKEBOX));
 
         JukeboxBlockEntity entity = (JukeboxBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.JUKEBOX, POSITION);
@@ -103,13 +99,11 @@ class JukeboxPersistenceTest {
                 .putInt("z", -5)
                 .build());
 
-        // A fresh jukebox holds no record.
         assertTrue(entity.getRecord().isEmpty());
     }
 
     @Test
     void jukeboxBlockEntityKeepsNoDuplicateState() {
-        // No retained fields: the record item lives in JukeboxData.
-        DtoStateChecks.assertKeepsNoDuplicateState(JukeboxBlockEntity.class, JukeboxData.class);
+        DtoStateChecks.assertKeepsNoDuplicateState(JukeboxBlockEntity.class, CloudJukeboxData.class);
     }
 }

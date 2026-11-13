@@ -14,8 +14,8 @@ import org.cloudburstmc.api.util.BlockHitResult;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.server.entity.data.EntityData;
-import org.cloudburstmc.server.entity.data.ThrownTridentData;
+import org.cloudburstmc.server.entity.data.CloudEntityData;
+import org.cloudburstmc.server.entity.data.CloudThrownTridentData;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudEnchantmentRegistry;
 
@@ -64,13 +64,13 @@ public class EntityThrownTrident extends EntityAbstractArrow implements ThrownTr
     }
 
     @Override
-    protected ThrownTridentData data() {
-        return (ThrownTridentData) super.data();
+    protected CloudThrownTridentData data() {
+        return (CloudThrownTridentData) super.data();
     }
 
     @Override
-    protected Class<? extends EntityData> minimumDataClass() {
-        return ThrownTridentData.class;
+    protected Class<? extends CloudEntityData> minimumDataClass() {
+        return CloudThrownTridentData.class;
     }
 
     @Override

@@ -11,7 +11,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
-import org.cloudburstmc.server.entity.data.EnderDragonData;
+import org.cloudburstmc.server.entity.data.CloudEnderDragonData;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -25,14 +25,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the ender dragon data path: every key today's load/save handle,
- * plus an unknown key, survive with the same NBT types.
- *
- * <p>Today's init and experience fallback need a live level, which the stub fixture has
- * none of, so the tests build the entity directly and always store the experience key,
- * exercising the production load and save paths otherwise.
- */
 class EnderDragonPersistenceTest {
 
     private static EntityEnderDragon dragon() {
@@ -47,11 +39,6 @@ class EnderDragonPersistenceTest {
         return builder.build();
     }
 
-    /**
-     * Counts death processing without needing a live level: the fixture has
-     * none, so the production event broadcast and loot drops are skipped and
-     * only the creation of the death event is observed.
-     */
     private static final class DeathCountingDragon extends EntityEnderDragon {
         int deathEvents;
 
@@ -79,9 +66,6 @@ class EnderDragonPersistenceTest {
     void dyingDragonReloadDoesNotDieAgain() {
         DeathCountingDragon dragon = new DeathCountingDragon(EntityTypes.ENDER_DRAGON,
                 Location.from(Vector3f.ZERO, InterfaceProxy.create(Level.class)));
-        // initEntity needs a live level, so the fixture never runs it; give
-        // the dragon a boss bar the way initEntity would, so a re-run of
-        // beginDeath can complete instead of failing on a null bar.
         try {
             Field bar = EntityEnderDragon.class.getDeclaredField("bossBar");
             bar.setAccessible(true);
@@ -106,7 +90,7 @@ class EnderDragonPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(EnderDragonData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.ENDER_DRAGON));
+        assertEquals(CloudEnderDragonData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.ENDER_DRAGON));
 
         EntityEnderDragon dragon = dragon();
         dragon.loadAdditionalData(NbtMap.builder()
@@ -132,7 +116,6 @@ class EnderDragonPersistenceTest {
 
         NbtMap saved = save(dragon);
 
-        // Today's save always writes both counters as zero for a fresh dragon.
         assertTrue(saved.get("DragonDeathTime") instanceof Integer, "DragonDeathTime must be an int");
         assertEquals(0, saved.getInt("DragonDeathTime"));
         assertTrue(saved.get("DragonDeathExperience") instanceof Integer, "DragonDeathExperience must be an int");
@@ -161,7 +144,7 @@ class EnderDragonPersistenceTest {
     @Test
     void enderDragonKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntityEnderDragon.class, EnderDragonData.class,
+                EntityEnderDragon.class, CloudEnderDragonData.class,
                 Map.of(
                         "armor", "an armor view over the live container in data().getArmor()",
                         "offhand", "an offhand view over the live container in data().getOffhand()"));
@@ -171,7 +154,7 @@ class EnderDragonPersistenceTest {
         }
         for (String removed : Set.of("dragonDeathTime", "deathExperience")) {
             assertFalse(fields.contains(removed),
-                    "EntityEnderDragon keeps " + removed + "; state must live in EnderDragonData only");
+                    "EntityEnderDragon keeps " + removed + "; state must live in CloudEnderDragonData only");
         }
     }
 }

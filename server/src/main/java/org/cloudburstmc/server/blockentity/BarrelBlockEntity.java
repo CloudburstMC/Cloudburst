@@ -10,8 +10,8 @@ import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.server.blockentity.data.BarrelData;
-import org.cloudburstmc.server.blockentity.data.BlockEntityData;
+import org.cloudburstmc.server.blockentity.data.CloudBarrelData;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.container.ContainerListener;
 
 import java.util.HashSet;
@@ -31,13 +31,13 @@ public class BarrelBlockEntity extends ContainerBlockEntity implements Barrel, B
     }
 
     @Override
-    protected Class<? extends BlockEntityData> minimumDataClass() {
-        return BarrelData.class;
+    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
+        return CloudBarrelData.class;
     }
 
     @Override
-    protected BarrelData data() {
-        return (BarrelData) super.data();
+    protected CloudBarrelData data() {
+        return (CloudBarrelData) super.data();
     }
 
     @Override

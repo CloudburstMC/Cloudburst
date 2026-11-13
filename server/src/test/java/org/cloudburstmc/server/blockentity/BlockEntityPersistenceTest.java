@@ -7,12 +7,11 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.blockentity.data.BlockEntityData;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.persistence.CloudPersistentDataContainer;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
-import org.cloudburstmc.server.testutil.TestBlockEntities.*;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -20,11 +19,6 @@ import java.util.List;
 import static org.cloudburstmc.server.testutil.TestBlockEntities.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the block-entity data path: unknown keys survive in the
- * raw tag, DTO properties write exactly, custom hooks own conditional keys,
- * plugin data stays server-side, and legacy registrations keep raw keys.
- */
 class BlockEntityPersistenceTest {
 
     private static final Identifier PLUGIN_KEY = Identifier.parse("myplugin:a");
@@ -113,7 +107,10 @@ class BlockEntityPersistenceTest {
         MigratedBlockEntity reloaded = PersistenceFixtures.blockEntity(MIGRATED_TYPE, POSITION);
         reloaded.loadAdditionalData(saved);
 
-        assertEquals(1, reloaded.getPersistentDataContainer().get(PLUGIN_KEY, PersistentDataType.INTEGER).orElseThrow().intValue());
+        int storedValue = reloaded.getPersistentDataContainer()
+                .get(PLUGIN_KEY, PersistentDataType.INTEGER)
+                .orElseThrow();
+        assertEquals(1, storedValue);
 
         reloaded.getPersistentDataContainer().remove(PLUGIN_KEY);
 
@@ -143,7 +140,7 @@ class BlockEntityPersistenceTest {
     @Test
     void dataInstanceIsStable() {
         MigratedBlockEntity entity = PersistenceFixtures.blockEntity(MIGRATED_TYPE, POSITION);
-        BlockEntityData before = entity.data();
+        CloudBlockEntityData before = entity.data();
         entity.loadAdditionalData(NbtMap.builder()
                 .putString("id", "TestMigrated")
                 .putInt("x", 1)
@@ -177,7 +174,7 @@ class BlockEntityPersistenceTest {
 
     @Test
     void legacyRegistrationUsesBaseDataAndKeepsRawKeys() {
-        assertEquals(BlockEntityData.class,
+        assertEquals(CloudBlockEntityData.class,
                 CloudBlockEntityRegistry.get().getDataClass(LEGACY_TYPE));
 
         LegacyBlockEntity entity = PersistenceFixtures.blockEntity(LEGACY_TYPE, POSITION);
@@ -198,7 +195,7 @@ class BlockEntityPersistenceTest {
 
     @Test
     void legacyChestRegistrationUsesChestData() {
-        assertEquals(BlockEntityData.class,
+        assertEquals(CloudBlockEntityData.class,
                 CloudBlockEntityRegistry.get().getDataClass(PLUGIN_CHEST_TYPE));
 
         PluginChestBlockEntity entity = PersistenceFixtures.blockEntity(PLUGIN_CHEST_TYPE, POSITION);

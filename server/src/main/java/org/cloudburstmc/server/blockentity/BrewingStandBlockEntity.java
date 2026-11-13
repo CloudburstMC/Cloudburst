@@ -9,6 +9,7 @@ import org.cloudburstmc.api.blockentity.BrewingStand;
 import org.cloudburstmc.api.event.block.BrewingStartEvent;
 import org.cloudburstmc.api.event.inventory.BrewEvent;
 import org.cloudburstmc.api.event.inventory.BrewingStandFuelEvent;
+import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.api.inventory.view.SlotGroupType;
 import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
@@ -23,8 +24,8 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerSetDataPacket;
-import org.cloudburstmc.server.blockentity.data.BlockEntityData;
-import org.cloudburstmc.server.blockentity.data.BrewingStandData;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
+import org.cloudburstmc.server.blockentity.data.CloudBrewingStandData;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -61,17 +62,17 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
     }
 
     @Override
-    protected Class<? extends BlockEntityData> minimumDataClass() {
-        return BrewingStandData.class;
+    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
+        return CloudBrewingStandData.class;
     }
 
     @Override
-    protected BrewingStandData data() {
-        return (BrewingStandData) super.data();
+    protected CloudBrewingStandData data() {
+        return (CloudBrewingStandData) super.data();
     }
 
     @Override
-    protected org.cloudburstmc.api.inventory.ItemContainer items() {
+    protected ItemContainer items() {
         return this.data().getItems();
     }
 

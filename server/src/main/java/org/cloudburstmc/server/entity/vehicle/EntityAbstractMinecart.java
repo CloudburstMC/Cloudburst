@@ -29,8 +29,8 @@ import org.cloudburstmc.server.block.util.RailConnector;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
-import org.cloudburstmc.server.entity.data.AbstractMinecartData;
-import org.cloudburstmc.server.entity.data.EntityData;
+import org.cloudburstmc.server.entity.data.CloudAbstractMinecartData;
+import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.math.MathHelper;
 
@@ -74,13 +74,13 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     }
 
     @Override
-    protected AbstractMinecartData data() {
-        return (AbstractMinecartData) super.data();
+    protected CloudAbstractMinecartData data() {
+        return (CloudAbstractMinecartData) super.data();
     }
 
     @Override
-    protected Class<? extends EntityData> minimumDataClass() {
-        return AbstractMinecartData.class;
+    protected Class<? extends CloudEntityData> minimumDataClass() {
+        return CloudAbstractMinecartData.class;
     }
 
     @Override

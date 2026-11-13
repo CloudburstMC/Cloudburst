@@ -14,8 +14,8 @@ import org.cloudburstmc.api.potion.PotionType;
 import org.cloudburstmc.api.util.BlockHitResult;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.server.entity.data.ArrowData;
-import org.cloudburstmc.server.entity.data.EntityData;
+import org.cloudburstmc.server.entity.data.CloudArrowData;
+import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.potion.CloudPotion;
 
@@ -37,13 +37,13 @@ public class EntityArrow extends EntityAbstractArrow implements Arrow {
     }
 
     @Override
-    protected ArrowData data() {
-        return (ArrowData) super.data();
+    protected CloudArrowData data() {
+        return (CloudArrowData) super.data();
     }
 
     @Override
-    protected Class<? extends EntityData> minimumDataClass() {
-        return ArrowData.class;
+    protected Class<? extends CloudEntityData> minimumDataClass() {
+        return CloudArrowData.class;
     }
 
     @Override

@@ -1,12 +1,13 @@
 package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
+import org.cloudburstmc.api.item.data.BannerData;
 import org.cloudburstmc.api.util.data.BannerPattern;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.blockentity.data.BannerData;
+import org.cloudburstmc.server.blockentity.data.CloudBannerData;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -18,10 +19,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the banner data path: every key today's load/saveClientData
- * handle, plus an unknown key, survive with the same NBT types.
- */
 class BannerPersistenceTest {
 
     private static final Vector3i POSITION = Vector3i.from(10, 64, -5);
@@ -45,7 +42,7 @@ class BannerPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(BannerData.class,
+        assertEquals(CloudBannerData.class,
                 CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.BANNER));
 
         BannerBlockEntity entity = (BannerBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.BANNER, POSITION);
@@ -126,8 +123,6 @@ class BannerPersistenceTest {
 
     @Test
     void missingPatternKeyFailsLoad() {
-        // A layer without a Pattern key fails the load, exactly like the previous
-        // load path, which converted the stored name after reading it.
         BannerBlockEntity entity = (BannerBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.BANNER, POSITION);
         NbtMap tag = NbtMap.builder()
                 .putString("id", "Banner")
@@ -144,8 +139,6 @@ class BannerPersistenceTest {
 
     @Test
     void unknownPatternNameFailsLoad() {
-        // A layer with a pattern name the registry does not know fails the load,
-        // exactly like the previous load path.
         BannerBlockEntity entity = (BannerBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.BANNER, POSITION);
         NbtMap tag = NbtMap.builder()
                 .putString("id", "Banner")
@@ -165,8 +158,6 @@ class BannerPersistenceTest {
         BannerBlockEntity entity = (BannerBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.BANNER, POSITION);
         entity.loadAdditionalData(bannerTag());
 
-        // Each layer saves as the compound the save code wrote: the dye data
-        // masked to four bits under Color, then the pattern name under Pattern.
         List<NbtMap> layers = entity.getServerTag().getList("Patterns", NbtType.COMPOUND);
         assertEquals(2, layers.size());
         assertEquals(List.of("Color", "Pattern"), new ArrayList<>(layers.get(0).keySet()));
@@ -178,10 +169,9 @@ class BannerPersistenceTest {
         assertEquals(NbtType.INT, NbtType.byClass(layers.get(1).get("Color").getClass()));
         assertEquals("bo", layers.get(1).getString("Pattern"));
 
-        // Edge colours keep the old four-bit mask: NONE (-1) saves as 15.
         java.util.List<BannerPattern> patterns = new java.util.ArrayList<>(entity.getBannerData().getPatterns());
         patterns.add(new BannerPattern(BannerPattern.Type.getByName("cre"), DyeColor.NONE));
-        entity.setBannerData(org.cloudburstmc.api.item.data.BannerData.of(entity.getBannerData().getType(),
+        entity.setBannerData(BannerData.of(entity.getBannerData().getType(),
                 entity.getBannerData().getBase(), patterns));
         List<NbtMap> relayers = entity.getServerTag().getList("Patterns", NbtType.COMPOUND);
         assertEquals(3, relayers.size());
@@ -191,8 +181,6 @@ class BannerPersistenceTest {
     }
 
     private static void assertLoadFailure(Exception failure, String message) {
-        // The failure is the previous load path's unknown-pattern error, as on
-        // the previous load path.
         Throwable cause = failure;
         boolean recognized = false;
         while (cause != null) {
@@ -207,6 +195,6 @@ class BannerPersistenceTest {
 
     @Test
     void bannerBlockEntityKeepsNoDuplicateState() {
-        DtoStateChecks.assertKeepsNoDuplicateState(BannerBlockEntity.class, BannerData.class);
+        DtoStateChecks.assertKeepsNoDuplicateState(BannerBlockEntity.class, CloudBannerData.class);
     }
 }

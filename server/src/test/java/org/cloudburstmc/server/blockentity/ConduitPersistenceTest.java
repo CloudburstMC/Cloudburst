@@ -4,7 +4,7 @@ import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.blockentity.data.BlockEntityData;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -15,18 +15,13 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-/**
- * Round-trip tests for the conduit data path. Conduit state is runtime-only: today's
- * load reads nothing, the save strips the stale {@code Target}/{@code Active} keys,
- * and the client always carries both.
- */
 class ConduitPersistenceTest {
 
     private static final Vector3i POSITION = Vector3i.from(10, 64, -5);
 
     @Test
     void roundTripStripsTargetAndActiveFromServerTag() {
-        assertEquals(BlockEntityData.class,
+        assertEquals(CloudBlockEntityData.class,
                 CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.CONDUIT));
 
         ConduitBlockEntity entity = (ConduitBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CONDUIT, POSITION);
@@ -69,7 +64,6 @@ class ConduitPersistenceTest {
         assertEquals(Set.of("id", "x", "y", "z", "isMovable"), entity.getServerTag().keySet());
         assertEquals(Set.of("id", "Active", "Target"), entity.getClientTag().keySet());
 
-        // Unknown keys still pass through the server tag.
         Set<String> keys = new HashSet<>(entity.getServerTag().keySet());
         assertFalse(keys.contains("Target"));
         assertFalse(keys.contains("Active"));
@@ -77,6 +71,6 @@ class ConduitPersistenceTest {
 
     @Test
     void conduitBlockEntityKeepsNoDuplicateState() {
-        DtoStateChecks.assertKeepsNoDuplicateState(ConduitBlockEntity.class, BlockEntityData.class);
+        DtoStateChecks.assertKeepsNoDuplicateState(ConduitBlockEntity.class, CloudBlockEntityData.class);
     }
 }

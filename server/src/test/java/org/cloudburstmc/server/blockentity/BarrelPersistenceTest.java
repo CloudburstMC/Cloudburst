@@ -6,7 +6,7 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.blockentity.data.BarrelData;
+import org.cloudburstmc.server.blockentity.data.CloudBarrelData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -19,10 +19,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the barrel data path: every key today's load/save handle,
- * plus an unknown key, survive with the same NBT types.
- */
 class BarrelPersistenceTest {
 
     private static final Vector3i POSITION = Vector3i.from(10, 64, -5);
@@ -57,7 +53,7 @@ class BarrelPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(BarrelData.class,
+        assertEquals(CloudBarrelData.class,
                 CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.BARREL));
 
         BarrelBlockEntity entity = (BarrelBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.BARREL, POSITION);
@@ -119,6 +115,6 @@ class BarrelPersistenceTest {
 
     @Test
     void barrelBlockEntityKeepsNoDuplicateState() {
-        DtoStateChecks.assertKeepsNoDuplicateState(BarrelBlockEntity.class, BarrelData.class);
+        DtoStateChecks.assertKeepsNoDuplicateState(BarrelBlockEntity.class, CloudBarrelData.class);
     }
 }

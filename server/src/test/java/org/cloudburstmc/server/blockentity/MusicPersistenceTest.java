@@ -4,7 +4,7 @@ import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.blockentity.data.MusicData;
+import org.cloudburstmc.server.blockentity.data.CloudMusicData;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -15,10 +15,6 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Round-trip tests for the music (note block) data path: every key today's
- * load/save handle, plus an unknown key, survive with the same NBT types.
- */
 class MusicPersistenceTest {
 
     private static final Vector3i POSITION = Vector3i.from(10, 64, -5);
@@ -39,7 +35,7 @@ class MusicPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(MusicData.class,
+        assertEquals(CloudMusicData.class,
                 CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.NOTE_BLOCK));
 
         NoteBlockEntity entity = (NoteBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.NOTE_BLOCK, POSITION);
@@ -82,6 +78,6 @@ class MusicPersistenceTest {
 
     @Test
     void musicBlockEntityKeepsNoDuplicateState() {
-        DtoStateChecks.assertKeepsNoDuplicateState(NoteBlockEntity.class, MusicData.class);
+        DtoStateChecks.assertKeepsNoDuplicateState(NoteBlockEntity.class, CloudMusicData.class);
     }
 }

@@ -7,7 +7,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.EnderCrystalData;
+import org.cloudburstmc.server.entity.data.CloudEnderCrystalData;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -18,10 +18,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the ender-crystal data path: every key today's load/save handle,
- * plus an unknown key, survive with the same NBT types.
- */
 class EnderCrystalPersistenceTest {
 
     private static final Set<String> BASE_KEYS = Set.of(
@@ -36,7 +32,7 @@ class EnderCrystalPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(EnderCrystalData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.ENDER_CRYSTAL));
+        assertEquals(CloudEnderCrystalData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.ENDER_CRYSTAL));
 
         EntityEnderCrystal crystal = (EntityEnderCrystal) PersistenceFixtures.entity(EntityTypes.ENDER_CRYSTAL);
         NbtMap beam = NbtMap.builder().putInt("X", 1).putInt("Y", 2).putInt("Z", 3).build();
@@ -73,7 +69,6 @@ class EnderCrystalPersistenceTest {
         expectedKeys.addAll(Set.of("ShowBottom", "identifier"));
         assertEquals(expectedKeys, saved.keySet());
 
-        // Today's save always writes the base flag and omits the beam target.
         assertEquals(NbtType.BYTE, NbtType.byClass(saved.get("ShowBottom").getClass()), "ShowBottom must be a byte");
         assertTrue(saved.getBoolean("ShowBottom"));
     }
@@ -138,11 +133,11 @@ class EnderCrystalPersistenceTest {
     @Test
     void enderCrystalKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntityEnderCrystal.class, EnderCrystalData.class);
-        assertFalse(hasDtoField(EnderCrystalData.class, "showBottom"),
-                "EnderCrystalData keeps showBottom; state must live in metadata only");
-        assertFalse(hasDtoField(EnderCrystalData.class, "beamTarget"),
-                "EnderCrystalData keeps beamTarget; state must live in metadata only");
+                EntityEnderCrystal.class, CloudEnderCrystalData.class);
+        assertFalse(hasDtoField(CloudEnderCrystalData.class, "showBottom"),
+                "CloudEnderCrystalData keeps showBottom; state must live in metadata only");
+        assertFalse(hasDtoField(CloudEnderCrystalData.class, "beamTarget"),
+                "CloudEnderCrystalData keeps beamTarget; state must live in metadata only");
     }
 
     private static boolean hasDtoField(Class<?> type, String name) {

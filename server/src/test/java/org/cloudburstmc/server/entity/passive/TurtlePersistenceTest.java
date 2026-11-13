@@ -6,7 +6,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.TurtleData;
+import org.cloudburstmc.server.entity.data.CloudTurtleData;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -19,10 +19,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the turtle data path: every key today's load/save handle,
- * plus an unknown key, survive with the same NBT types.
- */
 class TurtlePersistenceTest {
 
     private static NbtMap save(CloudEntity entity) {
@@ -33,7 +29,7 @@ class TurtlePersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(TurtleData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.TURTLE));
+        assertEquals(CloudTurtleData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.TURTLE));
 
         EntityTurtle turtle = (EntityTurtle) PersistenceFixtures.entity(EntityTypes.TURTLE);
         turtle.loadAdditionalData(NbtMap.builder()
@@ -65,7 +61,6 @@ class TurtlePersistenceTest {
 
         NbtMap saved = save(turtle);
 
-        // Today's save always writes Age 0 and the spawn position as home.
         assertTrue(saved.get("Age") instanceof Integer, "Age must be an int");
         assertEquals(0, saved.getInt("Age"));
         assertTrue(saved.get("HomePosX") instanceof Integer, "HomePosX must be an int");
@@ -81,7 +76,6 @@ class TurtlePersistenceTest {
         EntityTurtle turtle = (EntityTurtle) PersistenceFixtures.entity(EntityTypes.TURTLE);
         turtle.setAge(100);
 
-        // Today's load reads Age with default 0; home falls back to the loaded position.
         turtle.loadAdditionalData(NbtMap.builder()
                 .putList("Pos", NbtType.FLOAT, List.of(5f, 6f, 7f))
                 .build());
@@ -111,7 +105,7 @@ class TurtlePersistenceTest {
     @Test
     void turtleKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntityTurtle.class, TurtleData.class,
+                EntityTurtle.class, CloudTurtleData.class,
                 Map.of(
                         "armor", "an armor view over the live container in data().getArmor()",
                         "offhand", "an offhand view over the live container in data().getOffhand()",
@@ -122,7 +116,7 @@ class TurtlePersistenceTest {
         }
         for (String removed : Set.of("growingAge", "homePosition")) {
             assertFalse(fields.contains(removed),
-                    "EntityTurtle keeps " + removed + "; state must live in TurtleData only");
+                    "EntityTurtle keeps " + removed + "; state must live in CloudTurtleData only");
         }
     }
 }

@@ -12,8 +12,8 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.blockentity.data.BlockEntityData;
-import org.cloudburstmc.server.blockentity.data.ItemFrameData;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
+import org.cloudburstmc.server.blockentity.data.CloudItemFrameData;
 
 import java.util.Objects;
 import java.util.Set;
@@ -25,13 +25,13 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
     }
 
     @Override
-    protected Class<? extends BlockEntityData> minimumDataClass() {
-        return ItemFrameData.class;
+    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
+        return CloudItemFrameData.class;
     }
 
     @Override
-    protected ItemFrameData data() {
-        return (ItemFrameData) super.data();
+    protected CloudItemFrameData data() {
+        return (CloudItemFrameData) super.data();
     }
 
     @Override

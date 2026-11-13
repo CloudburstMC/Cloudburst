@@ -18,8 +18,8 @@ import org.cloudburstmc.api.util.data.MinecartType;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
-import org.cloudburstmc.server.entity.data.EntityData;
-import org.cloudburstmc.server.entity.data.TntMinecartData;
+import org.cloudburstmc.server.entity.data.CloudEntityData;
+import org.cloudburstmc.server.entity.data.CloudTntMinecartData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.item.component.DefaultItemHandlers;
 
@@ -42,13 +42,13 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
     }
 
     @Override
-    protected TntMinecartData data() {
-        return (TntMinecartData) super.data();
+    protected CloudTntMinecartData data() {
+        return (CloudTntMinecartData) super.data();
     }
 
     @Override
-    protected Class<? extends EntityData> minimumDataClass() {
-        return TntMinecartData.class;
+    protected Class<? extends CloudEntityData> minimumDataClass() {
+        return CloudTntMinecartData.class;
     }
 
     @Override

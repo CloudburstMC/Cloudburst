@@ -8,7 +8,7 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.block.BlockStateCodec;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.TntMinecartData;
+import org.cloudburstmc.server.entity.data.CloudTntMinecartData;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -19,10 +19,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the TNT-minecart data path: every key today's load/save handle,
- * plus an unknown key, survive with the same NBT types.
- */
 class TntMinecartPersistenceTest {
 
     private static final Set<String> BASE_KEYS = Set.of(
@@ -37,7 +33,7 @@ class TntMinecartPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(TntMinecartData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.TNT_MINECART));
+        assertEquals(CloudTntMinecartData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.TNT_MINECART));
 
         EntityTntMinecart minecart = (EntityTntMinecart) PersistenceFixtures.entity(EntityTypes.TNT_MINECART);
         NbtMap input = NbtMap.builder()
@@ -52,7 +48,6 @@ class TntMinecartPersistenceTest {
 
         NbtMap saved = save(minecart);
 
-        // A TNT cart always carries its TNT display block.
         Set<String> expectedKeys = new HashSet<>(input.keySet());
         expectedKeys.addAll(BASE_KEYS);
         expectedKeys.addAll(Set.of("CustomDisplayTile", "DisplayBlock", "identifier"));
@@ -78,8 +73,6 @@ class TntMinecartPersistenceTest {
         expectedKeys.addAll(Set.of("Fuse", "CustomDisplayTile", "DisplayBlock", "identifier"));
         assertEquals(expectedKeys, saved.keySet());
 
-        // Today's save always writes the unprimed fuse and the TNT display block,
-        // and omits the default offset.
         assertTrue(saved.get("Fuse") instanceof Integer, "Fuse must be an int");
         assertEquals(-1, saved.getInt("Fuse"));
         assertTrue(saved.getBoolean("CustomDisplayTile"));
@@ -94,7 +87,6 @@ class TntMinecartPersistenceTest {
 
         minecart.loadAdditionalData(NbtMap.EMPTY);
 
-        // The fuse has a presence bit; the offset always falls back to its default.
         assertEquals(30, minecart.getFuse());
         assertEquals(6, minecart.getDisplayOffset());
     }
@@ -102,14 +94,14 @@ class TntMinecartPersistenceTest {
     @Test
     void tntMinecartKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntityTntMinecart.class, TntMinecartData.class);
+                EntityTntMinecart.class, CloudTntMinecartData.class);
         Set<String> fields = new HashSet<>();
         for (Field field : EntityTntMinecart.class.getDeclaredFields()) {
             fields.add(field.getName());
         }
         for (String removed : Set.of("fuse")) {
             assertFalse(fields.contains(removed),
-                    "EntityTntMinecart keeps " + removed + "; state must live in TntMinecartData only");
+                    "EntityTntMinecart keeps " + removed + "; state must live in CloudTntMinecartData only");
         }
     }
 }

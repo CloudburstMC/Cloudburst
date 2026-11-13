@@ -6,7 +6,7 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.blockentity.data.CampfireData;
+import org.cloudburstmc.server.blockentity.data.CloudCampfireData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -17,10 +17,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the campfire data path: every key today's load/saveClientData handle,
- * plus an unknown key, survive with the same NBT types.
- */
 class CampfirePersistenceTest {
 
     private static final Vector3i POSITION = Vector3i.from(10, 64, -5);
@@ -43,7 +39,7 @@ class CampfirePersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CampfireData.class,
+        assertEquals(CloudCampfireData.class,
                 CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.CAMPFIRE));
 
         CampfireBlockEntity entity = (CampfireBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CAMPFIRE, POSITION);
@@ -97,9 +93,7 @@ class CampfirePersistenceTest {
         CampfireBlockEntity entity = (CampfireBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CAMPFIRE, POSITION);
         entity.loadAdditionalData(campfireTag());
 
-        // clearItems() itself broadcasts, which needs a live level; replicate its
-        // local state change through the DTO so the save path can be tested standalone.
-        CampfireData data = (CampfireData) entity.data();
+        CloudCampfireData data = (CloudCampfireData) entity.data();
         data.setItem1(null);
         data.setItemTime1(null);
         data.setItem2(null);
@@ -134,7 +128,6 @@ class CampfirePersistenceTest {
                 .putInt("z", -5)
                 .build());
 
-        // A fresh campfire holds nothing; every slot and time key stays absent.
         for (int slot = 0; slot < 4; slot++) {
             assertTrue(entity.getItem(slot).isEmpty(), "slot " + slot);
         }
@@ -154,8 +147,6 @@ class CampfirePersistenceTest {
                 .putInt("ItemTime2", 50)
                 .build());
 
-        // An item without its time cooks from zero; a time without its item is
-        // dropped. The save writes exactly the keys it used to.
         assertEquals(ItemStack.from(ItemTypes.DIAMOND, 1), entity.getItem(0));
         assertTrue(entity.getItem(1).isEmpty());
 
@@ -167,15 +158,9 @@ class CampfirePersistenceTest {
 
     @Test
     void campfireBlockEntityKeepsNoDuplicateState() {
-        // No retained fields: every slot and its time live in CampfireData.
-        DtoStateChecks.assertKeepsNoDuplicateState(CampfireBlockEntity.class, CampfireData.class);
+        DtoStateChecks.assertKeepsNoDuplicateState(CampfireBlockEntity.class, CloudCampfireData.class);
     }
 
-    /**
-     * The pre-migration campfire class shape: the old duplicates were
-     * {@code ItemStack[] items} plus {@code int[] itemTimes}, whose names match no
-     * {@code CampfireData} property, so the name check stays blind to them.
-     */
     static final class PreMigrationCampfireShape {
         @SuppressWarnings("unused")
         ItemStack[] items = new ItemStack[4];
@@ -185,9 +170,7 @@ class CampfirePersistenceTest {
 
     @Test
     void duplicateStateTypeCheckCatchesPreMigrationShape() {
-        // The name check passes this shape (no DTO property is named items or
-        // itemTimes); the type check must still fail it, or the whole check is vacuous.
         assertThrows(AssertionError.class, () -> DtoStateChecks.assertKeepsNoDuplicateState(
-                PreMigrationCampfireShape.class, CampfireData.class));
+                PreMigrationCampfireShape.class, CloudCampfireData.class));
     }
 }

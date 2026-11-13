@@ -11,8 +11,8 @@ import org.cloudburstmc.api.util.data.CardinalDirection;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.util.RedstoneSignals;
-import org.cloudburstmc.server.blockentity.data.BlockEntityData;
-import org.cloudburstmc.server.blockentity.data.SkullData;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
+import org.cloudburstmc.server.blockentity.data.CloudSkullData;
 
 import java.util.Objects;
 
@@ -26,13 +26,13 @@ public class SkullBlockEntity extends BaseBlockEntity implements Skull {
     }
 
     @Override
-    protected Class<? extends BlockEntityData> minimumDataClass() {
-        return SkullData.class;
+    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
+        return CloudSkullData.class;
     }
 
     @Override
-    protected SkullData data() {
-        return (SkullData) super.data();
+    protected CloudSkullData data() {
+        return (CloudSkullData) super.data();
     }
 
     @Override

@@ -15,8 +15,8 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.component.LecternBlockHandlers;
-import org.cloudburstmc.server.blockentity.data.BlockEntityData;
-import org.cloudburstmc.server.blockentity.data.LecternData;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
+import org.cloudburstmc.server.blockentity.data.CloudLecternData;
 import org.cloudburstmc.server.container.screen.CloudLecternContainerScreen;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -34,13 +34,13 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
     }
 
     @Override
-    protected Class<? extends BlockEntityData> minimumDataClass() {
-        return LecternData.class;
+    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
+        return CloudLecternData.class;
     }
 
     @Override
-    protected LecternData data() {
-        return (LecternData) super.data();
+    protected CloudLecternData data() {
+        return (CloudLecternData) super.data();
     }
 
     @Override

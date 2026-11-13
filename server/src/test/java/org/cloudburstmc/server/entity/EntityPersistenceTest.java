@@ -19,9 +19,9 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
-import org.cloudburstmc.server.entity.data.CreatureData;
-import org.cloudburstmc.server.entity.data.EntityData;
-import org.cloudburstmc.server.entity.data.LivingData;
+import org.cloudburstmc.server.entity.data.CloudCreatureData;
+import org.cloudburstmc.server.entity.data.CloudEntityData;
+import org.cloudburstmc.server.entity.data.CloudLivingData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.nbt.ServerNbt;
@@ -38,11 +38,6 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the entity data path: unknown keys survive in the
- * raw tag, DTO properties write exactly, conditional keys clear cleanly,
- * plugin data stays server-side, and every registration round-trips.
- */
 class EntityPersistenceTest {
 
     private static final Identifier PLUGIN_KEY = Identifier.parse("myplugin:a");
@@ -116,7 +111,10 @@ class EntityPersistenceTest {
         CloudEntity reloaded = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
         reloaded.loadAdditionalData(saved);
 
-        assertEquals(1, reloaded.getPersistentDataContainer().get(PLUGIN_KEY, PersistentDataType.INTEGER).orElseThrow().intValue());
+        int storedValue = reloaded.getPersistentDataContainer()
+                .get(PLUGIN_KEY, PersistentDataType.INTEGER)
+                .orElseThrow();
+        assertEquals(1, storedValue);
 
         reloaded.getPersistentDataContainer().remove(PLUGIN_KEY);
 
@@ -132,8 +130,6 @@ class EntityPersistenceTest {
         CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
         entity.loadAdditionalData(NbtMap.EMPTY);
 
-        // Fixture entities never run initialize, so they have no chunk; attach a
-        // stub-backed chunk the way the block-entity fixture builds one.
         entity.chunk = new CloudChunk(0, 0, InterfaceProxy.create(Level.class));
 
         long revision = entity.chunk.captureSaveRevision();
@@ -193,11 +189,9 @@ class EntityPersistenceTest {
     void legacyCreatureRegistrationRoundTripsWithCreatureData() {
         CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(TestEntities.LEGACY_CREATURE_TYPE);
 
-        // The old overload registered the base data class; the runtime class's
-        // minimum resolves the effective class so the creature cast cannot fail.
-        assertEquals(EntityData.class,
+        assertEquals(CloudEntityData.class,
                 CloudEntityRegistry.get().getDataClass(TestEntities.LEGACY_CREATURE_TYPE));
-        assertEquals(org.cloudburstmc.server.entity.data.CreatureData.class, entity.dataClass());
+        assertEquals(org.cloudburstmc.server.entity.data.CloudCreatureData.class, entity.dataClass());
 
         entity.loadAdditionalData(NbtMap.builder()
                 .putList("Pos", NbtType.FLOAT, List.of(1f, 2f, 3f))
@@ -266,7 +260,6 @@ class EntityPersistenceTest {
             try {
                 NbtMapBuilder second = NbtMap.builder();
                 reloaded.saveAdditionalData(second);
-                // Every type is migrated now, so a reload must save identically.
                 assertEquals(saved, second.build(), type.getId() + " must save identically after a reload");
             } catch (AssertionError e) {
                 failures.add(type.getId() + ": resave differs (" + e.getMessage() + ")");
@@ -279,9 +272,9 @@ class EntityPersistenceTest {
             failures.forEach(System.out::println);
         }
         assertTrue(failures.isEmpty(), "Entity round-trip failures: " + failures);
-        assertEquals(org.cloudburstmc.server.entity.data.CreatureData.class,
+        assertEquals(org.cloudburstmc.server.entity.data.CloudCreatureData.class,
                 CloudEntityRegistry.get().getDataClass(EntityTypes.PIG));
-        assertEquals(org.cloudburstmc.server.entity.data.PaintingData.class,
+        assertEquals(org.cloudburstmc.server.entity.data.CloudPaintingData.class,
                 CloudEntityRegistry.get().getDataClass(EntityTypes.PAINTING));
     }
 
@@ -291,7 +284,7 @@ class EntityPersistenceTest {
     @Test
     void entityDataInstanceIsStable() {
         CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
-        EntityData before = entity.data();
+        CloudEntityData before = entity.data();
 
         entity.loadAdditionalData(NbtMap.builder()
                 .putShort("Fire", (short) 5)
@@ -299,17 +292,14 @@ class EntityPersistenceTest {
                 .build());
 
         assertSame(before, entity.data(), "load must fill the held instance in place");
-        // Fire loads as seconds into the live countdown, as it always has.
         assertEquals(100, entity.getFireTicks());
-        // Fire is hook-owned now; no DTO may declare it.
-        assertFalse(ServerNbt.MAPPER.ownedKeys(EntityData.class).contains("Fire"));
+        assertFalse(ServerNbt.MAPPER.ownedKeys(CloudEntityData.class).contains("Fire"));
         assertTrue(entity.customKeys().contains("Fire"));
         assertEquals(Set.of("one"), before.getTags());
 
         entity.loadAdditionalData(NbtMap.EMPTY);
         assertSame(before, entity.data(), "save must not replace the held instance");
 
-        // An empty tag set still saves as an empty STRING list, as today.
         CloudEntity fresh = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
         fresh.loadAdditionalData(NbtMap.EMPTY);
         NbtMapBuilder freshBuilder = NbtMap.builder();
@@ -381,7 +371,7 @@ class EntityPersistenceTest {
     @Test
     void creatureArmorLivesInData() {
         EntityCreature creature = (EntityCreature) PersistenceFixtures.entity(EntityTypes.PIG);
-        CreatureData data = creature.data();
+        CloudCreatureData data = creature.data();
 
         assertSame(data.getArmor(), creature.armor.getContainer(),
                 "the armor DTO must be the live armor container");
@@ -586,8 +576,6 @@ class EntityPersistenceTest {
                 .putFloat("Scale", 1.0f)
                 .build());
 
-        // The old load set the base scale first, then the transition hook
-        // derived the baby scale; an explicit tag scale never won for a baby.
         assertEquals(0.2375f, ghast.getScale());
     }
 
@@ -629,8 +617,6 @@ class EntityPersistenceTest {
                         ItemStackNbtCodec.serializeItem(boots, 3)))
                 .build());
 
-        // The old load ran setOnFire before the armor was loaded, so no
-        // reduction applied: 5 seconds become 100 ticks and save back as 100.
         assertEquals(100, creature.getFireTicks());
         assertEquals((short) 100, save(creature).getShort("Fire"));
     }
@@ -650,56 +636,42 @@ class EntityPersistenceTest {
                         List.of(withoutSlot(ItemStackNbtCodec.serializeItem(diamond, 0))))
                 .build());
 
-        // Entries bind by position, ignoring any Slot tag...
         assertEquals(iron, creature.getArmor().getItem(0));
         assertEquals(diamond, creature.getArmor().getItem(1));
-        // ...and missing slots keep their current item instead of clearing.
         assertEquals(diamond, creature.getArmor().getItem(3));
         assertEquals(diamond, creature.getOffhand().getOffhandItem());
     }
 
     @Test
     void cloudEntityKeepsNoDuplicateState() {
-        DtoStateChecks.assertEntityKeepsNoDuplicateState(CloudEntity.class, EntityData.class);
-        // The old shape kept base state in runtime fields whose names match no DTO
-        // property, so the shared check stays blind to them. Forbid them explicitly;
-        // this fails on the pre-migration class.
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(CloudEntity.class, CloudEntityData.class);
         Set<String> fields = new HashSet<>();
         for (Field field : CloudEntity.class.getDeclaredFields()) {
             fields.add(field.getName());
         }
         for (String removed : Set.of("freezeTicks", "scale")) {
             assertFalse(fields.contains(removed),
-                    "CloudEntity keeps " + removed + "; state must live in EntityData only");
+                    "CloudEntity keeps " + removed + "; state must live in CloudEntityData only");
         }
     }
 
     @Test
     void livingEntityKeepsNoDuplicateState() {
-        DtoStateChecks.assertEntityKeepsNoDuplicateState(EntityLiving.class, LivingData.class);
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(EntityLiving.class, CloudLivingData.class);
     }
 
     @Test
     void creatureKeepsNoDuplicateState() {
-        DtoStateChecks.assertEntityKeepsNoDuplicateState(EntityCreature.class, CreatureData.class,
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(EntityCreature.class, CloudCreatureData.class,
                 java.util.Map.of(
                         "armor", "an armor view over the live container in data().getArmor()",
                         "offhand", "an offhand view over the live container in data().getOffhand()"));
     }
 
-    /**
-     * Types whose load or init paths need a live world (server, level or game rules)
-     * and cannot run in the stub fixture. Loading a creeper fires its power event
-     * through the server; the others touch the level during initialization.
-     */
     private static final java.util.Set<String> KNOWN_UNSTABLE_TYPES = java.util.Set.of(
-            // load fires CreeperPowerEvent via server
             "minecraft:creeper",
-            // init reads level dimension/end fight
             "minecraft:ender_dragon",
-            // init captures location/last event state needing a level
             "minecraft:boat",
             "minecraft:chest_boat",
-            // init reads level game rules and server difficulty
             "minecraft:lightning_bolt");
 }

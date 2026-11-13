@@ -7,7 +7,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.CreatureData;
+import org.cloudburstmc.server.entity.data.CloudCreatureData;
 import org.cloudburstmc.server.entity.data.SyncedEntityData;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -21,10 +21,6 @@ import java.util.Set;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.COLOR;
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the sheep data path: every key today's load/save handle,
- * plus an unknown key, survive with the same NBT types.
- */
 class SheepPersistenceTest {
 
     private static NbtMap save(CloudEntity entity) {
@@ -35,7 +31,7 @@ class SheepPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CreatureData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.SHEEP));
+        assertEquals(CloudCreatureData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.SHEEP));
 
         EntitySheep sheep = (EntitySheep) PersistenceFixtures.entity(EntityTypes.SHEEP);
         sheep.loadAdditionalData(NbtMap.builder()
@@ -62,7 +58,6 @@ class SheepPersistenceTest {
 
         NbtMap saved = save(sheep);
 
-        // Today's save always writes the (randomized) color byte and Sheared false.
         assertTrue(saved.get("Color") instanceof Byte, "Color must be a byte");
         assertEquals((byte) sheep.getColor().getWoolData(), saved.getByte("Color"));
         assertEquals(NbtType.BYTE, NbtType.byClass(saved.get("Sheared").getClass()), "Sheared must be a byte");
@@ -88,13 +83,11 @@ class SheepPersistenceTest {
                 .putByte("Color", (byte) 20)
                 .build());
 
-        // Today's load wrote the raw byte through to the client metadata.
         assertEquals((byte) 20, clientColor(sheep));
         assertEquals(DyeColor.getByWoolData(20), sheep.getColor());
 
         NbtMap saved = save(sheep);
 
-        // The save still normalises through the wool colour, exactly as today.
         assertTrue(saved.get("Color") instanceof Byte, "Color must be a byte");
         assertEquals((byte) DyeColor.getByWoolData(20).getWoolData(), saved.getByte("Color"));
     }
@@ -112,7 +105,7 @@ class SheepPersistenceTest {
     @Test
     void sheepKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntitySheep.class, CreatureData.class,
+                EntitySheep.class, CloudCreatureData.class,
                 Map.of(
                         "armor", "an armor view over the live container in data().getArmor()",
                         "offhand", "an offhand view over the live container in data().getOffhand()"));

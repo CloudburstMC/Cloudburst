@@ -7,7 +7,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.blockentity.data.FurnaceData;
+import org.cloudburstmc.server.blockentity.data.CloudFurnaceData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -20,10 +20,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the furnace data path: every key today's load/save handle,
- * plus an unknown key, survive with the same NBT types.
- */
 class FurnacePersistenceTest {
 
     private static final Vector3i POSITION = Vector3i.from(10, 64, -5);
@@ -64,7 +60,7 @@ class FurnacePersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(FurnaceData.class,
+        assertEquals(CloudFurnaceData.class,
                 CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.FURNACE));
 
         FurnaceBlockEntity entity = (FurnaceBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.FURNACE, POSITION);
@@ -88,7 +84,6 @@ class FurnacePersistenceTest {
                     NbtType.byClass(saved.get(key).getClass()), "type of " + key);
         }
 
-        // LootTable is not a declared furnace key; it passes through the raw-tag merge unchanged.
         assertEquals("minecraft:chests/simple_dungeon", saved.getString("LootTable"));
 
         assertEquals(Set.of("id", "CustomName"), entity.getClientTag().keySet());
@@ -125,9 +120,9 @@ class FurnacePersistenceTest {
 
     @Test
     void blastFurnaceAndSmokerShareFurnaceData() {
-        assertEquals(FurnaceData.class,
+        assertEquals(CloudFurnaceData.class,
                 CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.BLAST_FURNACE));
-        assertEquals(FurnaceData.class,
+        assertEquals(CloudFurnaceData.class,
                 CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.SMOKER));
 
         BlastFurnaceBlockEntity blast = (BlastFurnaceBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.BLAST_FURNACE, POSITION);
@@ -171,7 +166,6 @@ class FurnacePersistenceTest {
                 .putInt("z", -5)
                 .build());
 
-        // A fresh furnace is cold and empty: every counter reads zero.
         assertEquals(0, entity.getCookProgress());
         assertEquals(0, entity.getBurnProgress());
         assertEquals(0, entity.getBurnDuration());
@@ -182,8 +176,6 @@ class FurnacePersistenceTest {
 
     @Test
     void furnaceBlockEntityKeepsNoDuplicateState() {
-        // Retained field and why it holds no DTO state: currentCookDuration is the live
-        // smelt timer, never persisted.
-        DtoStateChecks.assertKeepsNoDuplicateState(FurnaceBlockEntity.class, FurnaceData.class);
+        DtoStateChecks.assertKeepsNoDuplicateState(FurnaceBlockEntity.class, CloudFurnaceData.class);
     }
 }

@@ -11,7 +11,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.CreatureData;
+import org.cloudburstmc.server.entity.data.CloudCreatureData;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -25,14 +25,6 @@ import java.util.Set;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.POWERED;
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the creeper data path: every key today's load/save handle,
- * plus an unknown key, survive with the same NBT types.
- *
- * <p>Today's load fires a power event through the server, which the stub fixture has none
- * of, so load-side tests run through a minimal subclass that records the powered flag
- * without firing. The save path is the production one on both classes.
- */
 class CreeperPersistenceTest {
 
     private static final class LoadableCreeper extends EntityCreeper {
@@ -60,7 +52,7 @@ class CreeperPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CreatureData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.CREEPER));
+        assertEquals(CloudCreatureData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.CREEPER));
 
         LoadableCreeper creeper = loadable();
         creeper.loadAdditionalData(NbtMap.builder()
@@ -83,7 +75,6 @@ class CreeperPersistenceTest {
 
         NbtMap saved = save(creeper);
 
-        // Today's save always writes powered false for a fresh creeper.
         assertEquals(NbtType.BYTE, NbtType.byClass(saved.get("powered").getClass()), "powered must be a byte");
         assertFalse(saved.getBoolean("powered"));
     }
@@ -101,7 +92,7 @@ class CreeperPersistenceTest {
     @Test
     void creeperKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntityCreeper.class, CreatureData.class,
+                EntityCreeper.class, CloudCreatureData.class,
                 Map.of(
                         "armor", "an armor view over the live container in data().getArmor()",
                         "offhand", "an offhand view over the live container in data().getOffhand()"));

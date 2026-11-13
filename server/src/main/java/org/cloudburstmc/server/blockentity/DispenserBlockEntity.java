@@ -10,8 +10,8 @@ import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.server.blockentity.data.BlockEntityData;
-import org.cloudburstmc.server.blockentity.data.DispenserData;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
+import org.cloudburstmc.server.blockentity.data.CloudDispenserData;
 import org.cloudburstmc.server.container.ContainerListener;
 
 import java.util.HashSet;
@@ -37,13 +37,13 @@ public class DispenserBlockEntity extends ContainerBlockEntity implements Dispen
     }
 
     @Override
-    protected Class<? extends BlockEntityData> minimumDataClass() {
-        return DispenserData.class;
+    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
+        return CloudDispenserData.class;
     }
 
     @Override
-    protected DispenserData data() {
-        return (DispenserData) super.data();
+    protected CloudDispenserData data() {
+        return (CloudDispenserData) super.data();
     }
 
     @Override

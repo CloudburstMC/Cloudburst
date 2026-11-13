@@ -7,7 +7,7 @@ import org.cloudburstmc.api.potion.PotionTypes;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.blockentity.data.CauldronData;
+import org.cloudburstmc.server.blockentity.data.CloudCauldronData;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -20,10 +20,6 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-/**
- * Round-trip tests for the cauldron data path: every key today's load/saveClientData
- * handle, plus an unknown key, survive with the same NBT types.
- */
 class CauldronPersistenceTest {
 
     private static final Vector3i POSITION = Vector3i.from(10, 64, -5);
@@ -46,7 +42,7 @@ class CauldronPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CauldronData.class,
+        assertEquals(CloudCauldronData.class,
                 CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.CAULDRON));
 
         CauldronBlockEntity entity = (CauldronBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CAULDRON, POSITION);
@@ -147,6 +143,6 @@ class CauldronPersistenceTest {
 
     @Test
     void cauldronBlockEntityKeepsNoDuplicateState() {
-        DtoStateChecks.assertKeepsNoDuplicateState(CauldronBlockEntity.class, CauldronData.class);
+        DtoStateChecks.assertKeepsNoDuplicateState(CauldronBlockEntity.class, CloudCauldronData.class);
     }
 }

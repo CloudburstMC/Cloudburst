@@ -14,8 +14,8 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.server.blockentity.data.BlockEntityData;
-import org.cloudburstmc.server.blockentity.data.CampfireData;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
+import org.cloudburstmc.server.blockentity.data.CloudCampfireData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 
@@ -31,13 +31,13 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
     }
 
     @Override
-    protected Class<? extends BlockEntityData> minimumDataClass() {
-        return CampfireData.class;
+    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
+        return CloudCampfireData.class;
     }
 
     @Override
-    protected CampfireData data() {
-        return (CampfireData) super.data();
+    protected CloudCampfireData data() {
+        return (CloudCampfireData) super.data();
     }
 
     @Override

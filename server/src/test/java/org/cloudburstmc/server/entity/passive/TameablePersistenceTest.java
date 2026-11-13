@@ -9,7 +9,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
-import org.cloudburstmc.server.entity.data.CreatureData;
+import org.cloudburstmc.server.entity.data.CloudCreatureData;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -21,12 +21,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Data-path tests for the tameable branch. {@link EntityTameable} is abstract and has no
- * registered subclasses, so the tests drive the production load/save hooks directly
- * through a minimal subclass and assert the written NBT types, exactly as the
- * production save path would write them.
- */
 class TameablePersistenceTest {
 
     private static final class TestTameable extends EntityTameable {
@@ -74,7 +68,6 @@ class TameablePersistenceTest {
 
         NbtMap written = save(tameable);
 
-        // Today's save always writes the unset owner id (-1) and Sitting false.
         assertTrue(written.get("OwnerID") instanceof Long, "OwnerID must be a long");
         assertEquals(-1L, written.getLong("OwnerID"));
         assertEquals(NbtType.BYTE, NbtType.byClass(written.get("Sitting").getClass()), "Sitting must be a byte");
@@ -118,8 +111,6 @@ class TameablePersistenceTest {
         TestTameable tameable = tameable();
         tameable.setOwnerId(7L);
 
-        // Today's load ignored a non-numeric OwnerID: the mapper bound it to
-        // null, so nothing was tamed.
         tameable.loadAdditionalData(NbtMap.builder()
                 .putString("OwnerID", "not-a-number")
                 .build());
@@ -131,7 +122,7 @@ class TameablePersistenceTest {
     @Test
     void tameableKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntityTameable.class, CreatureData.class,
+                EntityTameable.class, CloudCreatureData.class,
                 Map.of(
                         "armor", "an armor view over the live container in data().getArmor()",
                         "offhand", "an offhand view over the live container in data().getOffhand()"));

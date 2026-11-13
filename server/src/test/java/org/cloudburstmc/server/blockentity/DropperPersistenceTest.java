@@ -6,7 +6,7 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.blockentity.data.DropperData;
+import org.cloudburstmc.server.blockentity.data.CloudDropperData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -19,10 +19,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the dropper data path: every key today's load/save handle,
- * plus an unknown key, survive with the same NBT types.
- */
 class DropperPersistenceTest {
 
     private static final Vector3i POSITION = Vector3i.from(10, 64, -5);
@@ -57,7 +53,7 @@ class DropperPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(DropperData.class,
+        assertEquals(CloudDropperData.class,
                 CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.DROPPER));
 
         DropperBlockEntity entity = (DropperBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.DROPPER, POSITION);
@@ -119,6 +115,6 @@ class DropperPersistenceTest {
 
     @Test
     void dropperBlockEntityKeepsNoDuplicateState() {
-        DtoStateChecks.assertKeepsNoDuplicateState(DropperBlockEntity.class, DropperData.class);
+        DtoStateChecks.assertKeepsNoDuplicateState(DropperBlockEntity.class, CloudDropperData.class);
     }
 }

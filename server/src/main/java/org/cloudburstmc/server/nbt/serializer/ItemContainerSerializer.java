@@ -5,6 +5,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.nbt.NbtSkipEmpty;
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.databind.BeanProperty;
@@ -48,7 +49,7 @@ public final class ItemContainerSerializer extends StdSerializer<ItemContainer> 
             if (skipEmpty && item.isEmpty()) {
                 continue;
             }
-            items.add(org.cloudburstmc.server.item.ItemStackNbtCodec.serializeItem(item, slot));
+            items.add(ItemStackNbtCodec.serializeItem(item, slot));
         }
         gen.writeEmbeddedObject(new NbtList<>(NbtType.COMPOUND, items));
     }

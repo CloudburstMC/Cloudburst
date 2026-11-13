@@ -11,8 +11,8 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.EntityData;
-import org.cloudburstmc.server.entity.data.PrimedTntData;
+import org.cloudburstmc.server.entity.data.CloudEntityData;
+import org.cloudburstmc.server.entity.data.CloudPrimedTntData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.FUSE_TIME;
@@ -75,13 +75,13 @@ public class EntityPrimedTnt extends CloudEntity implements PrimedTnt, Explosive
     }
 
     @Override
-    protected PrimedTntData data() {
-        return (PrimedTntData) super.data();
+    protected CloudPrimedTntData data() {
+        return (CloudPrimedTntData) super.data();
     }
 
     @Override
-    protected Class<? extends EntityData> minimumDataClass() {
-        return PrimedTntData.class;
+    protected Class<? extends CloudEntityData> minimumDataClass() {
+        return CloudPrimedTntData.class;
     }
 
     @Override

@@ -9,8 +9,8 @@ import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.blockentity.data.BlockEntityData;
-import org.cloudburstmc.server.blockentity.data.MovingBlockData;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
+import org.cloudburstmc.server.blockentity.data.CloudMovingBlockData;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 
 import java.util.Set;
@@ -29,13 +29,13 @@ public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
     }
 
     @Override
-    protected Class<? extends BlockEntityData> minimumDataClass() {
-        return MovingBlockData.class;
+    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
+        return CloudMovingBlockData.class;
     }
 
     @Override
-    protected MovingBlockData data() {
-        return (MovingBlockData) super.data();
+    protected CloudMovingBlockData data() {
+        return (CloudMovingBlockData) super.data();
     }
 
     @Override

@@ -13,7 +13,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.ChestBoatData;
+import org.cloudburstmc.server.entity.data.CloudChestBoatData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -27,12 +27,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Data-path tests for the chest-boat branch. The stub fixture cannot build boats
- * ({@code initEntity} needs a live location), so the tests construct them directly
- * without initializing and drive the production load and save paths, asserting the
- * mapped NBT types.
- */
 class ChestBoatPersistenceTest {
 
     private static EntityChestBoat boat() {
@@ -76,7 +70,6 @@ class ChestBoatPersistenceTest {
 
         NbtMap written = save(boat);
 
-        // Today's save always writes the item list, empty for a fresh boat.
         assertEquals(List.of(), written.getList("Items", NbtType.COMPOUND));
         assertEquals(NbtType.COMPOUND, ((NbtList<?>) written.get("Items")).getType(),
                 "empty Items must keep today's COMPOUND element type");
@@ -88,8 +81,6 @@ class ChestBoatPersistenceTest {
         ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 2);
         boat.getInventory().setItem(0, diamond);
 
-        // The inventory is always cleared before the stored items are read,
-        // exactly as today's load does.
         boat.loadAdditionalData(NbtMap.EMPTY);
 
         assertTrue(boat.getInventory().getItem(0).isEmpty());
@@ -100,7 +91,7 @@ class ChestBoatPersistenceTest {
     @Test
     void chestBoatKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntityChestBoat.class, ChestBoatData.class,
+                EntityChestBoat.class, CloudChestBoatData.class,
                 Map.of("inventory", "a view over the live container in data().getItems()"));
         Set<String> fields = new HashSet<>();
         for (Field field : EntityChestBoat.class.getDeclaredFields()) {
@@ -108,7 +99,7 @@ class ChestBoatPersistenceTest {
         }
         for (String removed : Set.of("container")) {
             assertFalse(fields.contains(removed),
-                    "EntityChestBoat keeps " + removed + "; state must live in ChestBoatData only");
+                    "EntityChestBoat keeps " + removed + "; state must live in CloudChestBoatData only");
         }
     }
 }

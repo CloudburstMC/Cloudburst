@@ -13,7 +13,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.blockentity.ChestBlockEntity;
-import org.cloudburstmc.server.blockentity.data.BlockEntityData;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.nbt.NbtClient;
 
 import java.util.Set;
@@ -21,12 +21,6 @@ import java.util.Set;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
-/**
- * Test-only block-entity types used by persistence round-trip tests. The ids are
- * intentionally in the {@code test} namespace; they stay registered in the shared
- * singleton for the JVM's lifetime, so all registration happens in exactly one place
- * ({@link PersistenceFixtures}).
- */
 public final class TestBlockEntities {
 
     public static final BlockEntityType<MigratedBlockEntity> MIGRATED_TYPE =
@@ -44,8 +38,6 @@ public final class TestBlockEntities {
                 Set.of(BlockTypes.CHEST));
         registry.register(LEGACY_TYPE, LegacyBlockEntity::new, "TestLegacy",
                 Set.of(BlockTypes.CHEST));
-        // The old four-argument overload defaults to the base data class; the
-        // runtime class's minimum resolves the effective class to ChestData.
         registry.register(PLUGIN_CHEST_TYPE, PluginChestBlockEntity::new, "TestPluginChest",
                 Set.of(BlockTypes.CHEST));
     }
@@ -54,7 +46,7 @@ public final class TestBlockEntities {
     @Setter
     @EqualsAndHashCode(callSuper = true)
     @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)
-    public static class MigratedData extends BlockEntityData {
+    public static class MigratedData extends CloudBlockEntityData {
 
         @NbtClient
         @JsonProperty("Count")
@@ -73,7 +65,7 @@ public final class TestBlockEntities {
         }
 
         @Override
-        protected Class<? extends BlockEntityData> minimumDataClass() {
+        protected Class<? extends CloudBlockEntityData> minimumDataClass() {
             return MigratedData.class;
         }
 

@@ -5,7 +5,7 @@ import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.blockentity.data.BeaconData;
+import org.cloudburstmc.server.blockentity.data.CloudBeaconData;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -17,10 +17,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the beacon data path: every key today's load/save handle,
- * plus an unknown key, survive with the same NBT types.
- */
 class BeaconPersistenceTest {
 
     private static final Vector3i POSITION = Vector3i.from(10, 64, -5);
@@ -41,7 +37,7 @@ class BeaconPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(BeaconData.class,
+        assertEquals(CloudBeaconData.class,
                 CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.BEACON));
 
         BeaconBlockEntity entity = (BeaconBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.BEACON, POSITION);
@@ -83,8 +79,6 @@ class BeaconPersistenceTest {
         assertNull(entity.getPrimaryEffect());
         assertNull(entity.getSecondaryEffect());
 
-        // Today's save throws on null effects; the data path omits the keys instead
-        // so a configured beacon is never required before saving.
         assertEquals(Set.of("id", "x", "y", "z", "isMovable", "Primary", "Secondary"), entity.getServerTag().keySet());
         assertEquals(Set.of("id", "Levels", "Primary", "Secondary"), entity.getClientTag().keySet());
     }
@@ -94,10 +88,8 @@ class BeaconPersistenceTest {
         BeaconBlockEntity entity = (BeaconBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.BEACON, POSITION);
         entity.loadAdditionalData(beaconTag());
 
-        // The setters themselves broadcast, which needs a live level; replicate their
-        // local state change (they delegate to the DTO) so the save path can be tested standalone.
-        ((BeaconData) entity.data()).setPrimary(null);
-        ((BeaconData) entity.data()).setSecondary(null);
+        ((CloudBeaconData) entity.data()).setPrimary(null);
+        ((CloudBeaconData) entity.data()).setSecondary(null);
 
         assertNull(entity.getPrimaryEffect());
         assertNull(entity.getSecondaryEffect());
@@ -113,19 +105,15 @@ class BeaconPersistenceTest {
 
     @Test
     void beaconBlockEntityKeepsNoDuplicateState() {
-        DtoStateChecks.assertKeepsNoDuplicateState(BeaconBlockEntity.class, BeaconData.class);
-        // The old shape kept the effects in runtime fields named primaryEffect and
-        // secondaryEffect, which match no DTO property, and EffectType is not a
-        // flagged duplicate-state type, so the shared check stays blind to them.
-        // Forbid them explicitly; this fails on the pre-migration class.
+        DtoStateChecks.assertKeepsNoDuplicateState(BeaconBlockEntity.class, CloudBeaconData.class);
         Set<String> fields = new HashSet<>();
         for (Field field : BeaconBlockEntity.class.getDeclaredFields()) {
             fields.add(field.getName());
         }
         assertFalse(fields.contains("primaryEffect"),
-                "BeaconBlockEntity keeps primaryEffect; state must live in BeaconData only");
+                "BeaconBlockEntity keeps primaryEffect; state must live in CloudBeaconData only");
         assertFalse(fields.contains("secondaryEffect"),
-                "BeaconBlockEntity keeps secondaryEffect; state must live in BeaconData only");
+                "BeaconBlockEntity keeps secondaryEffect; state must live in CloudBeaconData only");
     }
 
     @Test
@@ -149,8 +137,6 @@ class BeaconPersistenceTest {
 
     @Test
     void beaconUnknownEffectIdLoadFails() {
-        // An id the mapping does not know fails the load, exactly like the previous
-        // load path, which converted the stored int after reading it.
         BeaconBlockEntity entity = (BeaconBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.BEACON, POSITION);
         NbtMap tag = NbtMap.builder()
                 .putString("id", "Beacon")
@@ -161,7 +147,6 @@ class BeaconPersistenceTest {
                 .build();
 
         Exception failure = assertThrows(Exception.class, () -> entity.loadAdditionalData(tag));
-        // The failure is the mapping's own unknown-id error, as on the previous load path.
         Throwable cause = failure;
         boolean recognized = false;
         while (cause != null) {

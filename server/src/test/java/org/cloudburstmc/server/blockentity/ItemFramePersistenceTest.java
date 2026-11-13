@@ -6,7 +6,7 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.blockentity.data.ItemFrameData;
+import org.cloudburstmc.server.blockentity.data.CloudItemFrameData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -17,10 +17,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the item-frame data path: every key today's load/save/saveClientData
- * handle, plus an unknown key, survive with the same NBT types.
- */
 class ItemFramePersistenceTest {
 
     private static final Vector3i POSITION = Vector3i.from(10, 64, -5);
@@ -43,9 +39,9 @@ class ItemFramePersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(ItemFrameData.class,
+        assertEquals(CloudItemFrameData.class,
                 CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.ITEM_FRAME));
-        assertEquals(ItemFrameData.class,
+        assertEquals(CloudItemFrameData.class,
                 CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.GLOW_ITEM_FRAME));
 
         ItemFrameBlockEntity entity = (ItemFrameBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.ITEM_FRAME, POSITION);
@@ -130,7 +126,6 @@ class ItemFramePersistenceTest {
                 .putInt("z", -5)
                 .build());
 
-        // A fresh frame shows nothing, faces forward, drops always and is not fixed.
         assertTrue(entity.getItem().isEmpty());
         assertEquals(0, entity.getItemRotation());
         assertEquals(1.0f, entity.getItemDropChance());
@@ -158,7 +153,6 @@ class ItemFramePersistenceTest {
 
     @Test
     void itemFrameBlockEntityKeepsNoDuplicateState() {
-        // No retained fields: the item, rotation, drop chance and fixed flag live in ItemFrameData.
-        DtoStateChecks.assertKeepsNoDuplicateState(ItemFrameBlockEntity.class, ItemFrameData.class);
+        DtoStateChecks.assertKeepsNoDuplicateState(ItemFrameBlockEntity.class, CloudItemFrameData.class);
     }
 }

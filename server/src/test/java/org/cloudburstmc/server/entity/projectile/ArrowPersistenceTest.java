@@ -9,7 +9,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.ArrowData;
+import org.cloudburstmc.server.entity.data.CloudArrowData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -21,10 +21,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the arrow data path: every key today's load/save handle,
- * plus an unknown key, survive with the same NBT types.
- */
 class ArrowPersistenceTest {
 
     private static final Set<String> BASE_KEYS = Set.of(
@@ -39,7 +35,7 @@ class ArrowPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(ArrowData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.ARROW));
+        assertEquals(CloudArrowData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.ARROW));
 
         EntityArrow arrow = (EntityArrow) PersistenceFixtures.entity(EntityTypes.ARROW);
         ItemStack stack = ItemStack.from(ItemTypes.ARROW);
@@ -85,8 +81,6 @@ class ArrowPersistenceTest {
                 "Item", "PotionGroundTicks", "identifier"));
         assertEquals(expectedKeys, saved.keySet());
 
-        // Today's save always writes the base damage, the flying state, open pickup,
-        // a plain arrow and fresh ground ticks.
         assertTrue(saved.get("damage") instanceof Float, "damage must be a float");
         assertEquals(2.0f, saved.getFloat("damage"));
         assertEquals(NbtType.BYTE, NbtType.byClass(saved.get("inGround").getClass()), "inGround must be a byte");
@@ -111,7 +105,6 @@ class ArrowPersistenceTest {
         arrow.loadAdditionalData(NbtMap.EMPTY);
 
         NbtMap saved = save(arrow);
-        // Presence-sensitive keys survive; the pickup rule always falls back to open pickup.
         assertEquals(3, arrow.getPierceLevel());
         assertEquals(ArrowPickupStatus.ALLOWED, arrow.getPickupStatus());
         assertEquals((byte) 1, saved.getByte("pickup"));
@@ -126,7 +119,6 @@ class ArrowPersistenceTest {
                 .putInt("PotionGroundTicks", 500)
                 .build());
 
-        // The ground ticks have a load default of zero, so they reset when absent.
         arrow.loadAdditionalData(NbtMap.builder()
                 .putCompound("Item", ItemStackNbtCodec.serializeItem(ItemStack.from(ItemTypes.ARROW)))
                 .build());
@@ -138,14 +130,14 @@ class ArrowPersistenceTest {
     @Test
     void arrowKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntityArrow.class, ArrowData.class);
+                EntityArrow.class, CloudArrowData.class);
         Set<String> fields = new HashSet<>();
         for (Field field : EntityArrow.class.getDeclaredFields()) {
             fields.add(field.getName());
         }
         for (String removed : Set.of("itemStack", "potionGroundTicks")) {
             assertFalse(fields.contains(removed),
-                    "EntityArrow keeps " + removed + "; state must live in ArrowData only");
+                    "EntityArrow keeps " + removed + "; state must live in CloudArrowData only");
         }
     }
 }

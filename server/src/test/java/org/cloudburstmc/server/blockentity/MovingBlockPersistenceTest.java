@@ -7,7 +7,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.block.BlockPalette;
-import org.cloudburstmc.server.blockentity.data.MovingBlockData;
+import org.cloudburstmc.server.blockentity.data.CloudMovingBlockData;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.BlockTestRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -19,10 +19,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the moving-block data path: every key today's load/save
- * handle, plus an unknown key, survive with the same NBT types.
- */
 class MovingBlockPersistenceTest {
 
     private static final Vector3i POSITION = Vector3i.from(10, 64, -5);
@@ -60,7 +56,7 @@ class MovingBlockPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(MovingBlockData.class,
+        assertEquals(CloudMovingBlockData.class,
                 CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.MOVING_BLOCK));
 
         MovingBlockEntity entity = (MovingBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.MOVING_BLOCK, POSITION);
@@ -145,17 +141,14 @@ class MovingBlockPersistenceTest {
 
     @Test
     void movingBlockBlockEntityKeepsNoDuplicateState() {
-        DtoStateChecks.assertKeepsNoDuplicateState(MovingBlockEntity.class, MovingBlockData.class);
-        // The old shape kept the states in runtime fields named blockState and
-        // extraBlockState, which match no DTO property, so the shared check stays
-        // blind to them. Forbid them explicitly; this fails on the pre-migration class.
+        DtoStateChecks.assertKeepsNoDuplicateState(MovingBlockEntity.class, CloudMovingBlockData.class);
         Set<String> fields = new HashSet<>();
         for (Field field : MovingBlockEntity.class.getDeclaredFields()) {
             fields.add(field.getName());
         }
         assertFalse(fields.contains("blockState"),
-                "MovingBlockEntity keeps blockState; state must live in MovingBlockData only");
+                "MovingBlockEntity keeps blockState; state must live in CloudMovingBlockData only");
         assertFalse(fields.contains("extraBlockState"),
-                "MovingBlockEntity keeps extraBlockState; state must live in MovingBlockData only");
+                "MovingBlockEntity keeps extraBlockState; state must live in CloudMovingBlockData only");
     }
 }

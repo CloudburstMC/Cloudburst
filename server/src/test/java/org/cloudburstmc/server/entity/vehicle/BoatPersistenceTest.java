@@ -9,8 +9,8 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.BoatData;
-import org.cloudburstmc.server.entity.data.ChestBoatData;
+import org.cloudburstmc.server.entity.data.CloudBoatData;
+import org.cloudburstmc.server.entity.data.CloudChestBoatData;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -22,12 +22,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Data-path tests for the boat branch. The stub fixture cannot build boats
- * ({@code initEntity} needs a live location), so the tests construct them directly
- * without initializing and drive the production load and save paths, asserting the
- * mapped NBT types.
- */
 class BoatPersistenceTest {
 
     private static EntityBoat boat() {
@@ -44,8 +38,8 @@ class BoatPersistenceTest {
 
     @Test
     void dataRoundTripPreservesKeysAndTypes() {
-        assertEquals(BoatData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.BOAT));
-        assertEquals(ChestBoatData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.CHEST_BOAT));
+        assertEquals(CloudBoatData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.BOAT));
+        assertEquals(CloudChestBoatData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.CHEST_BOAT));
 
         EntityBoat boat = boat();
         int variant = VanillaBoats.definition(BoatType.BAMBOO).variant();
@@ -68,7 +62,6 @@ class BoatPersistenceTest {
 
         NbtMap written = save(boat);
 
-        // Today's save always writes the oak variant for a fresh boat.
         assertTrue(written.get("WoodType") instanceof Integer, "WoodType must be an int");
         assertEquals(VanillaBoats.definition(BoatType.OAK).variant(), written.getInt("WoodType"));
     }
@@ -78,8 +71,6 @@ class BoatPersistenceTest {
         EntityBoat boat = boat();
         boat.setBoatType(BoatType.BAMBOO);
 
-        // The wood type has no presence bit: it always falls back to oak,
-        // exactly as today's getInt-with-default load does.
         boat.loadAdditionalData(NbtMap.EMPTY);
 
         assertEquals(BoatType.OAK, boat.getBoatType());
@@ -88,14 +79,14 @@ class BoatPersistenceTest {
     @Test
     void boatKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntityBoat.class, BoatData.class);
+                EntityBoat.class, CloudBoatData.class);
         Set<String> fields = new HashSet<>();
         for (Field field : EntityBoat.class.getDeclaredFields()) {
             fields.add(field.getName());
         }
         for (String removed : Set.of("boatType")) {
             assertFalse(fields.contains(removed),
-                    "EntityBoat keeps " + removed + "; state must live in BoatData only");
+                    "EntityBoat keeps " + removed + "; state must live in CloudBoatData only");
         }
     }
 }

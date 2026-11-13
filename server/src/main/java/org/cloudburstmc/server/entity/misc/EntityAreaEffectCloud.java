@@ -17,8 +17,8 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
-import org.cloudburstmc.server.entity.data.AreaEffectCloudData;
-import org.cloudburstmc.server.entity.data.EntityData;
+import org.cloudburstmc.server.entity.data.CloudAreaEffectCloudData;
+import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.potion.CloudPotionColor;
@@ -270,13 +270,13 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
     }
 
     @Override
-    protected AreaEffectCloudData data() {
-        return (AreaEffectCloudData) super.data();
+    protected CloudAreaEffectCloudData data() {
+        return (CloudAreaEffectCloudData) super.data();
     }
 
     @Override
-    protected Class<? extends EntityData> minimumDataClass() {
-        return AreaEffectCloudData.class;
+    protected Class<? extends CloudEntityData> minimumDataClass() {
+        return CloudAreaEffectCloudData.class;
     }
 
     @Override

@@ -8,7 +8,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.DroppedItemData;
+import org.cloudburstmc.server.entity.data.CloudDroppedItemData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -20,10 +20,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the dropped-item data path: every key today's load/save handle,
- * plus an unknown key, survive with the same NBT types.
- */
 class DroppedItemPersistenceTest {
 
     private static final Set<String> BASE_KEYS = Set.of(
@@ -38,7 +34,7 @@ class DroppedItemPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(DroppedItemData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.ITEM));
+        assertEquals(CloudDroppedItemData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.ITEM));
 
         EntityDroppedItem item = (EntityDroppedItem) PersistenceFixtures.entity(EntityTypes.ITEM);
         ItemStack stack = ItemStack.from(ItemTypes.DIAMOND, 1);
@@ -81,7 +77,6 @@ class DroppedItemPersistenceTest {
         expectedKeys.addAll(Set.of("Health", "PickupDelay", "Age", "OwnerID", "Item", "identifier"));
         assertEquals(expectedKeys, saved.keySet());
 
-        // Today's save always writes the capped health, zero delays and age, no owner and an air item.
         assertTrue(saved.get("Health") instanceof Short, "Health must be a short");
         assertEquals((short) 5, saved.getShort("Health"));
         assertTrue(saved.get("PickupDelay") instanceof Short, "PickupDelay must be a short");
@@ -119,14 +114,14 @@ class DroppedItemPersistenceTest {
     @Test
     void droppedItemKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntityDroppedItem.class, DroppedItemData.class);
+                EntityDroppedItem.class, CloudDroppedItemData.class);
         Set<String> fields = new HashSet<>();
         for (Field field : EntityDroppedItem.class.getDeclaredFields()) {
             fields.add(field.getName());
         }
         for (String removed : Set.of("item", "pickupDelay")) {
             assertFalse(fields.contains(removed),
-                    "EntityDroppedItem keeps " + removed + "; state must live in DroppedItemData only");
+                    "EntityDroppedItem keeps " + removed + "; state must live in CloudDroppedItemData only");
         }
     }
 
@@ -138,7 +133,6 @@ class DroppedItemPersistenceTest {
                 .build());
 
         assertTrue(item.getItem().isEmpty());
-        // The hopper path and the name path both assume a non-null item, as today.
         assertTrue(item.getItem().isEmpty());
         item.getName();
     }

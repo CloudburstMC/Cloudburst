@@ -8,8 +8,8 @@ import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
-import org.cloudburstmc.server.blockentity.data.BlockEntityData;
-import org.cloudburstmc.server.blockentity.data.SignData;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
+import org.cloudburstmc.server.blockentity.data.CloudSignData;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.Arrays;
@@ -33,13 +33,13 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
     }
 
     @Override
-    protected Class<? extends BlockEntityData> minimumDataClass() {
-        return SignData.class;
+    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
+        return CloudSignData.class;
     }
 
     @Override
-    protected SignData data() {
-        return (SignData) super.data();
+    protected CloudSignData data() {
+        return (CloudSignData) super.data();
     }
 
     @Override

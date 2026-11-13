@@ -11,8 +11,8 @@ import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.server.blockentity.data.BlockEntityData;
-import org.cloudburstmc.server.blockentity.data.CrafterData;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
+import org.cloudburstmc.server.blockentity.data.CloudCrafterData;
 import org.cloudburstmc.server.container.ContainerListener;
 
 import java.util.HashSet;
@@ -44,13 +44,13 @@ public class CrafterBlockEntity extends ContainerBlockEntity implements Crafter,
     }
 
     @Override
-    protected Class<? extends BlockEntityData> minimumDataClass() {
-        return CrafterData.class;
+    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
+        return CloudCrafterData.class;
     }
 
     @Override
-    protected CrafterData data() {
-        return (CrafterData) super.data();
+    protected CloudCrafterData data() {
+        return (CloudCrafterData) super.data();
     }
 
     @Override

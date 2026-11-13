@@ -6,6 +6,7 @@ import org.cloudburstmc.api.blockentity.ShulkerBox;
 import org.cloudburstmc.api.blockentity.ShulkerBoxAnimationState;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.PushReaction;
+import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.inventory.view.BlockStorageView;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.api.inventory.view.SlotGroupType;
@@ -24,8 +25,8 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEventPacket;
 import org.cloudburstmc.server.block.util.ShulkerBoxGeometry;
-import org.cloudburstmc.server.blockentity.data.BlockEntityData;
-import org.cloudburstmc.server.blockentity.data.ShulkerBoxData;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
+import org.cloudburstmc.server.blockentity.data.CloudShulkerBoxData;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.server.entity.CloudEntity;
@@ -58,17 +59,17 @@ public class ShulkerBoxBlockEntity extends ContainerBlockEntity implements Shulk
     }
 
     @Override
-    protected Class<? extends BlockEntityData> minimumDataClass() {
-        return ShulkerBoxData.class;
+    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
+        return CloudShulkerBoxData.class;
     }
 
     @Override
-    protected ShulkerBoxData data() {
-        return (ShulkerBoxData) super.data();
+    protected CloudShulkerBoxData data() {
+        return (CloudShulkerBoxData) super.data();
     }
 
     @Override
-    protected org.cloudburstmc.api.inventory.ItemContainer items() {
+    protected ItemContainer items() {
         return this.data().getItems();
     }
 

@@ -9,8 +9,8 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.container.CloudContainer;
-import org.cloudburstmc.server.entity.data.HumanData;
-import org.cloudburstmc.server.entity.data.PlayerData;
+import org.cloudburstmc.server.entity.data.CloudHumanData;
+import org.cloudburstmc.server.entity.data.CloudPlayerData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.nbt.ServerNbt;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -24,53 +24,37 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Data-path tests for players. Production {@code CloudPlayer} instances need a
- * live server, so the narrowest route applies: the {@link PlayerData} mapping
- * is driven directly through the production NBT mapper, and the new-player
- * default tag (as {@code CloudPlayerDataStore} builds it) is read back to prove
- * absent keys keep the constructor-set state today's code kept.
- */
 class PlayerPersistenceTest {
 
-    private static NbtMap write(PlayerData data) {
+    private static NbtMap write(CloudPlayerData data) {
         return ServerNbt.MAPPER.write(data);
     }
 
-    private static PlayerData read(NbtMap tag) {
-        return ServerNbt.MAPPER.read(tag, PlayerData.class);
+    private static CloudPlayerData read(NbtMap tag) {
+        return ServerNbt.MAPPER.read(tag, CloudPlayerData.class);
     }
 
-    private static PlayerData read(NbtMap tag, PlayerData data) {
+    private static CloudPlayerData read(NbtMap tag, CloudPlayerData data) {
         return ServerNbt.MAPPER.readInto(tag, data);
     }
 
     @Test
     void playerUsesPlayerData() {
         PersistenceFixtures.ensureInitialized();
-        // Non-player humans save through the shared human data, so no
-        // player-only key is ever written for them; live players resolve the
-        // player data through CloudPlayer.minimumDataClass().
-        assertEquals(HumanData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.PLAYER));
-        assertTrue(new PlayerData() instanceof HumanData);
+        assertEquals(CloudHumanData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.PLAYER));
+        assertTrue(new CloudPlayerData() instanceof CloudHumanData);
     }
 
     @Test
     void cloudPlayerResolvesPlayerData() throws Exception {
         assertEquals(CloudPlayer.class,
                 CloudPlayer.class.getDeclaredMethod("minimumDataClass").getDeclaringClass());
-        // Non-player humans save through the shared human data.
-        assertEquals(HumanData.class,
+        assertEquals(CloudHumanData.class,
                 ((CloudEntity) PersistenceFixtures.entity(EntityTypes.PLAYER)).minimumDataClass());
     }
 
     @Test
     void cloudPlayerAssignsLevelBeforeBaseKeys() throws Exception {
-        // The saved level must be assigned before the base keys run, because the
-        // ground-support check in setOnGround needs it. A CloudPlayer cannot be
-        // constructed server-free (its constructor needs a live CloudServer and a
-        // session), so no test can run the load itself; this pins the override that
-        // assigns the level before delegating to the base keys.
         assertEquals(CloudPlayer.class,
                 CloudPlayer.class.getDeclaredMethod("loadBaseCustom", NbtMap.class).getDeclaringClass());
     }
@@ -81,7 +65,7 @@ class PlayerPersistenceTest {
         ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 2);
         ItemStack ingot = ItemStack.from(ItemTypes.GOLD_INGOT, 3);
 
-        PlayerData data = new PlayerData();
+        CloudPlayerData data = new CloudPlayerData();
         data.setExp(7);
         data.setExpLevel(3);
         data.setSeenCredits(true);
@@ -92,9 +76,6 @@ class PlayerPersistenceTest {
         enderChest.setItem(4, ingot);
         data.setEnderChest(enderChest);
 
-        // Food, timestamps, the level and spawn, and the game type live in the
-        // runtime holders, so a real save adds them through the player hooks;
-        // the values below are exactly what the hooks write from holder state.
         NbtMapBuilder writtenBuilder = NbtMap.builder();
         writtenBuilder.putAll(write(data));
         writtenBuilder.putInt("foodLevel", 14);
@@ -140,9 +121,7 @@ class PlayerPersistenceTest {
         assertEquals(90.0f, written.getFloat("SpawnYaw"));
         assertEquals(1, written.getInt("playerGameType"));
 
-        PlayerData reloaded = read(written);
-        // The holder-owned keys are not DTO state, so only the DTO-owned part
-        // round-trips through the data object; the full tag shape is pinned above.
+        CloudPlayerData reloaded = read(written);
         assertEquals(write(data), write(reloaded));
 
         assertEquals(7, reloaded.getExp());
@@ -158,30 +137,22 @@ class PlayerPersistenceTest {
 
     @Test
     void defaultDataWritesTodayDefaults() {
-        // A real save writes the data object plus the hook-owned keys; food is
-        // always written from the holder defaults, exactly as below.
         NbtMapBuilder writtenBuilder = NbtMap.builder();
-        writtenBuilder.putAll(write(new PlayerData()));
+        writtenBuilder.putAll(write(new CloudPlayerData()));
         writtenBuilder.putInt("foodLevel", 20);
         writtenBuilder.putFloat("foodSaturationLevel", 5.0f);
         writtenBuilder.putFloat("foodExhaustionLevel", 0.0f);
         writtenBuilder.putInt("foodTickTimer", 0);
         NbtMap written = writtenBuilder.build();
 
-        // Today's player save always writes these keys.
         assertEquals(0, written.getInt("EXP"));
         assertEquals(0, written.getInt("expLevel"));
         assertEquals(20, written.getInt("foodLevel"));
         assertEquals(5.0f, written.getFloat("foodSaturationLevel"));
         assertEquals(0.0f, written.getFloat("foodExhaustionLevel"));
         assertEquals(0, written.getInt("foodTickTimer"));
-        // The lists are always filled from live state by the player save hook, so an
-        // unfilled data object omits them like any other conditional key.
         assertFalse(written.containsKey("Inventory"));
         assertFalse(written.containsKey("EnderChestInventory"));
-        // The credit flag is a primitive, so even an unfilled data object writes
-        // today's fresh-player byte 0; the hook-owned conditional keys below stay
-        // absent until filled from live state.
         assertTrue(written.get("seenCredits") instanceof Byte, "seenCredits must be a byte");
         assertEquals((byte) 0, written.get("seenCredits"));
         assertFalse(written.containsKey("firstPlayed"));
@@ -196,7 +167,6 @@ class PlayerPersistenceTest {
 
     @Test
     void defaultPlayerTagKeepsConstructorState() {
-        // Built exactly as CloudPlayerDataStore.createDefaultData builds it.
         long now = 1234567890L;
         NbtMap tag = NbtMap.builder()
                 .putLong("firstPlayed", now)
@@ -207,17 +177,12 @@ class PlayerPersistenceTest {
                 .putList("Rotation", NbtType.FLOAT, Arrays.asList(0.0f, 0.0f))
                 .build();
 
-        PlayerData data = read(tag);
+        CloudPlayerData data = read(tag);
 
-        // Keys the default tag carries; the holder-owned ones are ignored by the
-        // data object and read by the player load hooks instead.
         assertEquals(now, tag.getLong("firstPlayed"));
         assertEquals(now, tag.getLong("lastPlayed"));
         assertEquals("world", tag.getString("Level"));
         assertEquals(0, tag.getInt("playerGameType"));
-        // Everything else keeps the constructor-set state today's code kept:
-        // experience falls back to today's getX defaults,
-        // presence-sensitive keys stay null so the load leaves live state alone.
         assertEquals(0, data.getExp());
         assertEquals(0, data.getExpLevel());
         assertFalse(data.isSeenCredits());
@@ -225,7 +190,6 @@ class PlayerPersistenceTest {
         assertNull(data.getEnderChest());
         assertNull(data.getSkin());
 
-        // The holder-owned keys are not DTO state: the data object never writes them.
         NbtMap saved = write(data);
         for (String key : List.of("foodLevel", "foodSaturationLevel", "foodExhaustionLevel",
                 "foodTickTimer", "firstPlayed", "lastPlayed", "Level", "SpawnLevel",
@@ -236,13 +200,12 @@ class PlayerPersistenceTest {
 
     @Test
     void absentKeysStayAbsent() {
-        PlayerData data = read(NbtMap.EMPTY);
+        CloudPlayerData data = read(NbtMap.EMPTY);
 
         assertFalse(data.isSeenCredits());
         assertNull(data.getSkin());
         assertNull(data.getInventory());
         assertNull(data.getEnderChest());
-        // Unconditional keys fall back to today's getX defaults.
         assertEquals(0, data.getExp());
         assertEquals(0, data.getExpLevel());
     }
@@ -250,7 +213,7 @@ class PlayerPersistenceTest {
     @Test
     void cloudPlayerKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                CloudPlayer.class, PlayerData.class,
+                CloudPlayer.class, CloudPlayerData.class,
                 Map.of(
                         "armor", "an armor view over the live container in data().getArmor()",
                         "offhand", "an offhand view over the live container in data().getOffhand()",
@@ -267,18 +230,17 @@ class PlayerPersistenceTest {
         }
         for (String removed : Set.of("exp", "expLevel", "seenCredits")) {
             assertFalse(fields.contains(removed),
-                    "CloudPlayer keeps " + removed + "; state must live in PlayerData only");
+                    "CloudPlayer keeps " + removed + "; state must live in CloudPlayerData only");
         }
-        // Holder-backed state is not DTO state: the data object must not redeclare it.
         Set<String> dtoFields = new HashSet<>();
-        for (Field field : PlayerData.class.getDeclaredFields()) {
+        for (Field field : CloudPlayerData.class.getDeclaredFields()) {
             dtoFields.add(field.getName());
         }
         for (String holderOwned : Set.of("foodLevel", "foodSaturation", "foodExhaustion",
                 "foodTickTimer", "firstPlayed", "lastPlayed", "level", "spawnLevel",
                 "spawnX", "spawnY", "spawnZ", "spawnYaw", "playerGameType")) {
             assertFalse(dtoFields.contains(holderOwned),
-                    "PlayerData keeps " + holderOwned + "; state must live in the runtime holders only");
+                    "CloudPlayerData keeps " + holderOwned + "; state must live in the runtime holders only");
         }
     }
 
@@ -289,8 +251,7 @@ class PlayerPersistenceTest {
         ItemStack ingot = ItemStack.from(ItemTypes.GOLD_INGOT, 3);
         ItemStack kept = ItemStack.from(ItemTypes.IRON_INGOT, 1);
 
-        // The containers already hold items, as the wired live containers do.
-        PlayerData data = new PlayerData();
+        CloudPlayerData data = new CloudPlayerData();
         ItemContainer inventory = new CloudContainer(36);
         inventory.setItem(1, kept);
         data.setInventory(inventory);
@@ -298,17 +259,14 @@ class PlayerPersistenceTest {
         enderChest.setItem(4, kept);
         data.setEnderChest(enderChest);
 
-        // A sparse list sets the listed slots on the same instance and keeps the rest.
         read(NbtMap.builder()
                 .putList("Inventory", NbtType.COMPOUND, List.of(ItemStackNbtCodec.serializeItem(diamond, 0)))
                 .build(), data);
         assertSame(inventory, data.getInventory());
         assertEquals(diamond, data.getInventory().getItem(0));
         assertEquals(kept, data.getInventory().getItem(1));
-        // An absent list changes nothing, on the same instance.
         assertSame(enderChest, data.getEnderChest());
         assertEquals(kept, data.getEnderChest().getItem(4));
-        // An empty list changes nothing either.
         read(NbtMap.builder()
                 .putList("Inventory", NbtType.COMPOUND, List.of())
                 .putList("EnderChestInventory", NbtType.COMPOUND, List.of())
@@ -317,7 +275,6 @@ class PlayerPersistenceTest {
         assertEquals(kept, data.getInventory().getItem(1));
         assertEquals(kept, data.getEnderChest().getItem(4));
 
-        // The sparse write comes from that live instance.
         data.getInventory().setItem(2, ingot);
         assertEquals(
                 List.of(ItemStackNbtCodec.serializeItem(diamond, 0), ItemStackNbtCodec.serializeItem(kept, 1),
@@ -330,11 +287,10 @@ class PlayerPersistenceTest {
         PersistenceFixtures.ensureInitialized();
         ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 2);
 
-        PlayerData data = new PlayerData();
+        CloudPlayerData data = new CloudPlayerData();
         data.setInventory(new CloudContainer(36));
         data.setEnderChest(new CloudContainer(27));
 
-        // An entry without a Slot binds slot 0, as the old byte read defaulted to.
         NbtMapBuilder entryBuilder = NbtMap.builder();
         entryBuilder.putAll(ItemStackNbtCodec.serializeItem(diamond));
         NbtMap entry = entryBuilder.build();
@@ -350,12 +306,10 @@ class PlayerPersistenceTest {
         PersistenceFixtures.ensureInitialized();
         ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 2);
 
-        PlayerData data = new PlayerData();
+        CloudPlayerData data = new CloudPlayerData();
         ItemContainer inventory = new CloudContainer(36);
         data.setInventory(inventory);
 
-        // An out-of-range Slot fails the load with a bare exception, as the old
-        // bounds check did, instead of keeping the current contents with a warning.
         NbtMap tag = NbtMap.builder()
                 .putList("Inventory", NbtType.COMPOUND, List.of(ItemStackNbtCodec.serializeItem(diamond, 36)))
                 .build();

@@ -6,6 +6,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.LiquidState;
+import org.cloudburstmc.api.block.LiquidTypes;
 import org.cloudburstmc.api.blockentity.Bell;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
@@ -28,8 +29,8 @@ import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.DroppedItemData;
-import org.cloudburstmc.server.entity.data.EntityData;
+import org.cloudburstmc.server.entity.data.CloudDroppedItemData;
+import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.item.ItemDisplayNameResolver;
 import org.cloudburstmc.server.item.ItemStackPacketCodec;
@@ -51,13 +52,13 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
     }
 
     @Override
-    protected Class<? extends EntityData> minimumDataClass() {
-        return DroppedItemData.class;
+    protected Class<? extends CloudEntityData> minimumDataClass() {
+        return CloudDroppedItemData.class;
     }
 
     @Override
-    protected DroppedItemData data() {
-        return (DroppedItemData) super.data();
+    protected CloudDroppedItemData data() {
+        return (CloudDroppedItemData) super.data();
     }
 
     @Override
@@ -242,7 +243,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
             }
 
             if (!liquid.isEmpty() && pos.getY() < liquidBlock.getY() + liquidHeight) {
-                boolean water = liquid.getType().isSameFamily(org.cloudburstmc.api.block.LiquidTypes.WATER);
+                boolean water = liquid.getType().isSameFamily(LiquidTypes.WATER);
                 float horizontalDrag = water ? 0.99f : 0.95f;
                 this.motion = Vector3f.from(
                         this.motion.getX() * horizontalDrag,

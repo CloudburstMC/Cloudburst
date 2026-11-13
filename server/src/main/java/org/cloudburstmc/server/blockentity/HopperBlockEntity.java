@@ -22,8 +22,8 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.component.ComposterBlockHandlers;
 import org.cloudburstmc.server.block.util.RedstoneSignals;
-import org.cloudburstmc.server.blockentity.data.BlockEntityData;
-import org.cloudburstmc.server.blockentity.data.HopperData;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
+import org.cloudburstmc.server.blockentity.data.CloudHopperData;
 import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -55,13 +55,13 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
     }
 
     @Override
-    protected Class<? extends BlockEntityData> minimumDataClass() {
-        return HopperData.class;
+    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
+        return CloudHopperData.class;
     }
 
     @Override
-    protected HopperData data() {
-        return (HopperData) super.data();
+    protected CloudHopperData data() {
+        return (CloudHopperData) super.data();
     }
 
     @Override

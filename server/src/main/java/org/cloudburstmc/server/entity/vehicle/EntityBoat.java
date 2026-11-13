@@ -35,8 +35,8 @@ import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.HumanPoses;
-import org.cloudburstmc.server.entity.data.BoatData;
-import org.cloudburstmc.server.entity.data.EntityData;
+import org.cloudburstmc.server.entity.data.CloudBoatData;
+import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.entity.data.SyncedEntityData;
 import org.cloudburstmc.server.entity.passive.Animal;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
@@ -96,13 +96,13 @@ public class EntityBoat extends EntityVehicle implements Boat {
     }
 
     @Override
-    protected BoatData data() {
-        return (BoatData) super.data();
+    protected CloudBoatData data() {
+        return (CloudBoatData) super.data();
     }
 
     @Override
-    protected Class<? extends EntityData> minimumDataClass() {
-        return BoatData.class;
+    protected Class<? extends CloudEntityData> minimumDataClass() {
+        return CloudBoatData.class;
     }
 
     @Override

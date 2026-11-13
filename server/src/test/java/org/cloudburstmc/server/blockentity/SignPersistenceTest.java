@@ -4,7 +4,7 @@ import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.blockentity.data.SignData;
+import org.cloudburstmc.server.blockentity.data.CloudSignData;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -15,11 +15,6 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Round-trip tests for the sign data path: every key today's load/saveClientData
- * handle, plus an unknown key, survive with the same NBT types. Legacy per-line
- * keys still load and pass through untouched.
- */
 class SignPersistenceTest {
 
     private static final Vector3i POSITION = Vector3i.from(10, 64, -5);
@@ -40,7 +35,7 @@ class SignPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(SignData.class,
+        assertEquals(CloudSignData.class,
                 CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.SIGN));
 
         SignBlockEntity entity = (SignBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.SIGN, POSITION);
@@ -111,8 +106,6 @@ class SignPersistenceTest {
 
     @Test
     void shortSignTextIsSavedAsLoaded() {
-        // A short loaded Text used to resave with literal "null" lines padding it;
-        // the save now keeps the loaded value on both tags.
         SignBlockEntity entity = (SignBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.SIGN, POSITION);
         entity.loadAdditionalData(NbtMap.builder()
                 .putString("id", "Sign")
@@ -133,6 +126,6 @@ class SignPersistenceTest {
 
     @Test
     void signBlockEntityKeepsNoDuplicateState() {
-        DtoStateChecks.assertKeepsNoDuplicateState(SignBlockEntity.class, SignData.class);
+        DtoStateChecks.assertKeepsNoDuplicateState(SignBlockEntity.class, CloudSignData.class);
     }
 }

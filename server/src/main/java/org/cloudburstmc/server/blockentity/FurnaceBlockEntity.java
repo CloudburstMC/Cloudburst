@@ -10,6 +10,7 @@ import org.cloudburstmc.api.event.inventory.FurnaceBurnEvent;
 import org.cloudburstmc.api.event.inventory.FurnaceExtractEvent;
 import org.cloudburstmc.api.event.inventory.FurnaceSmeltEvent;
 import org.cloudburstmc.api.event.inventory.FurnaceStartSmeltEvent;
+import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.inventory.view.BlockFurnaceView;
 import org.cloudburstmc.api.inventory.view.SlotGroupType;
 import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
@@ -26,8 +27,8 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerSetDataPacket;
-import org.cloudburstmc.server.blockentity.data.BlockEntityData;
-import org.cloudburstmc.server.blockentity.data.FurnaceData;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
+import org.cloudburstmc.server.blockentity.data.CloudFurnaceData;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.server.crafting.CloudCookingRecipe;
@@ -65,17 +66,17 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
     }
 
     @Override
-    protected Class<? extends BlockEntityData> minimumDataClass() {
-        return FurnaceData.class;
+    protected Class<? extends CloudBlockEntityData> minimumDataClass() {
+        return CloudFurnaceData.class;
     }
 
     @Override
-    protected FurnaceData data() {
-        return (FurnaceData) super.data();
+    protected CloudFurnaceData data() {
+        return (CloudFurnaceData) super.data();
     }
 
     @Override
-    protected org.cloudburstmc.api.inventory.ItemContainer items() {
+    protected ItemContainer items() {
         return this.data().getItems();
     }
 

@@ -8,8 +8,8 @@ import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.blockentity.data.ChestData;
-import org.cloudburstmc.server.blockentity.data.ContainerData;
+import org.cloudburstmc.server.blockentity.data.CloudChestData;
+import org.cloudburstmc.server.blockentity.data.CloudContainerData;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
@@ -20,10 +20,6 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Round-trip tests for the chest data path: every key today's load/save/saveClientData
- * handle, plus an unknown key, survive with the same NBT types.
- */
 class ChestPersistenceTest {
 
     private static final Vector3i POSITION = Vector3i.from(10, 64, -5);
@@ -66,7 +62,7 @@ class ChestPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(ChestData.class,
+        assertEquals(CloudChestData.class,
                 CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.CHEST));
 
         ChestBlockEntity entity = (ChestBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CHEST, POSITION);
@@ -110,7 +106,6 @@ class ChestPersistenceTest {
                     "slot " + slot);
         }
 
-        // Air entries load back as empty slots.
         for (int slot = 0; slot < SIZE; slot++) {
             assertTrue(entity.getItem(slot).isEmpty(), "slot " + slot);
         }
@@ -119,8 +114,6 @@ class ChestPersistenceTest {
     @Test
     void badItemFailsLoadInsteadOfEmptyingChest() {
         ChestBlockEntity entity = (ChestBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CHEST, POSITION);
-        // A suspicious stew with an out-of-range variant has no effects list,
-        // so ItemStackNbtCodec.deserializeItem rejects it.
         NbtMap badStew = NbtMap.builder()
                 .putString("Name", "minecraft:suspicious_stew")
                 .putShort("Damage", (short) 99)
@@ -143,7 +136,6 @@ class ChestPersistenceTest {
         ChestBlockEntity entity = (ChestBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CHEST, POSITION);
         ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 5);
 
-        // An entry without a Slot binds slot 0, as the old byte read defaulted to.
         NbtMapBuilder entryBuilder = NbtMap.builder();
         entryBuilder.putAll(ItemStackNbtCodec.serializeItem(diamond));
         NbtMap entry = entryBuilder.build();
@@ -164,7 +156,6 @@ class ChestPersistenceTest {
         ChestBlockEntity entity = (ChestBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CHEST, POSITION);
         ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 5);
 
-        // Only a byte Slot binds, as the old byte read did: a short Slot binds slot 0.
         NbtMapBuilder entryBuilder = ItemStackNbtCodec.serializeItem(diamond, 5).toBuilder();
         entryBuilder.putShort("Slot", (short) 5);
         NbtMap entry = entryBuilder.build();
@@ -186,9 +177,6 @@ class ChestPersistenceTest {
         ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 5);
         entity.setItem(1, diamond);
 
-        // An out-of-range Slot fails the load with a bare exception, as the old bounds
-        // check did, instead of keeping the current contents with a warning (which would
-        // lose the stored items on the next save). The live container is untouched.
         NbtMap tag = NbtMap.builder()
                 .putString("id", "Chest")
                 .putInt("x", 10)
@@ -244,9 +232,6 @@ class ChestPersistenceTest {
         entity.loadAdditionalData(chestTag());
         assertTrue(entity.isPaired());
 
-        // unpair() itself broadcasts and looks up the pair chest, which needs a live level;
-        // replicate its local state change (it clears the position but keeps pairlead)
-        // so the save path can be tested standalone.
         entity.data().setPairPosition(null);
         assertFalse(entity.isPaired());
 
@@ -309,8 +294,6 @@ class ChestPersistenceTest {
         left.data().getItems().setItem(3, diamond);
         right.data().getItems().setItem(5, stick);
 
-        // Wire the pairing the way createPair does, then run the production pairing path
-        // without the live-level lookup (fixtures have no level to look the pair up in).
         left.data().setPairPosition(right.getPosition());
         right.data().setPairPosition(left.getPosition());
         left.setPairlead(true);
@@ -319,7 +302,6 @@ class ChestPersistenceTest {
         CloudContainer combined = left.getContainer();
         assertEquals(54, combined.size());
 
-        // Locate each half's slots without assuming the production slot ordering.
         int diamondSlot = -1;
         int stickSlot = -1;
         for (int slot = 0; slot < combined.size(); slot++) {
@@ -334,7 +316,6 @@ class ChestPersistenceTest {
         assertNotEquals(-1, stickSlot, "combined container sees the right chest's DTO container");
         assertNotEquals(diamondSlot, stickSlot);
 
-        // Writes through the combined container land in each chest's DTO container ...
         ItemStack gold = ItemStack.from(ItemTypes.GOLD_INGOT, 1);
         combined.setItem(diamondSlot, gold);
         assertEquals(gold, left.data().getItems().getItem(3));
@@ -342,7 +323,6 @@ class ChestPersistenceTest {
         combined.setItem(stickSlot, ItemStack.EMPTY);
         assertTrue(right.data().getItems().getItem(5).isEmpty());
 
-        // ... and writes through a DTO container show up in the combined container.
         ItemStack iron = ItemStack.from(ItemTypes.IRON_INGOT, 4);
         right.data().getItems().setItem(5, iron);
         assertEquals(iron, combined.getItem(stickSlot));
@@ -354,9 +334,6 @@ class ChestPersistenceTest {
 
     @Test
     void unpairedPartnerIsRepairedBeforeCombining() {
-        // The partner half sits in the world unpaired (its pairPosition is null),
-        // e.g. placed but never paired back. checkPairing must repair it through
-        // the production path instead of throwing on the null pair position.
         final ChestBlockEntity[] leftRef = new ChestBlockEntity[1];
         final ChestBlockEntity[] rightRef = new ChestBlockEntity[1];
         ChestBlockEntity seed = (ChestBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CHEST,
@@ -395,23 +372,20 @@ class ChestPersistenceTest {
 
     @Test
     void chestBlockEntityKeepsNoDuplicateState() {
-        // Retained fields and why they hold no DTO state: combinedContainer is the transient
-        // paired view built over the two chests' DTO containers; pairlead is hook-persisted
-        // pairing state with no DTO property of its own.
-        DtoStateChecks.assertKeepsNoDuplicateState(ChestBlockEntity.class, ChestData.class,
+        DtoStateChecks.assertKeepsNoDuplicateState(ChestBlockEntity.class, CloudChestData.class,
                 Map.of("combinedContainer",
                         "derived double-chest view over the two chests' DTO containers, not persisted state"));
     }
 
     @Test
     void enderChestBlockEntityKeepsNoDuplicateState() {
-        DtoStateChecks.assertKeepsNoDuplicateState(EnderChestBlockEntity.class, ChestData.class,
+        DtoStateChecks.assertKeepsNoDuplicateState(EnderChestBlockEntity.class, CloudChestData.class,
                 Map.of("combinedContainer",
                         "inherited from ChestBlockEntity: derived double-chest view over the two chests' DTO containers, not persisted state"));
     }
 
     @Test
     void containerBlockEntityKeepsNoDuplicateState() {
-        DtoStateChecks.assertKeepsNoDuplicateState(ContainerBlockEntity.class, ContainerData.class);
+        DtoStateChecks.assertKeepsNoDuplicateState(ContainerBlockEntity.class, CloudContainerData.class);
     }
 }
