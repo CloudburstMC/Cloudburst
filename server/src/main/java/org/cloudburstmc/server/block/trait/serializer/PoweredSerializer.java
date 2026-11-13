@@ -4,8 +4,8 @@ import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.server.block.serializer.util.BedrockStateTags;
-import org.cloudburstmc.server.block.trait.BlockTraitSerializers.TraitSerializer;
 import org.cloudburstmc.server.block.trait.BedrockBlockTraitNames;
+import org.cloudburstmc.server.block.trait.BlockTraitSerializers.TraitSerializer;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Map;

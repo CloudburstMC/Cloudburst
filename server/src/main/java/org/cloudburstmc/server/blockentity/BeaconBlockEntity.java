@@ -18,6 +18,7 @@ import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.server.blockentity.data.CloudBeaconData;
 import org.cloudburstmc.server.level.chunk.LockedChunk;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -36,15 +37,22 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
             EffectTypes.STRENGTH, 3
     );
 
-    private @Nullable EffectType primary;
-    private @Nullable EffectType secondary;
     private int tier;
     private boolean active;
     private double effectRange = -1;
     private int nextUpdate;
 
+    private final CloudBeaconData persistenceState;
+
     public BeaconBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position);
+        CloudBeaconData state = new CloudBeaconData();
+        super(type, chunk, position, state);
+        this.persistenceState = state;
+    }
+
+    @Override
+    protected CloudBeaconData data() {
+        return this.persistenceState;
     }
 
     @Override
@@ -80,12 +88,12 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
 
     @Override
     public @Nullable EffectType getPrimaryEffect() {
-        return this.primary;
+        return this.data().getPrimary();
     }
 
     @Override
     public @Nullable EffectType getSecondaryEffect() {
-        return this.secondary;
+        return this.data().getSecondary();
     }
 
     @Override
@@ -93,9 +101,9 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
         encodeEffect(primary);
         encodeEffect(secondary);
 
-        if (this.primary != primary || this.secondary != secondary) {
-            this.primary = primary;
-            this.secondary = secondary;
+        if (this.data().getPrimary() != primary || this.data().getSecondary() != secondary) {
+            this.data().setPrimary(primary);
+            this.data().setSecondary(secondary);
             this.setDirty();
             this.spawnToAll();
         }
@@ -156,21 +164,21 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
+    protected void loadCustom(NbtMap tag) {
 
-        this.primary = decodeStoredEffect(tag.getInt("Primary", tag.getInt("primary", 0)));
-        this.secondary = decodeStoredEffect(tag.getInt("Secondary", tag.getInt("secondary", 0)));
+        this.data().setPrimary(decodeStoredEffect(tag.getInt("Primary", tag.getInt("primary", 0))));
+        this.data().setSecondary(decodeStoredEffect(tag.getInt("Secondary", tag.getInt("secondary", 0))));
 
         double range = tag.get("EffectRange") instanceof Double value ? value : -1;
         this.effectRange = Double.isFinite(range) && range >= 0 ? range : -1;
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    protected void saveCustom(NbtMapBuilder tag) {
         tag.remove("primary");
         tag.remove("secondary");
+        tag.putInt("Primary", encodeEffect(this.data().getPrimary()));
+        tag.putInt("Secondary", encodeEffect(this.data().getSecondary()));
 
         if (this.effectRange >= 0) {
             tag.putDouble("EffectRange", this.effectRange);
@@ -180,10 +188,10 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
     }
 
     @Override
-    protected void saveClientData(NbtMapBuilder tag) {
+    protected void saveCustomClient(NbtMapBuilder tag) {
         tag.putInt("Levels", this.tier);
-        tag.putInt("Primary", encodeEffect(this.primary));
-        tag.putInt("Secondary", encodeEffect(this.secondary));
+        tag.putInt("Primary", encodeEffect(this.data().getPrimary()));
+        tag.putInt("Secondary", encodeEffect(this.data().getSecondary()));
     }
 
     private void setActive(boolean active) {
@@ -239,12 +247,12 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
     }
 
     private void applyEffects() {
-        EffectType primary = this.primary;
+        EffectType primary = this.data().getPrimary();
         if (primary == null) {
             return;
         }
 
-        EffectType secondary = this.tier == MAX_TIER ? this.secondary : null;
+        EffectType secondary = this.tier == MAX_TIER ? this.data().getSecondary() : null;
         int duration = (9 + 2 * this.tier) * 20;
         PotionEffect main = new PotionEffect(primary, duration, secondary == primary ? 1 : 0, true, true);
         PotionEffect extra = secondary == null || secondary == primary ? null : new PotionEffect(secondary, duration, 0, true, true);

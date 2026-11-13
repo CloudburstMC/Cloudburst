@@ -22,6 +22,7 @@ import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.component.SpawnEggComponent;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.registry.EntityRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.component.ComponentMap;
@@ -54,15 +55,16 @@ import static com.google.common.base.Preconditions.checkState;
 import static org.cloudburstmc.api.entity.EntityTypes.*;
 
 @Log4j2
-public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> implements org.cloudburstmc.api.registry.EntityRegistry {
+public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> implements EntityRegistry {
     private static final CloudEntityRegistry INSTANCE;
 
     private static final BiMap<String, Identifier> LEGACY_NAMES;
     private static final Map<String, Identifier> CANONICAL_NAMES;
     private static final List<NbtMap> VANILLA_ENTITIES;
 
-    private static final EntityData<UnknownEntity> UNKNOWN_ENTITY_DATA =
-            new EntityData<>(false, new RegistryProvider<>(UnknownEntity::new, null, 0));
+    private static final EntityRegistration<UnknownEntity> UNKNOWN_ENTITY_DATA =
+            new EntityRegistration<>(false, new RegistryProvider<EntityFactory<UnknownEntity>>(
+                    UnknownEntity::new, null, 0));
 
     static {
         try (InputStream stream = RegistryUtils.getOrAssertResource("legacy/entity_names.json")) {
@@ -101,7 +103,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
 
     private final BiMap<Identifier, EntityType<?>> identifierTypeMap = HashBiMap.create();
     private final AtomicLong entityIdAllocator = new AtomicLong();
-    private final Map<EntityType<?>, EntityData<?>> dataMap = new IdentityHashMap<>();
+    private final Map<EntityType<?>, EntityRegistration<?>> dataMap = new IdentityHashMap<>();
     private final Int2ObjectMap<EntityType<?>> runtimeTypeMap = new Int2ObjectOpenHashMap<>();
     private final Object2IntMap<EntityType<?>> typeToRuntimeMap = new Object2IntLinkedOpenHashMap<>();
     private final int customEntityStart;
@@ -163,13 +165,15 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
             this.typeToRuntimeMap.put(type, runtimeType);
             this.identifierTypeMap.put(type.getId(), type);
 
-            EntityData<T> entityData = new EntityData<>(hasSpawnEgg, new RegistryProvider<>(factory, plugin, priority));
+            EntityRegistration<T> entityData = new EntityRegistration<>(hasSpawnEgg,
+                    new RegistryProvider<>(factory, plugin, priority));
             this.dataMap.put(type, entityData);
 
             CloudComponentMap map = new CloudComponentMap(this);
             putComponents(type, map);
         } else if (existingType == type) { // existing - add plugin's factory if one does not exist
-            RegistryProvider<EntityFactory<T>> provider = new RegistryProvider<>(factory, plugin, priority);
+            RegistryProvider<EntityFactory<T>> provider =
+                    new RegistryProvider<>(factory, plugin, priority);
             getServiceProvider(type).add(provider);
         } else { // invalid - registering EntityType with used identifier.
             throw new RegistryException(type.getId() + " is already registered");
@@ -299,12 +303,12 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
 
     @SuppressWarnings("unchecked")
     private <T extends Entity> RegistryServiceProvider<EntityFactory<T>> getServiceProvider(EntityType<T> type) {
-        EntityData<T> entityData = (EntityData<T>) this.dataMap.get(type);
+        EntityRegistration<T> entityData = (EntityRegistration<T>) this.dataMap.get(type);
         if (entityData == null) {
             if (type.getEntityClass() != UnknownEntity.class) {
                 throw new RegistryException(type.getId() + " is not a registered entity");
             }
-            entityData = (EntityData<T>) UNKNOWN_ENTITY_DATA;
+            entityData = (EntityRegistration<T>) UNKNOWN_ENTITY_DATA;
         }
         return entityData.serviceProvider();
     }
@@ -323,7 +327,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
 
         for (int id = customEntityStart; id < runtimeTypeAllocator; id++) {
             EntityType<?> type = this.runtimeTypeMap.get(id);
-            EntityData<?> data = this.dataMap.get(type);
+            EntityRegistration<?> data = this.dataMap.get(type);
 
             entityIdentifiers.add(NbtMap.builder()
                     .putBoolean("summonable", true)
@@ -576,8 +580,8 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         getComponentMap(SNOW_GOLEM).set(EntityComponents.ON_TICK, SnowGolemEntityHandlers.ON_TICK);
     }
 
-    private record EntityData<T extends Entity>(boolean hasSpawnEgg, RegistryServiceProvider<EntityFactory<T>> serviceProvider) {
-        private EntityData(boolean hasSpawnEgg, RegistryProvider<EntityFactory<T>> provider) {
+    private record EntityRegistration<T extends Entity>(boolean hasSpawnEgg, RegistryServiceProvider<EntityFactory<T>> serviceProvider) {
+        private EntityRegistration(boolean hasSpawnEgg, RegistryProvider<EntityFactory<T>> provider) {
             this(hasSpawnEgg, new RegistryServiceProvider<>(provider));
         }
     }

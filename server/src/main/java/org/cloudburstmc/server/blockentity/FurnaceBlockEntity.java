@@ -10,6 +10,7 @@ import org.cloudburstmc.api.event.inventory.FurnaceBurnEvent;
 import org.cloudburstmc.api.event.inventory.FurnaceExtractEvent;
 import org.cloudburstmc.api.event.inventory.FurnaceSmeltEvent;
 import org.cloudburstmc.api.event.inventory.FurnaceStartSmeltEvent;
+import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.inventory.view.BlockFurnaceView;
 import org.cloudburstmc.api.inventory.view.SlotGroupType;
 import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
@@ -24,19 +25,17 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerSetDataPacket;
+import org.cloudburstmc.server.blockentity.data.CloudFurnaceData;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.server.crafting.CloudCookingRecipe;
-import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 import org.cloudburstmc.server.registry.VanillaCookingData;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,22 +49,33 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
     private static final int AVERAGE_AMBIENT_SOUND_INTERVAL = 60;
 
     private final Map<Identifier, Integer> recipesUsed = new HashMap<>();
-    private int burnTime;
-    private int burnDuration;
-    private int cookTime;
     private int cookDuration;
     private int importedExperience;
     private @Nullable Identifier activeRecipe;
-    private @Nullable CloudCookingRecipe cachedRecipe;
-    private @Nullable ItemStack cachedIngredient;
+    private @Nullable RecipeLookup recipeLookup;
+
+    private final CloudFurnaceData persistenceState;
 
     public FurnaceBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         this(type, chunk, position, new FurnaceStorage());
     }
 
     private FurnaceBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position, FurnaceStorage storage) {
-        super(type, chunk, position, storage);
+        CloudFurnaceData state = new CloudFurnaceData();
+        super(type, chunk, position, state);
+        this.persistenceState = state;
+        this.data().setItems(storage);
         storage.owner = this;
+    }
+
+    @Override
+    protected CloudFurnaceData data() {
+        return this.persistenceState;
+    }
+
+    @Override
+    protected ItemContainer items() {
+        return this.data().getItems();
     }
 
     @Override
@@ -79,20 +89,13 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
+    protected void loadCustom(NbtMap tag) {
 
-        for (NbtMap itemTag : tag.getList("Items", NbtType.COMPOUND)) {
-            int slot = itemTag.getByte("Slot");
-            if (slot >= 0 && slot < this.size()) {
-                this.setItem(slot, ItemStackNbtCodec.deserializeItem(itemTag));
-            }
-        }
 
-        this.burnTime = readTicks(tag, "BurnTime");
-        this.burnDuration = Math.max(this.burnTime, readTicks(tag, "BurnDuration"));
+        this.data().setBurnTime(readTicks(tag, "BurnTime"));
+        this.data().setBurnDuration(Math.max(this.data().getBurnTime(), readTicks(tag, "BurnDuration")));
         this.cookDuration = readTicks(tag, "CookDuration");
-        this.cookTime = readTicks(tag, "CookTime");
+        this.data().setCookTime(readTicks(tag, "CookTime"));
         String recipe = tag.getString("ActiveRecipe", "");
         this.activeRecipe = recipe.isEmpty() ? null : Identifier.parse(recipe);
 
@@ -106,12 +109,11 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    protected void saveCustom(NbtMapBuilder tag) {
 
-        writeTicks(tag, "BurnTime", this.burnTime);
-        writeTicks(tag, "BurnDuration", this.burnDuration);
-        writeTicks(tag, "CookTime", this.cookTime);
+        writeTicks(tag, "BurnTime", this.data().getBurnTime());
+        writeTicks(tag, "BurnDuration", this.data().getBurnDuration());
+        writeTicks(tag, "CookTime", this.data().getCookTime());
         tag.putInt("CookDuration", this.cookDuration);
         tag.putInt("StoredXPInt", this.importedExperience);
         NbtMapBuilder recipes = NbtMap.builder();
@@ -122,18 +124,11 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
             tag.putString("ActiveRecipe", this.activeRecipe.toString());
         }
 
-        List<NbtMap> items = new ArrayList<>();
-        this.container.forEachSlot((stack, slot) -> {
-            if (!stack.isEmpty()) {
-                items.add(ItemStackNbtCodec.serializeItem(stack, slot));
-            }
-        });
-        tag.putList("Items", NbtType.COMPOUND, items);
     }
 
     @Override
-    protected void saveClientData(NbtMapBuilder tag) {
-        super.saveClientData(tag);
+    protected void saveCustomClient(NbtMapBuilder tag) {
+        super.saveCustomClient(tag);
         String name = this.getCustomName();
         if (name != null) {
             tag.putString("CustomName", name);
@@ -157,7 +152,7 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
     @Override
     public void close() {
         if (!this.isClosed()) {
-            for (ContainerListener listener : List.copyOf(this.container.getListeners())) {
+            for (ContainerListener listener : List.copyOf(this.getContainer().getListeners())) {
                 if (listener instanceof CloudPlayer player) {
                     player.closeInventory();
                 }
@@ -168,7 +163,7 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
 
     @Override
     public void onBreak() {
-        for (ItemStack content : this.container.getContents()) {
+        for (ItemStack content : this.getContainer().getContents()) {
             this.dropItemOnBreak(content);
         }
         this.getLevel().dropExpOrb(this.getPosition(), this.takeExperience());
@@ -181,13 +176,13 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
         }
         super.onUpdate();
 
-        int previousBurnTime = this.burnTime;
-        int previousBurnDuration = this.burnDuration;
-        int previousCookTime = this.cookTime;
+        int previousBurnTime = this.data().getBurnTime();
+        int previousBurnDuration = this.data().getBurnDuration();
+        int previousCookTime = this.data().getCookTime();
         int previousCookDuration = this.cookDuration;
 
-        if (this.burnTime > 0) {
-            this.burnTime--;
+        if (this.data().getBurnTime() > 0) {
+            this.data().setBurnTime(this.data().getBurnTime() - 1);
         }
 
         this.tickCooking();
@@ -196,16 +191,16 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
         }
 
         this.updateLitState();
-        if (this.burnTime > 0 && this.getLevel().getRandom().nextInt(AVERAGE_AMBIENT_SOUND_INTERVAL) == 0) {
+        if (this.data().getBurnTime() > 0 && this.getLevel().getRandom().nextInt(AVERAGE_AMBIENT_SOUND_INTERVAL) == 0) {
             this.getLevel().addLevelSoundEvent(this.getPosition(), this.getAmbientSound());
         }
 
-        if (this.burnTime != previousBurnTime || this.burnDuration != previousBurnDuration || this.cookTime != previousCookTime || this.cookDuration != previousCookDuration) {
+        if (this.data().getBurnTime() != previousBurnTime || this.data().getBurnDuration() != previousBurnDuration || this.data().getCookTime() != previousCookTime || this.cookDuration != previousCookDuration) {
             this.setDirty();
             this.sendProgressChanges(previousBurnTime, previousBurnDuration, this.displayCookTime(previousCookTime, previousCookDuration));
         }
 
-        return this.burnTime > 0 || this.cookTime > 0;
+        return this.data().getBurnTime() > 0 || this.data().getCookTime() > 0;
     }
 
     @Override
@@ -240,16 +235,16 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
 
     @Override
     public int getCookProgress() {
-        return this.cookTime;
+        return this.data().getCookTime();
     }
 
     @Override
     public void setCookProgress(int ticks) {
         this.cookDuration = this.getCookDuration();
-        this.cookTime = Math.clamp(ticks, 0, this.cookDuration);
+        this.data().setCookTime(Math.clamp(ticks, 0, this.cookDuration));
         this.setDirty();
         this.scheduleUpdate();
-        this.broadcastData(ContainerSetDataPacket.FURNACE_TICK_COUNT, this.displayCookTime(this.cookTime, this.cookDuration));
+        this.broadcastData(ContainerSetDataPacket.FURNACE_TICK_COUNT, this.displayCookTime(this.data().getCookTime(), this.cookDuration));
     }
 
     @Override
@@ -263,30 +258,30 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
 
     @Override
     public int getBurnProgress() {
-        return this.burnTime;
+        return this.data().getBurnTime();
     }
 
     @Override
     public void setBurnProgress(int ticks) {
-        this.burnTime = Math.max(0, ticks);
-        if (this.burnTime > this.burnDuration) {
-            this.setBurnDuration(this.burnTime);
+        this.data().setBurnTime(Math.max(0, ticks));
+        if (this.data().getBurnTime() > this.data().getBurnDuration()) {
+            this.setBurnDuration(this.data().getBurnTime());
         }
         this.setDirty();
         this.scheduleUpdate();
-        this.broadcastData(ContainerSetDataPacket.FURNACE_LIT_TIME, this.burnTime);
+        this.broadcastData(ContainerSetDataPacket.FURNACE_LIT_TIME, this.data().getBurnTime());
     }
 
     @Override
     public int getBurnDuration() {
-        return this.burnDuration;
+        return this.data().getBurnDuration();
     }
 
     @Override
     public void setBurnDuration(int ticks) {
-        this.burnDuration = Math.max(this.burnTime, ticks);
+        this.data().setBurnDuration(Math.max(this.data().getBurnTime(), ticks));
         this.setDirty();
-        this.broadcastData(ContainerSetDataPacket.FURNACE_LIT_DURATION, this.burnDuration);
+        this.broadcastData(ContainerSetDataPacket.FURNACE_LIT_DURATION, this.data().getBurnDuration());
     }
 
     public boolean acceptsFuel(ItemStack item) {
@@ -297,23 +292,23 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
     }
 
     @Override
-    public boolean canInsertFrom(int slot, Direction side, ItemStack item) {
+    public boolean blocksInsertionFrom(int slot, Direction side, ItemStack item) {
         return switch (side) {
-            case UP -> slot == INGREDIENT_SLOT;
-            case DOWN -> false;
-            default -> slot == FUEL_SLOT && acceptsFuel(item);
+            case UP -> slot != INGREDIENT_SLOT;
+            case DOWN -> true;
+            default -> slot != FUEL_SLOT || !acceptsFuel(item);
         };
     }
 
     @Override
-    public boolean canExtractBelow(int slot) {
+    public boolean blocksExtractionBelow(int slot) {
         return switch (slot) {
-            case RESULT_SLOT -> true;
+            case RESULT_SLOT -> false;
             case FUEL_SLOT -> {
                 ItemStack fuel = this.getFuel();
-                yield isEmptyBucket(fuel) || fuel.getType() == ItemTypes.WATER_BUCKET;
+                yield !isEmptyBucket(fuel) && fuel.getType() != ItemTypes.WATER_BUCKET;
             }
-            default -> false;
+            default -> true;
         };
     }
 
@@ -324,9 +319,9 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
     }
 
     public void sendProgress(ContainerListener listener) {
-        listener.onInventoryDataChange(this.container, ContainerSetDataPacket.FURNACE_LIT_DURATION, this.burnDuration);
-        listener.onInventoryDataChange(this.container, ContainerSetDataPacket.FURNACE_LIT_TIME, this.burnTime);
-        listener.onInventoryDataChange(this.container, ContainerSetDataPacket.FURNACE_TICK_COUNT, this.displayCookTime(this.cookTime, this.cookDuration));
+        listener.onInventoryDataChange(this.getContainer(), ContainerSetDataPacket.FURNACE_LIT_DURATION, this.data().getBurnDuration());
+        listener.onInventoryDataChange(this.getContainer(), ContainerSetDataPacket.FURNACE_LIT_TIME, this.data().getBurnTime());
+        listener.onInventoryDataChange(this.getContainer(), ContainerSetDataPacket.FURNACE_TICK_COUNT, this.displayCookTime(this.data().getCookTime(), this.cookDuration));
     }
 
     protected int standardCookTime() {
@@ -357,7 +352,7 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
             this.resetCooking();
         }
 
-        if (this.burnTime == 0) {
+        if (this.data().getBurnTime() == 0) {
             this.ignite();
             if (this.isClosed() || !this.isValid()
                     || !ingredient.equals(this.getSmelting()) || this.isOutputBlocked(recipe.getResult())) {
@@ -365,11 +360,11 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
             }
         }
 
-        if (this.burnTime > 0) {
+        if (this.data().getBurnTime() > 0) {
             this.cook(recipe, ingredient);
         } else {
-            this.cookTime = Math.max(0, this.cookTime - 2);
-            if (this.cookTime == 0) {
+            this.data().setCookTime(Math.max(0, this.data().getCookTime() - 2));
+            if (this.data().getCookTime() == 0) {
                 this.resetCooking();
             }
         }
@@ -390,15 +385,15 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
             return;
         }
 
-        this.burnTime = event.getBurnTime();
-        this.burnDuration = this.burnTime;
+        this.data().setBurnTime(event.getBurnTime());
+        this.data().setBurnDuration(this.data().getBurnTime());
         if (event.willConsumeFuel()) {
             this.setFuel(fuel.getType() == ItemTypes.LAVA_BUCKET ? ItemStack.from(ItemTypes.BUCKET) : fuel.decreaseCount());
         }
     }
 
     private void cook(CloudCookingRecipe recipe, ItemStack ingredient) {
-        if (this.cookTime == 0) {
+        if (this.data().getCookTime() == 0) {
             FurnaceStartSmeltEvent event = new FurnaceStartSmeltEvent(this.getBlock(), ingredient.withCount(recipe.getInputCount()), recipe);
             this.server.getEventManager().fire(event);
             if (this.isClosed() || !this.isValid() || !ingredient.equals(this.getSmelting()) || this.isOutputBlocked(recipe.getResult())) {
@@ -410,7 +405,8 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
         }
 
         this.activeRecipe = recipe.getId();
-        if (++this.cookTime >= this.cookDuration) {
+        this.data().setCookTime(this.data().getCookTime() + 1);
+        if (this.data().getCookTime() >= this.cookDuration) {
             this.finishCooking(recipe, ingredient);
             this.resetCooking();
         }
@@ -451,27 +447,30 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
         int itemLimit = CloudItemRegistry.get()
                 .requireComponent(result.getType(), ItemBehaviors.GET_MAX_STACK_SIZE)
                 .execute(result);
-        int slotLimit = Math.min(itemLimit, this.container.getMaxStackSize());
+        int slotLimit = Math.min(itemLimit, this.getContainer().getMaxStackSize());
         return result.getCount() > slotLimit - existing.getCount();
     }
 
     private void resetCooking() {
-        this.cookTime = 0;
+        this.data().setCookTime(0);
         this.cookDuration = 0;
         this.activeRecipe = null;
     }
 
     private @Nullable CloudCookingRecipe findRecipe(ItemStack ingredient) {
-        if (this.cachedIngredient != ingredient) {
-            this.cachedRecipe = CloudRecipeRegistry.get().matchCookingRecipe(ingredient, this.getUnlitType().getId());
-            this.cachedIngredient = ingredient;
+        if (this.recipeLookup == null || this.recipeLookup.ingredient() != ingredient) {
+            this.recipeLookup = new RecipeLookup(ingredient,
+                    CloudRecipeRegistry.get().matchCookingRecipe(ingredient, this.getUnlitType().getId()));
         }
-        return this.cachedRecipe;
+        return this.recipeLookup.recipe();
+    }
+
+    private record RecipeLookup(ItemStack ingredient, @Nullable CloudCookingRecipe recipe) {
     }
 
     private void updateLitState() {
         BlockState current = this.getBlockState();
-        BlockType target = this.burnTime > 0 ? this.getLitType() : this.getUnlitType();
+        BlockType target = this.data().getBurnTime() > 0 ? this.getLitType() : this.getUnlitType();
         if (current.getType() != target) {
             this.getLevel().setBlockState(this.getPosition(), target.getDefaultState().copyTraits(current), true);
         }
@@ -506,23 +505,23 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
     }
 
     private void sendProgressChanges(int burnTime, int burnDuration, int cookTime) {
-        if (this.burnDuration != burnDuration) {
-            this.broadcastData(ContainerSetDataPacket.FURNACE_LIT_DURATION, this.burnDuration);
+        if (this.data().getBurnDuration() != burnDuration) {
+            this.broadcastData(ContainerSetDataPacket.FURNACE_LIT_DURATION, this.data().getBurnDuration());
         }
 
-        if (this.burnTime != burnTime) {
-            this.broadcastData(ContainerSetDataPacket.FURNACE_LIT_TIME, this.burnTime);
+        if (this.data().getBurnTime() != burnTime) {
+            this.broadcastData(ContainerSetDataPacket.FURNACE_LIT_TIME, this.data().getBurnTime());
         }
 
-        int display = this.displayCookTime(this.cookTime, this.cookDuration);
+        int display = this.displayCookTime(this.data().getCookTime(), this.cookDuration);
         if (display != cookTime) {
             this.broadcastData(ContainerSetDataPacket.FURNACE_TICK_COUNT, display);
         }
     }
 
     private void broadcastData(int property, int value) {
-        for (ContainerListener listener : this.container.getListeners()) {
-            listener.onInventoryDataChange(this.container, property, value);
+        for (ContainerListener listener : this.getContainer().getListeners()) {
+            listener.onInventoryDataChange(this.getContainer(), property, value);
         }
     }
 

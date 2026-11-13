@@ -26,14 +26,14 @@ public interface EntityRegistry extends ComponentRegistry<EntityType<?>>, KeyedR
     }
 
     /**
-     * Registers an entity factory.
+     * Registers an entity factory with the given priority and spawn egg setting.
      *
      * @param type        entity type
      * @param factory     factory used to create entities of the type
-     * @param priority    priority used when more than one factory is registered for the same type
+     * @param priority    priority used when multiple factories are registered
      * @param hasSpawnEgg whether the type has a spawn egg entry
-     * @param <T>         entity implementation type
-     * @throws RegistryException if registration is closed or the type cannot be registered
+     * @param <T>         entity type
+     * @throws RegistryException if the factory cannot be registered
      */
     <T extends Entity> void register(EntityType<T> type, EntityFactory<T> factory, int priority, boolean hasSpawnEgg) throws RegistryException;
 

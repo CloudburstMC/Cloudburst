@@ -11,8 +11,8 @@ import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.Tool;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.api.potion.EffectTypes;
+import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.Map;

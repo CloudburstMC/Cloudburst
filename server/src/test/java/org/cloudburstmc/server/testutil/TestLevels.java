@@ -3,11 +3,11 @@ package org.cloudburstmc.server.testutil;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.level.Level;
+import org.cloudburstmc.server.level.DimensionHeight;
 
 import java.lang.reflect.InvocationHandler;
 import java.util.HashMap;
 import java.util.Map;
-import org.cloudburstmc.server.level.DimensionHeight;
 
 /**
  * Level stubs with real vertical bounds.

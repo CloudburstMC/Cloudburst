@@ -11,9 +11,9 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.potion.PotionType;
 import org.cloudburstmc.api.potion.PotionTypes;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.server.entity.data.CloudSplashPotionData;
 import org.cloudburstmc.server.network.LevelEffectPacketFactory;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.potion.CloudPotion;
@@ -29,12 +29,12 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.ENCHANTED
 
 public class EntitySplashPotion extends EntityProjectile implements SplashPotion {
 
-    private static final String TAG_POTION_ID = "PotionId";
-
-    private PotionType type = PotionTypes.WATER;
+    private final CloudSplashPotionData persistenceState;
 
     public EntitySplashPotion(EntityType<? extends SplashPotion> type, Location location) {
-        super(type, location);
+        CloudSplashPotionData state = new CloudSplashPotionData();
+        super(type, location, state);
+        this.persistenceState = state;
     }
 
     @Override
@@ -75,7 +75,7 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
 
     protected void splash(Entity collidedWith) {
         this.close();
-        int color = CloudPotionColor.calculateEffects(this.type.getEffects()).orElse(0x2828ff);
+        int color = CloudPotionColor.calculateEffects(this.getPotionType().getEffects()).orElse(0x2828ff);
         this.getLevel().addChunkPacket(this.getPosition(), LevelEffectPacketFactory.event(this.getPosition(), LevelEvent.PARTICLE_POTION_SPLASH, 0xff000000 | color));
         this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.GLASS);
 
@@ -100,7 +100,7 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
             return;
         }
 
-        CloudPotion potion = new CloudPotion(this.type);
+        CloudPotion potion = new CloudPotion(this.getPotionType());
         for (Living living : event.getAffectedEntities()) {
             potion.apply(living, event.getIntensity(living), 1.0f, damageSource, this, PotionEffectCause.POTION_SPLASH);
         }
@@ -126,26 +126,36 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
 
     @Override
     public PotionType getPotionType() {
-        return this.type;
+        PotionType potionId = this.data().getPotionId();
+        return potionId == null ? PotionTypes.WATER : potionId;
     }
 
     @Override
     public void setPotionType(PotionType type) {
-        this.type = requireNonNull(type, "type");
+        requireNonNull(type, "type");
+        this.data().setPotionId(type);
         this.data.set(AUX_VALUE_DATA, NetworkUtils.potionToNetwork(type));
         this.data.setFlag(ENCHANTED, type != PotionTypes.WATER && type != PotionTypes.MUNDANE
                 && type != PotionTypes.THICK && type != PotionTypes.AWKWARD);
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-        tag.listenForShort(TAG_POTION_ID, id -> this.setPotionType(NetworkUtils.potionFromNetwork(id)));
+    protected CloudSplashPotionData data() {
+        return this.persistenceState;
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-        tag.putShort(TAG_POTION_ID, NetworkUtils.potionToNetwork(this.type));
+    protected void loadCustom(NbtMap tag) {
+        // The potion runs before the projectile load below,
+        // matching the historical load order. The setter re-runs to keep
+        // the metadata sync, as the previous load did; an absent key keeps the
+        // current value.
+        if (tag.containsKey("PotionId")) {
+            PotionType potionId = this.data().getPotionId();
+            if (potionId != null) {
+                this.setPotionType(potionId);
+            }
+        }
+        super.loadCustom(tag);
     }
 }

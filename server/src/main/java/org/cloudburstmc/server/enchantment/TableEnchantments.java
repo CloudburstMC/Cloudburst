@@ -12,12 +12,7 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.server.registry.CloudEnchantmentRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 @UtilityClass
 public class TableEnchantments {

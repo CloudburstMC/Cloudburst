@@ -36,7 +36,7 @@ class EntityDisplacementTest {
         assertEquals(Vector3f.from(0.2f, 0, 0.1f), entity.getMotion());
         assertEquals(Vector3f.from(0.25f, 0.05f, 0.25f), entity.stuckSpeedMultiplier);
         assertTrue(entity.isOnGround());
-        assertEquals(1, entity.highestPosition);
+        assertEquals(1, entity.getHighestPosition());
         assertEquals(0, entity.fallDistance);
         assertEquals(1, entity.synchronizations);
     }

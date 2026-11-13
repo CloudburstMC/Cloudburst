@@ -37,6 +37,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.entity.data.CloudLivingData;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -44,7 +45,9 @@ import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 import java.util.function.DoubleUnaryOperator;
@@ -69,22 +72,39 @@ public abstract class EntityLiving extends CloudEntity implements Living {
     @Getter
     protected float movementSpeed = 0.1f;
 
+    private final CloudLivingData persistenceState;
+
     public EntityLiving(EntityType<?> type, Location location) {
-        super(type, location);
+        this(type, location, new CloudLivingData());
+    }
+
+    protected EntityLiving(EntityType<?> type, Location location, CloudLivingData state) {
+        super(type, location, state);
+        this.persistenceState = state;
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForFloat("Health", this::setHealth);
+    protected CloudLivingData data() {
+        return this.persistenceState;
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    protected void loadCustom(NbtMap tag) {
+        super.loadCustom(tag);
+        this.setHealth(getFloat(tag, "Health", 20f));
+    }
 
+    @Override
+    protected void saveCustom(NbtMapBuilder tag) {
+        super.saveCustom(tag);
         tag.putFloat("Health", this.getHealth());
+    }
+
+    @Override
+    protected Set<String> customKeys() {
+        Set<String> keys = new HashSet<>(super.customKeys());
+        keys.add("Health");
+        return Set.copyOf(keys);
     }
 
     @Override
@@ -95,7 +115,7 @@ public abstract class EntityLiving extends CloudEntity implements Living {
             EntityEventPacket pk = new EntityEventPacket();
             pk.setRuntimeEntityId(this.getRuntimeId());
             pk.setType(EntityEventType.RESPAWN);
-            CloudServer.broadcastPacket(this.hasSpawned, pk);
+            this.broadcastToViewers(pk);
         }
     }
 
@@ -516,7 +536,7 @@ public abstract class EntityLiving extends CloudEntity implements Living {
     }
 
     protected void broadcastHurtEvent(DamageEffect effect) {
-        CloudServer.broadcastPacket(this.hasSpawned, this.createHurtEventPacket(effect));
+        this.broadcastToViewers(this.createHurtEventPacket(effect));
     }
 
     protected final EntityEventPacket createHurtEventPacket(DamageEffect effect) {
@@ -694,7 +714,7 @@ public abstract class EntityLiving extends CloudEntity implements Living {
         EntityEventPacket packet = new EntityEventPacket();
         packet.setRuntimeEntityId(this.getRuntimeId());
         packet.setType(this.getDeathEventType());
-        CloudServer.broadcastPacket(this.hasSpawned, packet);
+        this.broadcastToViewers(packet);
 
         if (this.getLevel().getGameRules().get(GameRules.DO_MOB_LOOT)) {
             for (ItemStack item : event.getDrops()) {

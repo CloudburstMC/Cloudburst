@@ -17,11 +17,7 @@ import org.cloudburstmc.server.pack.CloudPackManager;
 import org.cloudburstmc.server.pack.CloudResourcePack;
 
 import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.BitSet;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 

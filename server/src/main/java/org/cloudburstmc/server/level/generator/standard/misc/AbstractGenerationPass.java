@@ -2,11 +2,11 @@ package org.cloudburstmc.server.level.generator.standard.misc;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
-import tools.jackson.databind.annotation.JsonDeserialize;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.StandardGeneratorUtils;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 /**
  * Base class for all implementations of {@link GenerationPass}.

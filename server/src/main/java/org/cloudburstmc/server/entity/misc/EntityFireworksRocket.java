@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.entity.misc;
 
-import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.entity.Entity;
@@ -24,12 +23,12 @@ import org.cloudburstmc.api.util.*;
 import org.cloudburstmc.api.util.data.FireworkData;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.entity.data.CloudFireworksRocketData;
 import org.cloudburstmc.server.entity.projectile.EntityProjectile;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.item.serializer.FireworkRocketSerializer;
@@ -48,16 +47,15 @@ public class EntityFireworksRocket extends EntityProjectile implements Fireworks
     private static final double GLIDE_BOOST_CORRECTION = 0.5;
     private static final FireworkData DEFAULT_FIREWORK_DATA = FireworkData.of(List.of(), (byte) 1);
 
-    private int life;
-    private int lifetime;
-    @Setter
-    private boolean shotAtAngle;
-
     private ItemStack firework;
     private CloudPlayer boostedPlayer;
 
+    private final CloudFireworksRocketData persistenceState;
+
     public EntityFireworksRocket(EntityType<FireworksRocket> type, Location location) {
-        super(type, location);
+        CloudFireworksRocketData state = new CloudFireworksRocketData();
+        super(type, location, state);
+        this.persistenceState = state;
     }
 
     @Override
@@ -73,21 +71,8 @@ public class EntityFireworksRocket extends EntityProjectile implements Fireworks
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForInt("Life", v -> this.life = v);
-        tag.listenForInt("LifeTime", v -> this.lifetime = v);
-        tag.listenForBoolean("ShotAtAngle", v -> this.shotAtAngle = v);
-    }
-
-    @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
-        tag.putInt("Life", this.life);
-        tag.putInt("LifeTime", this.lifetime);
-        tag.putBoolean("ShotAtAngle", this.shotAtAngle);
+    protected CloudFireworksRocketData data() {
+        return this.persistenceState;
     }
 
     @Override
@@ -117,14 +102,14 @@ public class EntityFireworksRocket extends EntityProjectile implements Fireworks
                 return true;
             }
 
-            if (this.life == 0) {
+            if (this.getLife() == 0) {
                 this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.LAUNCH);
             }
 
-            this.life++;
+            this.setLife(this.getLife() + 1);
 
             hasUpdate = true;
-            if (this.life > this.lifetime) {
+            if (this.getLife() > this.getLifetime()) {
                 this.explode();
             }
         }
@@ -137,7 +122,7 @@ public class EntityFireworksRocket extends EntityProjectile implements Fireworks
 
     private void updateFreeFlight() {
         double horizontalAcceleration = this.isCollidedHorizontally ? 1.0 : 1.15;
-        Vector3f nextMotion = this.shotAtAngle ? this.motion
+        Vector3f nextMotion = this.isShotAtAngle() ? this.motion
                 : this.motion.mul(horizontalAcceleration, 1.0, horizontalAcceleration).add(0, 0.04, 0);
         Vector3f nextPosition = this.position.add(nextMotion);
         RayTraceContext trace = new RayTraceContext(this.position, nextPosition, BlockShapeMode.COLLIDER,
@@ -262,22 +247,30 @@ public class EntityFireworksRocket extends EntityProjectile implements Fireworks
 
     @Override
     public int getLife() {
-        return life;
+        return this.data().getLife();
     }
 
     @Override
     public void setLife(int life) {
-        this.life = life;
+        this.data().setLife(life);
     }
 
     @Override
     public int getLifetime() {
-        return lifetime;
+        return this.data().getLifetime();
     }
 
     @Override
     public void setLifetime(int lifetime) {
-        this.lifetime = lifetime;
+        this.data().setLifetime(lifetime);
+    }
+
+    public boolean isShotAtAngle() {
+        return this.data().isShotAtAngle();
+    }
+
+    public void setShotAtAngle(boolean shotAtAngle) {
+        this.data().setShotAtAngle(shotAtAngle);
     }
 
     @Override
@@ -349,7 +342,7 @@ public class EntityFireworksRocket extends EntityProjectile implements Fireworks
     private void updateLifetime() {
         Random rand = ThreadLocalRandom.current();
         int flightLevel = 1 + this.getFireworkData().getFlightLevel();
-        this.lifetime = 10 * flightLevel + rand.nextInt(6) + rand.nextInt(7);
+        this.setLifetime(10 * flightLevel + rand.nextInt(6) + rand.nextInt(7));
     }
 
     @Override

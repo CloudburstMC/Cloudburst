@@ -109,6 +109,11 @@ public class CloudContainer implements Container {
     }
 
     @Override
+    public int getMaxStackSize(int slot) {
+        return getMaxStackSize();
+    }
+
+    @Override
     @NonNull
     public ItemStack getItem(int index) {
         return this.storage.get(index);
@@ -154,7 +159,7 @@ public class CloudContainer implements Container {
     @Override
     public void setContents(ItemStack[] items) {
         if (items.length > this.size()) {
-            throw new IllegalArgumentException("Invalid inventory size; expected " + this.size() + " or less");
+            throw new IllegalArgumentException("Invalid inventory size. Expected " + this.size() + " or less");
         } else if (items.length < this.size()) {
             items = Arrays.copyOf(items, this.size());
         }

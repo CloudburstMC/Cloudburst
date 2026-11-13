@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.form;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import tools.jackson.databind.JsonNode;
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.ToString;
@@ -12,6 +11,7 @@ import org.cloudburstmc.server.form.util.FormType;
 import org.cloudburstmc.server.form.util.ImageData;
 import org.cloudburstmc.server.form.util.ImageType;
 import org.cloudburstmc.server.player.CloudPlayer;
+import tools.jackson.databind.JsonNode;
 
 import java.util.*;
 import java.util.function.BiConsumer;

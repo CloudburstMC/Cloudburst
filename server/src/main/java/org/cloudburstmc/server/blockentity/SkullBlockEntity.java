@@ -9,26 +9,34 @@ import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.CardinalDirection;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.util.RedstoneSignals;
+import org.cloudburstmc.server.blockentity.data.CloudSkullData;
 
 import java.util.Objects;
 
 public class SkullBlockEntity extends BaseBlockEntity implements Skull {
 
-    private CardinalDirection rotation = CardinalDirection.SOUTH;
     private boolean rotationDirty;
     private boolean powered;
 
+    private final CloudSkullData persistenceState;
+
     public SkullBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position);
+        CloudSkullData state = new CloudSkullData();
+        super(type, chunk, position, state);
+        this.persistenceState = state;
+    }
+
+    @Override
+    protected CloudSkullData data() {
+        return this.persistenceState;
     }
 
     @Override
     public CardinalDirection getRotation() {
         Direction facing = this.getBlockState().ensureTrait(BlockTraits.FACING_DIRECTION);
-        return isVertical(facing) ? this.rotation : facing.getCardinalDirection();
+        return isVertical(facing) ? rotationFromYaw(this.data().getRotation()) : facing.getCardinalDirection();
     }
 
     @Override
@@ -38,8 +46,8 @@ public class SkullBlockEntity extends BaseBlockEntity implements Skull {
             throw new IllegalStateException("Cannot rotate a wall-mounted head");
         }
 
-        if (this.rotation != rotation) {
-            this.rotation = rotation;
+        if (this.getRotation() != rotation) {
+            this.data().setRotation(rotation.ordinal() * 22.5f);
             this.rotationDirty = true;
             this.setDirty();
             this.scheduleUpdate();
@@ -63,15 +71,13 @@ public class SkullBlockEntity extends BaseBlockEntity implements Skull {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-        tag.listenForFloat("Rotation", yaw -> this.rotation = rotationFromYaw(yaw));
-    }
+    protected void saveCustomClient(NbtMapBuilder tag) {
+        if (this.getLevel() == null) {
+            return;
+        }
 
-    @Override
-    protected void saveClientData(NbtMapBuilder tag) {
         if (isVertical(this.getBlockState().ensureTrait(BlockTraits.FACING_DIRECTION))) {
-            tag.putFloat("Rotation", this.rotation.ordinal() * 22.5f);
+            tag.putFloat("Rotation", this.data().getRotation());
         } else {
             tag.remove("Rotation");
         }

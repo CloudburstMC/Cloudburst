@@ -5,7 +5,10 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 
-import java.util.*;
+import java.util.EnumMap;
+import java.util.LinkedHashSet;
+import java.util.Objects;
+import java.util.Set;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.FLAGS;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.FLAGS_2;

@@ -14,10 +14,10 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.server.blockentity.data.CloudCampfireData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 
-import java.util.Arrays;
 import java.util.Objects;
 
 public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
@@ -25,53 +25,62 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
     private static final int SLOT_COUNT = 4;
     private static final int AVERAGE_CRACKLE_INTERVAL = 60;
 
-    private final ItemStack[] ingredients = new ItemStack[SLOT_COUNT];
-    private final int[] progress = new int[SLOT_COUNT];
-    private final int[] duration = new int[SLOT_COUNT];
-    private final boolean[] cookingPaused = new boolean[SLOT_COUNT];
+    private final CloudCampfireData persistenceState;
 
     public CampfireBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position);
-        Arrays.fill(this.ingredients, ItemStack.EMPTY);
+        CloudCampfireData state = new CloudCampfireData();
+        super(type, chunk, position, state);
+        this.persistenceState = state;
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
+    protected CloudCampfireData data() {
+        return this.persistenceState;
+    }
+
+    @Override
+    protected void loadCustom(NbtMap tag) {
 
         for (int slot = 0; slot < SLOT_COUNT; slot++) {
-            ItemStack item = ItemStackNbtCodec.deserializeItem(tag.getCompound(itemKey(slot)));
+            ItemStack item = this.ingredient(slot);
+            int remaining = this.remaining(slot);
             this.clearSlot(slot);
-            this.cookingPaused[slot] = tag.getBoolean(pausedKey(slot));
+            this.data().getCookingPaused()[slot] = tag.getBoolean(pausedKey(slot));
             if (item.isEmpty()) {
                 continue;
             }
 
-            CookingRecipe recipe = this.findRecipe(item);
-            int remaining = Math.max(0, tag.getInt(timeKey(slot)));
+            CookingRecipe recipe = this.getLevel() == null ? null : this.findRecipe(item);
             int defaultDuration = recipe == null ? Math.max(1, remaining) : recipe.getCookingTime();
             int total = Math.max(1, tag.getInt(durationKey(slot), defaultDuration));
-            this.ingredients[slot] = item;
-            this.duration[slot] = total;
-            this.progress[slot] = total - Math.min(total, remaining);
+            this.storeIngredient(slot, item);
+            this.data().getDuration()[slot] = total;
+            this.setProgress(slot, total - Math.min(total, remaining));
         }
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    protected void saveCustom(NbtMapBuilder tag) {
         for (int slot = 0; slot < SLOT_COUNT; slot++) {
-            tag.putInt(durationKey(slot), this.duration[slot]);
-            tag.putBoolean(pausedKey(slot), this.cookingPaused[slot]);
+            if (!this.ingredient(slot).isEmpty()) {
+                tag.putInt(durationKey(slot), this.data().getDuration()[slot]);
+                if (this.data().getCookingPaused()[slot]) {
+                    tag.putBoolean(pausedKey(slot), true);
+                }
+                tag.putCompound(itemKey(slot), ItemStackNbtCodec.serializeItem(this.ingredient(slot)));
+                tag.putInt(timeKey(slot), this.remaining(slot));
+            }
         }
     }
 
     @Override
-    protected void saveClientData(NbtMapBuilder tag) {
-        super.saveClientData(tag);
+    protected void saveCustomClient(NbtMapBuilder tag) {
+        super.saveCustomClient(tag);
         for (int slot = 0; slot < SLOT_COUNT; slot++) {
-            tag.putCompound(itemKey(slot), ItemStackNbtCodec.serializeItem(this.ingredients[slot]));
-            tag.putInt(timeKey(slot), this.duration[slot] - this.progress[slot]);
+            if (!this.ingredient(slot).isEmpty()) {
+                tag.putCompound(itemKey(slot), ItemStackNbtCodec.serializeItem(this.ingredient(slot)));
+                tag.putInt(timeKey(slot), this.remaining(slot));
+            }
         }
     }
 
@@ -95,19 +104,19 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
         boolean progressChanged = false;
         boolean contentsChanged = false;
         for (int slot = 0; slot < SLOT_COUNT; slot++) {
-            if (this.ingredients[slot].isEmpty() || this.cookingPaused[slot]) {
+            if (this.ingredient(slot).isEmpty() || this.data().getCookingPaused()[slot]) {
                 continue;
             }
 
-            int previous = this.progress[slot];
+            int previous = this.progress(slot);
             if (!lit) {
-                this.progress[slot] = Math.max(0, previous - 2);
-            } else if (previous < this.duration[slot]) {
-                this.progress[slot]++;
+                this.setProgress(slot, Math.max(0, previous - 2));
+            } else if (previous < this.data().getDuration()[slot]) {
+                this.setProgress(slot, this.progress(slot) + 1);
             }
-            progressChanged |= this.progress[slot] != previous;
+            progressChanged |= this.progress(slot) != previous;
 
-            if (lit && this.progress[slot] == this.duration[slot]) {
+            if (lit && this.progress(slot) == this.data().getDuration()[slot]) {
                 contentsChanged |= this.completeCooking(slot);
                 if (this.isClosed() || !this.isValid()) {
                     return false;
@@ -132,7 +141,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
     @Override
     public void onBreak() {
         for (int slot = 0; slot < SLOT_COUNT; slot++) {
-            ItemStack ingredient = this.ingredients[slot];
+            ItemStack ingredient = this.ingredient(slot);
             this.clearSlot(slot);
             this.dropItemOnBreak(ingredient);
         }
@@ -141,7 +150,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
     public void ejectIngredients() {
         boolean changed = false;
         for (int slot = 0; slot < SLOT_COUNT; slot++) {
-            ItemStack ingredient = this.ingredients[slot];
+            ItemStack ingredient = this.ingredient(slot);
             if (!ingredient.isEmpty()) {
                 this.clearSlot(slot);
                 this.getLevel().dropItem(this.getPosition().toFloat().add(0.5f, 0.5f, 0.5f), ingredient);
@@ -162,7 +171,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
 
     @Override
     public ItemStack getItem(int slot) {
-        return this.ingredients[Objects.checkIndex(slot, SLOT_COUNT)];
+        return this.ingredient(Objects.checkIndex(slot, SLOT_COUNT));
     }
 
     @Override
@@ -182,19 +191,19 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
 
     @Override
     public int getCookProgress(int slot) {
-        return this.progress[Objects.checkIndex(slot, SLOT_COUNT)];
+        return this.progress(Objects.checkIndex(slot, SLOT_COUNT));
     }
 
     @Override
     public void setCookProgress(int slot, int ticks) {
         Objects.checkIndex(slot, SLOT_COUNT);
-        this.progress[slot] = Math.clamp(ticks, 0, this.duration[slot]);
+        this.setProgress(slot, Math.clamp(ticks, 0, this.data().getDuration()[slot]));
         this.syncSlotChange();
     }
 
     @Override
     public int getCookDuration(int slot) {
-        return this.duration[Objects.checkIndex(slot, SLOT_COUNT)];
+        return this.data().getDuration()[Objects.checkIndex(slot, SLOT_COUNT)];
     }
 
     @Override
@@ -204,26 +213,27 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
             throw new IllegalArgumentException("Cooking time must be positive");
         }
 
-        if (this.ingredients[slot].isEmpty()) {
+        if (this.ingredient(slot).isEmpty()) {
             throw new IllegalStateException("Cooking slot is empty");
         }
 
-        this.duration[slot] = ticks;
-        this.progress[slot] = Math.min(this.progress[slot], ticks);
+        int progress = this.progress(slot);
+        this.data().getDuration()[slot] = ticks;
+        this.setProgress(slot, Math.min(progress, ticks));
         this.syncSlotChange();
     }
 
     @Override
     public boolean isCookingEnabled(int slot) {
-        return !this.cookingPaused[Objects.checkIndex(slot, SLOT_COUNT)];
+        return !this.data().getCookingPaused()[Objects.checkIndex(slot, SLOT_COUNT)];
     }
 
     @Override
     public void setCookingEnabled(int slot, boolean enabled) {
         Objects.checkIndex(slot, SLOT_COUNT);
         boolean paused = !enabled;
-        if (this.cookingPaused[slot] != paused) {
-            this.cookingPaused[slot] = paused;
+        if (this.data().getCookingPaused()[slot] != paused) {
+            this.data().getCookingPaused()[slot] = paused;
             this.syncSlotChange();
         }
     }
@@ -252,7 +262,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
         CampfireStartEvent event = new CampfireStartEvent(this.getBlock(), ingredient, recipe);
         this.server.getEventManager().fire(event);
         if (this.isClosed() || !this.isValid() || !this.getBlock().getLiquid().isEmpty()
-                || !this.ingredients[slot].isEmpty()
+                || !this.ingredient(slot).isEmpty()
                 || (player != null && !player.getInventory().getSelectedItem().equals(item))) {
             return false;
         }
@@ -263,15 +273,15 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
     }
 
     private boolean completeCooking(int slot) {
-        ItemStack ingredient = this.ingredients[slot];
+        ItemStack ingredient = this.ingredient(slot);
         CookingRecipe recipe = this.findRecipe(ingredient);
         ItemStack result = ingredient;
         if (recipe != null) {
             BlockCookEvent event = new BlockCookEvent(this.getBlock(), ingredient, recipe.getResult(), recipe);
             this.server.getEventManager().fire(event);
             if (event.isCancelled() || this.isClosed() || !this.isValid() || !this.isLit()
-                    || this.ingredients[slot] != ingredient || this.cookingPaused[slot]
-                    || this.progress[slot] < this.duration[slot]) {
+                    || this.ingredient(slot) != ingredient || this.data().getCookingPaused()[slot]
+                    || this.progress(slot) < this.data().getDuration()[slot]) {
                 return false;
             }
 
@@ -288,11 +298,59 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
 
     private int firstEmptySlot() {
         for (int slot = 0; slot < SLOT_COUNT; slot++) {
-            if (this.ingredients[slot].isEmpty()) {
+            if (this.ingredient(slot).isEmpty()) {
                 return slot;
             }
         }
         return -1;
+    }
+
+    private ItemStack ingredient(int slot) {
+        ItemStack item = switch (slot) {
+            case 0 -> this.data().getItem1();
+            case 1 -> this.data().getItem2();
+            case 2 -> this.data().getItem3();
+            case 3 -> this.data().getItem4();
+            default -> throw new IndexOutOfBoundsException(slot);
+        };
+        return Objects.requireNonNullElse(item, ItemStack.EMPTY);
+    }
+
+    private void storeIngredient(int slot, ItemStack item) {
+        ItemStack stored = item.isEmpty() ? null : item;
+        switch (slot) {
+            case 0 -> this.data().setItem1(stored);
+            case 1 -> this.data().setItem2(stored);
+            case 2 -> this.data().setItem3(stored);
+            case 3 -> this.data().setItem4(stored);
+            default -> throw new IndexOutOfBoundsException(slot);
+        }
+    }
+
+    private int remaining(int slot) {
+        Integer remaining = switch (slot) {
+            case 0 -> this.data().getItemTime1();
+            case 1 -> this.data().getItemTime2();
+            case 2 -> this.data().getItemTime3();
+            case 3 -> this.data().getItemTime4();
+            default -> throw new IndexOutOfBoundsException(slot);
+        };
+        return Math.max(0, Objects.requireNonNullElse(remaining, 0));
+    }
+
+    private int progress(int slot) {
+        return this.data().getDuration()[slot] - this.remaining(slot);
+    }
+
+    private void setProgress(int slot, int progress) {
+        Integer remaining = this.ingredient(slot).isEmpty() ? null : this.data().getDuration()[slot] - progress;
+        switch (slot) {
+            case 0 -> this.data().setItemTime1(remaining);
+            case 1 -> this.data().setItemTime2(remaining);
+            case 2 -> this.data().setItemTime3(remaining);
+            case 3 -> this.data().setItemTime4(remaining);
+            default -> throw new IndexOutOfBoundsException(slot);
+        }
     }
 
     private void clearSlot(int slot) {
@@ -300,9 +358,9 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
     }
 
     private void setIngredient(int slot, ItemStack item, int ticks) {
-        this.ingredients[slot] = item;
-        this.progress[slot] = 0;
-        this.duration[slot] = ticks;
+        this.storeIngredient(slot, item);
+        this.data().getDuration()[slot] = ticks;
+        this.setProgress(slot, 0);
     }
 
     private void syncSlotChange() {

@@ -5,38 +5,27 @@ import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.NoteBlock;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.component.NoteBlockHandlers;
+import org.cloudburstmc.server.blockentity.data.CloudMusicData;
 
 public class NoteBlockEntity extends BaseBlockEntity implements NoteBlock {
 
-    private int note;
-    private boolean powered;
+    private final CloudMusicData persistenceState;
 
     public NoteBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position);
+        CloudMusicData state = new CloudMusicData();
+        super(type, chunk, position, state);
+        this.persistenceState = state;
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForByte("note", value -> this.note = Math.clamp(value, 0, 24));
-        tag.listenForBoolean("powered", value -> this.powered = value);
-    }
-
-    @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
-        tag.putByte("note", (byte) this.note);
-        tag.putBoolean("powered", this.isPowered());
+    protected CloudMusicData data() {
+        return this.persistenceState;
     }
 
     @Override
     public int getNote() {
-        return this.note;
+        return this.data().getNote();
     }
 
     @Override
@@ -45,20 +34,20 @@ public class NoteBlockEntity extends BaseBlockEntity implements NoteBlock {
             throw new IllegalArgumentException("Note must be between 0 and 24");
         }
 
-        if (this.note != note) {
-            this.note = note;
+        if (this.data().getNote() != note) {
+            this.data().setNote((byte) note);
             this.setDirty();
         }
     }
 
     @Override
     public boolean isPowered() {
-        return this.powered;
+        return this.data().isPowered();
     }
 
     public void setPowered(boolean powered) {
-        if (this.powered != powered) {
-            this.powered = powered;
+        if (this.data().isPowered() != powered) {
+            this.data().setPowered(powered);
             this.setDirty();
         }
     }

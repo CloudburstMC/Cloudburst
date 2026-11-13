@@ -10,6 +10,8 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.POWERED;
@@ -41,17 +43,26 @@ public class EntityCreeper extends EntityHostile implements Creeper {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForBoolean("powered", this::setPowered);
+    protected void loadCustom(NbtMap tag) {
+        // Runs before the living-state load below,
+        // matching the historical load order.
+        if (tag.containsKey("powered")) {
+            this.setPowered(getBoolean(tag, "powered", this.isPowered()));
+        }
+        super.loadCustom(tag);
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
+    protected void saveCustom(NbtMapBuilder tag) {
+        super.saveCustom(tag);
         tag.putBoolean("powered", this.isPowered());
+    }
+
+    @Override
+    protected Set<String> customKeys() {
+        Set<String> keys = new HashSet<>(super.customKeys());
+        keys.add("powered");
+        return Set.copyOf(keys);
     }
 
     public boolean isPowered() {

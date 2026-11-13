@@ -9,6 +9,7 @@ import org.cloudburstmc.api.blockentity.Hopper;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.event.inventory.InventoryMoveItemEvent;
+import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.inventory.view.BlockHopperView;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.api.inventory.view.SlotGroupType;
@@ -19,21 +20,14 @@ import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.block.component.ComposterBlockHandlers;
 import org.cloudburstmc.server.block.util.RedstoneSignals;
-import org.cloudburstmc.server.container.CloudContainer;
-import org.cloudburstmc.server.container.Container;
+import org.cloudburstmc.server.blockentity.data.CloudHopperData;
 import org.cloudburstmc.server.container.ContainerListener;
-import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 
 import static org.cloudburstmc.math.vector.Vector3i.UP;
 
@@ -44,10 +38,13 @@ import static org.cloudburstmc.math.vector.Vector3i.UP;
 public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, BlockHopperView {
 
     private final BoundingBox pickupArea = new BoundingBox(this.getPosition(), this.getPosition().add(1, 2, 1));
-    private int transferCooldown = 8;
+
+    private final CloudHopperData persistenceState;
 
     public HopperBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position, new CloudContainer(5));
+        CloudHopperData state = new CloudHopperData();
+        super(type, chunk, position, state);
+        this.persistenceState = state;
     }
 
     @Override
@@ -61,46 +58,51 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForList("Items", NbtType.COMPOUND, tags -> {
-            for (NbtMap itemTag : tags) {
-                this.container.setItem(itemTag.getByte("Slot"), ItemStackNbtCodec.deserializeItem(itemTag));
-            }
-        });
-        tag.listenForInt("TransferCooldown", this::setTransferCooldown);
-
-        this.scheduleUpdate();
+    protected CloudHopperData data() {
+        return this.persistenceState;
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    protected ItemContainer items() {
+        return data().getItems();
+    }
 
-        List<NbtMap> items = new ArrayList<>();
-        this.container.forEachSlot((itemStack, slot) -> items.add(ItemStackNbtCodec.serializeItem(itemStack, slot)));
-        tag.putList("Items", NbtType.COMPOUND, items);
+    public String getLootTable() {
+        return data().getLootTable();
+    }
 
-        tag.putInt("TransferCooldown", this.transferCooldown);
+    public void setLootTable(String lootTable) {
+        data().setLootTable(lootTable);
+    }
+
+    public Integer getLootTableSeed() {
+        return data().getLootTableSeed();
+    }
+
+    public void setLootTableSeed(Integer lootTableSeed) {
+        data().setLootTableSeed(lootTableSeed);
     }
 
     public boolean isOnTransferCooldown() {
-        return this.transferCooldown > 0;
+        return data().getTransferCooldown() > 0;
+    }
+
+    public int getTransferCooldown() {
+        return data().getTransferCooldown();
     }
 
     public void setTransferCooldown(int transferCooldown) {
-        this.transferCooldown = transferCooldown;
+        data().setTransferCooldown(transferCooldown);
     }
 
     @Override
     public boolean onUpdate() {
-        if (this.closed) {
+        if (this.isClosed()) {
             return false;
         }
 
-        if (this.transferCooldown > 0) {
-            this.transferCooldown--;
+        if (data().getTransferCooldown() > 0) {
+            data().setTransferCooldown(data().getTransferCooldown() - 1);
         }
 
         if (!this.isOnTransferCooldown() && !RedstoneSignals.hasNeighborSignal(this.getBlock())) {
@@ -111,7 +113,7 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
 
             if (!changed) {
                 if (above != null && above.getState().getType() == BlockTypes.COMPOSTER) {
-                    changed = ComposterBlockHandlers.extractFromBelow(above, this, this.container);
+                    changed = ComposterBlockHandlers.extractFromBelow(above, this, this.getContainer());
                 } else if (blockEntity == null) {
                     changed = pickupItems();
                 } else {
@@ -130,21 +132,20 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
     }
 
     public boolean pullItems() {
-        if (this.container.isFull()) {
+        if (this.getContainer().isFull()) {
             return false;
         }
 
         BlockEntity blockEntity = this.getLevel().getBlockEntity(this.getPosition().add(UP));
 
-        if (blockEntity instanceof ContainerBlockEntity containerView) {
-            Container sourceContainer = containerView.getContainer();
-            int[] slots = new int[sourceContainer.size()];
+        if (blockEntity instanceof AutomatedBlockStorage containerView) {
+            int[] slots = new int[containerView.insertionSlots().size()];
             for (int i = 0; i < slots.length; i++) {
                 slots[i] = i;
             }
 
             for (int slot : slots) {
-                if (!containerView.canExtractBelow(slot)) {
+                if (containerView.blocksExtractionBelow(slot)) {
                     continue;
                 }
                 ItemStack sourceStack = containerView.getItem(slot);
@@ -155,7 +156,7 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
 
                 ItemStack item = sourceStack.withCount(1);
 
-                if (!this.container.canAddItem(item)) {
+                if (!this.getContainer().canAddItem(item)) {
                     continue;
                 }
 
@@ -163,11 +164,11 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
                 this.server.getEventManager().fire(ev);
 
                 if (ev.isCancelled() || this.isClosed() || containerView.isClosed()
-                        || !containerView.canExtractBelow(slot) || !sourceStack.equals(containerView.getItem(slot))) {
+                        || containerView.blocksExtractionBelow(slot) || !sourceStack.equals(containerView.getItem(slot))) {
                     return false;
                 }
 
-                ItemStack[] items = this.container.addItem(item);
+                ItemStack[] items = this.getContainer().addItem(item);
 
                 if (items.length <= 0) {
                     containerView.setItem(slot, sourceStack.decreaseCount());
@@ -179,7 +180,7 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
     }
 
     public boolean pickupItems() {
-        if (this.container.isFull()) {
+        if (this.getContainer().isFull()) {
             return false;
         }
 
@@ -198,7 +199,7 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
 
             int originalCount = item.getCount();
 
-            if (!this.container.canAddItem(item)) {
+            if (!this.getContainer().canAddItem(item)) {
                 continue;
             }
 
@@ -209,7 +210,7 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
                 continue;
             }
 
-            ItemStack[] items = this.container.addItem(item);
+            ItemStack[] items = this.getContainer().addItem(item);
 
             if (items.length == 0) {
                 entity.close();
@@ -229,8 +230,8 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
 
     @Override
     public void close() {
-        if (!closed) {
-            for (ContainerListener listener : new HashSet<>(this.container.getListeners())) {
+        if (!this.isClosed()) {
+            for (ContainerListener listener : new HashSet<>(this.getContainer().getListeners())) {
                 if (listener instanceof CloudPlayer) {
                     ((CloudPlayer) listener).closeInventory();
                 }
@@ -241,13 +242,13 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
 
     @Override
     public void onBreak() {
-        for (ItemStack content : container.getContents()) {
+        for (ItemStack content : getContainer().getContents()) {
             this.dropItemOnBreak(content);
         }
     }
 
     public boolean pushItems() {
-        if (this.container.isEmpty()) {
+        if (this.getContainer().isEmpty()) {
             return false;
         }
 
@@ -256,20 +257,20 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
         if (direction == Direction.DOWN) {
             Block target = this.getLevel().getLoadedBlock(targetPosition);
             if (target != null && target.getState().getType() == BlockTypes.COMPOSTER) {
-                return ComposterBlockHandlers.insertFromAbove(target, this, this.container);
+                return ComposterBlockHandlers.insertFromAbove(target, this, this.getContainer());
             }
         }
 
         BlockEntity be = this.getLevel().getBlockEntity(targetPosition);
 
-        if (be instanceof Hopper && direction == Direction.DOWN || !(be instanceof ContainerBlockEntity))
+        if (be instanceof Hopper && direction == Direction.DOWN)
             return false;
 
-        if (be instanceof ContainerBlockEntity containerView) {
-            Container container = containerView.getContainer();
+        if (be instanceof AutomatedBlockStorage containerView) {
+            ItemContainer container = containerView.insertionSlots();
 
-            for (int i = 0; i < this.container.size(); i++) {
-                ItemStack item = this.container.getItem(i);
+            for (int i = 0; i < this.getContainer().size(); i++) {
+                ItemStack item = this.getContainer().getItem(i);
 
                 if (item.isEmpty()) {
                     continue;
@@ -282,7 +283,7 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
                     ItemStack target = container.getItem(s);
                     int count = target.getCount() + 1;
                     if ((!target.isEmpty() && !target.isStackableWith(item)) || count > maxStackSize
-                            || !containerView.canInsertFrom(s, direction.getOpposite(), item.withCount(count))) {
+                            || containerView.blocksInsertionFrom(s, direction.getOpposite(), item.withCount(count))) {
                         continue;
                     }
                     if (target.isEmpty()) {
@@ -306,13 +307,14 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
 
                 ItemStack updated = target.isEmpty() ? item : target.withCount(target.getCount() + 1);
                 if (event.isCancelled() || this.isClosed() || containerView.isClosed()
-                        || !sourceStack.equals(this.container.getItem(i)) || !target.equals(container.getItem(slot))
-                        || !containerView.canInsertFrom(slot, direction.getOpposite(), updated)) {
+                        || !sourceStack.equals(this.getContainer().getItem(i)) || !target.equals(container.getItem(slot))
+                        || containerView.blocksInsertionFrom(slot, direction.getOpposite(), updated)) {
                     return false;
                 }
 
-                containerView.setItem(slot, updated);
-                this.container.decrementCount(i);
+                container.setItem(slot, updated);
+
+                this.getContainer().decrementCount(i);
                 return true;
             }
         }

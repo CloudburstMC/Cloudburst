@@ -2,8 +2,8 @@ package org.cloudburstmc.server.block.component;
 
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
-import org.cloudburstmc.api.block.data.Slab;
 import org.cloudburstmc.api.block.component.PlaceBlockHandler;
+import org.cloudburstmc.api.block.data.Slab;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;

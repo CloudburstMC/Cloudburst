@@ -1,0 +1,110 @@
+package org.cloudburstmc.server.entity.misc;
+
+import org.cloudburstmc.api.entity.EntityTypes;
+import org.cloudburstmc.api.entity.misc.PaintingVariant;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.server.blockentity.DtoStateChecks;
+import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.entity.data.CloudPaintingData;
+import org.cloudburstmc.server.testutil.PersistenceFixtures;
+import org.junit.jupiter.api.Test;
+
+import java.lang.reflect.Field;
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class PaintingPersistenceTest {
+
+    private static final Set<String> BASE_KEYS = Set.of(
+            "Pos", "Motion", "Rotation", "FallDistance", "Fire", "Air",
+            "OnGround", "Invulnerable", "Scale", "Tags");
+
+    private static NbtMap save(CloudEntity entity) {
+        NbtMapBuilder builder = NbtMap.builder();
+        entity.saveAdditionalData(builder);
+        return builder.build();
+    }
+
+    @Test
+    void roundTripPreservesKeysAndTypes() {
+
+        EntityPainting painting = (EntityPainting) PersistenceFixtures.entity(EntityTypes.PAINTING);
+        NbtMap input = NbtMap.builder()
+                .putByte("Direction", (byte) 1)
+                .putInt("TileX", 9)
+                .putInt("TileY", 9)
+                .putInt("TileZ", 9)
+                .putString("Motive", "Sunset")
+                .putInt("Mystery", 7)
+                .build();
+        painting.loadAdditionalData(input);
+
+        assertEquals(PaintingVariant.SUNSET, painting.getVariant());
+
+        NbtMap saved = save(painting);
+
+        Set<String> expectedKeys = new HashSet<>(input.keySet());
+        expectedKeys.addAll(BASE_KEYS);
+        expectedKeys.add("identifier");
+        assertEquals(expectedKeys, saved.keySet());
+
+        assertTrue(saved.get("Direction") instanceof Byte, "Direction must be a byte");
+        assertEquals((byte) 1, saved.getByte("Direction"));
+        assertTrue(saved.get("Motive") instanceof String, "Motive must be a string");
+        assertEquals("Sunset", saved.getString("Motive"));
+        assertEquals(7, saved.getInt("Mystery"));
+        assertTrue(saved.get("TileX") instanceof Integer, "TileX must be an int");
+        assertEquals(0, saved.getInt("TileX"));
+        assertEquals(0, saved.getInt("TileY"));
+        assertEquals(0, saved.getInt("TileZ"));
+    }
+
+    @Test
+    void defaultInstanceSavesTodayDefaults() {
+        EntityPainting painting = (EntityPainting) PersistenceFixtures.entity(EntityTypes.PAINTING);
+
+        NbtMap saved = save(painting);
+
+        Set<String> expectedKeys = new HashSet<>(BASE_KEYS);
+        expectedKeys.addAll(Set.of("Direction", "TileX", "TileY", "TileZ", "Motive", "identifier"));
+        assertEquals(expectedKeys, saved.keySet());
+
+        assertTrue(saved.get("Direction") instanceof Byte, "Direction must be a byte");
+        assertEquals((byte) 0, saved.getByte("Direction"));
+        assertEquals(0, saved.getInt("TileX"));
+        assertEquals(0, saved.getInt("TileY"));
+        assertEquals(0, saved.getInt("TileZ"));
+        assertEquals("Kebab", saved.getString("Motive"));
+    }
+
+    @Test
+    void absentKeysLeaveStateUnchanged() {
+        EntityPainting painting = (EntityPainting) PersistenceFixtures.entity(EntityTypes.PAINTING);
+        painting.loadAdditionalData(NbtMap.builder()
+                .putByte("Direction", (byte) 3)
+                .putString("Motive", "Sunset")
+                .build());
+
+        painting.loadAdditionalData(NbtMap.EMPTY);
+
+        assertEquals(3, painting.getFacing().getHorizontalIndex());
+        assertEquals(PaintingVariant.SUNSET, painting.getVariant());
+    }
+
+    @Test
+    void paintingKeepsNoDuplicateState() {
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(
+                EntityPainting.class, CloudPaintingData.class);
+        Set<String> fields = new HashSet<>();
+        for (Field field : EntityPainting.class.getDeclaredFields()) {
+            fields.add(field.getName());
+        }
+        for (String removed : Set.of("motive")) {
+            assertFalse(fields.contains(removed),
+                    "EntityPainting keeps " + removed + "; state must live in CloudPaintingData only");
+        }
+    }
+}

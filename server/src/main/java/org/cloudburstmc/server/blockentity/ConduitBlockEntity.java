@@ -19,10 +19,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.entity.hostile.EntityHostile;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class ConduitBlockEntity extends BaseBlockEntity implements Conduit {
@@ -84,17 +81,21 @@ public class ConduitBlockEntity extends BaseBlockEntity implements Conduit {
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    protected void saveCustom(NbtMapBuilder tag) {
         tag.remove("Target");
         tag.remove("Active");
     }
 
     @Override
-    protected void saveClientData(NbtMapBuilder tag) {
+    protected void saveCustomClient(NbtMapBuilder tag) {
         Living current = this.getTarget();
         tag.putBoolean("Active", this.isActive());
         tag.putLong("Target", current == null ? -1 : current.getUniqueId());
+    }
+
+    @Override
+    protected Set<String> customKeys() {
+        return Set.of("Target", "Active");
     }
 
     @Override

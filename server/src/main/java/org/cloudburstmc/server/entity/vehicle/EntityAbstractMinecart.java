@@ -29,11 +29,14 @@ import org.cloudburstmc.server.block.util.RailConnector;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
+import org.cloudburstmc.server.entity.data.CloudAbstractMinecartData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.math.MathHelper;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
 
@@ -53,8 +56,15 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     @Setter
     private float inputMotionY = 0;
 
+    private final CloudAbstractMinecartData persistenceState;
+
     public EntityAbstractMinecart(EntityType<?> type, Location location) {
-        super(type, location);
+        this(type, location, new CloudAbstractMinecartData());
+    }
+
+    protected EntityAbstractMinecart(EntityType<?> type, Location location, CloudAbstractMinecartData state) {
+        super(type, location, state);
+        this.persistenceState = state;
         this.data.set(CUSTOM_DISPLAY, (byte) 0);
         this.data.set(DISPLAY_OFFSET, DEFAULT_DISPLAY_OFFSET);
     }
@@ -70,36 +80,61 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-        this.setDisplayBlockOffset(tag.getInt("DisplayOffset", DEFAULT_DISPLAY_OFFSET));
+    protected CloudAbstractMinecartData data() {
+        return this.persistenceState;
+    }
 
+    @Override
+    protected void loadCustom(NbtMap tag) {
+        // The display offset and custom block run before the
+        // vehicle load below, matching the historical load order. The
+        // offset has a load default, so it resets when absent; the custom block keeps its
+        // current values when absent, exactly as the old null checks did. The block is
+        // decoded whenever its key is present, as the mapper did before, and failures
+        // stay on the skip-entity path, never the chunk-aborting one.
+        this.setDisplayBlockOffset(tag.containsKey("DisplayOffset")
+                ? getInt(tag, "DisplayOffset", DEFAULT_DISPLAY_OFFSET) : DEFAULT_DISPLAY_OFFSET);
+
+        boolean customDisplay = getBoolean(tag, "CustomDisplayTile", false);
+        if (tag.containsKey("DisplayBlock") || customDisplay) {
+            BlockState displayBlock;
+            try {
+                displayBlock = BlockStateCodec.read(tag.getCompound("DisplayBlock"));
+            } catch (UnsupportedOperationException failure) {
+                throw new IllegalArgumentException(failure.getMessage(), failure);
+            }
+            if (customDisplay) {
+                this.setDisplay(true);
+                this.setDisplayBlock(displayBlock);
+            }
+        }
+        super.loadCustom(tag);
         if (tag.containsKey("DisplayTile") || tag.containsKey("DisplayData")) {
             throw new UnsupportedOperationException("Numeric minecart display data is no longer supported");
-        }
-
-        if (tag.getBoolean("CustomDisplayTile")) {
-            this.setDisplay(true);
-
-            this.setDisplayBlock(BlockStateCodec.read(tag.getCompound("DisplayBlock")));
         }
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
-        if (this.hasDisplay()) {
-            tag.putBoolean("CustomDisplayTile", true);
-
-            tag.putCompound("DisplayBlock", BlockStateCodec.write(this.getDisplayBlock()));
-        }
-
-        tag.remove("DisplayOffset");
-
+    protected void saveCustom(NbtMapBuilder tag) {
+        super.saveCustom(tag);
+        // The display keys are conditional: the default offset and a missing display are
+        // not written, as before.
         if (this.getDisplayOffset() != DEFAULT_DISPLAY_OFFSET) {
             tag.putInt("DisplayOffset", this.getDisplayOffset());
         }
+        if (this.hasDisplay()) {
+            tag.putBoolean("CustomDisplayTile", true);
+            tag.putCompound("DisplayBlock", BlockStateCodec.write(this.getDisplayBlock()));
+        }
+    }
+
+    @Override
+    protected Set<String> customKeys() {
+        Set<String> keys = new HashSet<>(super.customKeys());
+        keys.add("DisplayOffset");
+        keys.add("CustomDisplayTile");
+        keys.add("DisplayBlock");
+        return Set.copyOf(keys);
     }
 
     public abstract MinecartType getMinecartType();
@@ -723,7 +758,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
 
     @Override
     protected boolean applyDamage(CloudEntityDamageEvent source) {
-        if (invulnerable && !source.getDamageType().is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
+        if (isInvulnerable() && !source.getDamageType().is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
             return false;
         } else {
             source.setDamage((float) Math.min((double) source.getDamage() * 15, Float.MAX_VALUE));

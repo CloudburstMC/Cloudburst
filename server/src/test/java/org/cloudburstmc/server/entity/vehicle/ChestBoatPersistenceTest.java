@@ -1,0 +1,105 @@
+package org.cloudburstmc.server.entity.vehicle;
+
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.entity.EntityTypes;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.level.Level;
+import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.nbt.NbtList;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.blockentity.DtoStateChecks;
+import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.entity.data.CloudChestBoatData;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
+import org.cloudburstmc.server.testutil.InterfaceProxy;
+import org.cloudburstmc.server.testutil.PersistenceFixtures;
+import org.junit.jupiter.api.Test;
+
+import java.lang.reflect.Field;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class ChestBoatPersistenceTest {
+
+    private static EntityChestBoat boat() {
+        PersistenceFixtures.ensureInitialized();
+        return new EntityChestBoat(EntityTypes.CHEST_BOAT,
+                Location.from(Vector3f.ZERO, InterfaceProxy.create(Level.class)));
+    }
+
+    private static NbtMap save(CloudEntity entity) {
+        NbtMapBuilder builder = NbtMap.builder();
+        entity.saveAdditionalData(builder);
+        return builder.build();
+    }
+
+    @Test
+    void dataRoundTripPreservesKeysAndTypes() {
+        EntityChestBoat boat = boat();
+        ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 2);
+        ItemStack dirt = ItemStack.builder(BlockStates.DIRT).amount(1).build();
+
+        boat.loadAdditionalData(NbtMap.builder()
+                .putList("Items", NbtType.COMPOUND, List.of(
+                        ItemStackNbtCodec.serializeItem(diamond, 0),
+                        ItemStackNbtCodec.serializeItem(dirt, 5)))
+                .build());
+
+        assertEquals(diamond, boat.getInventory().getItem(0));
+        assertEquals(dirt, boat.getInventory().getItem(5));
+
+        NbtMap written = save(boat);
+
+        List<NbtMap> expected = List.of(
+                ItemStackNbtCodec.serializeItem(diamond, 0),
+                ItemStackNbtCodec.serializeItem(dirt, 5));
+        assertEquals(expected, written.getList("Items", NbtType.COMPOUND));
+    }
+
+    @Test
+    void defaultInstanceWritesEmptyItems() {
+        EntityChestBoat boat = boat();
+
+        NbtMap written = save(boat);
+
+        assertEquals(List.of(), written.getList("Items", NbtType.COMPOUND));
+        assertEquals(NbtType.COMPOUND, ((NbtList<?>) written.get("Items")).getType(),
+                "empty Items must keep today's COMPOUND element type");
+    }
+
+    @Test
+    void absentItemsClearTheInventory() {
+        EntityChestBoat boat = boat();
+        ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 2);
+        boat.getInventory().setItem(0, diamond);
+
+        boat.loadAdditionalData(NbtMap.EMPTY);
+
+        assertTrue(boat.getInventory().getItem(0).isEmpty());
+
+        assertEquals(List.of(), save(boat).getList("Items", NbtType.COMPOUND));
+    }
+
+    @Test
+    void chestBoatKeepsNoDuplicateState() {
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(
+                EntityChestBoat.class, CloudChestBoatData.class,
+                Map.of("inventory", "a view over the live container in data().getItems()"));
+        Set<String> fields = new HashSet<>();
+        for (Field field : EntityChestBoat.class.getDeclaredFields()) {
+            fields.add(field.getName());
+        }
+        for (String removed : Set.of("container")) {
+            assertFalse(fields.contains(removed),
+                    "EntityChestBoat keeps " + removed + "; state must live in CloudChestBoatData only");
+        }
+    }
+}

@@ -14,6 +14,8 @@ import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.COLOR;
@@ -59,20 +61,34 @@ public class EntitySheep extends Animal implements Sheep {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        //TODO: Kinda hacky but works for now
-        tag.listenForByte("Color", this::setColor);
-        tag.listenForBoolean("Sheared", this::setSheared);
+    protected void loadCustom(NbtMap tag) {
+        // Runs before the living-state load below,
+        // matching the historical load order. The raw byte
+        // reaches the client metadata exactly as the old setColor(int) path
+        // wrote it; out-of-range values stay unnormalised there, while the
+        // save still normalises through getColor().getWoolData() as before.
+        if (tag.containsKey("Color")) {
+            this.data.set(COLOR, getByte(tag, "Color", this.data.require(COLOR)));
+        }
+        if (tag.containsKey("Sheared")) {
+            this.setSheared(getBoolean(tag, "Sheared", this.isSheared()));
+        }
+        super.loadCustom(tag);
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
+    protected void saveCustom(NbtMapBuilder tag) {
+        super.saveCustom(tag);
         tag.putByte("Color", (byte) this.getColor().getWoolData());
         tag.putBoolean("Sheared", this.isSheared());
+    }
+
+    @Override
+    protected Set<String> customKeys() {
+        Set<String> keys = new HashSet<>(super.customKeys());
+        keys.add("Color");
+        keys.add("Sheared");
+        return Set.copyOf(keys);
     }
 
     @Override
@@ -147,10 +163,6 @@ public class EntitySheep extends Animal implements Sheep {
 
     public void setColor(DyeColor color) {
         this.data.set(COLOR, (byte) color.getWoolData());
-    }
-
-    private void setColor(int color) {
-        this.data.set(COLOR, (byte) color);
     }
 
     private int randomColor() {

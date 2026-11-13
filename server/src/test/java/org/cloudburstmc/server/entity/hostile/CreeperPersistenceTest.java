@@ -1,0 +1,106 @@
+package org.cloudburstmc.server.entity.hostile;
+
+import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.EntityTypes;
+import org.cloudburstmc.api.entity.hostile.Creeper;
+import org.cloudburstmc.api.level.Level;
+import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.blockentity.DtoStateChecks;
+import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.entity.data.CloudCreatureData;
+import org.cloudburstmc.server.testutil.InterfaceProxy;
+import org.cloudburstmc.server.testutil.PersistenceFixtures;
+import org.junit.jupiter.api.Test;
+
+import java.lang.reflect.Field;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.POWERED;
+import static org.junit.jupiter.api.Assertions.*;
+
+class CreeperPersistenceTest {
+
+    private static final class LoadableCreeper extends EntityCreeper {
+        LoadableCreeper(EntityType<Creeper> type, Location location) {
+            super(type, location);
+        }
+
+        @Override
+        public void setPowered(boolean powered) {
+            this.data.setFlag(POWERED, powered);
+        }
+    }
+
+    private static LoadableCreeper loadable() {
+        PersistenceFixtures.ensureInitialized();
+        return new LoadableCreeper(EntityTypes.CREEPER,
+                Location.from(Vector3f.ZERO, InterfaceProxy.create(Level.class)));
+    }
+
+    private static NbtMap save(CloudEntity entity) {
+        NbtMapBuilder builder = NbtMap.builder();
+        entity.saveAdditionalData(builder);
+        return builder.build();
+    }
+
+    @Test
+    void roundTripPreservesKeysAndTypes() {
+
+        LoadableCreeper creeper = loadable();
+        creeper.loadAdditionalData(NbtMap.builder()
+                .putBoolean("powered", true)
+                .putInt("Mystery", 7)
+                .build());
+
+        assertTrue(creeper.isPowered());
+
+        NbtMap saved = save(creeper);
+
+        assertEquals(NbtType.BYTE, NbtType.byClass(saved.get("powered").getClass()), "powered must be a byte");
+        assertEquals(true, saved.getBoolean("powered"));
+        assertEquals(7, saved.getInt("Mystery"));
+    }
+
+    @Test
+    void defaultInstanceSavesTodayDefaults() {
+        EntityCreeper creeper = (EntityCreeper) PersistenceFixtures.entity(EntityTypes.CREEPER);
+
+        NbtMap saved = save(creeper);
+
+        assertEquals(NbtType.BYTE, NbtType.byClass(saved.get("powered").getClass()), "powered must be a byte");
+        assertFalse(saved.getBoolean("powered"));
+    }
+
+    @Test
+    void absentKeyLeavesStateUnchanged() {
+        LoadableCreeper creeper = loadable();
+        creeper.setPowered(true);
+
+        creeper.loadAdditionalData(NbtMap.EMPTY);
+
+        assertTrue(creeper.isPowered());
+    }
+
+    @Test
+    void creeperKeepsNoDuplicateState() {
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(
+                EntityCreeper.class, CloudCreatureData.class,
+                Map.of(
+                        "armor", "an armor view over the live container in data().getArmor()",
+                        "offhand", "an offhand view over the live container in data().getOffhand()"));
+        Set<String> fields = new HashSet<>();
+        for (Field field : EntityCreeper.class.getDeclaredFields()) {
+            fields.add(field.getName());
+        }
+        for (String removed : Set.of("powered")) {
+            assertFalse(fields.contains(removed),
+                    "EntityCreeper keeps " + removed + "; state must live in metadata only");
+        }
+    }
+}

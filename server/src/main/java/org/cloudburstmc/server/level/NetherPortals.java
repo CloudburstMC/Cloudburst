@@ -19,7 +19,6 @@ import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.ArrayList;
 import java.util.List;

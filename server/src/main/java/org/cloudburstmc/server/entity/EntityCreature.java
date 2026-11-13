@@ -14,20 +14,15 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.component.ArmorComponent;
 import org.cloudburstmc.api.item.component.DeathProtectionComponent;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.view.CloudArmorView;
 import org.cloudburstmc.server.container.view.CloudOffhandView;
 import org.cloudburstmc.server.enchantment.EquipmentEnchantmentEffects;
+import org.cloudburstmc.server.entity.data.CloudCreatureData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
-import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudEnchantmentRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.DoubleUnaryOperator;
 
 /**
@@ -40,37 +35,22 @@ public abstract class EntityCreature extends EntityLiving implements Creature {
     protected final CloudArmorView armor = new CloudArmorView(this, new CloudContainer(4));
     protected final CloudOffhandView offhand = new CloudOffhandView(this, new CloudContainer(1));
 
+    private final CloudCreatureData persistenceState;
+
     public EntityCreature(EntityType<?> type, Location location) {
-        super(type, location);
+        this(type, location, new CloudCreatureData());
+    }
+
+    protected EntityCreature(EntityType<?> type, Location location, CloudCreatureData state) {
+        super(type, location, state);
+        this.persistenceState = state;
+        state.setArmor(this.armor.getContainer());
+        state.setOffhand(this.offhand.getContainer());
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForList("Offhand", NbtType.COMPOUND, items -> {
-            this.offhand.setOffhandItem(ItemStackNbtCodec.deserializeItem(items.getFirst()));
-        });
-
-        tag.listenForList("Armor", NbtType.COMPOUND, items -> {
-            CloudContainer container = this.armor.getContainer();
-            for (int slot = 0; slot < 4; ++slot) {
-                container.setItem(slot, ItemStackNbtCodec.deserializeItem(items.get(slot)));
-            }
-        });
-    }
-
-    @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
-        tag.putList("Offhand", NbtType.COMPOUND, ItemStackNbtCodec.serializeItem(this.offhand.getOffhandItem(), 0));
-
-        List<NbtMap> armor = new ArrayList<>(this.armor.size());
-        for (int i = 0; i < this.armor.size(); i++) {
-            armor.add(ItemStackNbtCodec.serializeItem(this.armor.getItem(i), i));
-        }
-        tag.putList("Armor", NbtType.COMPOUND, armor);
+    protected CloudCreatureData data() {
+        return this.persistenceState;
     }
 
     public ArmorView getArmor() {

@@ -1,6 +1,9 @@
 package org.cloudburstmc.server.block.component;
 
-import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.block.BlockReplacement;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.event.block.SpongeAbsorbEvent;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.math.vector.Vector3i;

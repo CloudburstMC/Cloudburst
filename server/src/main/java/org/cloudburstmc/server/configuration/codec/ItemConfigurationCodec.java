@@ -15,11 +15,7 @@ import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Base64;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Uses item persistence for vanilla data and explicit codecs for additional component values.

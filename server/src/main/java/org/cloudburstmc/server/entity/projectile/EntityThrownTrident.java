@@ -12,11 +12,9 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.BlockHitResult;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.server.item.ItemStackNbtCodec;
+import org.cloudburstmc.server.entity.data.CloudThrownTridentData;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudEnchantmentRegistry;
 
@@ -24,11 +22,12 @@ import java.util.Map;
 
 public class EntityThrownTrident extends EntityAbstractArrow implements ThrownTrident {
 
-    protected ItemStack trident;
-    private boolean dealtDamage;
+    private final CloudThrownTridentData persistenceState;
 
     public EntityThrownTrident(EntityType<ThrownTrident> type, Location location) {
-        super(type, location);
+        CloudThrownTridentData state = new CloudThrownTridentData();
+        super(type, location, state);
+        this.persistenceState = state;
     }
 
     @Override
@@ -64,31 +63,23 @@ public class EntityThrownTrident extends EntityAbstractArrow implements ThrownTr
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.trident = ItemStack.EMPTY;
+        this.data().setTrident(ItemStack.EMPTY);
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-        tag.listenForCompound("Trident", itemTag -> this.trident = ItemStackNbtCodec.deserializeItem(itemTag));
-        tag.listenForBoolean("DealtDamage", value -> this.dealtDamage = value);
-    }
-
-    @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-        tag.putCompound("Trident", ItemStackNbtCodec.serializeItem(this.trident));
-        tag.putBoolean("DealtDamage", this.dealtDamage);
+    protected CloudThrownTridentData data() {
+        return this.persistenceState;
     }
 
     @Override
     public ItemStack getTrident() {
-        return this.trident != null ? this.trident : ItemStack.EMPTY;
+        ItemStack trident = this.data().getTrident();
+        return trident != null ? trident : ItemStack.EMPTY;
     }
 
     @Override
     public void setTrident(ItemStack item) {
-        this.trident = item;
+        this.data().setTrident(item == null ? ItemStack.EMPTY : item);
     }
 
     @Override
@@ -103,7 +94,7 @@ public class EntityThrownTrident extends EntityAbstractArrow implements ThrownTr
 
     @Override
     protected boolean canHitEntity(Entity entity) {
-        return !this.dealtDamage && super.canHitEntity(entity);
+        return !this.data().isDealtDamage() && super.canHitEntity(entity);
     }
 
     @Override
@@ -112,7 +103,7 @@ public class EntityThrownTrident extends EntityAbstractArrow implements ThrownTr
             return false;
         }
 
-        boolean hasUpdate = (this.isEmbedded() || this.dealtDamage)
+        boolean hasUpdate = (this.isEmbedded() || this.data().isDealtDamage())
                 && this.loyaltyLevel() > 0 && this.getOwner() instanceof CloudPlayer player
                 && player.isOnline() && player.isAlive() && !player.isSpectator()
                 ? this.returnTo(player, currentTick) : super.onUpdate(currentTick);
@@ -191,7 +182,7 @@ public class EntityThrownTrident extends EntityAbstractArrow implements ThrownTr
         }
 
         this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.ITEM_TRIDENT_HIT);
-        this.dealtDamage = true;
+        this.data().setDealtDamage(true);
         this.motion = Vector3f.from(-this.motion.getX() * 0.02f, -this.motion.getY() * 0.2f, -this.motion.getZ() * 0.02f);
         this.updateMovement();
     }

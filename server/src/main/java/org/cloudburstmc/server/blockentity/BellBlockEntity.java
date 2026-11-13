@@ -70,15 +70,15 @@ public class BellBlockEntity extends BaseBlockEntity implements Bell {
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    protected void saveCustom(NbtMapBuilder tag) {
+        super.saveCustom(tag);
         tag.remove("Direction");
         tag.remove("Ringing");
         tag.remove("Ticks");
     }
 
     @Override
-    protected void saveClientData(NbtMapBuilder tag) {
+    protected void saveCustomClient(NbtMapBuilder tag) {
         Direction strike = this.strikeDirection;
         boolean shaking = strike != null && this.isShaking();
         tag.putInt("Direction", strike == null ? 0 : strike.getHorizontalIndex());

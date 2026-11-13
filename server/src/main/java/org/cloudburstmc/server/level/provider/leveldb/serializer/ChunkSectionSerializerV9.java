@@ -24,7 +24,7 @@ class ChunkSectionSerializerV9 implements ChunkSectionSerializer {
 
     @Override
     public void serialize(ByteBuf buf, BlockStorage[] storage) {
-        throw new UnsupportedOperationException("Version 9 on-disk serialization is not supported; use version 8.");
+        throw new UnsupportedOperationException("Version 9 on-disk serialization is not supported. Use version 8.");
     }
 
     @Override

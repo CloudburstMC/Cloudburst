@@ -21,7 +21,7 @@ import org.cloudburstmc.protocol.bedrock.data.sound.StopSoundData;
 import org.cloudburstmc.protocol.bedrock.packet.ClientboundUpdateSoundDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RecordStartedPacket;
-import org.cloudburstmc.server.container.CloudContainer;
+import org.cloudburstmc.server.blockentity.data.CloudJukeboxData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.network.SoundPacketFactory;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -33,7 +33,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class JukeboxBlockEntity extends ContainerBlockEntity implements Jukebox {
+public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox, AutomatedBlockStorage {
 
     private static final AtomicLong SOUND_HANDLES = new AtomicLong();
     private static final int TICKS_PER_SECOND = 20;
@@ -44,16 +44,24 @@ public class JukeboxBlockEntity extends ContainerBlockEntity implements Jukebox 
     private int playbackTicks;
     private long soundHandle;
 
+    private final CloudJukeboxData persistenceState;
+
     public JukeboxBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position, new CloudContainer(1));
+        CloudJukeboxData state = new CloudJukeboxData();
+        super(type, chunk, position, state);
+        this.persistenceState = state;
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
+    protected CloudJukeboxData data() {
+        return this.persistenceState;
+    }
+
+    @Override
+    protected void loadCustom(NbtMap tag) {
         this.clearPlayback();
-        ItemStack record = ItemStackNbtCodec.deserializeItem(tag.getCompound("RecordItem", NbtMap.EMPTY));
-        this.container.setItem(0, record.isEmpty() ? ItemStack.EMPTY : record.withCount(1));
+        ItemStack record = this.getRecord();
+        this.data().setRecordItem(record.isEmpty() ? null : record.withCount(1));
 
         int elapsed = tag.getInt("PlaybackTicks", -1);
         JukeboxSong song = songFor(record);
@@ -63,8 +71,7 @@ public class JukeboxBlockEntity extends ContainerBlockEntity implements Jukebox 
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    protected void saveCustom(NbtMapBuilder tag) {
         if (this.playingSong != null) {
             tag.putInt("PlaybackTicks", this.playbackTicks);
         } else {
@@ -73,7 +80,7 @@ public class JukeboxBlockEntity extends ContainerBlockEntity implements Jukebox 
     }
 
     @Override
-    protected void saveClientData(NbtMapBuilder tag) {
+    protected void saveCustomClient(NbtMapBuilder tag) {
         ItemStack record = this.getRecord();
         if (record.isEmpty()) {
             tag.remove("RecordItem");
@@ -93,6 +100,17 @@ public class JukeboxBlockEntity extends ContainerBlockEntity implements Jukebox 
     }
 
     @Override
+    public int size() {
+        return 1;
+    }
+
+    @Override
+    public ItemStack getItem(int slot) {
+        Objects.checkIndex(slot, this.size());
+        return this.getRecord();
+    }
+
+    @Override
     public int getMaxStackSize(int slot) {
         Objects.checkIndex(slot, 1);
         return 1;
@@ -105,18 +123,18 @@ public class JukeboxBlockEntity extends ContainerBlockEntity implements Jukebox 
     }
 
     @Override
-    public boolean canInsertFrom(int slot, Direction side, ItemStack item) {
-        return slot == 0 && this.getRecord().isEmpty() && songFor(item) != null;
+    public boolean blocksInsertionFrom(int slot, Direction side, ItemStack item) {
+        return slot != 0 || !this.getRecord().isEmpty() || songFor(item) == null;
     }
 
     @Override
-    public boolean canExtractBelow(int slot) {
-        return slot == 0 && !this.isPlaying();
+    public boolean blocksExtractionBelow(int slot) {
+        return slot != 0 || this.isPlaying();
     }
 
     @Override
     public ItemStack getRecord() {
-        return this.container.getItem(0);
+        return Objects.requireNonNullElse(this.data().getRecordItem(), ItemStack.EMPTY);
     }
 
     @Override
@@ -133,7 +151,7 @@ public class JukeboxBlockEntity extends ContainerBlockEntity implements Jukebox 
         }
 
         this.clearPlayback();
-        this.container.setItem(0, stored);
+        this.data().setRecordItem(stored.isEmpty() ? null : stored);
         if (song != null) {
             this.beginPlayback(song, 0);
         }
@@ -215,7 +233,7 @@ public class JukeboxBlockEntity extends ContainerBlockEntity implements Jukebox 
     public void onBreak() {
         this.clearPlayback();
         this.dropItemOnBreak(this.getRecord());
-        this.container.setItem(0, ItemStack.EMPTY);
+        this.data().setRecordItem(null);
     }
 
     @Override

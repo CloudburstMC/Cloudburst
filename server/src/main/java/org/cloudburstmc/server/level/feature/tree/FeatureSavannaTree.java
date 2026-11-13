@@ -2,8 +2,8 @@ package org.cloudburstmc.server.level.feature.tree;
 
 import lombok.NonNull;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 

@@ -16,7 +16,9 @@ import org.cloudburstmc.server.entity.EntityCreature;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.item.component.DefaultItemHandlers;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.SHEARED;
@@ -45,15 +47,26 @@ public class EntitySnowGolem extends EntityCreature implements SnowGolem {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-        tag.listenForBoolean("Pumpkin", pumpkin -> this.setDerp(!pumpkin));
+    protected void loadCustom(NbtMap tag) {
+        // Runs before the living-state load below,
+        // matching the historical load order.
+        if (tag.containsKey("Pumpkin")) {
+            this.setDerp(!getBoolean(tag, "Pumpkin", !this.isDerp()));
+        }
+        super.loadCustom(tag);
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    protected void saveCustom(NbtMapBuilder tag) {
+        super.saveCustom(tag);
         tag.putBoolean("Pumpkin", !this.isDerp());
+    }
+
+    @Override
+    protected Set<String> customKeys() {
+        Set<String> keys = new HashSet<>(super.customKeys());
+        keys.add("Pumpkin");
+        return Set.copyOf(keys);
     }
 
     @Override

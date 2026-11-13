@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.player;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -12,17 +12,6 @@ import java.util.OptionalLong;
 import java.util.Set;
 
 public class PlayerData {
-    private static final String TAG_FIRST_PLAYED = "firstPlayed";
-    private static final String TAG_LAST_PLAYED = "lastPlayed";
-    private static final String TAG_LAST_ADDRESS = "lastIP";
-    private static final String TAG_LEVEL = "Level";
-    private static final String TAG_SPAWN_LEVEL = "SpawnLevel";
-    private static final String TAG_SPAWN_X = "SpawnX";
-    private static final String TAG_SPAWN_Y = "SpawnY";
-    private static final String TAG_SPAWN_Z = "SpawnZ";
-    private static final String TAG_SPAWN_YAW = "SpawnYaw";
-    private static final String TAG_ACHIEVEMENTS = "Achievements";
-    private static final String TAG_GAME_TYPE = "playerGameType";
     private final Set<String> achievements = new HashSet<>();
     private long firstPlayed;
     private long lastPlayed;
@@ -33,51 +22,38 @@ public class PlayerData {
     private GameMode gamemode;
     private InetAddress lastAddress;
 
-    public void loadData(NbtMap tag) {
-        tag.listenForLong(TAG_FIRST_PLAYED, this::setFirstPlayed);
-        tag.listenForLong(TAG_LAST_PLAYED, this::setLastPlayed);
-        tag.listenForString(TAG_LEVEL, this::setLevel);
-        tag.listenForString(TAG_SPAWN_LEVEL, this::setSpawnLevel);
-
-        if (tag.containsKey(TAG_SPAWN_X) && tag.containsKey(TAG_SPAWN_Y) && tag.containsKey(TAG_SPAWN_Z)) {
-            this.setSpawnLocation(Vector3i.from(
-                    tag.getInt(TAG_SPAWN_X),
-                    tag.getInt(TAG_SPAWN_Y),
-                    tag.getInt(TAG_SPAWN_Z)
-            ));
-        }
-        tag.listenForFloat(TAG_SPAWN_YAW, yaw -> this.spawnYaw = yaw);
-        tag.listenForInt(TAG_GAME_TYPE, gm -> setGamemode(GameMode.from(gm)));
-        tag.listenForString(TAG_LAST_ADDRESS, this::setLastAddress);
-        /*tag.listenForCompound(TAG_ACHIEVEMENTS, achievementsTag -> {
-            achievementsTag.getValue().forEach((achievement, tag1) -> {
-                if (tag1 instanceof ByteTag && ((ByteTag) tag1).getAsBoolean()) {
-                    this.achievements.add(achievement);
-                }
-            });
-        });*/
-    }
-
-    public void saveData(NbtMapBuilder tag) {
-        if (this.firstPlayed > 0 && this.lastPlayed > 0) {
-            tag.putLong(TAG_FIRST_PLAYED, this.firstPlayed);
-            tag.putLong(TAG_LAST_PLAYED, this.lastPlayed);
-        }
-        if (this.level != null) {
-            tag.putString(TAG_LEVEL, this.level);
-        }
-        if (this.spawnLevel != null && spawnLocation != null) {
-            tag.putString(TAG_SPAWN_LEVEL, this.spawnLevel)
-                    .putInt(TAG_SPAWN_X, this.spawnLocation.getX())
-                    .putInt(TAG_SPAWN_Y, this.spawnLocation.getY())
-                    .putInt(TAG_SPAWN_Z, this.spawnLocation.getZ())
-                    .putFloat(TAG_SPAWN_YAW, this.spawnYaw);
-        }
-
-        if (this.gamemode != null) {
-            tag.putInt(TAG_GAME_TYPE, this.gamemode.getVanillaId());
-        }
-    }
+    /**
+     * The values the stored tag held for the conditionally written keys. A key the
+     * tag held is written back with its loaded value when the holder condition
+     * fails at save time, and a condition that holds refreshes them from the
+     * holder, exactly as the previous persistent data object kept and rewrote
+     * its properties. A key never loaded nor saved stays {@code null} and is
+     * omitted, following the save condition.
+     */
+    @Getter
+    @Setter
+    private Long loadedFirstPlayed;
+    @Getter
+    @Setter
+    private Long loadedLastPlayed;
+    @Getter
+    @Setter
+    private String loadedSpawnLevel;
+    @Getter
+    @Setter
+    private Integer loadedSpawnX;
+    @Getter
+    @Setter
+    private Integer loadedSpawnY;
+    @Getter
+    @Setter
+    private Integer loadedSpawnZ;
+    @Getter
+    @Setter
+    private Float loadedSpawnYaw;
+    @Getter
+    @Setter
+    private Integer loadedPlayerGameType;
 
     public OptionalLong getFirstPlayed() {
         return OptionalLong.of(firstPlayed);
@@ -143,7 +119,7 @@ public class PlayerData {
         this.lastAddress = lastAddress;
     }
 
-    private void setLastAddress(String lastAddress) {
+    void setLastAddress(String lastAddress) {
         try {
             this.lastAddress = InetAddress.getByName(lastAddress);
         } catch (UnknownHostException e) {

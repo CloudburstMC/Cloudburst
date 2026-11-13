@@ -2,14 +2,20 @@ package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
+import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.container.CloudContainer;
 
 /**
  * Base class for block entities that own a {@link CloudContainer} (item storage).
+ *
+ * <p>The storage lives in the block entity's data instance; this class only delegates to it.
+ * Subclasses return their DTO's container from {@link #items()} and override
+ * {@link #getContainer()} only when they expose a different view, like a paired chest's
+ * combined container.</p>
  *
  * <p>This class intentionally does <em>not</em> implement
  * {@link org.cloudburstmc.api.inventory.view.SlotGroup}. The view/slot-group abstraction
@@ -19,37 +25,43 @@ import org.cloudburstmc.server.container.CloudContainer;
  * block-entity class when required by the hopper/dropper/dispenser/crafter logic that
  * needs to interact with the container outside of a player-opened screen.</p>
  */
-public abstract class ContainerBlockEntity extends BaseBlockEntity {
+public abstract class ContainerBlockEntity extends BaseBlockEntity implements AutomatedBlockStorage {
 
-    protected final CloudContainer container;
-
-    public ContainerBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position, CloudContainer container) {
-        super(type, chunk, position);
-        this.container = container;
+    public ContainerBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
+        this(type, chunk, position, new CloudBlockEntityData());
     }
 
+    protected ContainerBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position, CloudBlockEntityData state) {
+        super(type, chunk, position, state);
+    }
+
+    /**
+     * Returns the single storage container held by this block entity's data instance.
+     * Slot accessors use this; {@link #getContainer()} may return a wider view.
+     *
+     * @return the DTO's container
+     */
+    protected abstract ItemContainer items();
+
     public CloudContainer getContainer() {
-        return container;
+        return (CloudContainer) items();
     }
 
     public ItemStack getItem(int slot) {
-        return container.getItem(slot);
+        return items().getItem(slot);
     }
 
     public void setItem(int slot, ItemStack itemStack) {
-        container.setItem(slot, itemStack);
+        items().setItem(slot, itemStack);
     }
 
     public int size() {
-        return container.size();
+        return items().size();
     }
 
-    public boolean canInsertFrom(int slot, Direction side, ItemStack item) {
-        return true;
-    }
-
-    public boolean canExtractBelow(int slot) {
-        return true;
+    @Override
+    public ItemContainer insertionSlots() {
+        return this.getContainer();
     }
 
     public BlockEntity getBlockEntity() {

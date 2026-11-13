@@ -12,8 +12,12 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.entity.data.CloudExperienceOrbData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.player.CloudPlayer;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.VALUE;
 
@@ -23,11 +27,13 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
     private static final float MERGE_DISTANCE = 0.5f;
 
     private @Nullable CloudPlayer closestPlayer;
-    private int count = 1;
-    private int pickupDelay;
+
+    private final CloudExperienceOrbData persistenceState;
 
     public EntityExperienceOrb(EntityType<ExperienceOrb> type, Location location) {
-        super(type, location);
+        CloudExperienceOrbData state = new CloudExperienceOrbData();
+        super(type, location, state);
+        this.persistenceState = state;
         this.data.set(VALUE, 1);
     }
 
@@ -72,23 +78,45 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForInt("experience value", this::setExperience);
-        tag.listenForShort("Age", v -> this.age = v);
-        tag.listenForInt("Count", this::setCount);
-        tag.listenForShort("PickupDelay", v -> this.pickupDelay = v);
+    protected CloudExperienceOrbData data() {
+        return this.persistenceState;
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    protected void loadCustom(NbtMap tag) {
+        // Age and the metadata-backed value run before the
+        // base load below, matching the historical load order, and keep
+        // their current values when absent. The count and pickup delay already sit in
+        // the data instance; the setters re-run here to keep their validation, exactly
+        // as the previous load did.
+        if (tag.containsKey("Age")) {
+            this.age = getShort(tag, "Age", (short) this.age);
+        }
+        if (tag.containsKey("experience value")) {
+            this.setExperience(getInt(tag, "experience value", this.getExperience()));
+        }
+        if (tag.containsKey("Count")) {
+            this.setCount(this.data().getCount());
+        }
+        if (tag.containsKey("PickupDelay")) {
+            this.setPickupDelay(this.data().getPickupDelay());
+        }
+        super.loadCustom(tag);
+    }
 
-        tag.putInt("experience value", this.getExperience());
+    @Override
+    protected void saveCustom(NbtMapBuilder tag) {
+        super.saveCustom(tag);
         tag.putShort("Age", (short) this.age);
-        tag.putInt("Count", this.count);
-        tag.putShort("PickupDelay", (short) this.pickupDelay);
+        tag.putInt("experience value", this.getExperience());
+    }
+
+    @Override
+    protected Set<String> customKeys() {
+        Set<String> keys = new HashSet<>(super.customKeys());
+        keys.add("Age");
+        keys.add("experience value");
+        return Set.copyOf(keys);
     }
 
     @Override
@@ -113,10 +141,10 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
 
         boolean hasUpdate = entityBaseTick(tickDiff);
         if (this.isAlive()) {
-            if (this.pickupDelay > 0 && this.pickupDelay < 32767) { //Infinite delay
-                this.pickupDelay -= tickDiff;
-                if (this.pickupDelay < 0) {
-                    this.pickupDelay = 0;
+            if (this.getPickupDelay() > 0 && this.getPickupDelay() < 32767) { //Infinite delay
+                this.setPickupDelay(this.getPickupDelay() - tickDiff);
+                if (this.getPickupDelay() < 0) {
+                    this.setPickupDelay(0);
                 }
             } else {
                 for (Entity entity : this.level.getNearbyEntities(this, this.boundingBox)) {
@@ -221,7 +249,7 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
         for (Entity entity : this.level.getNearbyEntities(this,
                 this.boundingBox.inflate(MERGE_DISTANCE, MERGE_DISTANCE, MERGE_DISTANCE))) {
             if (entity instanceof EntityExperienceOrb orb && canMerge(orb)) {
-                this.count += orb.count;
+                this.data().setCount(this.data().getCount() + orb.data().getCount());
                 this.age = Math.min(this.age, orb.age);
                 orb.close();
             }
@@ -239,11 +267,12 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
             throw new IllegalArgumentException("XP orb count must be greater than 0, got " + count);
         }
 
-        this.count = count;
+        this.data().setCount(count);
     }
 
     public void consumeOne() {
-        if (--this.count == 0) {
+        this.data().setCount(this.data().getCount() - 1);
+        if (this.data().getCount() == 0) {
             this.close();
         }
     }
@@ -266,11 +295,11 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
 
     @Override
     public int getPickupDelay() {
-        return pickupDelay;
+        return this.data().getPickupDelay();
     }
 
     @Override
     public void setPickupDelay(int pickupDelay) {
-        this.pickupDelay = pickupDelay;
+        this.data().setPickupDelay(pickupDelay);
     }
 }

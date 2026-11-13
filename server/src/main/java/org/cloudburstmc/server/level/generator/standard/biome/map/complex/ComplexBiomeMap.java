@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.level.generator.standard.biome.map.complex;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import tools.jackson.databind.annotation.JsonDeserialize;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.daporkchop.lib.common.util.PValidation;
@@ -12,6 +11,7 @@ import org.cloudburstmc.server.level.generator.standard.biome.GenerationBiome;
 import org.cloudburstmc.server.level.generator.standard.biome.map.BiomeMap;
 import org.cloudburstmc.server.level.generator.standard.misc.AbstractGenerationPass;
 import org.cloudburstmc.server.level.generator.standard.misc.IntArrayAllocator;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.LinkedHashSet;
 import java.util.Objects;

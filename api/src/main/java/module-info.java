@@ -1,7 +1,7 @@
 open module org.cloudburstmc.api {
     requires static lombok;
-    requires static transitive org.jetbrains.annotations;
     requires static transitive org.checkerframework.checker.qual;
+    requires static transitive org.jetbrains.annotations;
 
     requires transitive com.google.common;
     requires transitive com.google.guice;
@@ -17,9 +17,9 @@ open module org.cloudburstmc.api {
     requires com.fasterxml.jackson.annotation;
     requires net.kyori.adventure.text.serializer.legacy;
     requires tools.jackson.core;
-    requires tools.jackson.databind;
     requires tools.jackson.dataformat.properties;
     requires tools.jackson.dataformat.yaml;
+    requires tools.jackson.databind;
 
     uses org.cloudburstmc.api.registry.BlockRegistry;
 
@@ -62,14 +62,15 @@ open module org.cloudburstmc.api {
     exports org.cloudburstmc.api.item.component;
     exports org.cloudburstmc.api.item.data;
     exports org.cloudburstmc.api.level;
-    exports org.cloudburstmc.api.map;
     exports org.cloudburstmc.api.level.biome;
     exports org.cloudburstmc.api.level.chunk;
     exports org.cloudburstmc.api.level.gamerule;
     exports org.cloudburstmc.api.level.particle;
     exports org.cloudburstmc.api.level.sound;
+    exports org.cloudburstmc.api.map;
     exports org.cloudburstmc.api.pack;
     exports org.cloudburstmc.api.permission;
+    exports org.cloudburstmc.api.persistence;
     exports org.cloudburstmc.api.player;
     exports org.cloudburstmc.api.player.skin;
     exports org.cloudburstmc.api.player.skin.data;

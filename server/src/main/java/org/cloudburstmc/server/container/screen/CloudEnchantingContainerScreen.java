@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.container.screen;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.enchantment.Enchantment;
@@ -24,6 +23,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerEnchantOptionsPacket;
 import org.cloudburstmc.server.block.component.EnchantingTableBlockHandlers;
 import org.cloudburstmc.server.blockentity.EnchantingTableBlockEntity;
+import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.server.container.mapping.UIContainerMapping;
 import org.cloudburstmc.server.container.view.CloudEnchantingView;

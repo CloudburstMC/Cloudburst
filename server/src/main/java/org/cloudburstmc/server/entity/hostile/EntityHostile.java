@@ -10,6 +10,7 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.container.view.CloudPlayerInventory;
 import org.cloudburstmc.server.entity.EntityCreature;
+import org.cloudburstmc.server.entity.data.CloudCreatureData;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BABY;
 
@@ -20,7 +21,11 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BABY;
 public abstract class EntityHostile extends EntityCreature implements EntityAgeable {
 
     public EntityHostile(EntityType<?> type, Location location) {
-        super(type, location);
+        this(type, location, new CloudCreatureData());
+    }
+
+    protected EntityHostile(EntityType<?> type, Location location, CloudCreatureData state) {
+        super(type, location, state);
     }
 
     @Override

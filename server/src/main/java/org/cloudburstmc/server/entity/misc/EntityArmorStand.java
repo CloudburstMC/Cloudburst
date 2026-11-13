@@ -104,8 +104,8 @@ public class EntityArmorStand extends EntityLiving implements ArmorStand {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
+    protected void loadCustom(NbtMap tag) {
+        super.loadCustom(tag);
         tag.listenForInt("PoseIndex", pose -> this.setPoseIndex(Math.clamp(pose, 0, POSE_COUNT - 1)));
         this.equipment.clear();
         tag.listenForCompound("Equipment", stored -> EQUIPMENT_KEYS.forEach((slot, key) ->
@@ -113,8 +113,8 @@ public class EntityArmorStand extends EntityLiving implements ArmorStand {
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    protected void saveCustom(NbtMapBuilder tag) {
+        super.saveCustom(tag);
         tag.putInt("PoseIndex", this.poseIndex);
         NbtMapBuilder stored = NbtMap.builder();
         this.equipment.forEach((slot, item) -> stored.putCompound(EQUIPMENT_KEYS.get(slot), ItemStackNbtCodec.serializeItem(item)));

@@ -41,6 +41,5 @@ public interface BlockEntityRegistry extends KeyedRegistry<BlockEntityType<?>> {
      *                           or the persistent identifier is already in use
      * @see ServerInitializationEvent
      */
-    <T extends BlockEntity> void register(BlockEntityType<T> type, BlockEntityFactory<T> factory,
-                                          String persistentId, Set<BlockType> validBlocks) throws RegistryException;
+    <T extends BlockEntity> void register(BlockEntityType<T> type, BlockEntityFactory<T> factory, String persistentId, Set<BlockType> validBlocks) throws RegistryException;
 }

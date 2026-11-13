@@ -12,6 +12,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.persistence.PersistentDataHolder;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.Direction;
@@ -26,7 +27,7 @@ import java.util.Set;
 /**
  * An entity in a level, with position, motion and a lifecycle independent of its viewers.
  */
-public interface Entity extends Damageable, Emitter {
+public interface Entity extends Damageable, Emitter, PersistentDataHolder {
 
     /**
      * @return the registered entity type
@@ -750,5 +751,4 @@ public interface Entity extends Damageable, Emitter {
      * Calling this again has no effect.
      */
     void close();
-
 }

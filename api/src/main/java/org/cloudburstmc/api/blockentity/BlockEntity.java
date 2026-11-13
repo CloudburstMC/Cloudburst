@@ -4,10 +4,11 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.level.Level;
+import org.cloudburstmc.api.persistence.PersistentDataHolder;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3i;
 
-public interface BlockEntity {
+public interface BlockEntity extends PersistentDataHolder {
 
     BlockEntityType<?> getType();
 

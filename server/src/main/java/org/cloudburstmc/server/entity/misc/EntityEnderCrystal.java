@@ -17,19 +17,24 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.entity.data.CloudEnderCrystalData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.level.CloudLevel;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.BLOCK_TARGET_POS;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMUNE;
 
 public class EntityEnderCrystal extends CloudEntity implements EnderCrystal, Explosive {
 
-    private static final String TAG_SHOW_BOTTOM = "ShowBottom";
-    private static final String TAG_BEAM_TARGET = "BeamTarget";
+    private final CloudEnderCrystalData persistenceState;
 
     public EntityEnderCrystal(EntityType<EnderCrystal> type, Location location) {
-        super(type, location);
+        CloudEnderCrystalData state = new CloudEnderCrystalData();
+        super(type, location, state);
+        this.persistenceState = state;
     }
 
     @Override
@@ -113,25 +118,48 @@ public class EntityEnderCrystal extends CloudEntity implements EnderCrystal, Exp
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-        tag.listenForBoolean(TAG_SHOW_BOTTOM, this::setShowingBase);
-        tag.listenForCompound(TAG_BEAM_TARGET, beam -> this.setBeamTarget(Vector3i.from(
-                beam.getInt("X"), beam.getInt("Y"), beam.getInt("Z"))));
+    protected CloudEnderCrystalData data() {
+        return this.persistenceState;
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-        tag.putBoolean(TAG_SHOW_BOTTOM, this.isShowingBase());
-        Vector3i beamTarget = this.getBeamTarget();
-        if (beamTarget != null) {
-            tag.putCompound(TAG_BEAM_TARGET, NbtMap.builder()
-                    .putInt("X", beamTarget.getX())
-                    .putInt("Y", beamTarget.getY())
-                    .putInt("Z", beamTarget.getZ())
+    protected void loadCustom(NbtMap tag) {
+        // The base flag and beam target run before the base
+        // load below, matching the historical load order, and keep
+        // their current values when absent. The beam is read leniently from its
+        // compound, exactly as the old pass-through did.
+        if (tag.containsKey("ShowBottom")) {
+            this.setShowingBase(getBoolean(tag, "ShowBottom", this.isShowingBase()));
+        }
+        if (tag.containsKey("BeamTarget")) {
+            Object raw = tag.get("BeamTarget");
+            if (raw instanceof NbtMap beam) {
+                this.setBeamTarget(Vector3i.from(beam.getInt("X"), beam.getInt("Y"), beam.getInt("Z")));
+            }
+        }
+        super.loadCustom(tag);
+    }
+
+    @Override
+    protected void saveCustom(NbtMapBuilder tag) {
+        super.saveCustom(tag);
+        tag.putBoolean("ShowBottom", this.isShowingBase());
+        Vector3i target = this.getBeamTarget();
+        if (target != null) {
+            tag.putCompound("BeamTarget", NbtMap.builder()
+                    .putInt("X", target.getX())
+                    .putInt("Y", target.getY())
+                    .putInt("Z", target.getZ())
                     .build());
         }
+    }
+
+    @Override
+    protected Set<String> customKeys() {
+        Set<String> keys = new HashSet<>(super.customKeys());
+        keys.add("ShowBottom");
+        keys.add("BeamTarget");
+        return Set.copyOf(keys);
     }
 
     @Override

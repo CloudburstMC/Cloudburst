@@ -9,6 +9,7 @@ import org.cloudburstmc.api.blockentity.BrewingStand;
 import org.cloudburstmc.api.event.block.BrewingStartEvent;
 import org.cloudburstmc.api.event.inventory.BrewEvent;
 import org.cloudburstmc.api.event.inventory.BrewingStandFuelEvent;
+import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.api.inventory.view.SlotGroupType;
 import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
@@ -22,11 +23,10 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerSetDataPacket;
+import org.cloudburstmc.server.blockentity.data.CloudBrewingStandData;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.ContainerListener;
-import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 
@@ -44,22 +44,34 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
     private static final int BREW_TICKS = 400;
     private static final int FUEL_USES = 20;
 
-    private int brewTime;
     private int brewDuration = BREW_TICKS;
-    private int fuel;
-    private int fuelTotal;
     private @Nullable ItemType brewingIngredient;
     private @Nullable Batch batch;
     private boolean inputsChanged = true;
     private boolean inventoryChanged;
+
+    private final CloudBrewingStandData persistenceState;
 
     public BrewingStandBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         this(type, chunk, position, new BrewingStorage());
     }
 
     private BrewingStandBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position, BrewingStorage storage) {
-        super(type, chunk, position, storage);
+        CloudBrewingStandData state = new CloudBrewingStandData();
+        super(type, chunk, position, state);
+        this.persistenceState = state;
+        this.data().setItems(storage);
         storage.owner = this;
+    }
+
+    @Override
+    protected CloudBrewingStandData data() {
+        return this.persistenceState;
+    }
+
+    @Override
+    protected ItemContainer items() {
+        return this.data().getItems();
     }
 
     @Override
@@ -109,7 +121,7 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
 
     @Override
     public int getBrewProgress() {
-        return this.brewTime == 0 ? 0 : this.brewDuration - this.brewTime;
+        return this.data().getCookTime() == 0 ? 0 : this.brewDuration - this.data().getCookTime();
     }
 
     @Override
@@ -118,7 +130,7 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
             return;
         }
 
-        this.brewTime = this.brewDuration - Math.clamp(ticks, 0, this.brewDuration - 1);
+        this.data().setCookTime(this.brewDuration - Math.clamp(ticks, 0, this.brewDuration - 1));
         this.setDirty();
         this.broadcastBrewTime();
     }
@@ -130,13 +142,13 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
 
     @Override
     public int getFuelLevel() {
-        return this.fuel;
+        return this.data().getFuelAmount();
     }
 
     @Override
     public void setFuelLevel(int level) {
-        this.fuel = Math.max(0, level);
-        this.fuelTotal = Math.max(this.fuelTotal, this.fuel);
+        this.data().setFuelAmount(Math.max(0, level));
+        this.data().setFuelTotal(Math.max(this.data().getFuelTotal(), this.data().getFuelAmount()));
         this.setDirty();
         this.scheduleUpdate();
         this.broadcastFuel();
@@ -153,40 +165,29 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-        for (NbtMap item : tag.getList("Items", NbtType.COMPOUND)) {
-            int slot = item.getByte("Slot");
-            if (slot >= 0 && slot < this.size()) {
-                this.setItem(slot, ItemStackNbtCodec.deserializeItem(item));
-            }
-        }
+    protected void loadCustom(NbtMap tag) {
 
         int savedDuration = readNumber(tag, "BrewDuration");
         this.brewDuration = savedDuration > 0 ? savedDuration : BREW_TICKS;
-        this.brewTime = Math.clamp(readNumber(tag, "CookTime"), 0, this.brewDuration);
-        this.fuel = readNumber(tag, "FuelAmount");
-        this.fuelTotal = Math.max(this.fuel, readNumber(tag, "FuelTotal"));
-        this.brewingIngredient = this.brewTime > 0 ? this.getIngredient().getType() : null;
+        this.data().setCookTime(Math.clamp(this.data().getCookTime(), 0, this.brewDuration));
+        this.data().setFuelAmount(readNumber(tag, "FuelAmount"));
+        this.data().setFuelTotal(Math.max(this.data().getFuelAmount(), readNumber(tag, "FuelTotal")));
+        this.brewingIngredient = this.data().getCookTime() > 0 ? this.getIngredient().getType() : null;
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-        List<NbtMap> items = new ArrayList<>();
-        this.container.forEachSlot((item, slot) -> items.add(ItemStackNbtCodec.serializeItem(item, slot)));
-        tag.putList("Items", NbtType.COMPOUND, items);
-        writeNumber(tag, "CookTime", this.brewTime);
+    protected void saveCustom(NbtMapBuilder tag) {
+        writeNumber(tag, "CookTime", this.data().getCookTime());
         tag.putInt("BrewDuration", this.brewDuration);
-        writeNumber(tag, "FuelAmount", this.fuel);
-        writeNumber(tag, "FuelTotal", this.fuelTotal);
+        writeNumber(tag, "FuelAmount", this.data().getFuelAmount());
+        writeNumber(tag, "FuelTotal", this.data().getFuelTotal());
     }
 
     @Override
-    protected void saveClientData(NbtMapBuilder tag) {
-        super.saveClientData(tag);
-        writeNumber(tag, "FuelAmount", this.fuel);
-        writeNumber(tag, "FuelTotal", this.fuelTotal);
+    protected void saveCustomClient(NbtMapBuilder tag) {
+        super.saveCustomClient(tag);
+        writeNumber(tag, "FuelAmount", this.data().getFuelAmount());
+        writeNumber(tag, "FuelTotal", this.data().getFuelTotal());
     }
 
     @Override
@@ -201,7 +202,7 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
     @Override
     public void close() {
         if (!this.isClosed()) {
-            for (ContainerListener listener : List.copyOf(this.container.getListeners())) {
+            for (ContainerListener listener : List.copyOf(this.getContainer().getListeners())) {
                 if (listener instanceof CloudPlayer player) {
                     player.closeInventory();
                 }
@@ -212,7 +213,7 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
 
     @Override
     public void onBreak() {
-        for (ItemStack content : this.container.getContents()) {
+        for (ItemStack content : this.getContainer().getContents()) {
             this.dropItemOnBreak(content);
         }
     }
@@ -230,17 +231,17 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
     }
 
     @Override
-    public boolean canInsertFrom(int slot, Direction side, ItemStack item) {
+    public boolean blocksInsertionFrom(int slot, Direction side, ItemStack item) {
         return switch (side) {
-            case UP -> slot == INGREDIENT_SLOT && this.acceptsItem(slot, item);
-            case DOWN -> false;
-            default -> slot != INGREDIENT_SLOT && this.acceptsItem(slot, item);
+            case UP -> slot != INGREDIENT_SLOT || !this.acceptsItem(slot, item);
+            case DOWN -> true;
+            default -> slot == INGREDIENT_SLOT || !this.acceptsItem(slot, item);
         };
     }
 
     @Override
-    public boolean canExtractBelow(int slot) {
-        return isBottleSlot(slot) || slot == INGREDIENT_SLOT && this.getIngredient().getType() == ItemTypes.GLASS_BOTTLE;
+    public boolean blocksExtractionBelow(int slot) {
+        return !isBottleSlot(slot) && (slot != INGREDIENT_SLOT || this.getIngredient().getType() != ItemTypes.GLASS_BOTTLE);
     }
 
     @Override
@@ -261,35 +262,35 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
             this.getLevel().updateComparatorOutputLevel(this.getPosition());
         }
 
-        if (this.fuel == 0) {
+        if (this.data().getFuelAmount() == 0) {
             this.refuel();
             if (this.isClosed() || this.inputsChanged) {
                 return !this.isClosed();
             }
         }
 
-        if (this.brewTime > 0) {
+        if (this.data().getCookTime() > 0) {
             if (this.batch == null || this.getIngredient().getType() != this.brewingIngredient) {
                 this.resetBrew();
-                return this.batch != null && this.fuel > 0;
+                return this.batch != null && this.data().getFuelAmount() > 0;
             }
 
-            this.brewTime--;
+            this.data().setCookTime(this.data().getCookTime() - 1);
             this.setDirty();
-            if (this.brewTime == 0) {
+            if (this.data().getCookTime() == 0) {
                 this.finishBrew(this.batch);
                 this.resetBrew();
                 return true;
             }
 
-            if (this.brewDuration != BREW_TICKS || this.brewTime % 40 == 0) {
+            if (this.brewDuration != BREW_TICKS || this.data().getCookTime() % 40 == 0) {
                 this.broadcastBrewTime();
             }
 
             return true;
         }
 
-        if (this.batch != null && this.fuel > 0) {
+        if (this.batch != null && this.data().getFuelAmount() > 0) {
             return this.startBrew(this.batch);
         }
 
@@ -304,12 +305,12 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
 
         BrewingStandFuelEvent event = new BrewingStandFuelEvent(this, powder, FUEL_USES);
         this.server.getEventManager().fire(event);
-        if (event.isCancelled() || event.getFuelPower() == 0 || this.isClosed() || !powder.equals(this.getFuel()) || this.fuel != 0) {
+        if (event.isCancelled() || event.getFuelPower() == 0 || this.isClosed() || !powder.equals(this.getFuel()) || this.data().getFuelAmount() != 0) {
             return;
         }
 
-        this.fuel = event.getFuelPower();
-        this.fuelTotal = this.fuel;
+        this.data().setFuelAmount(event.getFuelPower());
+        this.data().setFuelTotal(this.data().getFuelAmount());
         if (event.isConsuming()) {
             this.setFuel(powder.decreaseCount(1));
         }
@@ -320,22 +321,22 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
     private boolean startBrew(Batch batch) {
         BrewingStartEvent event = new BrewingStartEvent(this, batch.ingredient(), BREW_TICKS);
         this.server.getEventManager().fire(event);
-        if (this.isBatchStale(batch) || this.fuel == 0) {
+        if (this.isBatchStale(batch) || this.data().getFuelAmount() == 0) {
             return !this.isClosed() && this.inputsChanged;
         }
 
-        this.fuel--;
+        this.data().setFuelAmount(this.data().getFuelAmount() - 1);
         this.brewDuration = event.getBrewingTime();
-        this.brewTime = this.brewDuration;
+        this.data().setCookTime(this.brewDuration);
         this.brewingIngredient = batch.ingredient().getType();
         this.setDirty();
-        this.broadcast(ContainerSetDataPacket.BREWING_STAND_FUEL_AMOUNT, this.fuel);
+        this.broadcast(ContainerSetDataPacket.BREWING_STAND_FUEL_AMOUNT, this.data().getFuelAmount());
         this.broadcastBrewTime();
         return true;
     }
 
     private void finishBrew(Batch batch) {
-        BrewEvent event = new BrewEvent(this, batch.results(), this.fuel);
+        BrewEvent event = new BrewEvent(this, batch.results(), this.data().getFuelAmount());
         this.server.getEventManager().fire(event);
         if (event.isCancelled() || this.isBatchStale(batch)) {
             return;
@@ -362,7 +363,7 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
     }
 
     private void resetBrew() {
-        this.brewTime = 0;
+        this.data().setCookTime(0);
         this.brewDuration = BREW_TICKS;
         this.brewingIngredient = null;
         this.setDirty();
@@ -417,14 +418,14 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
     }
 
     public void sendProgress(ContainerListener listener) {
-        listener.onInventoryDataChange(this.container, ContainerSetDataPacket.BREWING_STAND_FUEL_TOTAL, this.fuelTotal);
-        listener.onInventoryDataChange(this.container, ContainerSetDataPacket.BREWING_STAND_FUEL_AMOUNT, this.fuel);
-        listener.onInventoryDataChange(this.container, ContainerSetDataPacket.BREWING_STAND_BREW_TIME, this.displayBrewTime());
+        listener.onInventoryDataChange(this.getContainer(), ContainerSetDataPacket.BREWING_STAND_FUEL_TOTAL, this.data().getFuelTotal());
+        listener.onInventoryDataChange(this.getContainer(), ContainerSetDataPacket.BREWING_STAND_FUEL_AMOUNT, this.data().getFuelAmount());
+        listener.onInventoryDataChange(this.getContainer(), ContainerSetDataPacket.BREWING_STAND_BREW_TIME, this.displayBrewTime());
     }
 
     private void broadcastFuel() {
-        this.broadcast(ContainerSetDataPacket.BREWING_STAND_FUEL_TOTAL, this.fuelTotal);
-        this.broadcast(ContainerSetDataPacket.BREWING_STAND_FUEL_AMOUNT, this.fuel);
+        this.broadcast(ContainerSetDataPacket.BREWING_STAND_FUEL_TOTAL, this.data().getFuelTotal());
+        this.broadcast(ContainerSetDataPacket.BREWING_STAND_FUEL_AMOUNT, this.data().getFuelAmount());
     }
 
     private void broadcastBrewTime() {
@@ -432,12 +433,12 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
     }
 
     private int displayBrewTime() {
-        return (int) Math.ceilDiv((long) this.brewTime * BREW_TICKS, this.brewDuration);
+        return (int) Math.ceilDiv((long) this.data().getCookTime() * BREW_TICKS, this.brewDuration);
     }
 
     private void broadcast(int property, int value) {
-        for (ContainerListener listener : this.container.getListeners()) {
-            listener.onInventoryDataChange(this.container, property, value);
+        for (ContainerListener listener : this.getContainer().getListeners()) {
+            listener.onInventoryDataChange(this.getContainer(), property, value);
         }
     }
 

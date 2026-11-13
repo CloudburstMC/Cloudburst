@@ -25,7 +25,6 @@ import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.PredictionType;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataMap;
@@ -36,6 +35,7 @@ import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.HumanPoses;
+import org.cloudburstmc.server.entity.data.CloudBoatData;
 import org.cloudburstmc.server.entity.data.SyncedEntityData;
 import org.cloudburstmc.server.entity.passive.Animal;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
@@ -53,7 +53,6 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
     private static final int CORRECTION_INTERVAL_TICKS = 5;
 
-    private BoatType boatType = BoatType.OAK;
     private BoatStatus status = BoatStatus.IN_AIR;
     private Buoyancy buoyancy;
     private float waterLevel;
@@ -77,8 +76,15 @@ public class EntityBoat extends EntityVehicle implements Boat {
     private int availableInputTicks;
     private @Nullable Location lastEventLocation;
 
+    private final CloudBoatData persistenceState;
+
     public EntityBoat(EntityType<? extends Boat> type, Location location) {
-        super(type, location);
+        this(type, location, new CloudBoatData());
+    }
+
+    protected EntityBoat(EntityType<? extends Boat> type, Location location, CloudBoatData state) {
+        super(type, location, state);
+        this.persistenceState = state;
         this.data.set(STRUCTURAL_INTEGRITY, 40);
         this.data.set(VARIANT, 0);
         this.data.set(ROW_TIME_LEFT, 0f);
@@ -96,31 +102,36 @@ public class EntityBoat extends EntityVehicle implements Boat {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-        this.setBoatType(VanillaBoats.fromVariant(tag.getInt("WoodType", 0)).type());
+    protected CloudBoatData data() {
+        return this.persistenceState;
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-        tag.putInt("WoodType", VanillaBoats.definition(this.boatType).variant());
+    protected void loadCustom(NbtMap tag) {
+        // The hull runs before the vehicle load below, matching the
+        // historical load order. The wood type has no presence bit, so it
+        // always falls back to oak, exactly as the old getInt-with-default load did. The
+        // setter re-runs to keep the metadata sync.
+        BoatType boatType = this.data().getWoodType();
+        this.setBoatType(tag.containsKey("WoodType") && boatType != null ? boatType : BoatType.OAK);
+        super.loadCustom(tag);
     }
 
     @Override
     public BoatType getBoatType() {
-        return this.boatType;
+        return this.data().getWoodType();
     }
 
     @Override
     public void setBoatType(BoatType type) {
-        this.boatType = Objects.requireNonNull(type, "type");
+        Objects.requireNonNull(type, "type");
+        this.data().setWoodType(type);
         this.data.set(VARIANT, VanillaBoats.definition(type).variant());
         this.updatePassengers();
     }
 
     public ItemType getBoatItem() {
-        return VanillaBoats.definition(this.boatType).boatItem();
+        return VanillaBoats.definition(this.getBoatType()).boatItem();
     }
 
     @Override
@@ -653,7 +664,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
     @Override
     public float getMountedHeightOffset() {
-        return this.boatType == BoatType.BAMBOO ? 0.1f : -0.2f;
+        return this.getBoatType() == BoatType.BAMBOO ? 0.1f : -0.2f;
     }
 
     private float getPassengerVerticalOffset(Entity passenger) {

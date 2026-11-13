@@ -1,13 +1,13 @@
 package org.cloudburstmc.server.entity.misc;
 
-import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.blockentity.Bell;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.LiquidState;
+import org.cloudburstmc.api.block.LiquidTypes;
+import org.cloudburstmc.api.blockentity.Bell;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
@@ -29,9 +29,9 @@ import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.entity.data.CloudDroppedItemData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.item.ItemDisplayNameResolver;
-import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.item.ItemStackPacketCodec;
 import org.cloudburstmc.server.item.ShulkerBoxItems;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -43,18 +43,35 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.OWNE
 
 public class EntityDroppedItem extends CloudEntity implements DroppedItem {
 
-    @Getter
-    protected ItemStack item;
-
-    @Getter
-    @Setter
-    protected int pickupDelay;
-
     @Setter
     private boolean fromFishing;
 
+    private final CloudDroppedItemData persistenceState;
+
     public EntityDroppedItem(EntityType<DroppedItem> type, Location location) {
-        super(type, location);
+        CloudDroppedItemData state = new CloudDroppedItemData();
+        super(type, location, state);
+        this.persistenceState = state;
+    }
+
+    @Override
+    protected CloudDroppedItemData data() {
+        return this.persistenceState;
+    }
+
+    @Override
+    public ItemStack getItem() {
+        return this.data().getItem();
+    }
+
+    @Override
+    public int getPickupDelay() {
+        return this.data().getPickupDelay();
+    }
+
+    @Override
+    public void setPickupDelay(int pickupDelay) {
+        this.data().setPickupDelay(pickupDelay);
     }
 
     @Override
@@ -100,25 +117,21 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
+    protected void loadCustom(NbtMap tag) {
+        super.loadCustom(tag);
 
         tag.listenForShort("Health", this::setHealth);
-        tag.listenForShort("PickupDelay", this::setPickupDelay);
         tag.listenForShort("Age", v -> this.age = v);
         tag.listenForLong("OwnerID", v -> this.data.set(OWNER_EID, v));
-        tag.listenForCompound("Item", itemTag -> this.item = ItemStackNbtCodec.deserializeItem(itemTag));
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    protected void saveCustom(NbtMapBuilder tag) {
+        super.saveCustom(tag);
 
         tag.putShort("Health", (short) this.getHealth());
-        tag.putShort("PickupDelay", (short) this.pickupDelay);
         tag.putShort("Age", (short) this.age);
         tag.putLong("OwnerID", this.data.require(OWNER_EID));
-        tag.putCompound("Item", ItemStackNbtCodec.serializeItem(this.item));
     }
 
     @Override
@@ -128,8 +141,8 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
                 source.getDamageType() == DamageTypes.CACTUS ||
                 source.getDamageType() == DamageTypes.ON_FIRE ||
                 source.getDamageType().is(DamageTypeTags.IS_EXPLOSION) &&
-                        !this.isInsideOfWater() && (this.item == null ||
-                        this.item.getType() != ItemTypes.NETHER_STAR)) && super.applyDamage(source);
+                        !this.isInsideOfWater() && (this.data().getItem() == null ||
+                        this.data().getItem().getType() != ItemTypes.NETHER_STAR)) && super.applyDamage(source);
         if (applied && alive && !this.isAlive() && source.getDamageType() != DamageTypes.OUT_OF_WORLD) {
             this.releaseShulkerContents();
         }
@@ -138,11 +151,11 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
     }
 
     private void releaseShulkerContents() {
-        if (this.item == null || !ShulkerBoxItems.TYPES.contains(this.item.getType())) {
+        if (this.data().getItem() == null || !ShulkerBoxItems.TYPES.contains(this.data().getItem().getType())) {
             return;
         }
 
-        ShulkerBoxContents contents = this.item.get(ItemDataComponents.SHULKER_BOX_CONTENTS);
+        ShulkerBoxContents contents = this.data().getItem().get(ItemDataComponents.SHULKER_BOX_CONTENTS);
         if (contents != null) {
             for (ItemStack stack : contents.items().values()) {
                 this.getLevel().dropItem(this.getPosition(), stack);
@@ -185,7 +198,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
                             continue;
                         }
                         entity.close();
-                        this.item = getItem().withCount(newAmount);
+                        this.data().setItem(getItem().withCount(newAmount));
                         EntityEventPacket packet = new EntityEventPacket();
                         packet.setRuntimeEntityId(this.getRuntimeId());
                         packet.setType(EntityEventType.UPDATE_ITEM_STACK_SIZE);
@@ -204,10 +217,10 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
         }
 
         if (this.isAlive()) {
-            if (this.pickupDelay > 0 && this.pickupDelay < 32767) {
-                this.pickupDelay -= tickDiff;
-                if (this.pickupDelay < 0) {
-                    this.pickupDelay = 0;
+            if (this.data().getPickupDelay() > 0 && this.data().getPickupDelay() < 32767) {
+                this.data().setPickupDelay(this.data().getPickupDelay() - tickDiff);
+                if (this.data().getPickupDelay() < 0) {
+                    this.data().setPickupDelay(0);
                 }
             } else {
                 for (Entity entity : this.level.getNearbyEntities(this, this.boundingBox.inflate(1, 0.5f, 1))) {
@@ -228,7 +241,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
             }
 
             if (!liquid.isEmpty() && pos.getY() < liquidBlock.getY() + liquidHeight) {
-                boolean water = liquid.getType().isSameFamily(org.cloudburstmc.api.block.LiquidTypes.WATER);
+                boolean water = liquid.getType().isSameFamily(LiquidTypes.WATER);
                 float horizontalDrag = water ? 0.99f : 0.95f;
                 this.motion = Vector3f.from(
                         this.motion.getX() * horizontalDrag,
@@ -286,7 +299,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
             return this.getNameTag();
         }
 
-        String customName = this.item.get(ItemDataComponents.CUSTOM_NAME);
+        String customName = this.data().getItem().get(ItemDataComponents.CUSTOM_NAME);
         return customName != null ? customName : super.getName();
     }
 
@@ -296,14 +309,14 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
             return Component.text(this.getNameTag());
         }
 
-        return ItemDisplayNameResolver.resolve(this.item);
+        return ItemDisplayNameResolver.resolve(this.data().getItem());
     }
 
     @Override
     public void setItem(@NonNull ItemStack item) {
         checkNotNull(item, "item");
         checkArgument(!item.isEmpty(), "item must not be empty");
-        this.item = item;
+        this.data().setItem(item);
     }
 
     @Override

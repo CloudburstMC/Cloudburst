@@ -1,11 +1,7 @@
 package org.cloudburstmc.server.registry;
 
 import lombok.experimental.UtilityClass;
-import org.cloudburstmc.api.block.BlockComponents;
-import org.cloudburstmc.api.block.BlockTags;
-import org.cloudburstmc.api.block.BlockType;
-import org.cloudburstmc.api.block.BlockTypes;
-import org.cloudburstmc.api.block.NoteBlockInstrument;
+import org.cloudburstmc.api.block.*;
 
 import static org.cloudburstmc.api.block.BlockTypes.*;
 

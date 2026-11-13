@@ -1,13 +1,13 @@
 package org.cloudburstmc.server.form.util;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import tools.jackson.core.JsonGenerator;
+import lombok.ToString;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonGenerator;
 import tools.jackson.databind.SerializationContext;
 import tools.jackson.databind.ValueSerializer;
 import tools.jackson.databind.annotation.JsonSerialize;
-import lombok.ToString;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 @JsonSerialize(using = ImageData.ImageDataSerializer.class)
 @ToString

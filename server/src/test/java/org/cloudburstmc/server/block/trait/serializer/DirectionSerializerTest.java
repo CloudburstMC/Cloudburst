@@ -12,7 +12,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-final class DirectionSerializerTest {
+class DirectionSerializerTest {
 
     private final DirectionSerializer serializer = new DirectionSerializer();
 

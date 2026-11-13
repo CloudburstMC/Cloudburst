@@ -29,6 +29,7 @@ import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.packet.AddPaintingPacket;
 import org.cloudburstmc.server.entity.CloudDamageResult;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.entity.data.CloudPaintingData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.network.LevelEffectPacketFactory;
@@ -43,12 +44,20 @@ public class EntityPainting extends CloudEntity implements Painting {
     private static final int SUPPORT_CHECK_INTERVAL = 20;
     private static final float HALF_THICKNESS = 1f / 32;
 
-    private PaintingVariant variant = PaintingVariant.KEBAB;
     private int supportCheckTicks;
     private boolean breaking;
 
+    private final CloudPaintingData persistenceState;
+
     public EntityPainting(EntityType<Painting> type, Location location) {
-        super(type, location);
+        CloudPaintingData state = new CloudPaintingData();
+        super(type, location, state);
+        this.persistenceState = state;
+    }
+
+    @Override
+    protected CloudPaintingData data() {
+        return this.persistenceState;
     }
 
     @Override
@@ -58,17 +67,17 @@ public class EntityPainting extends CloudEntity implements Painting {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
+    protected void loadCustom(NbtMap tag) {
+        super.loadCustom(tag);
         tag.listenForByte("Direction", facing -> this.setRotation(facing * 90f, 0));
         tag.listenForString("Motive", name -> this.setVariant(readVariant(name)));
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    protected void saveCustom(NbtMapBuilder tag) {
+        super.saveCustom(tag);
         tag.putByte("Direction", (byte) this.getFacing().getHorizontalIndex());
-        tag.putString("Motive", networkTitle(this.variant));
+        tag.putString("Motive", networkTitle(this.data().getVariant()));
         tag.putInt("TileX", this.anchor().getX());
         tag.putInt("TileY", this.anchor().getY());
         tag.putInt("TileZ", this.anchor().getZ());
@@ -76,12 +85,12 @@ public class EntityPainting extends CloudEntity implements Painting {
 
     @Override
     public PaintingVariant getVariant() {
-        return this.variant;
+        return this.data().getVariant();
     }
 
     @Override
     public void setVariant(PaintingVariant variant) {
-        this.variant = Objects.requireNonNull(variant, "variant");
+        this.data().setVariant(Objects.requireNonNull(variant, "variant"));
         this.recalculateBoundingBox();
         this.refreshAppearance();
     }
@@ -112,7 +121,7 @@ public class EntityPainting extends CloudEntity implements Painting {
 
     @Override
     public void recalculateBoundingBox() {
-        this.boundingBox = bounds(this.anchor(), this.getFacing(), this.variant == null ? PaintingVariant.KEBAB : this.variant);
+        this.boundingBox = bounds(this.anchor(), this.getFacing(), this.data().getVariant() == null ? PaintingVariant.KEBAB : this.data().getVariant());
     }
 
     @Override
@@ -130,7 +139,7 @@ public class EntityPainting extends CloudEntity implements Painting {
         this.supportCheckTicks += tickDiff;
         if (this.supportCheckTicks >= SUPPORT_CHECK_INTERVAL) {
             this.supportCheckTicks %= SUPPORT_CHECK_INTERVAL;
-            Fit fit = this.checkFit(this.variant);
+            Fit fit = this.checkFit(this.data().getVariant());
             if (fit == Fit.UNSUPPORTED) {
                 this.breakPainting(HangingBreakCause.PHYSICS, null);
             } else if (fit == Fit.OBSTRUCTED) {
@@ -182,7 +191,7 @@ public class EntityPainting extends CloudEntity implements Painting {
     }
 
     public boolean fitsWall() {
-        return this.checkFit(this.variant) == Fit.VALID;
+        return this.checkFit(this.data().getVariant()) == Fit.VALID;
     }
 
     public boolean spawnOnWall() {
@@ -284,7 +293,7 @@ public class EntityPainting extends CloudEntity implements Painting {
         packet.setRuntimeEntityId(this.getRuntimeId());
         packet.setPosition(center(this.boundingBox));
         packet.setDirection(this.getFacing().getHorizontalIndex());
-        packet.setMotive(networkTitle(this.variant));
+        packet.setMotive(networkTitle(this.data().getVariant()));
         return packet;
     }
 

@@ -15,6 +15,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.component.LecternBlockHandlers;
+import org.cloudburstmc.server.blockentity.data.CloudLecternData;
 import org.cloudburstmc.server.container.screen.CloudLecternContainerScreen;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -23,15 +24,21 @@ import java.util.Objects;
 
 public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
 
-    private ItemStack book = ItemStack.EMPTY;
-    private int page;
+    private final CloudLecternData persistenceState;
 
     public LecternBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position);
+        CloudLecternData state = new CloudLecternData();
+        super(type, chunk, position, state);
+        this.persistenceState = state;
     }
 
     public static boolean isBook(ItemStack item) {
         return !item.isEmpty() && (item.getType() == ItemTypes.WRITABLE_BOOK || item.getType() == ItemTypes.WRITTEN_BOOK);
+    }
+
+    @Override
+    protected CloudLecternData data() {
+        return this.persistenceState;
     }
 
     @Override
@@ -63,12 +70,12 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
 
     @Override
     public boolean hasBook() {
-        return !this.book.isEmpty();
+        return !this.getBook().isEmpty();
     }
 
     @Override
     public ItemStack getBook() {
-        return this.book;
+        return Objects.requireNonNullElse(this.data().getBook(), ItemStack.EMPTY);
     }
 
     @Override
@@ -78,12 +85,12 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
         }
 
         ItemStack next = item.isEmpty() ? ItemStack.EMPTY : item.withCount(1);
-        if (this.book.equals(next)) {
+        if (this.getBook().equals(next)) {
             return;
         }
 
-        this.book = next;
-        this.page = 0;
+        this.storeBook(next);
+        this.data().setPage(next.isEmpty() ? null : 0);
         this.publishChange();
         if (next.isEmpty()) {
             this.closeReaders();
@@ -92,20 +99,20 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
 
     @Override
     public int getTotalPages() {
-        WrittenBook data = this.book.get(ItemDataComponents.BOOK_DATA);
+        WrittenBook data = this.getBook().get(ItemDataComponents.BOOK_DATA);
         return data == null ? 0 : data.getPages().size();
     }
 
     @Override
     public int getPage() {
-        return this.page;
+        return Objects.requireNonNullElse(this.data().getPage(), 0);
     }
 
     @Override
     public void setPage(int page) {
         int next = Math.clamp(page, 0, this.lastPage());
-        if (next != this.page) {
-            this.page = next;
+        if (next != this.getPage()) {
+            this.data().setPage(next);
             this.publishChange();
             LecternBlockHandlers.pulse(this.getBlock());
         }
@@ -116,22 +123,15 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-        ItemStack stored = ItemStackNbtCodec.deserializeItem(tag.getCompound("book", NbtMap.EMPTY));
-        this.book = isBook(stored) ? stored.withCount(1) : ItemStack.EMPTY;
-        this.page = Math.clamp(tag.getInt("page", 0), 0, this.lastPage());
+    protected void loadCustom(NbtMap tag) {
+        ItemStack stored = Boolean.TRUE.equals(this.data().getHasBook()) ? this.getBook() : ItemStack.EMPTY;
+        this.storeBook(isBook(stored) ? stored.withCount(1) : ItemStack.EMPTY);
+        this.data().setPage(this.hasBook() ? Math.clamp(tag.getInt("page", 0), 0, this.lastPage()) : null);
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-        this.writeBookData(tag);
-    }
-
-    @Override
-    public void saveClientData(NbtMapBuilder tag) {
-        super.saveClientData(tag);
+    public void saveCustomClient(NbtMapBuilder tag) {
+        super.saveCustomClient(tag);
         Vector3i position = this.getPosition();
         tag.putInt("x", position.getX()).putInt("y", position.getY()).putInt("z", position.getZ());
         tag.putInt("BlockEntityVersion", 0);
@@ -141,11 +141,17 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
     private void writeBookData(NbtMapBuilder tag) {
         tag.putBoolean("hasBook", this.hasBook());
         if (this.hasBook()) {
-            tag.putCompound("book", ItemStackNbtCodec.serializeItem(this.book).toBuilder()
+            tag.putCompound("book", ItemStackNbtCodec.serializeItem(this.getBook()).toBuilder()
                     .putBoolean("WasPickedUp", false).build());
-            tag.putInt("page", this.page);
+            tag.putInt("page", this.getPage());
             tag.putInt("totalPages", this.getTotalPages());
         }
+    }
+
+    private void storeBook(ItemStack book) {
+        this.data().setBook(book.isEmpty() ? null : book);
+        this.data().setHasBook(book.isEmpty() ? null : true);
+        this.data().setTotalPages(this.hasBook() ? this.getTotalPages() : null);
     }
 
     private void publishChange() {
@@ -157,8 +163,9 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
 
     @Override
     public void onBreak() {
-        ItemStack stored = this.book;
-        this.book = ItemStack.EMPTY;
+        ItemStack stored = this.getBook();
+        this.storeBook(ItemStack.EMPTY);
+        this.data().setPage(null);
         this.closeReaders();
         if (!stored.isEmpty()) {
             this.getLevel().dropBlockContents(this.getPosition(), stored);

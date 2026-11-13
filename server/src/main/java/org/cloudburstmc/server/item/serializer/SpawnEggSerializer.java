@@ -1,12 +1,11 @@
 package org.cloudburstmc.server.item.serializer;
 
-import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.hostile.*;
 import org.cloudburstmc.api.entity.passive.*;
-import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemStackBuilder;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;

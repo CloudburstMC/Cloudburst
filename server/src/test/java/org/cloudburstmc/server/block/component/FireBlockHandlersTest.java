@@ -1,6 +1,8 @@
 package org.cloudburstmc.server.block.component;
 
-import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.testutil.BlockTestRegistry;
