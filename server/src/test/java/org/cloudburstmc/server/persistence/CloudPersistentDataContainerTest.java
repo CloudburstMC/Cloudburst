@@ -33,16 +33,58 @@ class CloudPersistentDataContainerTest {
         assertEquals(42, data.get(first, PersistentDataType.INTEGER).orElseThrow().intValue());
         assertEquals("ready", data.get(second, PersistentDataType.STRING).orElseThrow());
         assertTrue(data.get(first, PersistentDataType.LONG).isEmpty());
+        assertTrue(data.has(first));
+        assertTrue(data.has(first, PersistentDataType.INTEGER));
+        assertFalse(data.has(first, PersistentDataType.LONG));
+        assertEquals(7L, data.getOrDefault(first, PersistentDataType.LONG, 7L).longValue());
         assertEquals(2, changes.get());
 
         data.remove(first);
         data.remove(second);
         data.remove(second);
         assertEquals(4, changes.get());
+        assertTrue(data.isEmpty());
 
-        NbtMapBuilder empty = NbtMap.builder();
-        data.save(empty);
-        assertFalse(empty.build().containsKey(CloudPersistentDataContainer.STORAGE_KEY));
+        data.save(saved);
+        assertFalse(saved.build().containsKey(CloudPersistentDataContainer.STORAGE_KEY));
+    }
+
+    @Test
+    void malformedStoredKeysStayOutOfTheView() {
+        CloudPersistentDataContainer data = new CloudPersistentDataContainer(() -> {});
+        Identifier valid = Identifier.parse("plugin:score");
+        NbtMap stored = NbtMap.builder()
+                .putInt(valid.toString(), 42)
+                .putInt("bad!namespace:key", 1)
+                .build();
+        NbtMap tag = NbtMap.builder()
+                .putCompound(CloudPersistentDataContainer.STORAGE_KEY, stored)
+                .build();
+
+        data.load(tag);
+
+        assertEquals(Set.of(valid), data.getKeys());
+        assertThrows(IllegalArgumentException.class, () -> data.has(Identifier.EMPTY));
+
+        NbtMapBuilder saved = NbtMap.builder();
+        data.save(saved);
+        assertEquals(stored, saved.build().getCompound(CloudPersistentDataContainer.STORAGE_KEY));
+    }
+
+    @Test
+    void adaptersMatchTheStoredPrimitiveTypeAfterReload() {
+        Identifier key = Identifier.parse("plugin:enabled");
+        CloudPersistentDataContainer data = new CloudPersistentDataContainer(() -> {});
+        data.set(key, PersistentDataType.BOOLEAN, true);
+
+        NbtMapBuilder saved = NbtMap.builder();
+        data.save(saved);
+        data.load(saved.build());
+
+        assertTrue(data.has(key, PersistentDataType.BYTE));
+        assertTrue(data.get(key, PersistentDataType.BOOLEAN).orElseThrow());
+        assertEquals((byte) 1, data.get(key, PersistentDataType.BYTE).orElseThrow().byteValue());
+        assertFalse(data.has(key, PersistentDataType.INTEGER));
     }
 
     @Test

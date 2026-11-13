@@ -1,33 +1,81 @@
 package org.cloudburstmc.api.persistence;
 
 /**
- * Identifies a supported value type for a persistent data container.
+ * Converts between a supported storage type and a value used by a plugin.
+ *
+ * @param <P> storage type
+ * @param <C> plugin value type
  */
-public final class PersistentDataType<T> {
+public interface PersistentDataType<P, C> {
 
-    public static final PersistentDataType<Byte> BYTE = new PersistentDataType<>(Byte.class);
-    public static final PersistentDataType<Short> SHORT = new PersistentDataType<>(Short.class);
-    public static final PersistentDataType<Integer> INTEGER = new PersistentDataType<>(Integer.class);
-    public static final PersistentDataType<Long> LONG = new PersistentDataType<>(Long.class);
-    public static final PersistentDataType<Float> FLOAT = new PersistentDataType<>(Float.class);
-    public static final PersistentDataType<Double> DOUBLE = new PersistentDataType<>(Double.class);
-    public static final PersistentDataType<String> STRING = new PersistentDataType<>(String.class);
-    public static final PersistentDataType<byte[]> BYTE_ARRAY = new PersistentDataType<>(byte[].class);
-    public static final PersistentDataType<int[]> INTEGER_ARRAY = new PersistentDataType<>(int[].class);
-    public static final PersistentDataType<long[]> LONG_ARRAY = new PersistentDataType<>(long[].class);
+    PersistentDataType<Byte, Byte> BYTE = identity(Byte.class);
+    PersistentDataType<Short, Short> SHORT = identity(Short.class);
+    PersistentDataType<Integer, Integer> INTEGER = identity(Integer.class);
+    PersistentDataType<Long, Long> LONG = identity(Long.class);
+    PersistentDataType<Float, Float> FLOAT = identity(Float.class);
+    PersistentDataType<Double, Double> DOUBLE = identity(Double.class);
+    PersistentDataType<String, String> STRING = identity(String.class);
+    PersistentDataType<byte[], byte[]> BYTE_ARRAY = identity(byte[].class);
+    PersistentDataType<int[], int[]> INTEGER_ARRAY = identity(int[].class);
+    PersistentDataType<long[], long[]> LONG_ARRAY = identity(long[].class);
 
-    private final Class<T> valueClass;
+    PersistentDataType<Byte, Boolean> BOOLEAN = new PersistentDataType<>() {
+        @Override
+        public Class<Byte> getPrimitiveType() {
+            return Byte.class;
+        }
 
-    private PersistentDataType(Class<T> valueClass) {
-        this.valueClass = valueClass;
-    }
+        @Override
+        public Byte toPrimitive(Boolean value) {
+            return (byte) (value ? 1 : 0);
+        }
+
+        @Override
+        public Boolean fromPrimitive(Byte value) {
+            return value != 0;
+        }
+    };
 
     /**
-     * Returns the Java class accepted by this type.
+     * Returns the class used to store values. It must match a storage class
+     * used by one of the built-in adapters.
      *
-     * @return the value class
+     * @return the storage class
      */
-    public Class<T> getValueClass() {
-        return this.valueClass;
+    Class<P> getPrimitiveType();
+
+    /**
+     * Converts a plugin value for storage.
+     *
+     * @param value non-null plugin value
+     * @return non-null storage value
+     */
+    P toPrimitive(C value);
+
+    /**
+     * Converts a stored value to its plugin representation.
+     *
+     * @param value non-null storage value
+     * @return non-null plugin value
+     */
+    C fromPrimitive(P value);
+
+    private static <T> PersistentDataType<T, T> identity(Class<T> type) {
+        return new PersistentDataType<>() {
+            @Override
+            public Class<T> getPrimitiveType() {
+                return type;
+            }
+
+            @Override
+            public T toPrimitive(T value) {
+                return value;
+            }
+
+            @Override
+            public T fromPrimitive(T value) {
+                return value;
+            }
+        };
     }
 }
