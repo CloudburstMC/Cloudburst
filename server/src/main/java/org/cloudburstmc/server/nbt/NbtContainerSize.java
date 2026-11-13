@@ -6,14 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Declares the slot count of an item container property, so a read with no existing
- * container instance can create one of the right size.
- * <p>
- * The property is still written and filled by the container serializer the server
- * registers; this annotation only supplies the size for
- * {@link org.cloudburstmc.api.inventory.ItemContainers#detached(int)} when there is
- * nothing to fill in place. A container property without it fails its read when its
- * current value is {@code null}.
+ * Supplies the slot count when loading an item container property with no existing container.
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)

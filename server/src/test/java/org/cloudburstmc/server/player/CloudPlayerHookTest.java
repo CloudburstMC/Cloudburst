@@ -7,6 +7,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.nbt.ServerNbt;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -336,8 +337,8 @@ class CloudPlayerHookTest {
         for (NbtMap entry : entries) {
             // Only a byte Slot tag binds; any other kind lands on slot 0.
             org.cloudburstmc.server.entity.data.PlayerData data = newData();
-            data.setInventory(org.cloudburstmc.api.inventory.ItemContainers.detached(36));
-            data.setEnderChest(org.cloudburstmc.api.inventory.ItemContainers.detached(27));
+            data.setInventory(new CloudContainer(36));
+            data.setEnderChest(new CloudContainer(27));
             ServerNbt.MAPPER.readInto(NbtMap.builder()
                     .putList("Inventory", NbtType.COMPOUND, List.of(entry))
                     .build(), data);

@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.inventory.ItemContainer;
-import org.cloudburstmc.api.inventory.ItemContainers;
+import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.nbt.NbtContainerSize;
 import org.cloudburstmc.server.nbt.NbtSkipEmpty;
 import org.cloudburstmc.server.nbt.NbtTag;
@@ -27,5 +27,5 @@ public class ChestBoatData extends BoatData {
     @NbtTag(value = NbtTagType.LIST, element = NbtTagType.COMPOUND)
     @NbtContainerSize(27)
     @NbtSkipEmpty
-    private ItemContainer items = ItemContainers.detached(27);
+    private ItemContainer items = new CloudContainer(27);
 }

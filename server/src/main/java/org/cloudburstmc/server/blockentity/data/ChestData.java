@@ -7,8 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.inventory.ItemContainer;
-import org.cloudburstmc.api.inventory.ItemContainers;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.nbt.NbtContainerSize;
 import org.cloudburstmc.server.nbt.NbtTag;
 import org.cloudburstmc.server.nbt.NbtTagType;
@@ -26,7 +26,7 @@ public class ChestData extends ContainerData {
     @JsonProperty("Items")
     @NbtTag(value = NbtTagType.LIST, element = NbtTagType.COMPOUND)
     @NbtContainerSize(27)
-    private ItemContainer items = ItemContainers.detached(27);
+    private ItemContainer items = new CloudContainer(27);
 
     @JsonProperty("Findable")
     private boolean findable;

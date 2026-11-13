@@ -2,13 +2,13 @@ package org.cloudburstmc.server.entity;
 
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.inventory.ItemContainer;
-import org.cloudburstmc.api.inventory.ItemContainers;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
+import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.entity.data.HumanData;
 import org.cloudburstmc.server.entity.data.PlayerData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
@@ -85,10 +85,10 @@ class PlayerPersistenceTest {
         data.setExp(7);
         data.setExpLevel(3);
         data.setSeenCredits(true);
-        ItemContainer inventory = ItemContainers.detached(36);
+        ItemContainer inventory = new CloudContainer(36);
         inventory.setItem(0, diamond);
         data.setInventory(inventory);
-        ItemContainer enderChest = ItemContainers.detached(27);
+        ItemContainer enderChest = new CloudContainer(27);
         enderChest.setItem(4, ingot);
         data.setEnderChest(enderChest);
 
@@ -291,10 +291,10 @@ class PlayerPersistenceTest {
 
         // The containers already hold items, as the wired live containers do.
         PlayerData data = new PlayerData();
-        ItemContainer inventory = ItemContainers.detached(36);
+        ItemContainer inventory = new CloudContainer(36);
         inventory.setItem(1, kept);
         data.setInventory(inventory);
-        ItemContainer enderChest = ItemContainers.detached(27);
+        ItemContainer enderChest = new CloudContainer(27);
         enderChest.setItem(4, kept);
         data.setEnderChest(enderChest);
 
@@ -331,8 +331,8 @@ class PlayerPersistenceTest {
         ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 2);
 
         PlayerData data = new PlayerData();
-        data.setInventory(ItemContainers.detached(36));
-        data.setEnderChest(ItemContainers.detached(27));
+        data.setInventory(new CloudContainer(36));
+        data.setEnderChest(new CloudContainer(27));
 
         // An entry without a Slot binds slot 0, as the old byte read defaulted to.
         NbtMapBuilder entryBuilder = NbtMap.builder();
@@ -351,7 +351,7 @@ class PlayerPersistenceTest {
         ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 2);
 
         PlayerData data = new PlayerData();
-        ItemContainer inventory = ItemContainers.detached(36);
+        ItemContainer inventory = new CloudContainer(36);
         data.setInventory(inventory);
 
         // An out-of-range Slot fails the load with a bare exception, as the old

@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.nbt.serializer;
 
 import org.cloudburstmc.api.inventory.ItemContainer;
-import org.cloudburstmc.api.inventory.ItemContainers;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.nbt.NbtContainerSize;
 import org.cloudburstmc.server.nbt.NbtKeepUnlisted;
 import org.cloudburstmc.server.nbt.NbtKindMismatchException;
@@ -55,13 +55,10 @@ public final class ItemContainerDeserializer extends StdDeserializer<ItemContain
 
     @Override
     public ValueDeserializer<?> createContextual(DeserializationContext ctxt, BeanProperty property) {
-        NbtContainerSize annotation =
-                property == null ? null : property.getAnnotation(NbtContainerSize.class);
+        NbtContainerSize annotation = property == null ? null : property.getAnnotation(NbtContainerSize.class);
         boolean positional = property != null && property.getAnnotation(NbtPositional.class) != null;
-        boolean keepUnlisted =
-                property != null && property.getAnnotation(NbtKeepUnlisted.class) != null;
-        return new ItemContainerDeserializer(annotation == null ? -1 : annotation.value(), positional,
-                keepUnlisted);
+        boolean keepUnlisted = property != null && property.getAnnotation(NbtKeepUnlisted.class) != null;
+        return new ItemContainerDeserializer(annotation == null ? -1 : annotation.value(), positional, keepUnlisted);
     }
 
     @Override
@@ -79,14 +76,23 @@ public final class ItemContainerDeserializer extends StdDeserializer<ItemContain
             return (ItemContainer) ctxt.handleUnexpectedToken(ItemContainer.class, p);
         }
         p.skipChildren();
+
         // Stage every entry before the container is created, so a failed
         // read never leaves a partially filled container behind.
-        List<StagedEntry> staged = positional ? stagePositional(p, list, size)
-                : keepUnlisted ? stageKeepUnlisted(p, list, size) : stage(p, list, size);
-        ItemContainer created = ItemContainers.detached(size);
+        List<StagedEntry> staged;
+        if (positional) {
+            staged = stagePositional(p, list, size);
+        } else if (keepUnlisted) {
+            staged = stageKeepUnlisted(p, list, size);
+        } else {
+            staged = stage(p, list, size);
+        }
+
+        ItemContainer created = new CloudContainer(size);
         for (StagedEntry entry : staged) {
             created.setItem(entry.slot(), entry.item());
         }
+
         return created;
     }
 

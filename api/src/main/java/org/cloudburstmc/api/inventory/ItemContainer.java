@@ -7,63 +7,47 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Represents ownerless fixed-size item storage.
- *
- * <p>An item container holds a fixed number of item slots addressed by zero-based index.
- * Empty slots are represented by {@link ItemStack#EMPTY}. Unlike
- * {@link org.cloudburstmc.api.inventory.view.SlotGroup}, a container is not attached to an
- * open inventory screen; it is the storage itself, such as the backing store of a block
- * entity inventory or a detached container held by a data object.</p>
+ * Item slots addressed by zero-based index. Empty slots return {@link ItemStack#EMPTY}.
  */
 public interface ItemContainer {
 
     /**
-     * Returns the number of slots in this group.
+     * Returns the number of slots.
      *
      * @return the slot count
      */
     int size();
 
     /**
-     * Returns the item at the given slot index within this group.
+     * Returns the item in a slot.
      *
-     * @param slot the slot index (0-based, within this group)
-     * @return the item stack, never {@code null}
+     * @param slot the slot index
+     * @return the item stack, or {@link ItemStack#EMPTY} if the slot is empty
      */
     ItemStack getItem(int slot);
 
     /**
-     * Sets the item at the given slot index within this group.
+     * Replaces the item in a slot.
      *
-     * @param slot      the slot index (0-based, within this group)
-     * @param itemStack the item to place; use {@link ItemStack#EMPTY} to clear
+     * @param slot      the slot index
+     * @param itemStack the replacement, or {@link ItemStack#EMPTY} to clear the slot
      */
     void setItem(int slot, ItemStack itemStack);
 
     /**
      * Returns the maximum number of items that can stack in the given slot.
      *
-     * <p>The default implementation returns {@code 64}, which is correct for most slots.
-     * Implementations should override this when a slot has a different limit, such as a
-     * tool-only slot with max-stack 1, or a slot whose limit is item-dependent.
-     * When the limit depends on the item currently in the slot, implementations should
-     * inspect {@link #getItem(int)} to decide.</p>
-     *
-     * @param slot the slot index (0-based, within this group)
-     * @return the maximum stack size for that slot, always &gt;= 1
+     * @param slot the slot index
+     * @return the slot's stack limit
      */
     default int getMaxStackSize(int slot) {
         return 64;
     }
 
     /**
-     * Returns a snapshot of all items in this group as an array.
+     * Returns a snapshot of all slots in index order, including empty slots.
      *
-     * <p>The returned array has length {@link #size()}, where index {@code i}
-     * corresponds to {@link #getItem(int) getItem(i)}. Modifying the returned
-     * array does not affect the underlying slot group.</p>
-     *
-     * @return a new array containing all items in this group
+     * @return a new array containing the slot contents
      */
     default ItemStack[] getContents() {
         ItemStack[] contents = new ItemStack[size()];
@@ -74,13 +58,9 @@ public interface ItemContainer {
     }
 
     /**
-     * Replaces the contents of this slot group with the given array.
+     * Replaces all slots in index order. A {@code null} or {@link ItemStack#EMPTY} entry clears its slot.
      *
-     * <p>The array must have a length equal to {@link #size()}. Each element replaces
-     * the corresponding slot; a {@code null} or {@link ItemStack#EMPTY} element clears
-     * that slot.</p>
-     *
-     * @param contents the new contents; length must equal {@link #size()}
+     * @param contents the new contents
      * @throws IllegalArgumentException if {@code contents.length != size()}
      */
     default void setContents(ItemStack[] contents) {
@@ -181,15 +161,10 @@ public interface ItemContainer {
     }
 
     /**
-     * Attempts to add the given item stacks to this slot group, first filling existing partial
-     * stacks that can stack with the given items, then occupying empty slots.
+     * Adds items to matching partial stacks before using empty slots, subject to stack limits.
      *
-     * <p>Per-slot stack limits are respected by calling {@link #getMaxStackSize(int)} for each
-     * slot. Implementations that host items with special stack limits (e.g. tools with a max of 1)
-     * should override {@code getMaxStackSize} accordingly.</p>
-     *
-     * @param items the item stacks to add; {@link ItemStack#EMPTY} entries are ignored
-     * @return an array of any items that could not fit (leftovers); empty if all items were added
+     * @param items the stacks to add, ignoring empty stacks
+     * @return the stacks that could not fit
      */
     default ItemStack[] addItem(ItemStack... items) {
         List<ItemStack> remaining = new ArrayList<>(Arrays.asList(items));
@@ -201,15 +176,18 @@ public interface ItemContainer {
             if (slot.isEmpty() || slot.getCount() >= maxStack) {
                 continue;
             }
+
             for (int j = 0; j < remaining.size(); j++) {
                 ItemStack toAdd = remaining.get(j);
                 if (!slot.isStackableWith(toAdd)) {
                     continue;
                 }
+
                 int space = maxStack - slot.getCount();
                 int transfer = Math.min(space, toAdd.getCount());
                 setItem(i, slot.increaseCount(transfer));
                 slot = getItem(i);
+
                 toAdd = toAdd.decreaseCount(transfer);
                 if (toAdd.getCount() <= 0) {
                     remaining.remove(j);
@@ -217,6 +195,7 @@ public interface ItemContainer {
                 } else {
                     remaining.set(j, toAdd);
                 }
+
                 if (slot.getCount() >= maxStack) {
                     break;
                 }
@@ -227,12 +206,14 @@ public interface ItemContainer {
             if (!getItem(i).isEmpty()) {
                 continue;
             }
-            ItemStack toAdd = remaining.get(0);
+
+            ItemStack toAdd = remaining.getFirst();
             int amount = Math.min(getMaxStackSize(i), toAdd.getCount());
             setItem(i, toAdd.withCount(amount));
+
             toAdd = toAdd.decreaseCount(amount);
             if (toAdd.getCount() <= 0) {
-                remaining.remove(0);
+                remaining.removeFirst();
             } else {
                 remaining.set(0, toAdd);
             }

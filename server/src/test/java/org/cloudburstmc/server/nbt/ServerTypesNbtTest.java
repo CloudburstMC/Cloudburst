@@ -3,7 +3,6 @@ package org.cloudburstmc.server.nbt;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.cloudburstmc.api.inventory.ItemContainer;
-import org.cloudburstmc.api.inventory.ItemContainers;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.potion.EffectType;
@@ -11,6 +10,7 @@ import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.junit.jupiter.api.Test;
@@ -206,7 +206,7 @@ class ServerTypesNbtTest {
         @JsonProperty("Items")
         @NbtTag(value = NbtTagType.LIST, element = NbtTagType.COMPOUND)
         @NbtContainerSize(SIZE)
-        ItemContainer items = ItemContainers.detached(SIZE);
+        ItemContainer items = new CloudContainer(SIZE);
     }
 
     @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)

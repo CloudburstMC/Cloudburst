@@ -1,29 +1,18 @@
 package org.cloudburstmc.server.container;
 
 import org.cloudburstmc.api.inventory.ItemContainer;
-import org.cloudburstmc.api.inventory.ItemContainers;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CloudContainerItemContainerTest {
 
     @Test
-    void cloudContainerIsDetachedFactoryDefault() {
-
-        ItemContainer detached = ItemContainers.detached(27);
-
-        assertInstanceOf(CloudContainer.class, detached);
-        assertEquals(27, detached.size());
-    }
-
-    @Test
     void cloudContainerSlotOperations() {
-        CloudContainer container = new CloudContainer(3);
+        ItemContainer container = new CloudContainer(3);
         container.setItem(0, ItemStack.from(ItemTypes.DIRT, 32));
 
         ItemStack[] leftover = container.addItem(ItemStack.from(ItemTypes.DIRT, 40));

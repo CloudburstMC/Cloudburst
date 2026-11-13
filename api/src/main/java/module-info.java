@@ -21,7 +21,6 @@ open module org.cloudburstmc.api {
     requires tools.jackson.dataformat.yaml;
     requires tools.jackson.databind;
 
-    uses org.cloudburstmc.api.inventory.ItemContainerFactory;
     uses org.cloudburstmc.api.registry.BlockRegistry;
 
     exports org.cloudburstmc.api;
