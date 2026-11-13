@@ -2,10 +2,12 @@ package org.cloudburstmc.api.item;
 
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.component.BooleanTypeHandler;
-import org.cloudburstmc.api.block.component.FloatTypeHandler;
+import org.cloudburstmc.api.block.component.IntTypeHandler;
 import org.cloudburstmc.api.data.ComponentType;
 import org.cloudburstmc.api.entity.damage.DamageType;
 import org.cloudburstmc.api.item.component.*;
+import org.cloudburstmc.api.item.data.JukeboxSong;
+import org.cloudburstmc.api.level.sound.SoundType;
 
 /**
  * Standard {@link ComponentType} constants for item behavioral components.
@@ -70,6 +72,12 @@ public class ItemBehaviors {
     public static final ComponentType<CanEnchantWithHandler> CAN_ENCHANT_WITH = ComponentType.of("can_enchant_with", CanEnchantWithHandler.class);
 
     /**
+     * Controls enchanting table eligibility and the bonus used to select enchantments. Zero disables table enchanting.
+     */
+    public static final ComponentType<IntItemHandler> GET_ENCHANTABILITY =
+            ComponentType.of("get_enchantability", IntItemHandler.class);
+
+    /**
      * Determines whether a material may be used to repair an item.
      */
     public static final ComponentType<CanRepairWithHandler> CAN_REPAIR_WITH = ComponentType.of("can_repair_with", CanRepairWithHandler.class);
@@ -105,9 +113,9 @@ public class ItemBehaviors {
     public static final ComponentType<FoodComponent> FOOD = ComponentType.of("food", FoodComponent.class);
 
     /**
-     * Supplies the burn duration when this item type is used as fuel.
+     * Supplies the furnace burn duration in ticks. Zero means the item is not fuel.
      */
-    public static final ComponentType<FloatTypeHandler> FUEL_DURATION = ComponentType.of("fuel_duration", FloatTypeHandler.class);
+    public static final ComponentType<IntTypeHandler> FUEL_DURATION = ComponentType.of("fuel_duration", IntTypeHandler.class);
 
     /**
      * Calculates the base melee damage dealt with this item.
@@ -124,7 +132,7 @@ public class ItemBehaviors {
      *
      * <p>The handler returns an {@link java.util.Optional} containing the block state.</p>
      */
-    public static final ComponentType<GetItemHandler> GET_BLOCK = ComponentType.of("get_block", GetItemHandler.class);
+    public static final ComponentType<GetBlockStateHandler> GET_BLOCK = ComponentType.of("get_block", GetBlockStateHandler.class);
 
     /**
      * Supplies how many seconds a successful melee attack disables item blocking.
@@ -140,6 +148,11 @@ public class ItemBehaviors {
      * Obtains the slot occupied when an item is equipped, or {@code null} if it is not equipment.
      */
     public static final ComponentType<GetEquipmentSlotHandler> GET_EQUIPMENT_SLOT = ComponentType.of("get_equipment_slot", GetEquipmentSlotHandler.class);
+
+    /**
+     * Sound played when the item is equipped in its intended slot.
+     */
+    public static final ComponentType<SoundType> EQUIP_SOUND = ComponentType.of("equip_sound", SoundType.class);
 
     /**
      * Calculates an item's maximum durability.
@@ -160,6 +173,11 @@ public class ItemBehaviors {
      * Applies the item changes caused by successfully mining a block.
      */
     public static final ComponentType<MineBlockHandler> MINE_BLOCK = ComponentType.of("mine_block", MineBlockHandler.class);
+
+    /**
+     * The track a jukebox plays when this item is inserted.
+     */
+    public static final ComponentType<JukeboxSong> JUKEBOX_PLAYABLE = ComponentType.of("jukebox_playable", JukeboxSong.class);
 
     /**
      * Applies feedback when an item's durability is exhausted, before its slot is cleared.
@@ -195,6 +213,11 @@ public class ItemBehaviors {
      * Defines how many ticks an item must be used before its use completes.
      */
     public static final ComponentType<Integer> USE_DURATION_TICKS = ComponentType.of("use_duration_ticks", Integer.class);
+
+    /**
+     * Percentage chance to raise a nonempty composter by one layer. Absence means the item is not compostable.
+     */
+    public static final ComponentType<Integer> COMPOSTING_CHANCE = ComponentType.of("composting_chance", Integer.class);
 
     /**
      * Applies the behavior for using an item on a block and returns the resulting item stack.

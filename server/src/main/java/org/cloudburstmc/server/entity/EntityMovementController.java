@@ -14,6 +14,8 @@ import java.util.Optional;
 public class EntityMovementController {
 
     private static final float GROUND_PROBE_DISTANCE = 1.0E-4f;
+    private static final float CLIMB_SLIDE_SPEED = 0.15f;
+    private static final float CLIMB_ASCENT_SPEED = 0.2f;
 
     public static void move(CloudEntity entity, MovementType type, float dx, float dy, float dz) {
         if (dx == 0 && dz == 0 && dy == 0) {
@@ -30,8 +32,15 @@ public class EntityMovementController {
             return;
         }
 
-        BoundingBox previousBox = entity.boundingBox;
         Vector3f requestedMovement = Vector3f.from(dx, dy, dz);
+        boolean climbsWithServerMotion = type == MovementType.SELF && entity instanceof EntityLiving living && !entity.isPlayer && living.isClimbing();
+        if (climbsWithServerMotion) {
+            requestedMovement = clampClimbingMotion(requestedMovement);
+            entity.motion = requestedMovement;
+            entity.resetFallDistance();
+        }
+
+        BoundingBox previousBox = entity.boundingBox;
         Vector3f resolvedMovement = collide(entity, type, requestedMovement);
         EntityMovementResult movementResult = new EntityMovementResult(requestedMovement, resolvedMovement);
 
@@ -44,10 +53,21 @@ public class EntityMovementController {
         entity.recordMovement(previousBox, entity.boundingBox);
         applyCollisionState(entity, movementResult);
         stopBlockedMotion(entity, movementResult);
-        entity.updateFallState(entity.onGround);
+
+        boolean climbing = entity instanceof EntityLiving living && living.isClimbing();
+        if (climbing) {
+            entity.resetFallDistance();
+            if (climbsWithServerMotion && movementResult.collidedHorizontally()) {
+                entity.motion = Vector3f.from(entity.motion.getX(), CLIMB_ASCENT_SPEED, entity.motion.getZ());
+            }
+        } else {
+            entity.updateFallState(entity.onGround);
+        }
+
         if (type != MovementType.PLAYER && entity instanceof EntityCreature creature) {
             creature.updateEnchantmentLocationEffects();
         }
+
         synchronizeForcedMovement(entity, type, previousBox);
     }
 
@@ -55,6 +75,14 @@ public class EntityMovementController {
         entity.onGround = onGround;
         entity.isCollidedHorizontally = horizontalCollision;
         checkSupportingBlock(entity, onGround, movement);
+    }
+
+    private static Vector3f clampClimbingMotion(Vector3f movement) {
+        return Vector3f.from(
+                Math.clamp(movement.getX(), -CLIMB_SLIDE_SPEED, CLIMB_SLIDE_SPEED),
+                Math.max(movement.getY(), -CLIMB_SLIDE_SPEED),
+                Math.clamp(movement.getZ(), -CLIMB_SLIDE_SPEED, CLIMB_SLIDE_SPEED)
+        );
     }
 
     private static void synchronizeForcedMovement(CloudEntity entity, MovementType type, BoundingBox previousBox) {

@@ -123,10 +123,9 @@ public class CloudVirtualDoubleChestScreen extends CloudContainerScreen implemen
                 return;
             }
             ContainerOpenPacket openPkt = new ContainerOpenPacket();
-            openPkt.setId(player.assignContainerId(backingContainer));
             openPkt.setType(ContainerType.CONTAINER);
             openPkt.setBlockPosition(anchorPos);
-            this.openWindow(openPkt);
+            this.openWindow(openPkt, backingContainer);
             player.getInventoryManager().sendAllInventories();
         }, OPEN_DELAY_TICKS);
     }

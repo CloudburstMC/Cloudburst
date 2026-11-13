@@ -157,7 +157,7 @@ public class EntityFireworksRocket extends EntityProjectile implements Fireworks
             ProjectileHitEvent event = new ProjectileHitEvent(this, blockHit);
             this.server.getEventManager().fire(event);
             if (!event.isCancelled()) {
-                blockHit.block().requireComponent(BlockComponents.ON_PROJECTILE_HIT).execute(blockHit.block(), this);
+                blockHit.block().requireComponent(BlockComponents.ON_PROJECTILE_HIT).execute(blockHit, this);
                 if (!this.getFireworkData().getExplosions().isEmpty()) {
                     this.explode();
                     return;

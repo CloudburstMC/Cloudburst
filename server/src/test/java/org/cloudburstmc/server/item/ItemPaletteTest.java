@@ -36,7 +36,7 @@ class ItemPaletteTest {
         assertNotEquals(0, air.getRuntimeId());
         assertSame(air, palette.getDefinition(air.getRuntimeId()));
         assertNull(palette.getDefinition(0));
-        assertSame(ItemData.AIR, ItemUtils.toNetwork(ItemStack.EMPTY));
+        assertSame(ItemData.AIR, ItemStackPacketCodec.toNetwork(ItemStack.EMPTY));
         assertNull(palette.getDefinition(Integer.MAX_VALUE));
         assertThrows(UnsupportedOperationException.class, definitions::clear);
     }

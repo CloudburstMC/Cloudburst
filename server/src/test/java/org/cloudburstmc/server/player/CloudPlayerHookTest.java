@@ -7,7 +7,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.nbt.ServerNbt;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -324,7 +324,7 @@ class CloudPlayerHookTest {
     void nonByteSlotBindsSlotZero() {
         PersistenceFixtures.ensureInitialized();
         ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 2);
-        NbtMap base = ItemUtils.serializeItem(diamond);
+        NbtMap base = ItemStackNbtCodec.serializeItem(diamond);
         NbtMapBuilder shortBuilder = NbtMap.builder();
         shortBuilder.putAll(base);
         shortBuilder.putShort("Slot", (short) 2);

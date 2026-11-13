@@ -9,7 +9,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -45,7 +45,7 @@ class ThrownTridentPersistenceTest {
         EntityThrownTrident trident = (EntityThrownTrident) PersistenceFixtures.entity(EntityTypes.THROWN_TRIDENT);
         ItemStack stack = ItemStack.from(ItemTypes.TRIDENT);
         NbtMap input = NbtMap.builder()
-                .putCompound("Trident", ItemUtils.serializeItem(stack))
+                .putCompound("Trident", ItemStackNbtCodec.serializeItem(stack))
                 .putBoolean("DealtDamage", true)
                 .putInt("Mystery", 7)
                 .build();
@@ -83,7 +83,7 @@ class ThrownTridentPersistenceTest {
         assertEquals(expectedKeys, saved.keySet());
 
         // Today's save always writes the empty trident, no dealt damage and the base damage.
-        assertEquals(ItemUtils.serializeItem(ItemStack.EMPTY), saved.getCompound("Trident"));
+        assertEquals(ItemStackNbtCodec.serializeItem(ItemStack.EMPTY), saved.getCompound("Trident"));
         assertEquals(NbtType.BYTE, NbtType.byClass(saved.get("DealtDamage").getClass()), "DealtDamage must be a byte");
         assertEquals(false, saved.getBoolean("DealtDamage"));
         assertTrue(saved.get("damage") instanceof Float, "damage must be a float");
@@ -95,7 +95,7 @@ class ThrownTridentPersistenceTest {
         EntityThrownTrident trident = (EntityThrownTrident) PersistenceFixtures.entity(EntityTypes.THROWN_TRIDENT);
         ItemStack stack = ItemStack.from(ItemTypes.TRIDENT);
         trident.loadAdditionalData(NbtMap.builder()
-                .putCompound("Trident", ItemUtils.serializeItem(stack))
+                .putCompound("Trident", ItemStackNbtCodec.serializeItem(stack))
                 .putBoolean("DealtDamage", true)
                 .build());
 

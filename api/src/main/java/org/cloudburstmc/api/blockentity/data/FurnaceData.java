@@ -27,11 +27,11 @@ public class FurnaceData extends BlockEntityData {
     private ItemContainer items = ItemContainers.detached(3);
 
     @JsonProperty("CookTime")
-    private short cookTime;
+    private int cookTime;
 
     @JsonProperty("BurnTime")
-    private short burnTime;
+    private int burnTime;
 
     @JsonProperty("BurnDuration")
-    private short burnDuration;
+    private int burnDuration;
 }

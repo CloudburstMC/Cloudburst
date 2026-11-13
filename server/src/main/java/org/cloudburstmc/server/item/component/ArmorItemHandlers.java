@@ -64,7 +64,7 @@ public class ArmorItemHandlers {
 
             ItemStack itemToEquip = itemStack.withCount(1);
             armor.setItem(armorSlot, itemToEquip);
-            player.getItemStackNetManager().recordServerAuthoritativeArmorUse(armorSlot);
+            player.getInventoryRequestQueue().recordServerAuthoritativeArmorUse(armorSlot);
             player.getLevel().playSound(player.getPosition(), equipSound);
 
             if (itemStack.getCount() == 1) {

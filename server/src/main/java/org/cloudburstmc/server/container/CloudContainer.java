@@ -1,14 +1,12 @@
 package org.cloudburstmc.server.container;
 
-import com.google.common.base.Preconditions;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.*;
@@ -16,7 +14,10 @@ import java.util.function.ObjIntConsumer;
 
 public class CloudContainer implements Container {
 
+    private static final ScopedValue<SlotWriteBatch> SLOT_WRITES = ScopedValue.newInstance();
+
     protected final ContainerStorage storage;
+    @Getter
     protected final Set<ContainerListener> listeners = new HashSet<>();
     protected final int maxStackSize;
     protected final ItemRegistry itemRegistry;
@@ -59,6 +60,40 @@ public class CloudContainer implements Container {
         this.itemRegistry = CloudItemRegistry.get();
     }
 
+    public static void applySlotWrites(Runnable writer) {
+        if (SLOT_WRITES.isBound()) {
+            throw new IllegalStateException("Nested slot write batch");
+        }
+
+        SlotWriteBatch batch = new SlotWriteBatch();
+        try {
+            ScopedValue.where(SLOT_WRITES, batch).run(writer);
+        } catch (RuntimeException | Error failure) {
+            batch.restore();
+            throw failure;
+        }
+
+        batch.publish();
+    }
+
+    public static void afterSlotWrites(Runnable callback) {
+        if (SLOT_WRITES.isBound()) {
+            SLOT_WRITES.get().callbacks.add(callback);
+        } else {
+            callback.run();
+        }
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String getTitle() {
+        return title;
+    }
+
     @Override
     public int size() {
         return storage.size();
@@ -79,16 +114,6 @@ public class CloudContainer implements Container {
     }
 
     @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public String getTitle() {
-        return title;
-    }
-
-    @Override
     @NonNull
     public ItemStack getItem(int index) {
         return this.storage.get(index);
@@ -97,6 +122,38 @@ public class CloudContainer implements Container {
     @Override
     public ItemStack[] getContents() {
         return this.storage.getContents();
+    }
+
+    @Override
+    public void forEachSlot(ObjIntConsumer<ItemStack> consumer) {
+        for (int i = 0; i < this.size(); i++) {
+            ItemStack item = this.getItem(i);
+            consumer.accept(item, i);
+        }
+    }
+
+    @Override
+    public void setItem(int index, @NonNull ItemStack item) {
+        Objects.requireNonNull(item, "item");
+        checkSlotIndex(index);
+
+        if (!item.isEmpty()) {
+            this.itemRegistry.getId(item.getType());
+            item = item.normalizeBlockState();
+        }
+
+        ItemStack old = this.storage.get(index);
+        if (old.equals(item)) {
+            return;
+        }
+
+        this.storage.set(index, item);
+
+        if (SLOT_WRITES.isBound()) {
+            SLOT_WRITES.get().record(this, index, old);
+        } else {
+            this.onSlotChange(index, old);
+        }
     }
 
     @Override
@@ -116,37 +173,34 @@ public class CloudContainer implements Container {
         }
     }
 
-    @Override
-    public void setItem(int index, @NonNull ItemStack item) {
-        Objects.requireNonNull(item, "item");
-        checkSlotIndex(index);
-
-        item = item.normalizeBlockState();
-
-        // TODO: check if the item is valid with the registry
-
-//        InventoryHolder holder = this.getHolder();
-//        if (holder instanceof BaseEntity) {
-//            EntityInventoryChangeEvent ev = new EntityInventoryChangeEvent((BaseEntity) holder, this.getItem(index), item, index);
-//            CloudServer.getInstance().getEventManager().fire(ev);
-//            if (ev.isCancelled()) {
-//                this.sendSlot(index, this.getListeners());
-//                return false;
-//            }
-//
-//            item = ev.getNewItem();
-//        }
-//
-//        if (holder instanceof BlockEntity) {
-//            ((BlockEntity) holder).setDirty();
-//        }
-
-        ItemStack old = this.storage.get(index);
-        if (old.equals(item)) {
-            return;
+    protected void checkSlotIndex(int index) {
+        if (index < 0 || index >= this.size()) {
+            throw new IndexOutOfBoundsException("Slot index out of range: " + index);
         }
-        this.storage.set(index, item);
-        this.onSlotChange(index, old);
+    }
+
+    @Override
+    public boolean isEmpty() {
+        for (int i = 0; i < this.size(); i++) {
+            ItemStack item = this.getItem(i);
+            if (!item.isEmpty()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean isFull() {
+        for (int i = 0; i < this.size(); i++) {
+            ItemStack item = this.getItem(i);
+            if (item.isEmpty() || item.getCount() < this.stackLimit(item)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     @Override
@@ -176,15 +230,6 @@ public class CloudContainer implements Container {
         }
 
         return slots;
-    }
-
-    @Override
-    public void remove(ItemStack item) {
-        for (int i = 0; i < this.size(); ++i) {
-            if (this.getItem(i).isStackableWith(item)) {
-                this.setItem(i, ItemStack.EMPTY);
-            }
-        }
     }
 
     @Override
@@ -228,11 +273,9 @@ public class CloudContainer implements Container {
             return firstEmpty();
         }
 
-        int count = single ? 1 : item.getCount();
-        int maxStackSize = Math.min(
-                this.maxStackSize,
-                this.itemRegistry.requireComponent(item.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute(item)
-        );
+        ItemStack normalized = item.normalizeBlockState();
+        int count = single ? 1 : normalized.getCount();
+        int maxStackSize = this.stackLimit(normalized);
 
         for (int i = 0; i < this.size(); ++i) {
             ItemStack slot = this.getItem(i);
@@ -243,7 +286,7 @@ public class CloudContainer implements Container {
                 continue;
             }
 
-            if (slot.getCount() + count <= maxStackSize && slot.isStackableWith(item)) {
+            if (count <= maxStackSize - slot.getCount() && slot.isStackableWith(normalized)) {
                 return i;
             }
         }
@@ -252,210 +295,123 @@ public class CloudContainer implements Container {
     }
 
     @Override
-    public void decrementCount(int slot) {
-        ItemStack item = this.getItem(slot);
+    public boolean canAddItem(ItemStack item) {
+        return item.isEmpty() || this.getFreeSpace(item) >= item.getCount();
+    }
 
-        if (item.getCount() > 0) {
-            this.setItem(slot, item.decreaseCount());
+    public int getFreeSpace(ItemStack item) {
+        if (item.isEmpty()) {
+            return 0;
+        }
+
+        ItemStack normalized = item.normalizeBlockState();
+        int limit = this.stackLimit(normalized);
+        int space = 0;
+        for (int slot = 0; slot < this.size(); slot++) {
+            ItemStack current = this.getItem(slot);
+            if (current.isEmpty()) {
+                space += limit;
+            } else if (current.isStackableWith(normalized)) {
+                space += Math.max(0, limit - current.getCount());
+            }
+        }
+
+        return space;
+    }
+
+    private int stackLimit(ItemStack item) {
+        int itemLimit = this.itemRegistry.requireComponent(item.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute(item);
+        return Math.clamp(itemLimit, 0, Math.max(0, this.getMaxStackSize()));
+    }
+
+    @Override
+    public ItemStack[] addItem(ItemStack... items) {
+        List<ItemStack> leftovers = new ArrayList<>();
+        for (ItemStack item : items) {
+            if (item.isEmpty()) {
+                continue;
+            }
+
+            this.itemRegistry.getId(item.getType());
+            ItemStack normalized = item.normalizeBlockState();
+            int remaining = normalized.getCount();
+            int limit = this.stackLimit(normalized);
+            for (int slot = 0; slot < this.size() && remaining > 0; slot++) {
+                ItemStack current = this.getItem(slot);
+                if (!current.isEmpty() && current.isStackableWith(normalized)) {
+                    int added = Math.clamp(limit - current.getCount(), 0, remaining);
+                    if (added > 0) {
+                        this.setItem(slot, current.increaseCount(added));
+                        remaining -= added;
+                    }
+                }
+            }
+
+            for (int slot = 0; slot < this.size() && remaining > 0 && limit > 0; slot++) {
+                if (this.getItem(slot).isEmpty()) {
+                    int added = Math.min(remaining, limit);
+                    this.setItem(slot, normalized.withCount(added));
+                    remaining -= added;
+                }
+            }
+
+            if (remaining > 0) {
+                leftovers.add(normalized.withCount(remaining));
+            }
+        }
+
+        return leftovers.toArray(ItemStack[]::new);
+    }
+
+    @Override
+    public ItemStack[] removeItem(ItemStack... items) {
+        List<ItemStack> leftovers = new ArrayList<>();
+        for (ItemStack item : items) {
+            if (item.isEmpty()) {
+                continue;
+            }
+
+            ItemStack normalized = item.normalizeBlockState();
+            int remaining = normalized.getCount();
+            for (int slot = 0; slot < this.size() && remaining > 0; slot++) {
+                ItemStack current = this.getItem(slot);
+                if (!current.isEmpty() && current.isStackableWith(normalized)) {
+                    int removed = Math.min(remaining, current.getCount());
+                    this.setItem(slot, current.decreaseCount(removed));
+                    remaining -= removed;
+                }
+            }
+
+            if (remaining > 0) {
+                leftovers.add(normalized.withCount(remaining));
+            }
+        }
+
+        return leftovers.toArray(ItemStack[]::new);
+    }
+
+    @Override
+    public void remove(ItemStack item) {
+        for (int i = 0; i < this.size(); ++i) {
+            if (this.getItem(i).isStackableWith(item)) {
+                this.setItem(i, ItemStack.EMPTY);
+            }
         }
     }
 
     @Override
     public void incrementCount(int slot) {
         ItemStack item = this.getItem(slot);
-
         if (!item.isEmpty() && item.getCount() > 0) {
             this.setItem(slot, item.increaseCount());
         }
     }
 
     @Override
-    public boolean canAddItem(ItemStack item) {
-        int count = item.getCount();
-
-        if (count <= 0) {
-            return true;
-        }
-
-        int maxStackSize = Math.min(
-                this.maxStackSize,
-                this.itemRegistry.requireComponent(item.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute(item)
-        );
-
-        for (int i = 0; i < this.size(); ++i) {
-            ItemStack slot = this.getItem(i);
-            if (slot.isStackableWith(item)) {
-                int diff;
-                if ((diff = maxStackSize - slot.getCount()) > 0) {
-                    count -= diff;
-                }
-            } else if (slot.isEmpty() || slot.getCount() == 0) {
-                count -= maxStackSize;
-            }
-
-            if (count <= 0) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    @SuppressWarnings("SuspiciousListRemoveInLoop")
-    @Override
-    public ItemStack[] addItem(ItemStack... slots) {
-        Preconditions.checkNotNull(slots, "slots");
-
-        if (slots.length == 0) {
-            return slots;
-        }
-
-        List<ItemStack> itemSlots = new ArrayList<>(slots.length);
-        for (ItemStack slot : slots) {
-            if (!slot.isEmpty()) {
-                itemSlots.add(slot);
-            }
-        }
-
-        List<Integer> emptySlots = new ArrayList<>();
-
-        for (int i = 0; i < this.size(); ++i) {
-            ItemStack item = this.getItem(i);
-            if (item.isEmpty()) {
-                emptySlots.add(i);
-                continue;
-            }
-
-            int maxStack = this.itemRegistry.requireComponent(item.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute(item);
-
-            for (int j = 0; j < itemSlots.size(); j++) {
-                ItemStack slot = itemSlots.get(j);
-
-                if (slot.isStackableWith(item) && item.getCount() < maxStack) {
-                    int amount = Math.min(maxStack - item.getCount(), slot.getCount());
-                    amount = Math.min(amount, this.getMaxStackSize());
-                    if (amount > 0) {
-                        slot = slot.decreaseCount(amount);
-                        this.setItem(i, item.increaseCount(amount));
-
-                        if (slot.getCount() <= 0) {
-                            itemSlots.remove(j);
-                            j--;
-                        } else {
-                            itemSlots.set(j, slot);
-                        }
-                    }
-                }
-            }
-
-            if (itemSlots.isEmpty()) {
-                break;
-            }
-        }
-
-        if (!itemSlots.isEmpty() && !emptySlots.isEmpty()) {
-            for (int slotIndex : emptySlots) {
-                if (!itemSlots.isEmpty()) {
-                    ItemStack slot = itemSlots.get(0);
-                    int maxStackSize = this.itemRegistry.requireComponent(slot.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute(slot);
-                    int amount = Math.min(maxStackSize, slot.getCount());
-                    amount = Math.min(amount, this.getMaxStackSize());
-
-                    ItemStack item = slot.withCount(amount);
-                    this.setItem(slotIndex, item);
-
-                    slot = slot.decreaseCount(amount);
-                    if (slot.getCount() <= 0) {
-                        itemSlots.remove(0);
-                    } else {
-                        itemSlots.set(0, slot);
-                    }
-                }
-            }
-        }
-
-        return itemSlots.toArray(new ItemStack[0]);
-    }
-
-    protected int getEmptySlotsCount() {
-        int count = 0;
-
-        for (int i = 0; i < this.size(); i++) {
-            if (this.getItem(i).isEmpty()) {
-                count++;
-            }
-        }
-
-        return count;
-    }
-
-    private synchronized Int2ObjectMap<ItemStack> findCombinable(@NonNull ItemStack item) {
-        Int2ObjectMap<ItemStack> combinable = new Int2ObjectOpenHashMap<>();
-
-        for (int i = 0; i < this.size(); i++) {
-            ItemStack content = this.getItem(i);
-
-            if (content.isStackableWith(item)) {
-                combinable.put(i, content);
-            }
-        }
-
-        return combinable;
-    }
-
-    public boolean addItemToFirstEmptySlot(ItemStack item) {
-        int slot = firstEmpty();
-        if (slot < 0) {
-            return false;
-        }
-
-        setItem(slot, item);
-        return true;
-    }
-
-    @Override
-    public ItemStack[] removeItem(ItemStack... slots) {
-        List<ItemStack> itemSlots = new ArrayList<>();
-        for (ItemStack slot : slots) {
-            if (!slot.isEmpty()) {
-                itemSlots.add(slot);
-            }
-        }
-
-        for (int i = 0; i < this.size(); ++i) {
-            ItemStack item = this.getItem(i);
-            if (item.isEmpty()) {
-                continue;
-            }
-
-            for (int j = 0; j < itemSlots.size(); j++) {
-                ItemStack slot = itemSlots.get(j);
-                if (item.isStackableWith(slot)) {
-                    int count = Math.min(item.getCount(), slot.getCount());
-                    slot = slot.decreaseCount(count);
-                    item = item.decreaseCount(count);
-                    this.setItem(i, item.getCount() <= 0 ? ItemStack.EMPTY : item);
-                    if (slot.getCount() <= 0) {
-                        itemSlots.remove(j);
-                        j--;
-                    } else {
-                        itemSlots.set(j, slot);
-                    }
-                    break;
-                }
-            }
-
-            if (itemSlots.isEmpty()) {
-                break;
-            }
-        }
-
-        return itemSlots.toArray(new ItemStack[0]);
-    }
-
-    protected void checkSlotIndex(int index) {
-        if (index < 0 || index >= this.size()) {
-            throw new IndexOutOfBoundsException("Slot index out of range: " + index);
+    public void decrementCount(int slot) {
+        ItemStack item = this.getItem(slot);
+        if (item.getCount() > 0) {
+            this.setItem(slot, item.decreaseCount());
         }
     }
 
@@ -468,15 +424,28 @@ public class CloudContainer implements Container {
                 changed = true;
             }
         }
+
         if (changed) {
             this.onContentsChange();
         }
     }
 
+    public List<NbtMap> toNbt() {
+        List<NbtMap> items = new ArrayList<>();
+
+        for (int i = 0; i < this.size(); i++) {
+            ItemStack item = this.getItem(i);
+            if (!item.isEmpty()) {
+                items.add(ItemStackNbtCodec.serializeItem(item, i));
+            }
+        }
+
+        return items;
+    }
+
     public void addContainerListener(ContainerListener listener) {
         Objects.requireNonNull(listener, "listener");
         this.listeners.add(listener);
-
         listener.onInventoryContentsChange(this);
     }
 
@@ -485,15 +454,16 @@ public class CloudContainer implements Container {
         this.listeners.remove(listener);
     }
 
-    public Set<ContainerListener> getListeners() {
-        return listeners;
+    @Override
+    public void refresh() {
+        for (ContainerListener listener : this.listeners) {
+            listener.onInventoryContentsChange(this);
+        }
     }
 
-    @Override
-    public void forEachSlot(ObjIntConsumer<ItemStack> consumer) {
-        for (int i = 0; i < this.size(); i++) {
-            ItemStack item = this.getItem(i);
-            consumer.accept(item, i);
+    public void close() {
+        for (ContainerListener listener : this.listeners) {
+            listener.onInventoryRemoved(this);
         }
     }
 
@@ -509,78 +479,31 @@ public class CloudContainer implements Container {
         }
     }
 
-    @Override
-    public void refresh() {
-        for (ContainerListener listener : this.listeners) {
-            listener.onInventoryContentsChange(this);
+    private static class SlotWriteBatch {
+        private final SequencedMap<WrittenSlot, ItemStack> originals = new LinkedHashMap<>();
+        private final Set<Runnable> callbacks = new LinkedHashSet<>();
+
+        private void record(CloudContainer container, int index, ItemStack old) {
+            this.originals.putIfAbsent(new WrittenSlot(container, index), old);
         }
-    }
 
-
-    @Override
-    public boolean isFull() {
-        for (int i = 0; i < this.size(); i++) {
-            ItemStack item = this.getItem(i);
-            if (item.isEmpty() || item.getCount() < this.getMaxStackSize() &&
-                    item.getCount() < this.itemRegistry.requireComponent(item.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute(item)) {
-                return false;
+        private void restore() {
+            for (Map.Entry<WrittenSlot, ItemStack> entry : this.originals.sequencedEntrySet().reversed()) {
+                WrittenSlot slot = entry.getKey();
+                slot.container().storage.set(slot.index(), entry.getValue());
             }
         }
 
-        return true;
+        private void publish() {
+            this.originals.forEach((slot, old) -> {
+                if (!slot.container().getItem(slot.index()).equals(old)) {
+                    slot.container().onSlotChange(slot.index(), old);
+                }
+            });
+            this.callbacks.forEach(Runnable::run);
+        }
     }
 
-    @Override
-    public boolean isEmpty() {
-        if (this.getMaxStackSize() <= 0) {
-            return false;
-        }
-
-        for (int i = 0; i < this.size(); i++) {
-            ItemStack item = this.getItem(i);
-            if (!item.isEmpty()) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    public int getFreeSpace(ItemStack item) {
-        int itemMaxStackSize = this.itemRegistry.requireComponent(item.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute(item);
-        int maxStackSize = Math.min(itemMaxStackSize, this.getMaxStackSize());
-        int space = 0;
-
-        for (ItemStack slot : this.getContents()) {
-            if (slot == null || slot.isEmpty()) {
-                space += maxStackSize;
-                continue;
-            }
-
-            if (slot.isStackableWith(item)) {
-                space += maxStackSize - slot.getCount();
-            }
-        }
-
-        return space;
-    }
-
-    public List<NbtMap> toNbt() {
-        List<NbtMap> items = new ArrayList<>();
-
-        for (int i = 0; i < this.size(); i++) {
-            ItemStack item = this.getItem(i);
-            if (!item.isEmpty()) {
-                items.add(ItemUtils.serializeItem(item, i));
-            }
-        }
-
-        return items;
-    }
-
-    public void close() {
-        for (ContainerListener listener : this.listeners) {
-            listener.onInventoryRemoved(this);
-        }
+    private record WrittenSlot(CloudContainer container, int index) {
     }
 }

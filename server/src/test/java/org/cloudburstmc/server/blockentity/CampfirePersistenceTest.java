@@ -7,7 +7,7 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -37,9 +37,9 @@ class CampfirePersistenceTest {
                 .putInt("z", -5)
                 .putBoolean("isMovable", true)
                 .putString("CustomName", "Campfire")
-                .putCompound("Item1", ItemUtils.serializeItem(ItemStack.from(ItemTypes.DIAMOND, 1)))
+                .putCompound("Item1", ItemStackNbtCodec.serializeItem(ItemStack.from(ItemTypes.DIAMOND, 1)))
                 .putInt("ItemTime1", 100)
-                .putCompound("Item3", ItemUtils.serializeItem(ItemStack.from(ItemTypes.STICK, 1)))
+                .putCompound("Item3", ItemStackNbtCodec.serializeItem(ItemStack.from(ItemTypes.STICK, 1)))
                 .putInt("ItemTime3", 50)
                 .putInt("Mystery", 7)
                 .build();
@@ -54,15 +54,17 @@ class CampfirePersistenceTest {
         NbtMap input = campfireTag();
         entity.loadAdditionalData(input);
 
-        assertEquals(ItemStack.from(ItemTypes.DIAMOND, 1), entity.getItemInFire(0));
-        assertNull(entity.getItemInFire(1));
-        assertEquals(ItemStack.from(ItemTypes.STICK, 1), entity.getItemInFire(2));
-        assertNull(entity.getItemInFire(3));
+        assertEquals(ItemStack.from(ItemTypes.DIAMOND, 1), entity.getItem(0));
+        assertTrue(entity.getItem(1).isEmpty());
+        assertEquals(ItemStack.from(ItemTypes.STICK, 1), entity.getItem(2));
+        assertTrue(entity.getItem(3).isEmpty());
 
         NbtMap saved = entity.getServerTag();
         Set<String> expectedKeys = new HashSet<>(input.keySet());
-        expectedKeys.addAll(Set.of("id", "x", "y", "z"));
+        expectedKeys.addAll(Set.of("id", "x", "y", "z", "ItemDuration1", "ItemDuration3"));
         assertEquals(expectedKeys, saved.keySet());
+        assertEquals(100, saved.getInt("ItemDuration1"));
+        assertEquals(50, saved.getInt("ItemDuration3"));
         for (String key : input.keySet()) {
             assertEquals(input.get(key), saved.get(key), "value of " + key);
             assertEquals(NbtType.byClass(input.get(key).getClass()),
@@ -116,8 +118,8 @@ class CampfirePersistenceTest {
                 "ItemTime1", "ItemTime2", "ItemTime3", "ItemTime4")) {
             assertFalse(saved.containsKey(key), "server tag still has " + key);
         }
-        assertNull(entity.getItemInFire(0));
-        assertNull(entity.getItemInFire(2));
+        assertTrue(entity.getItem(0).isEmpty());
+        assertTrue(entity.getItem(2).isEmpty());
 
         NbtMap client = entity.getClientTag();
         for (String key : Set.of("Item1", "Item2", "Item3", "Item4",
@@ -138,7 +140,7 @@ class CampfirePersistenceTest {
 
         // A fresh campfire holds nothing; every slot and time key stays absent.
         for (int slot = 0; slot < 4; slot++) {
-            assertNull(entity.getItemInFire(slot), "slot " + slot);
+            assertTrue(entity.getItem(slot).isEmpty(), "slot " + slot);
         }
         assertEquals(Set.of("id", "x", "y", "z", "isMovable"), entity.getServerTag().keySet());
         assertEquals(Set.of("id"), entity.getClientTag().keySet());
@@ -152,14 +154,14 @@ class CampfirePersistenceTest {
                 .putInt("x", 10)
                 .putInt("y", 64)
                 .putInt("z", -5)
-                .putCompound("Item1", ItemUtils.serializeItem(ItemStack.from(ItemTypes.DIAMOND, 1)))
+                .putCompound("Item1", ItemStackNbtCodec.serializeItem(ItemStack.from(ItemTypes.DIAMOND, 1)))
                 .putInt("ItemTime2", 50)
                 .build());
 
         // An item without its time cooks from zero; a time without its item is
         // dropped. The save writes exactly the keys it used to.
-        assertEquals(ItemStack.from(ItemTypes.DIAMOND, 1), entity.getItemInFire(0));
-        assertNull(entity.getItemInFire(1));
+        assertEquals(ItemStack.from(ItemTypes.DIAMOND, 1), entity.getItem(0));
+        assertTrue(entity.getItem(1).isEmpty());
 
         NbtMap saved = entity.getServerTag();
         assertEquals(0, saved.getInt("ItemTime1"));

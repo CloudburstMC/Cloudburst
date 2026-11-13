@@ -9,7 +9,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -49,7 +49,7 @@ class DroppedItemPersistenceTest {
                 .putShort("PickupDelay", (short) 20)
                 .putShort("Age", (short) 30)
                 .putLong("OwnerID", 123456789L)
-                .putCompound("Item", ItemUtils.serializeItem(stack))
+                .putCompound("Item", ItemStackNbtCodec.serializeItem(stack))
                 .putInt("Mystery", 7)
                 .build();
         item.loadAdditionalData(input);
@@ -92,7 +92,7 @@ class DroppedItemPersistenceTest {
         assertEquals((short) 0, saved.getShort("Age"));
         assertTrue(saved.get("OwnerID") instanceof Long, "OwnerID must be a long");
         assertEquals(-1L, saved.getLong("OwnerID"));
-        assertEquals(ItemUtils.serializeItem(ItemStack.EMPTY), saved.getCompound("Item"));
+        assertEquals(ItemStackNbtCodec.serializeItem(ItemStack.EMPTY), saved.getCompound("Item"));
     }
 
     @Test
@@ -104,7 +104,7 @@ class DroppedItemPersistenceTest {
                 .putShort("PickupDelay", (short) 20)
                 .putShort("Age", (short) 30)
                 .putLong("OwnerID", 42L)
-                .putCompound("Item", ItemUtils.serializeItem(stack))
+                .putCompound("Item", ItemStackNbtCodec.serializeItem(stack))
                 .build());
 
         item.loadAdditionalData(NbtMap.EMPTY);
@@ -136,7 +136,7 @@ class DroppedItemPersistenceTest {
     void airItemReadsEmpty() {
         EntityDroppedItem item = (EntityDroppedItem) PersistenceFixtures.entity(EntityTypes.ITEM);
         item.loadAdditionalData(NbtMap.builder()
-                .putCompound("Item", ItemUtils.serializeItem(ItemStack.EMPTY))
+                .putCompound("Item", ItemStackNbtCodec.serializeItem(ItemStack.EMPTY))
                 .build());
 
         assertTrue(item.getItem().isEmpty());

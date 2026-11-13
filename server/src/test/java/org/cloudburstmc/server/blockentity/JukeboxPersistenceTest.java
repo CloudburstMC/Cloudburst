@@ -7,7 +7,7 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -34,7 +34,7 @@ class JukeboxPersistenceTest {
                 .putInt("z", -5)
                 .putBoolean("isMovable", true)
                 .putString("CustomName", "Jukebox")
-                .putCompound("RecordItem", ItemUtils.serializeItem(ItemStack.from(ItemTypes.MUSIC_DISC_13, 1)))
+                .putCompound("RecordItem", ItemStackNbtCodec.serializeItem(ItemStack.from(ItemTypes.MUSIC_DISC_13, 1)))
                 .putInt("Mystery", 7)
                 .build();
     }
@@ -48,7 +48,7 @@ class JukeboxPersistenceTest {
         NbtMap input = jukeboxTag();
         entity.loadAdditionalData(input);
 
-        assertEquals(ItemStack.from(ItemTypes.MUSIC_DISC_13, 1), entity.getRecordItem());
+        assertEquals(ItemStack.from(ItemTypes.MUSIC_DISC_13, 1), entity.getRecord());
 
         NbtMap saved = entity.getServerTag();
         Set<String> expectedKeys = new HashSet<>(input.keySet());
@@ -60,7 +60,7 @@ class JukeboxPersistenceTest {
                     NbtType.byClass(saved.get(key).getClass()), "type of " + key);
         }
 
-        assertEquals(Set.of("id"), entity.getClientTag().keySet());
+        assertEquals(Set.of("id", "RecordItem"), entity.getClientTag().keySet());
     }
 
     @Test
@@ -73,7 +73,7 @@ class JukeboxPersistenceTest {
                 .putInt("z", -5)
                 .build());
 
-        assertTrue(entity.getRecordItem().isEmpty());
+        assertTrue(entity.getRecord().isEmpty());
         assertEquals(Set.of("id", "x", "y", "z", "isMovable"), entity.getServerTag().keySet());
         assertEquals(Set.of("id"), entity.getClientTag().keySet());
     }
@@ -86,10 +86,10 @@ class JukeboxPersistenceTest {
                 .putInt("x", 10)
                 .putInt("y", 64)
                 .putInt("z", -5)
-                .putCompound("RecordItem", ItemUtils.serializeItem(ItemStack.EMPTY))
+                .putCompound("RecordItem", ItemStackNbtCodec.serializeItem(ItemStack.EMPTY))
                 .build());
 
-        assertTrue(entity.getRecordItem().isEmpty());
+        assertTrue(entity.getRecord().isEmpty());
         assertEquals(Set.of("id", "x", "y", "z", "isMovable"), entity.getServerTag().keySet());
     }
 
@@ -104,7 +104,7 @@ class JukeboxPersistenceTest {
                 .build());
 
         // A fresh jukebox holds no record.
-        assertTrue(entity.getRecordItem().isEmpty());
+        assertTrue(entity.getRecord().isEmpty());
     }
 
     @Test

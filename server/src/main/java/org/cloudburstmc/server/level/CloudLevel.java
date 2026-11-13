@@ -50,7 +50,6 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.*;
 import org.cloudburstmc.api.util.component.ComponentMap;
-import org.cloudburstmc.api.util.data.SlabSlot;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2i;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -61,15 +60,15 @@ import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.block.BlockLayerRules;
-import org.cloudburstmc.server.block.BlockLayers;
-import org.cloudburstmc.server.block.BlockPalette;
-import org.cloudburstmc.server.block.CloudBlock;
+import org.cloudburstmc.server.block.*;
+import org.cloudburstmc.server.block.component.ComparatorBlockHandlers;
 import org.cloudburstmc.server.block.component.LiquidBlockHandlers;
+import org.cloudburstmc.server.block.util.BlockShapeTransitions;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.blockentity.UnknownBlockEntity;
 import org.cloudburstmc.server.configuration.LevelConfiguration;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.entity.misc.EntityFallingBlock;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.item.ToolUtils;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
@@ -105,6 +104,7 @@ import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.function.LongPredicate;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.random.RandomGenerator;
 
 import static com.google.common.base.Preconditions.*;
@@ -185,11 +185,6 @@ public class CloudLevel implements Level, BlockStateRegion {
             .removalListener(cacheRemover)
             .build();
     private final LevelChunkManager chunkManager;
-    /**
-     * The per-level background light lane. Submissions only enqueue work on
-     * the generation pool; the lane reads level state off the calling thread,
-     * so its view only touches thread-safe state.
-     */
     private final LightScheduler lightScheduler;
     private final CloudLevelData levelData;
     private final CollisionEngine collisionEngine;
@@ -929,25 +924,20 @@ public class CloudLevel implements Level, BlockStateRegion {
         }
     }
 
-    public void updateComparatorOutputLevel(Vector3i v) {
+    public void updateComparatorOutputLevel(Vector3i position) {
         for (Direction face : Direction.Plane.HORIZONTAL) {
-            Vector3i pos = face.relative(v);
+            Block adjacent = this.getLoadedBlock(face.relative(position));
+            if (adjacent == null) {
+                continue;
+            }
 
-            if (this.isChunkLoaded(pos)) {
-                Block block = this.getBlock(pos);
-
-                ComponentMap behaviors = block.getComponents();
-                // FIXME: Needs reimplementation
-//                if (BlockBehaviorRedstoneDiode.isDiode(behavior)) {
-//                    behavior.onUpdate(block, BLOCK_UPDATE_REDSTONE);
-//                } else if (behavior.isNormalBlock(block)) {
-//                    pos = face.getOffset(pos);
-//                    block = this.getBlock(pos);
-//
-//                    if (BlockBehaviorRedstoneDiode.isDiode(behavior)) {
-//                        behavior.onUpdate(block, BLOCK_UPDATE_REDSTONE);
-//                    }
-//                }
+            if (ComparatorBlockHandlers.isComparator(adjacent)) {
+                ComparatorBlockHandlers.SCHEDULE_UPDATE.execute(adjacent);
+            } else if (adjacent.requireComponent(BlockComponents.CONDUCTS_REDSTONE).execute(adjacent.getState())) {
+                Block through = this.getLoadedBlock(face.relative(adjacent.getPosition()));
+                if (through != null && ComparatorBlockHandlers.isComparator(through)) {
+                    ComparatorBlockHandlers.SCHEDULE_UPDATE.execute(through);
+                }
             }
         }
     }
@@ -1369,22 +1359,48 @@ public class CloudLevel implements Level, BlockStateRegion {
         return this.setBlockState(x, y, z, layer, state, direct, update, null, null);
     }
 
-    public boolean removeBlockForFallingEntity(Vector3i position, BlockState replacement, CloudEntity entity) {
+    public boolean removeBlockForFallingEntity(Vector3i position, BlockState replacement, EntityFallingBlock entity) {
         return this.setBlockStateSynced(position, replacement, entity, BlockSyncType.CREATE);
     }
 
-    public boolean placeBlockFromFallingEntity(Vector3i position, BlockState state, CloudEntity entity) {
-        return this.setBlockStateSynced(position, state, entity, BlockSyncType.DESTROY);
+    public boolean placeBlocksFromFallingEntity(List<BlockChange> changes, EntityFallingBlock entity) {
+        Set<Vector3i> positions = new HashSet<>();
+        for (BlockChange change : changes) {
+            Block target = change.block();
+            Vector3i position = target.getPosition();
+            if (target.getLevel() != this || this.isOutsideBuildHeight(position.getY()) || !positions.add(position)) {
+                return false;
+            }
+
+            Block current = this.getBlock(position);
+            if (current.getState() != target.getState() || current.getSecondaryState() != target.getSecondaryState()) {
+                return false;
+            }
+        }
+
+        return this.withBatchedBlockUpdates(() -> {
+            BlockChange landing = changes.getFirst();
+            if (!this.setBlockStateSynced(landing.block().getPosition(), landing.newState(), entity, BlockSyncType.DESTROY)) {
+                return false;
+            }
+
+            for (int index = 1; index < changes.size(); index++) {
+                BlockChange change = changes.get(index);
+                this.setBlockState(change.block().getPosition(), change.newState());
+            }
+
+            return true;
+        });
     }
 
-    private boolean setBlockStateSynced(Vector3i position, BlockState state, CloudEntity entity,
+    private boolean setBlockStateSynced(Vector3i position, BlockState state, EntityFallingBlock entity,
                                         BlockSyncType syncType) {
         return this.setBlockState(position.getX(), position.getY(), position.getZ(), BlockLayer.PRIMARY, state,
                 false, true, Objects.requireNonNull(entity, "entity"), Objects.requireNonNull(syncType, "syncType"));
     }
 
     private boolean setBlockState(int x, int y, int z, BlockLayer layer, BlockState state, boolean direct, boolean update,
-                                  @Nullable CloudEntity syncedEntity, @Nullable BlockSyncType syncType) {
+                                  @Nullable EntityFallingBlock syncedEntity, @Nullable BlockSyncType syncType) {
         if (this.isOutsideBuildHeight(y)) {
             return false;
         }
@@ -1432,6 +1448,12 @@ public class CloudLevel implements Level, BlockStateRegion {
 
         if (syncedEntity != null) {
             this.sendSyncedBlockUpdate(newBlock, syncedEntity, Objects.requireNonNull(syncType, "syncType"));
+            if (syncType == BlockSyncType.DESTROY) {
+                BlockShapeTransitions.pushEntitiesUp(this, position, oldLayers.primary(), newLayers.primary(),
+                        entity -> entity != syncedEntity
+                                && entity instanceof EntityFallingBlock falling
+                                && falling.isUnsettled());
+            }
         } else if (direct) {
             this.sendBlocks(this.getChunkPlayers(cx, cz).toArray(new Player[0]), new Block[]{newBlock}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
         } else {
@@ -1448,7 +1470,7 @@ public class CloudLevel implements Level, BlockStateRegion {
 
         if (this.getBlockState(position) == newLayers.primary() && this.getBlockState(x, y, z, BlockLayer.SECONDARY) == newLayers.secondary()) {
             BlockState previousLiquidState = oldLayers.primary().getType().isLiquid() ? oldLayers.primary() : oldLayers.secondary();
-            LiquidState previousLiquid = previousLiquidState.getType().isLiquid() ? LiquidState.of(previousLiquidState) : LiquidState.empty();
+            LiquidState previousLiquid = previousLiquidState.getType().isLiquid() ? previousLiquidState.getLiquidState() : LiquidState.empty();
             if (!previousLiquid.equals(newBlock.getLiquid())) {
                 this.blockRegistry.requireComponent(newLayers.primary().getType(), BlockComponents.ON_LIQUID_CHANGED).execute(newBlock, previousLiquid);
             }
@@ -1486,9 +1508,16 @@ public class CloudLevel implements Level, BlockStateRegion {
     @Override
     public void batchBlockUpdates(Runnable action) {
         Objects.requireNonNull(action, "action");
+        this.withBatchedBlockUpdates(() -> {
+            action.run();
+            return null;
+        });
+    }
+
+    private <T> T withBatchedBlockUpdates(Supplier<T> action) {
         this.blockUpdateBatchDepth++;
         try {
-            action.run();
+            return action.get();
         } finally {
             if (--this.blockUpdateBatchDepth == 0) {
                 List<Vector3i> changedPositions = List.copyOf(this.batchedNeighbourUpdates);
@@ -1544,7 +1573,7 @@ public class CloudLevel implements Level, BlockStateRegion {
             return true;
         }
 
-        return primary.getLiquidReaction().removesBlock() || BlockLayerRules.canCoexist(primary, LiquidStateAccess.blockState(liquid));
+        return primary.getLiquidReaction().removesBlock() || BlockLayerRules.canCoexist(primary, CloudLiquidState.toBlockState(liquid));
     }
 
     @Override
@@ -1574,11 +1603,11 @@ public class CloudLevel implements Level, BlockStateRegion {
 
         boolean changed;
         if (primary.getType().isLiquid() || primary == BlockStates.AIR) {
-            boolean primaryChanged = this.setBlockState(position, LiquidStateAccess.blockState(liquid));
+            boolean primaryChanged = this.setBlockState(position, CloudLiquidState.toBlockState(liquid));
             boolean secondaryChanged = this.setBlockState(position, BlockLayer.SECONDARY, BlockStates.AIR);
             changed = primaryChanged || secondaryChanged;
         } else {
-            changed = this.setBlockState(position, BlockLayer.SECONDARY, LiquidStateAccess.blockState(liquid));
+            changed = this.setBlockState(position, BlockLayer.SECONDARY, CloudLiquidState.toBlockState(liquid));
         }
 
         if (changed) {
@@ -1626,12 +1655,12 @@ public class CloudLevel implements Level, BlockStateRegion {
             return;
         }
 
-        this.liquidUpdateQueue.add(BlockUpdateEntry.of(position, LiquidStateAccess.blockState(liquid).getType(),
+        this.liquidUpdateQueue.add(BlockUpdateEntry.of(position, CloudLiquidState.toBlockState(liquid).getType(),
                 (long) delay + this.getGameTime()));
     }
 
     private boolean isLiquidUpdateScheduled(Vector3i position, LiquidState liquid) {
-        return this.liquidUpdateQueue.contains(BlockUpdateEntry.probe(position, LiquidStateAccess.blockState(liquid).getType()));
+        return this.liquidUpdateQueue.contains(BlockUpdateEntry.probe(position, CloudLiquidState.toBlockState(liquid).getType()));
     }
 
     private void tickBlock(Vector3i position, BlockType scheduledType) {
@@ -1646,7 +1675,7 @@ public class CloudLevel implements Level, BlockStateRegion {
     private void tickLiquid(Vector3i position, BlockType scheduledType) {
         Block block = this.getBlock(position);
         LiquidState liquid = block.getLiquid();
-        if (liquid.isEmpty() || LiquidStateAccess.blockState(liquid).getType() != scheduledType) {
+        if (liquid.isEmpty() || CloudLiquidState.toBlockState(liquid).getType() != scheduledType) {
             return;
         }
 
@@ -1706,26 +1735,27 @@ public class CloudLevel implements Level, BlockStateRegion {
     }
 
     public void dropBlockItem(Vector3i position, ItemStack item) {
+        if (this.getGameRules().get(GameRules.DO_TILE_DROPS)) {
+            this.dropBlockContents(position, item);
+        }
+    }
+
+    public void dropBlockContents(Vector3i position, ItemStack item) {
         checkNotNull(position, "position");
         checkNotNull(item, "item");
         checkArgument(!item.isEmpty(), "item must not be empty");
+
         float x = position.getX() + 0.5f + this.random.nextFloat(-0.25f, 0.25f);
         float y = position.getY() + 0.375f + this.random.nextFloat(-0.25f, 0.25f);
         float z = position.getZ() + 0.5f + this.random.nextFloat(-0.25f, 0.25f);
-        this.dropBlockItem(Vector3f.from(x, y, z), item);
-    }
 
-    private void dropBlockItem(Vector3f position, ItemStack item) {
-        if (!this.getGameRules().get(GameRules.DO_TILE_DROPS)) {
-            return;
-        }
-
+        Vector3f dropPosition = Vector3f.from(x, y, z);
         if (this.capturedBlockDrops != null) {
-            this.capturedBlockDrops.add(this.createDroppedItem(position, item, null, false, 10));
+            this.capturedBlockDrops.add(this.createDroppedItem(dropPosition, item, null, false, 10));
             return;
         }
 
-        this.dropItem(position, item);
+        this.dropItem(dropPosition, item);
     }
 
     public ItemStack breakBlock(Vector3i pos) {
@@ -1826,12 +1856,17 @@ public class CloudLevel implements Level, BlockStateRegion {
             if (target.getState() == BlockStates.AIR) {
                 return item;
             }
+
             targetBehaviors = target.getComponents();
             correctForDrops = ToolUtils.isCorrectForDrops(item, target.getState());
-            drops = !player.isCreative() && correctForDrops
-                    ? targetBehaviors.require(BlockComponents.GET_LOOT)
-                            .execute(target, lootContext).toArray(ItemStack[]::new)
-                    : new ItemStack[0];
+
+            if (player.isCreative()) {
+                drops = targetBehaviors.require(BlockComponents.GET_CREATIVE_LOOT).execute(target, lootContext)
+                        .toArray(ItemStack[]::new);
+            } else {
+                drops = correctForDrops ? targetBehaviors.require(BlockComponents.GET_LOOT).execute(target, lootContext)
+                        .toArray(ItemStack[]::new) : new ItemStack[0];
+            }
         } else if (!targetBehaviors.require(BlockComponents.IS_BREAKABLE).execute(target, item)) {
             return null;
         } else {
@@ -1874,7 +1909,7 @@ public class CloudLevel implements Level, BlockStateRegion {
                 item = itemBehaviors.require(ItemBehaviors.MINE_BLOCK).execute(item, target, player);
             }
 
-            if (doBlockDrops && player != null && !player.isCreative() && dropItems) {
+            if (doBlockDrops && player != null && dropItems) {
                 for (ItemStack drop : drops) {
                     if (drop != null && !drop.isEmpty() && drop.getCount() > 0) {
                         this.dropBlockItem(pos, drop);
@@ -2043,7 +2078,7 @@ public class CloudLevel implements Level, BlockStateRegion {
      *
      * @return the updated ItemStack if the item was consumed/used, or null if not handled
      */
-    public ItemStack tryUseItem(Block target, Direction face, Vector3f clickPos, ItemStack item, Player player) {
+    public @Nullable ItemStack tryUseItem(Block target, Direction face, Vector3f clickPos, ItemStack item, Player player) {
         ComponentMap itemBehaviors = this.itemRegistry.requireComponents(item.getType());
 
         UseOnHandler useOnHandler = itemBehaviors.get(ItemBehaviors.USE_ON);
@@ -2051,15 +2086,15 @@ public class CloudLevel implements Level, BlockStateRegion {
             return null;
         }
 
-        ItemStack result = useOnHandler.execute(item, player, target.getPosition(), face, clickPos);
-        return Objects.requireNonNullElse(result, item);
+        return useOnHandler.execute(item, player, target.getPosition(), face, clickPos);
     }
 
     /**
      * Attempts to activate an item used in the air.
-     * Requires the item to have a {@code USE} component; items that only have {@code USE_ON} are not applicable here.
      *
-     * @return the updated {@link ItemStack} if the item was consumed/activated, or {@code null} if not handled
+     * @param item   the held item
+     * @param player the player using it
+     * @return the resulting item, or {@code null} when use in the air is unsupported
      */
     public ItemStack tryActivateItem(ItemStack item, Player player) {
         ComponentMap itemBehaviors = this.itemRegistry.requireComponents(item.getType());
@@ -2077,29 +2112,24 @@ public class CloudLevel implements Level, BlockStateRegion {
      * Attempts to place a block from the held item against the target block.
      * Requires a non-empty item.
      *
-     * @return the updated ItemStack after placement, or null if placement was rejected
+     * @return the placement position and remaining item, or null if placement was rejected
      */
-    public ItemStack tryPlaceBlock(Block target, Block side, Direction face, Vector3f clickPos, ItemStack item, Player player, boolean playSound) {
+    public @Nullable BlockPlacementResult tryPlaceBlock(Block target, Block side, Direction face, Vector3f clickPos, ItemStack item, Player player, boolean playSound) {
         ComponentMap itemBehaviors = this.itemRegistry.requireComponents(item.getType());
 
-        @SuppressWarnings("unchecked")
-        BlockState hand = ((Optional<BlockState>) itemBehaviors.require(ItemBehaviors.GET_BLOCK).execute(item)).orElse(null);
+        BlockState hand = itemBehaviors.require(ItemBehaviors.GET_BLOCK).execute(item).orElse(null);
         if (hand == null) {
             return null;
         }
 
-        boolean isSlab = hand.is(BlockTags.SLAB);
-        boolean targetReplaceable = canReplace(target, hand, player, face, clickPos);
-        boolean sideReplaceable = canReplace(side, hand, player, face, clickPos);
-
-        Block block = isSlab
-                ? resolveSlabTarget(hand, target, side, face, clickPos, targetReplaceable, sideReplaceable)
-                : resolveNormalTarget(target, side, targetReplaceable, sideReplaceable);
-        if (block == null) {
+        BlockPlacementContext context = new BlockPlacementContext(target, face, clickPos, player);
+        BlockPlacementTarget placementTarget = BlockPlacementTarget.resolve(hand, side, context);
+        if (placementTarget == null) {
             return null;
         }
 
-        Direction placementFace = block == target && targetReplaceable ? Direction.UP : face;
+        Block block = placementTarget.block();
+        Direction placementFace = placementTarget.placementFace();
         ComponentMap handBehaviors = this.blockRegistry.requireComponents(hand.getType());
         hand = handBehaviors.require(BlockComponents.RESOLVE_PLACEMENT_STATE).execute(hand, block, player, placementFace, clickPos);
         if (hand == null) {
@@ -2121,7 +2151,7 @@ public class CloudLevel implements Level, BlockStateRegion {
         }
 
         VoxelShape handShape = handBehaviors.require(BlockComponents.GET_COLLISION_SHAPE)
-                .execute(hand, BlockShapeContext.at(this, blockPos), CollisionContext.of(player))
+                .execute(hand, BlockShapeContext.at(this, blockPos), CollisionContext.forPlacement(player))
                 .move(blockPos.getX(), blockPos.getY(), blockPos.getZ());
 
         if (!handShape.isEmpty()) {
@@ -2174,6 +2204,10 @@ public class CloudLevel implements Level, BlockStateRegion {
             return null;
         }
 
+        if (this.getLoadedBlockEntity(blockPos) instanceof BaseBlockEntity entity && entity.getBlockState().getType() == hand.getType()) {
+            entity.applyPlacementItem(item);
+        }
+
         if (player != null && !player.isCreative()) {
             item = item.decreaseCount();
         }
@@ -2182,43 +2216,7 @@ public class CloudLevel implements Level, BlockStateRegion {
             this.addLevelSoundEvent(block.getPosition(), SoundEvent.PLACE, BlockPalette.INSTANCE.getDefinition(hand).getRuntimeId());
         }
 
-        return item.getCount() <= 0 ? ItemStack.EMPTY : item;
-    }
-
-    private @Nullable Block resolveSlabTarget(BlockState hand, Block target, Block side, Direction face,
-                                              Vector3f clickPos, boolean targetReplaceable, boolean sideReplaceable) {
-        BlockState targetState = target.getState();
-        if (targetState.is(BlockTags.SLAB) && !targetState.is(BlockTags.DOUBLE_SLAB) && targetState.getType() == hand.getType()) {
-            boolean above = clickPos.getY() > 0.5f;
-            SlabSlot existing = targetState.ensureTrait(BlockTraits.SLAB_SLOT);
-            boolean canMerge = face == Direction.UP ? existing == SlabSlot.BOTTOM
-                    : face == Direction.DOWN ? existing == SlabSlot.TOP
-                      : (existing == SlabSlot.BOTTOM) == above;
-            if (canMerge) {
-                return target;
-            }
-
-            return sideReplaceable ? side : null;
-        }
-
-        if (side.getState().is(BlockTags.SLAB) && !side.getState().is(BlockTags.DOUBLE_SLAB) && side.getState().getType() == hand.getType()) {
-            return side;
-        }
-
-        return resolveNormalTarget(target, side, targetReplaceable, sideReplaceable);
-    }
-
-    private static @Nullable Block resolveNormalTarget(Block target, Block side, boolean targetReplaceable, boolean sideReplaceable) {
-        if (targetReplaceable) {
-            return target;
-        }
-
-        return sideReplaceable ? side : null;
-    }
-
-    private boolean canReplace(Block block, BlockState replacement, @Nullable Player player, Direction face, Vector3f clickPosition) {
-        return this.blockRegistry.requireComponent(block.getState().getType(), BlockComponents.CAN_BE_REPLACED)
-                .execute(block, replacement, player, face, clickPosition);
+        return new BlockPlacementResult(blockPos, item.getCount() <= 0 ? ItemStack.EMPTY : item);
     }
 
     private static final class NeighborUpdate {

@@ -1,22 +1,21 @@
 package org.cloudburstmc.server.blockentity;
 
-import com.google.common.collect.ImmutableList;
-import org.cloudburstmc.api.blockentity.Banner;
-import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.data.BannerData;
 import org.cloudburstmc.api.blockentity.data.BlockEntityData;
+import org.cloudburstmc.api.blockentity.Banner;
+import org.cloudburstmc.api.blockentity.BlockEntityType;
+import org.cloudburstmc.api.item.ItemDataComponents;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemStackBuilder;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.api.util.data.BannerPattern;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.item.data.serializer.BannerDataSerializer;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.Objects;
 
 public class BannerBlockEntity extends BaseBlockEntity implements Banner {
 
@@ -35,79 +34,67 @@ public class BannerBlockEntity extends BaseBlockEntity implements Banner {
     }
 
     @Override
-    protected void loadCustom(NbtMap tag) {
-        // A tag that carries Patterns (even an empty one) marks the
-        // list present, so the server tag keeps an explicitly loaded empty list.
-        // An empty list is stored as absent so the client tag stays as today.
-        data().setPatternsPresent(data().getPatterns() != null);
-        if (data().getPatterns() != null && data().getPatterns().isEmpty()) {
-            data().setPatterns(null);
+    public org.cloudburstmc.api.item.data.BannerData getBannerData() {
+        List<org.cloudburstmc.api.util.data.BannerPattern> patterns = this.data().getPatterns();
+        return org.cloudburstmc.api.item.data.BannerData.of(this.data().getType(), this.data().getBase(), patterns == null ? List.of() : patterns);
+    }
+
+    @Override
+    public void setBannerData(org.cloudburstmc.api.item.data.BannerData data) {
+        Objects.requireNonNull(data, "data");
+        if (!this.getBannerData().equals(data)) {
+            this.storeDesign(data);
+            this.setDirty();
+            if (this.getLevel() != null) {
+                this.spawnToAll();
+            }
         }
     }
 
     @Override
-    protected void saveCustom(NbtMapBuilder tag) {
-        // An explicitly loaded empty list round-trips as an empty list. The DTO
-        // only carries non-empty layers, so the client tag stays as today.
-        if (data().isPatternsPresent()
-                && (data().getPatterns() == null || data().getPatterns().isEmpty())) {
-            tag.putList("Patterns", NbtType.COMPOUND, List.of());
+    public void applyPlacementItem(ItemStack item) {
+        org.cloudburstmc.api.item.data.BannerData supplied = item.get(ItemDataComponents.BANNER_DATA);
+        this.storeDesign(supplied == null ? org.cloudburstmc.api.item.data.BannerData.of(0, item.getOrDefault(ItemDataComponents.COLOR, DyeColor.BLACK), List.of()) : supplied);
+        this.setCustomName(item.get(ItemDataComponents.CUSTOM_NAME));
+        this.setDirty();
+        this.spawnToAll();
+    }
+
+    private void storeDesign(org.cloudburstmc.api.item.data.BannerData design) {
+        this.data().setBase(design.getBase());
+        this.data().setType(design.getType());
+        this.data().setPatterns(design.getPatterns().isEmpty() ? null : design.getPatterns());
+    }
+
+    public ItemStack asItem(boolean includeDesign) {
+        org.cloudburstmc.api.item.data.BannerData design = this.getBannerData();
+        ItemStackBuilder builder = ItemStack.from(ItemTypes.BANNER).toBuilder()
+                .setData(ItemDataComponents.COLOR, design.getBase());
+        if (includeDesign) {
+            if (design.getType() != 0 || !design.getPatterns().isEmpty()) {
+                builder.setData(ItemDataComponents.BANNER_DATA, design);
+            }
+
+            if (this.hasCustomName()) {
+                builder.setData(ItemDataComponents.CUSTOM_NAME, this.getCustomName());
+            }
         }
-    }
 
-    @Override
-    public DyeColor getBase() {
-        return data().getBase();
-    }
-
-    @Override
-    public void setBase(DyeColor color) {
-        data().setBase(checkNotNull(color, "color"));
-    }
-
-    @Override
-    public int getBannerType() {
-        return data().getType();
-    }
-
-    @Override
-    public void setBannerType(int type) {
-        data().setType(type);
-    }
-
-    @Override
-    public void addPattern(BannerPattern pattern) {
-        List<BannerPattern> patterns = data().getPatterns() == null
-                ? new ArrayList<>()
-                : new ArrayList<>(data().getPatterns());
-        patterns.add(pattern);
-        data().setPatterns(patterns);
-    }
-
-    @Override
-    public BannerPattern getPattern(int index) {
-        List<BannerPattern> patterns = data().getPatterns() == null ? List.of() : data().getPatterns();
-        return patterns.get(index);
-    }
-
-    @Override
-    public ImmutableList<BannerPattern> getPatterns() {
-        List<BannerPattern> patterns = data().getPatterns();
-        return patterns == null ? ImmutableList.of() : ImmutableList.copyOf(patterns);
-    }
-
-    @Override
-    public void removePattern(int index) {
-        List<BannerPattern> current = data().getPatterns() == null ? List.of() : data().getPatterns();
-        List<BannerPattern> patterns = new ArrayList<>(current);
-        patterns.remove(index);
-        // An emptied list is stored as absent so the client tag stays as today;
-        // the sticky presence flag still marks it explicitly loaded.
-        data().setPatterns(patterns.isEmpty() ? null : patterns);
+        return builder.build();
     }
 
     @Override
     public boolean isSpawnable() {
         return true;
+    }
+
+    @Override
+    protected void saveCustomClient(NbtMapBuilder tag) {
+        BannerDataSerializer.write(tag, this.getBannerData());
+        if (this.hasCustomName()) {
+            tag.putString("CustomName", this.getCustomName());
+        } else {
+            tag.remove("CustomName");
+        }
     }
 }

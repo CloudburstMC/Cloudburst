@@ -18,7 +18,7 @@ public class BlockLayerRules {
             return resolved;
         }
 
-        LiquidState liquid = LiquidState.of(resolved.secondary());
+        LiquidState liquid = resolved.secondary().getLiquidState();
         boolean wet = liquid.isSource() && liquid.getType().isSameFamily(LiquidTypes.WATER);
         BlockState primary = resolved.primary().withTrait(BlockTraits.IS_DEAD, !wet);
         return primary == resolved.primary() ? resolved : new BlockLayers(primary, resolved.secondary());
@@ -30,7 +30,7 @@ public class BlockLayerRules {
         }
 
         if (primary.is(BlockTags.WATER_SOURCE_PLANTS) || primary.getType() == BlockTypes.BUBBLE_COLUMN) {
-            LiquidState liquid = secondary.getType().isLiquid() ? LiquidState.of(secondary) : LiquidState.empty();
+            LiquidState liquid = secondary.getType().isLiquid() ? secondary.getLiquidState() : LiquidState.empty();
             return liquid.isSource() && liquid.getType().isSameFamily(LiquidTypes.WATER);
         }
 
@@ -46,7 +46,7 @@ public class BlockLayerRules {
     }
 
     public static boolean requiresBlockRemoval(BlockState primary, LiquidState liquid) {
-        return !liquid.isEmpty() && primary.getLiquidReaction().removesBlock() && !canCoexist(primary, LiquidStateAccess.blockState(liquid));
+        return !liquid.isEmpty() && primary.getLiquidReaction().removesBlock() && !canCoexist(primary, CloudLiquidState.toBlockState(liquid));
     }
 
     public static BlockLayers normalizeSnowCover(BlockLayers layers, BlockState support) {
@@ -72,7 +72,7 @@ public class BlockLayerRules {
                 return new BlockLayers(secondary, BlockStates.AIR);
             }
 
-            if (secondary.getType().isLiquid() && LiquidState.of(secondary).isSource()) {
+            if (secondary.getType().isLiquid() && secondary.getLiquidState().isSource()) {
                 return new BlockLayers(secondary, BlockStates.AIR);
             }
 
@@ -84,12 +84,12 @@ public class BlockLayerRules {
         }
 
         if (replacement.getType() == BlockTypes.SEA_PICKLE && !replacement.ensureTrait(BlockTraits.IS_DEAD)
-                && primary.getType().isLiquid() && LiquidState.of(primary).getType().isSameFamily(LiquidTypes.WATER)) {
+                && primary.getType().isLiquid() && primary.getLiquidState().getType().isSameFamily(LiquidTypes.WATER)) {
             return new BlockLayers(replacement, BlockStates.WATER);
         }
 
         if (secondary == BlockStates.AIR && primary.getType().isLiquid()) {
-            LiquidState liquid = LiquidState.of(primary);
+            LiquidState liquid = primary.getLiquidState();
             if ((liquid.isSource() || liquid.isFalling()) && canContainLiquid(replacement, primary)) {
                 return new BlockLayers(replacement, primary);
             }
@@ -115,7 +115,7 @@ public class BlockLayerRules {
             return false;
         }
 
-        LiquidState state = LiquidState.of(liquid);
+        LiquidState state = liquid.getLiquidState();
         return LiquidBlockHandlers.canOccupySecondaryLayer(state) && (state.isSource() ? container.canContainLiquidSource() : container.canContainFlowingLiquid());
     }
 

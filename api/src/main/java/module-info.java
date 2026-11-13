@@ -21,10 +21,13 @@ open module org.cloudburstmc.api {
     requires tools.jackson.dataformat.properties;
     requires tools.jackson.dataformat.yaml;
 
+    uses org.cloudburstmc.api.registry.BlockRegistry;
+
     exports org.cloudburstmc.api;
     exports org.cloudburstmc.api.ban;
     exports org.cloudburstmc.api.block;
     exports org.cloudburstmc.api.block.component;
+    exports org.cloudburstmc.api.block.data;
     exports org.cloudburstmc.api.block.material;
     exports org.cloudburstmc.api.block.trait;
     exports org.cloudburstmc.api.blockentity;

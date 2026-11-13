@@ -66,6 +66,7 @@ import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.BooleanSupplier;
 
 import static com.google.common.base.Preconditions.*;
 import static org.cloudburstmc.api.block.BlockTypes.FIRE;
@@ -2219,7 +2220,10 @@ public abstract class CloudEntity implements Entity {
     public CloudDamageResult damageWithResult(float amount, DamageSource source) {
         CloudEntityDamageEvent event = this.createDamageEvent(source, amount);
         boolean applied = this.applyDamage(event);
-        return new CloudDamageResult(applied, event.isCancelled());
+        if (event.isCancelled()) {
+            return CloudDamageResult.CANCELLED;
+        }
+        return applied ? CloudDamageResult.APPLIED : CloudDamageResult.REJECTED;
     }
 
     /**
@@ -2513,6 +2517,10 @@ public abstract class CloudEntity implements Entity {
     }
 
     public boolean spawn(EntitySpawnEvent event) {
+        return this.spawn(event, () -> true);
+    }
+
+    protected boolean spawn(EntitySpawnEvent event, BooleanSupplier prepareSpawn) {
         if (this.closed || this.spawned) {
             return false;
         }
@@ -2524,6 +2532,10 @@ public abstract class CloudEntity implements Entity {
         this.server.getEventManager().fire(event);
         if (event.isCancelled()) {
             this.closed = true;
+            return false;
+        }
+
+        if (this.closed || this.spawned || !prepareSpawn.getAsBoolean()) {
             return false;
         }
 
@@ -2544,9 +2556,20 @@ public abstract class CloudEntity implements Entity {
             return;
         }
 
+        CloudChunk loadedChunk = this.level.getLoadedChunk(location.getPosition());
+        if (loadedChunk != null) {
+            this.chunk = loadedChunk;
+            loadedChunk.registerEntity(this);
+        }
+
         this.spawned = true;
         this.level.registerEntity(this);
         this.scheduleUpdate();
+
+        if (loadedChunk != null) {
+            this.spawnToAll();
+            return;
+        }
 
         this.level.getChunkFuture(location.getChunkX(), location.getChunkZ()).whenComplete((chunk, throwable) -> {
             if (throwable != null || this.closed || !this.spawned) {

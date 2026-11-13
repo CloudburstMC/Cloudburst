@@ -77,9 +77,9 @@ public interface Living extends Entity, ProjectileSource {
     boolean isBlocking();
 
     /**
-     * Returns whether this entity is in a climbing state on a climbable surface.
+     * Checks whether this entity is on a climbable block, even when stationary.
      *
-     * @return whether the entity is climbing
+     * @return whether the entity can climb at its current position
      */
     boolean isClimbing();
 

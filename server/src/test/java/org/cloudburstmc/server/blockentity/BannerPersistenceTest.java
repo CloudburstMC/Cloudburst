@@ -54,12 +54,12 @@ class BannerPersistenceTest {
         NbtMap input = bannerTag();
         entity.loadAdditionalData(input);
 
-        assertEquals(DyeColor.RED, entity.getBase());
-        assertEquals(0, entity.getBannerType());
+        assertEquals(DyeColor.RED, entity.getBannerData().getBase());
+        assertEquals(0, entity.getBannerData().getType());
         assertEquals(List.of(
                 new BannerPattern(BannerPattern.Type.getByName("cs"), DyeColor.YELLOW),
                 new BannerPattern(BannerPattern.Type.getByName("bo"), DyeColor.BLACK)),
-                entity.getPatterns());
+                entity.getBannerData().getPatterns());
 
         NbtMap saved = entity.getServerTag();
         Set<String> expectedKeys = new HashSet<>(input.keySet());
@@ -72,7 +72,7 @@ class BannerPersistenceTest {
         }
 
         NbtMap client = entity.getClientTag();
-        assertEquals(Set.of("id", "Base", "Type", "Patterns"), client.keySet());
+        assertEquals(Set.of("id", "Base", "Type", "Patterns", "CustomName"), client.keySet());
         for (String key : Set.of("Base", "Type", "Patterns")) {
             assertEquals(input.get(key), client.get(key), "client value of " + key);
             assertEquals(NbtType.byClass(input.get(key).getClass()),
@@ -93,7 +93,7 @@ class BannerPersistenceTest {
                 .putList("Patterns", NbtType.COMPOUND, List.of())
                 .build());
 
-        assertTrue(entity.getPatterns().isEmpty());
+        assertTrue(entity.getBannerData().getPatterns().isEmpty());
 
         NbtMap saved = entity.getServerTag();
         assertTrue(saved.containsKey("Patterns"), "explicitly loaded empty list is kept");
@@ -114,8 +114,8 @@ class BannerPersistenceTest {
                 .putInt("z", -5)
                 .build());
 
-        assertEquals(DyeColor.WHITE, entity.getBase());
-        assertTrue(entity.getPatterns().isEmpty());
+        assertEquals(DyeColor.WHITE, entity.getBannerData().getBase());
+        assertTrue(entity.getBannerData().getPatterns().isEmpty());
 
         NbtMap saved = entity.getServerTag();
         assertEquals(Set.of("id", "x", "y", "z", "isMovable", "Base", "Type"), saved.keySet());
@@ -181,7 +181,10 @@ class BannerPersistenceTest {
         assertEquals("bo", layers.get(1).getString("Pattern"));
 
         // Edge colours keep the old four-bit mask: NONE (-1) saves as 15.
-        entity.addPattern(new BannerPattern(BannerPattern.Type.getByName("cre"), DyeColor.NONE));
+        java.util.List<BannerPattern> patterns = new java.util.ArrayList<>(entity.getBannerData().getPatterns());
+        patterns.add(new BannerPattern(BannerPattern.Type.getByName("cre"), DyeColor.NONE));
+        entity.setBannerData(org.cloudburstmc.api.item.data.BannerData.of(entity.getBannerData().getType(),
+                entity.getBannerData().getBase(), patterns));
         List<NbtMap> relayers = entity.getServerTag().getList("Patterns", NbtType.COMPOUND);
         assertEquals(3, relayers.size());
         assertEquals(15, relayers.get(2).getInt("Color"));

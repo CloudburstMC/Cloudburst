@@ -223,6 +223,7 @@ public final class CloudBlockEntityRegistry implements BlockEntityRegistry {
         registerVanilla(BlockEntityTypes.BARREL, BarrelBlockEntity::new, "Barrel", BarrelData.class);
         registerVanilla(BlockEntityTypes.BEACON, BeaconBlockEntity::new, "Beacon", BeaconData.class);
         registerVanilla(BlockEntityTypes.BED, BedBlockEntity::new, "Bed", BedData.class);
+        registerVanilla(BlockEntityTypes.BELL, BellBlockEntity::new, "Bell", BlockEntityData.class);
         registerVanilla(BlockEntityTypes.BLAST_FURNACE, BlastFurnaceBlockEntity::new, "BlastFurnace", FurnaceData.class);
         registerVanilla(BlockEntityTypes.BREWING_STAND, BrewingStandBlockEntity::new, "BrewingStand", BrewingStandData.class);
         registerVanilla(BlockEntityTypes.CAMPFIRE, CampfireBlockEntity::new, "Campfire", CampfireData.class);
@@ -245,7 +246,7 @@ public final class CloudBlockEntityRegistry implements BlockEntityRegistry {
         registerVanilla(BlockEntityTypes.JUKEBOX, JukeboxBlockEntity::new, "Jukebox", JukeboxData.class);
         registerVanilla(BlockEntityTypes.LECTERN, LecternBlockEntity::new, "Lectern", LecternData.class);
         registerVanilla(BlockEntityTypes.MOVING_BLOCK, MovingBlockEntity::new, "MovingBlock", MovingBlockData.class);
-        registerVanilla(BlockEntityTypes.NOTEBLOCK, MusicBlockEntity::new, "Music", MusicData.class);
+        registerVanilla(BlockEntityTypes.NOTE_BLOCK, NoteBlockEntity::new, "Music", MusicData.class);
         registerVanilla(BlockEntityTypes.PISTON, PistonBlockEntity::new, "PistonArm", BlockEntityData.class);
         registerVanilla(BlockEntityTypes.SHULKER_BOX, ShulkerBoxBlockEntity::new, "ShulkerBox", ShulkerBoxData.class);
         registerVanilla(BlockEntityTypes.SIGN, SignBlockEntity::new, "Sign", SignData.class);

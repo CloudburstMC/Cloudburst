@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.block.data.MultipleFacing;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
@@ -52,16 +53,19 @@ public class FeatureFallenTree extends ReplacingWorldFeature {
 
         if (this.vineChance > 0.0d) {
             if (random.nextDouble() < this.vineChance && this.test(level.getBlockState(x - 1, y, z))) {
-                level.setBlockState(x - 1, y, z, BlockStates.VINE.withTrait(BlockTraits.VINE_DIRECTION_BITS, 8));
+                level.setBlockState(x - 1, y, z, BlockStates.VINE.getData(MultipleFacing.class).orElseThrow().withFace(Direction.EAST, true));
             }
+
             if (random.nextDouble() < this.vineChance && this.test(level.getBlockState(x + 1, y, z))) {
-                level.setBlockState(x + 1, y, z, BlockStates.VINE.withTrait(BlockTraits.VINE_DIRECTION_BITS, 2));
+                level.setBlockState(x + 1, y, z, BlockStates.VINE.getData(MultipleFacing.class).orElseThrow().withFace(Direction.WEST, true));
             }
+
             if (random.nextDouble() < this.vineChance && this.test(level.getBlockState(x, y, z - 1))) {
-                level.setBlockState(x, y, z - 1, BlockStates.VINE.withTrait(BlockTraits.VINE_DIRECTION_BITS, 1));
+                level.setBlockState(x, y, z - 1, BlockStates.VINE.getData(MultipleFacing.class).orElseThrow().withFace(Direction.SOUTH, true));
             }
+
             if (random.nextDouble() < this.vineChance && this.test(level.getBlockState(x, y, z + 1))) {
-                level.setBlockState(x, y, z + 1, BlockStates.VINE.withTrait(BlockTraits.VINE_DIRECTION_BITS, 4));
+                level.setBlockState(x, y, z + 1, BlockStates.VINE.getData(MultipleFacing.class).orElseThrow().withFace(Direction.NORTH, true));
             }
         }
 

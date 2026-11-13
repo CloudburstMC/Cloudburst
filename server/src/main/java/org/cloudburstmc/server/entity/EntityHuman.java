@@ -26,7 +26,8 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.container.CloudContainer;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
+import org.cloudburstmc.server.item.ItemStackPacketCodec;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.CloudPlayerAbilities;
 import org.cloudburstmc.server.utils.SkinUtils;
@@ -100,7 +101,7 @@ public class EntityHuman extends EntityCreature implements Human {
 
         tag.listenForList("Inventory", NbtType.COMPOUND, items -> {
             for (NbtMap itemTag : items) {
-                this.container.setItem(itemTag.getByte("Slot"), ItemUtils.deserializeItem(itemTag));
+                this.container.setItem(itemTag.getByte("Slot"), ItemStackNbtCodec.deserializeItem(itemTag));
             }
         });
 
@@ -385,8 +386,8 @@ public class EntityHuman extends EntityCreature implements Human {
         packet.setPosition(this.getPosition());
         packet.setMotion(this.getMotion());
         packet.setRotation(Vector3f.from(this.getPitch(), this.getYaw(), this.getYaw()));
-        packet.setHand(ItemUtils.toNetwork(ItemStack.EMPTY));
-//        packet.setHand(ItemUtils.toNetwork(this.getInventory().getSelectedItem())); TODO: Fix this
+        packet.setHand(ItemStackPacketCodec.toNetwork(ItemStack.EMPTY));
+//        packet.setHand(ItemStackPacketCodec.toNetwork(this.getInventory().getSelectedItem())); TODO: Fix this
         packet.setCommandPermission(CommandPermission.ANY);
         packet.setPlayerPermission(PlayerPermission.MEMBER);
         packet.setDeviceId("");

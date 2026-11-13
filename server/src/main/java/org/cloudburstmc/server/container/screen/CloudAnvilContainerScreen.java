@@ -11,10 +11,12 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.server.container.Container;
+import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.anvil.AnvilResultCalculator;
 import org.cloudburstmc.server.container.mapping.UIContainerMapping;
 import org.cloudburstmc.server.container.view.CloudAnvilView;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.jspecify.annotations.Nullable;
 
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiConsumer;
@@ -28,6 +30,7 @@ public class CloudAnvilContainerScreen extends CloudBlockContainerScreen impleme
     private static final float ANVIL_DAMAGE_CHANCE = 0.12F;
 
     private final CloudAnvilView anvilSection;
+    private final Runnable refreshResult = this::recomputeResult;
     private boolean updatingResult;
     private boolean onlyRenaming;
 
@@ -69,7 +72,7 @@ public class CloudAnvilContainerScreen extends CloudBlockContainerScreen impleme
     public void setSlot(ContainerSlotType type, int slot, ItemStack item) {
         super.setSlot(type, slot, item);
         if (!updatingResult && (type == ContainerSlotType.ANVIL_INPUT || type == ContainerSlotType.ANVIL_MATERIAL)) {
-            recomputeResult();
+            CloudContainer.afterSlotWrites(this.refreshResult);
         }
     }
 
@@ -92,24 +95,38 @@ public class CloudAnvilContainerScreen extends CloudBlockContainerScreen impleme
                 && slot == ANVIL_RESULT_PROTOCOL_SLOT;
     }
 
-    public ItemStack takeResult(ItemStack expected, int count) {
-        recomputeResult();
-        ItemStack result = anvilSection.getResult();
-        int repairCost = anvilSection.getRepairCost();
-        if (result.isEmpty() || !result.equals(expected) || isInvalidResultCount(result, count) || repairCost <= 0 || !canTakeResult()) {
-            return ItemStack.EMPTY;
+    public @Nullable ResultTake prepareTake(ItemStack expected, int count) {
+        ItemStack result = this.anvilSection.getResult();
+        if (!result.equals(expected)) {
+            return null;
         }
 
-        payRepairCost(repairCost);
-        consumeInputs();
-        anvilSection.setResult(ItemStack.EMPTY);
-        anvilSection.setRepairCost(0);
-        anvilSection.setRepairItemCountCost(0);
-        anvilSection.setRenameText(null);
-        onlyRenaming = false;
-        damageAnvil();
-        player.getLevel().addLevelSoundEvent(block.getPosition(), SoundEvent.RANDOM_ANVIL_USE);
-        return result;
+        return this.prepareTake(result, this.anvilSection.getRepairCost(), this.anvilSection.getRepairItemCountCost(), this.onlyRenaming, count);
+    }
+
+    public ResultQuote quoteRename(String name) {
+        AnvilResultCalculator.AnvilResult result = this.calculateResult(name);
+        return new ResultQuote(result.result(), count -> this.isInvalidResultCount(result.result(), count),
+                count -> this.prepareTake(result.result(), result.repairCost(), result.repairItemCountCost(), result.onlyRenaming(), count));
+    }
+
+    private @Nullable ResultTake prepareTake(ItemStack result, int repairCost, int materialCost, boolean renaming, int count) {
+        if (result.isEmpty() || this.isInvalidResultCount(result, count) || repairCost <= 0 || (!this.player.isCreative() && this.player.getExperienceLevel() < repairCost)) {
+            return null;
+        }
+
+        return new ResultTake(result, () -> {
+            this.consumeInputs(materialCost, renaming);
+            this.anvilSection.setResult(ItemStack.EMPTY);
+        }, () -> {
+            this.anvilSection.setRepairCost(0);
+            this.anvilSection.setRepairItemCountCost(0);
+            this.anvilSection.setRenameText(null);
+            this.onlyRenaming = false;
+            this.payRepairCost(repairCost);
+            this.damageAnvil();
+            this.player.getLevel().addLevelSoundEvent(this.block.getPosition(), SoundEvent.RANDOM_ANVIL_USE);
+        });
     }
 
     @Override
@@ -125,14 +142,7 @@ public class CloudAnvilContainerScreen extends CloudBlockContainerScreen impleme
     }
 
     private void recomputeResult() {
-        AnvilResultCalculator.AnvilResult result = AnvilResultCalculator.calculate(new AnvilResultCalculator.AnvilContext(
-                anvilSection.getInput(),
-                anvilSection.getMaterial(),
-                anvilSection.getRenameText(),
-                anvilSection.getMaximumRepairCost(),
-                player.isCreative(),
-                anvilSection.bypassesEnchantmentLevelRestriction()
-        ));
+        AnvilResultCalculator.AnvilResult result = this.calculateResult(this.anvilSection.getRenameText());
 
         updatingResult = true;
         try {
@@ -146,8 +156,12 @@ public class CloudAnvilContainerScreen extends CloudBlockContainerScreen impleme
         }
     }
 
-    private boolean canTakeResult() {
-        return player.isCreative() || player.getExperienceLevel() >= anvilSection.getRepairCost();
+    private AnvilResultCalculator.AnvilResult calculateResult(@Nullable String name) {
+        return AnvilResultCalculator.calculate(new AnvilResultCalculator.AnvilContext(
+                this.anvilSection.getInput(), this.anvilSection.getMaterial(), name,
+                this.anvilSection.getMaximumRepairCost(), this.player.isCreative(),
+                this.anvilSection.bypassesEnchantmentLevelRestriction())
+        );
     }
 
     private void payRepairCost(int repairCost) {
@@ -158,15 +172,15 @@ public class CloudAnvilContainerScreen extends CloudBlockContainerScreen impleme
         player.setExperience(player.getExperience(), Math.max(0, player.getExperienceLevel() - repairCost));
     }
 
-    private void consumeInputs() {
+    private void consumeInputs(int materialCost, boolean renaming) {
         updatingResult = true;
         try {
             anvilSection.setInput(ItemStack.EMPTY);
 
-            if (anvilSection.getRepairItemCountCost() > 0) {
+            if (materialCost > 0) {
                 ItemStack material = anvilSection.getMaterial();
-                anvilSection.setMaterial(material.decreaseCount(anvilSection.getRepairItemCountCost()));
-            } else if (!onlyRenaming) {
+                anvilSection.setMaterial(material.decreaseCount(materialCost));
+            } else if (!renaming) {
                 anvilSection.setMaterial(ItemStack.EMPTY);
             }
         } finally {

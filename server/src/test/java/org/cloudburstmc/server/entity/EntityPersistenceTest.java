@@ -21,7 +21,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.nbt.ServerNbt;
 import org.cloudburstmc.server.network.NetworkUtils;
@@ -396,12 +396,12 @@ class EntityPersistenceTest {
         ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 2);
         creature.loadAdditionalData(NbtMap.builder()
                 .putList("Armor", NbtType.COMPOUND, List.of(
-                        ItemUtils.serializeItem(diamond, 0),
-                        ItemUtils.serializeItem(ItemStack.EMPTY, 1),
-                        ItemUtils.serializeItem(ItemStack.EMPTY, 2),
-                        ItemUtils.serializeItem(ItemStack.EMPTY, 3)))
+                        ItemStackNbtCodec.serializeItem(diamond, 0),
+                        ItemStackNbtCodec.serializeItem(ItemStack.EMPTY, 1),
+                        ItemStackNbtCodec.serializeItem(ItemStack.EMPTY, 2),
+                        ItemStackNbtCodec.serializeItem(ItemStack.EMPTY, 3)))
                 .putList("Offhand", NbtType.COMPOUND, List.of(
-                        ItemUtils.serializeItem(ItemStack.EMPTY, 0)))
+                        ItemStackNbtCodec.serializeItem(ItemStack.EMPTY, 0)))
                 .build());
 
         assertEquals(diamond, creature.getArmor().getHelmet());
@@ -416,7 +416,7 @@ class EntityPersistenceTest {
 
         List<NbtMap> armor = saved.getList("Armor", NbtType.COMPOUND);
         assertEquals(4, armor.size());
-        assertEquals(ItemUtils.serializeItem(diamond, 3), armor.get(3),
+        assertEquals(ItemStackNbtCodec.serializeItem(diamond, 3), armor.get(3),
                 "a viewer-side armor change must reach the saved tag");
     }
 
@@ -628,10 +628,10 @@ class EntityPersistenceTest {
         creature.loadAdditionalData(NbtMap.builder()
                 .putShort("Fire", (short) 5)
                 .putList("Armor", NbtType.COMPOUND, List.of(
-                        ItemUtils.serializeItem(ItemStack.EMPTY, 0),
-                        ItemUtils.serializeItem(ItemStack.EMPTY, 1),
-                        ItemUtils.serializeItem(ItemStack.EMPTY, 2),
-                        ItemUtils.serializeItem(boots, 3)))
+                        ItemStackNbtCodec.serializeItem(ItemStack.EMPTY, 0),
+                        ItemStackNbtCodec.serializeItem(ItemStack.EMPTY, 1),
+                        ItemStackNbtCodec.serializeItem(ItemStack.EMPTY, 2),
+                        ItemStackNbtCodec.serializeItem(boots, 3)))
                 .build());
 
         // The old load ran setOnFire before the armor was loaded, so no
@@ -647,12 +647,12 @@ class EntityPersistenceTest {
         ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 2);
         creature.getArmor().setBoots(diamond);
 
-        NbtMap ironNoSlot = withoutSlot(ItemUtils.serializeItem(iron, 3));
-        NbtMap goldNoSlot = withoutSlot(ItemUtils.serializeItem(diamond, 0));
+        NbtMap ironNoSlot = withoutSlot(ItemStackNbtCodec.serializeItem(iron, 3));
+        NbtMap goldNoSlot = withoutSlot(ItemStackNbtCodec.serializeItem(diamond, 0));
         creature.loadAdditionalData(NbtMap.builder()
                 .putList("Armor", NbtType.COMPOUND, List.of(ironNoSlot, goldNoSlot))
                 .putList("Offhand", NbtType.COMPOUND,
-                        List.of(withoutSlot(ItemUtils.serializeItem(diamond, 0))))
+                        List.of(withoutSlot(ItemStackNbtCodec.serializeItem(diamond, 0))))
                 .build());
 
         // Entries bind by position, ignoring any Slot tag...

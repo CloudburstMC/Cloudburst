@@ -3,27 +3,33 @@ package org.cloudburstmc.api.crafting;
 import org.cloudburstmc.api.item.ItemStack;
 
 /**
- * A recipe processed by a cooking station (furnace, blast furnace, smoker, campfire).
- * The specific station is identified by {@link #getBlock()}.
+ * A recipe that converts one ingredient into a cooked result at the station returned by {@link #getBlock()}.
  */
 public interface CookingRecipe extends Recipe {
 
     /**
-     * Returns the ingredient descriptor for the input slot.
-     * Can be a tag-based ingredient for recipes that accept a category of items.
+     * @return the ingredient this recipe accepts
      */
     RecipeIngredient getInput();
 
     /**
-     * Returns a representative {@link ItemStack} for the input slot.
-     * Useful for display and item-based recipe matching.
-     * For tag-based inputs this returns a representative concrete item that satisfies the tag.
+     * @return an example ingredient stack
+     * @see #getInput()
      */
     ItemStack getInputItem();
 
     /**
-     * Returns the priority used to order this recipe in the recipe book display.
-     * Lower values are preferred over higher values when multiple cooking recipes match the same input.
+     * @return the match priority, with lower values preferred
      */
     int getPriority();
+
+    /**
+     * @return the number of ticks required to cook one batch
+     */
+    int getCookingTime();
+
+    /**
+     * @return the experience earned for one completed batch, before rounding
+     */
+    float getExperience();
 }

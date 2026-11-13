@@ -10,7 +10,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.cloudburstmc.server.utils.Utils;
@@ -91,12 +91,12 @@ class HumanPersistenceTest {
         ItemStack ingot = ItemStack.from(ItemTypes.GOLD_INGOT, 3);
         NbtMap skin = skinTag();
         // An explicit air slot: today's load stores empty, today's save keeps the raw entry.
-        NbtMap airSlot = ItemUtils.serializeItem(ItemStack.EMPTY, 5);
-        NbtMap enderSlot = ItemUtils.serializeItem(ingot, 4);
+        NbtMap airSlot = ItemStackNbtCodec.serializeItem(ItemStack.EMPTY, 5);
+        NbtMap enderSlot = ItemStackNbtCodec.serializeItem(ingot, 4);
 
         NbtMap input = NbtMap.builder()
                 .putList("Inventory", NbtType.COMPOUND, List.of(
-                        ItemUtils.serializeItem(diamond, 0),
+                        ItemStackNbtCodec.serializeItem(diamond, 0),
                         airSlot))
                 .putString("NameTag", "Steve")
                 .putCompound("Skin", skin)
@@ -125,7 +125,7 @@ class HumanPersistenceTest {
         NbtMap saved = save(human);
 
         // Inventory is preserved from the raw tag; empty slots keep their air entry.
-        assertEquals(List.of(ItemUtils.serializeItem(diamond, 0), airSlot),
+        assertEquals(List.of(ItemStackNbtCodec.serializeItem(diamond, 0), airSlot),
                 saved.getList("Inventory", NbtType.COMPOUND));
         // Player-only keys pass through byte-exact, with the same element types.
         assertEquals(List.of(enderSlot), saved.getList("EnderChestInventory", NbtType.COMPOUND));

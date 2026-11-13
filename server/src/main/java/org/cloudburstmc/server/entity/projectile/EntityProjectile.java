@@ -9,6 +9,7 @@ import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.entity.data.ProjectileData;
 import org.cloudburstmc.api.entity.misc.EnderCrystal;
+import org.cloudburstmc.api.entity.misc.Painting;
 import org.cloudburstmc.api.event.entity.EntityCombustByEntityEvent;
 import org.cloudburstmc.api.event.entity.ProjectileHitEvent;
 import org.cloudburstmc.api.level.BlockShapeMode;
@@ -166,7 +167,7 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
 
     @Override
     public boolean canCollideWith(Entity entity) {
-        return (entity instanceof EntityLiving || entity instanceof EnderCrystal) && !this.onGround;
+        return !this.onGround && (entity instanceof EntityLiving || entity instanceof EnderCrystal || entity instanceof Painting);
     }
 
     @Override
@@ -220,7 +221,7 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
                     this.isCollided = true;
                     this.hadCollision = true;
                     this.onBlockCollision(blockHit);
-                    blockHit.block().requireComponent(BlockComponents.ON_PROJECTILE_HIT).execute(blockHit.block(), this);
+                    blockHit.block().requireComponent(BlockComponents.ON_PROJECTILE_HIT).execute(blockHit, this);
                     this.motion = Vector3f.ZERO;
                     this.updateMovement();
                     this.flushEntityData();

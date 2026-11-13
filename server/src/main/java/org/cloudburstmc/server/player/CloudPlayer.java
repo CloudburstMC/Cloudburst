@@ -66,12 +66,9 @@ import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.*;
-import org.cloudburstmc.protocol.common.PacketSignal;
 import org.cloudburstmc.protocol.common.util.OptionalBoolean;
 import org.cloudburstmc.server.Achievement;
 import org.cloudburstmc.server.CloudServer;
@@ -88,6 +85,7 @@ import org.cloudburstmc.server.container.screen.*;
 import org.cloudburstmc.server.container.view.CloudEnderChestView;
 import org.cloudburstmc.server.container.view.CloudHotbarView;
 import org.cloudburstmc.server.container.view.CloudPlayerInventory;
+import org.cloudburstmc.server.entity.CloudDamageResult;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
@@ -97,17 +95,17 @@ import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.event.server.PlayerPacketSendEvent;
 import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackPacketCodec;
 import org.cloudburstmc.server.item.component.ArmorItemHandlers;
 import org.cloudburstmc.server.item.component.ConsumableItemHandlers;
 import org.cloudburstmc.server.nbt.SkinNbt;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.EndPortals;
-import org.cloudburstmc.server.network.LevelTimePacketFactory;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.network.*;
-import org.cloudburstmc.server.network.inventory.ItemStackNetManager;
+import org.cloudburstmc.server.network.inventory.InventoryRequestQueue;
 import org.cloudburstmc.server.network.nethernet.CloudLoginTimeoutHandler;
+import org.cloudburstmc.server.network.nethernet.CloudNetherNetPeer;
 import org.cloudburstmc.server.permission.CloudPermissible;
 import org.cloudburstmc.server.player.handler.PlayerPacketHandler;
 import org.cloudburstmc.server.player.manager.PlayerChunkManager;
@@ -123,7 +121,6 @@ import java.net.SocketAddress;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -161,7 +158,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     protected final Map<UUID, CloudPlayer> hiddenPlayers = new HashMap<>();
 
     @Getter
-    private final ItemStackNetManager itemStackNetManager = new ItemStackNetManager(this);
+    private final InventoryRequestQueue inventoryRequestQueue = new InventoryRequestQueue(this);
 
     @Getter(AccessLevel.NONE)
     private final CloudPlayerInventory inventory = new CloudPlayerInventory(this, this.container);
@@ -172,17 +169,10 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     @Getter
     private final CloudContainer enderChestContainer = new CloudContainer(27);
 
-    private final Map<Container, Byte> containerToWindowId = new HashMap<>();
-    private final Map<Byte, Container> windowIdToContainer = new HashMap<>();
-
-    private Container uiContainer;
-    private ContainerSlotType uiContainerSlotType;
-    private int uiContainerSlotOffset;
-
     private final CloudEnderChestView enderChest = new CloudEnderChestView(this);
     private final PlayerInventoryManager invManager = new PlayerInventoryManager(this);
 
-    private final Queue<BedrockPacket> inboundQueue = new ConcurrentLinkedQueue<>();
+    private final GameplayPacketQueue inboundQueue;
     private final AtomicReference<Locale> locale = new AtomicReference<>(null);
 
     @Getter
@@ -242,6 +232,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     private Entity killer = null;
     private boolean foodEnabled = true;
     private boolean wasUnderwater;
+    private boolean scaffoldDescentInput;
 
     public long lastBreak;
     public Block breakingBlock = null;
@@ -259,7 +250,6 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     @Getter
     private int selectedHotbarSlot = 0;
 
-    private byte containerIdCounter = 1;
     private final Map<ItemType, Integer> itemCooldowns = new HashMap<>();
     protected int startAction = -1;
     private @Nullable ItemStack activeUseStack;
@@ -273,7 +263,6 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         super(EntityTypes.PLAYER, Location.from(CloudServer.getInstance().getDefaultLevel()));
         this.session = session;
         this.packetHandler = new PlayerPacketHandler(this);
-        session.setPacketHandler(new Handler());
         this.server = CloudServer.getInstance();
         this.lastBreak = -1;
         this.spawnLocation = null;
@@ -307,6 +296,8 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         // in place.
         this.data().setInventory(this.container);
         this.data().setEnderChest(this.enderChestContainer);
+        this.data().setEnchantmentSeed(ThreadLocalRandom.current().nextInt());
+        this.inboundQueue = ((CloudNetherNetPeer) session.getPeer()).startGameplay(session, new Handler());
     }
 
     private static boolean hasSubstantiallyMoved(Vector3f oldPos, Vector3f newPos) {
@@ -432,6 +423,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             return;
         }
 
+        this.server.getNetwork().reportExternalJoin(this.session.getPeer().getChannel());
         if (event.getJoinMessage() != null) {
             this.server.broadcast(event.getJoinMessage());
         }
@@ -534,10 +526,10 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     private MobArmorEquipmentPacket buildArmorEquipmentPacket() {
         MobArmorEquipmentPacket packet = new MobArmorEquipmentPacket();
         packet.setRuntimeEntityId(this.getRuntimeId());
-        packet.setHelmet(ItemUtils.toNetwork(this.armor.getHelmet()));
-        packet.setChestplate(ItemUtils.toNetwork(this.armor.getChestplate()));
-        packet.setLeggings(ItemUtils.toNetwork(this.armor.getLeggings()));
-        packet.setBoots(ItemUtils.toNetwork(this.armor.getBoots()));
+        packet.setHelmet(ItemStackPacketCodec.toNetwork(this.armor.getHelmet()));
+        packet.setChestplate(ItemStackPacketCodec.toNetwork(this.armor.getChestplate()));
+        packet.setLeggings(ItemStackPacketCodec.toNetwork(this.armor.getLeggings()));
+        packet.setBoots(ItemStackPacketCodec.toNetwork(this.armor.getBoots()));
         packet.setBody(ItemData.AIR);
         return packet;
     }
@@ -545,7 +537,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     private MobEquipmentPacket createEquipmentPacket(ItemStack item, int containerId, int slot) {
         MobEquipmentPacket packet = new MobEquipmentPacket();
         packet.setRuntimeEntityId(this.getRuntimeId());
-        packet.setItem(ItemUtils.toNetwork(item));
+        packet.setItem(ItemStackPacketCodec.toNetwork(item));
         packet.setContainerId(containerId);
         packet.setInventorySlot(slot);
         packet.setHotbarSlot(containerId == ContainerId.OFFHAND ? -1 : slot);
@@ -570,7 +562,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         packet.setPosition(this.getPosition());
         packet.setMotion(this.getMotion());
         packet.setRotation(Vector3f.from(this.getPitch(), this.getYaw(), this.getYaw()));
-        packet.setHand(ItemUtils.toNetwork(this.getInventory().getSelectedItem()));
+        packet.setHand(ItemStackPacketCodec.toNetwork(this.getInventory().getSelectedItem()));
         packet.setPlatformChatId("");
         packet.setDeviceId("");
         packet.setGameType(GameModeNetworkMapping.forPlayer(this.getGameMode()));
@@ -1789,6 +1781,14 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         this.setButtonText(target == null ? "" : target.getInteractButtonText());
     }
 
+    public void setScaffoldDescentInput(boolean descending) {
+        this.scaffoldDescentInput = descending;
+    }
+
+    public boolean isDescendingScaffolding() {
+        return this.isSneaking() || this.scaffoldDescentInput;
+    }
+
     public void applyInputMovement() {
         if (!this.isAlive() || !this.spawned || this.vehicle != null || this.newPosition == null || this.teleportPosition != null || this.isSleeping()) {
             return;
@@ -2043,6 +2043,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             this.finishItemUse(currentTick);
             this.updateBlockingState();
             this.updateUnderwaterSound();
+            this.updateScaffoldingFlags();
 
             if (this.getServer().getDifficulty() == Difficulty.PEACEFUL && this.getLevel().getGameRules().get(GameRules.NATURAL_REGENERATION)) {
                 if (this.getHealth() < this.getMaxHealth() && this.ticksLived % 20 == 0) {
@@ -2158,6 +2159,18 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         if (effect != null) {
             this.addPotionEffect(effect, null, PotionEffectCause.TURTLE_HELMET);
         }
+    }
+
+    private void updateScaffoldingFlags() {
+        Vector3i feet = this.getPosition().toInt();
+        boolean canClimb = this.vehicle == null && !this.isSpectator() && !this.getAbilities().get(Ability.FLYING);
+        boolean inside = canClimb && this.level.getBlockState(feet).getType() == BlockTypes.SCAFFOLDING;
+        boolean above = canClimb && !inside && this.onGround && this.level.getBlockState(feet.sub(0, 1, 0)).getType() == BlockTypes.SCAFFOLDING;
+
+        this.data.setFlag(EntityFlag.IN_SCAFFOLDING, inside);
+        this.data.setFlag(EntityFlag.IN_ASCENDABLE_BLOCK, inside);
+        this.data.setFlag(EntityFlag.OVER_DESCENDABLE_BLOCK, inside || above);
+        this.data.setFlag(EntityFlag.OVER_SCAFFOLDING, (inside || above) && this.isDescendingScaffolding());
     }
 
     private void updateUnderwaterSound() {
@@ -2422,10 +2435,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             return;
         }
 
-        BedrockPacket packet;
-        while (this.isConnected() && (packet = this.inboundQueue.poll()) != null) {
-            packetHandler.handlePacket(packet);
-        }
+        this.inboundQueue.drain(this.packetHandler::handlePacket);
     }
 
     public void flushNetworkUpdates() {
@@ -2593,10 +2603,6 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     public void kick(Component reason, KickReason cause) {
         String reasonString = PlainTextComponentSerializer.plainText().serialize(reason);
         this.kick(cause, reasonString, true);
-    }
-
-    public void handleDataPacket(BedrockPacket packet) {
-        this.inboundQueue.offer(packet);
     }
 
     public int getChunkRadius() {
@@ -2848,6 +2854,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         if (this.connected && !this.closed) {
             List.copyOf(this.bossBars).forEach(bossBar -> bossBar.removePlayer(this));
             this.connected = false;
+            this.inboundQueue.close();
             PlayerQuitEvent ev = null;
 
             if (this.getName() != null && !this.getName().isEmpty()) {
@@ -3006,6 +3013,20 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         this.sendExperience(exp);
     }
 
+    public int getEnchantmentSeed() {
+        return this.data().getEnchantmentSeed();
+    }
+
+    public void completeEnchantment(int levelsSpent) {
+        if (levelsSpent > 0) {
+            int level = this.getExperienceLevel();
+            int remaining = level - levelsSpent;
+            int progress = (int) ((long) this.getExperience() * calculateRequireExperience(remaining) / calculateRequireExperience(level));
+            this.setExperience(progress, remaining);
+        }
+        this.data().setEnchantmentSeed(ThreadLocalRandom.current().nextInt());
+    }
+
     public void sendExperience() {
         sendExperience(this.getExperience());
     }
@@ -3103,8 +3124,10 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
                 .build();
         boolean piercingWeapon = !heldItem.isEmpty() && CloudItemRegistry.get().getComponent(heldItem.getType(), ItemBehaviors.STAB) != null;
 
-        boolean damaged = target.damage(damage, source);
-        if (damaged) {
+        CloudDamageResult result = target instanceof CloudEntity cloudTarget
+                ? cloudTarget.damageWithResult(damage, source)
+                : target.damage(damage, source) ? CloudDamageResult.APPLIED : CloudDamageResult.REJECTED;
+        if (result == CloudDamageResult.APPLIED) {
             CloudEnchantmentRegistry.get().applyPostAttackEffects(heldItem, this, target);
             this.applyAttackKnockback(target, heldItem, damageType);
 
@@ -3116,7 +3139,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
             this.addExhaustion(0.1f, ExhaustionReason.ATTACK);
             this.damageHeldItemAfterAttack(attackSlot, heldItem);
-        } else if (!piercingWeapon) {
+        } else if (result == CloudDamageResult.REJECTED && !piercingWeapon) {
             this.getLevel().addLevelSoundEvent(target.getPosition(), SoundEvent.ATTACK_NODAMAGE, -1, EntityTypes.PLAYER, false, false);
         }
 
@@ -3127,7 +3150,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             CloudServer.broadcastPacket(this.getViewers(), swingPacket);
         }
 
-        return damaged;
+        return result.applied();
     }
 
     private float getAttackDamageMultiplier() {
@@ -4346,15 +4369,11 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
                 && this.boundingBox.intersects(entity.getBoundingBox())) {
             if (experienceOrb.getPickupDelay() <= 0) {
                 int exp = experienceOrb.getExperience();
-                TakeItemEntityPacket take = new TakeItemEntityPacket();
-                take.setRuntimeEntityId(this.getRuntimeId());
-                take.setItemRuntimeEntityId(experienceOrb.getRuntimeId());
-                CloudServer.broadcastPacket(((CloudEntity) entity).getViewers(), take);
-                this.sendPacket(take);
+                Vector3f pickupPosition = experienceOrb.getPosition();
                 experienceOrb.consumeOne();
                 LevelEventPacket sound = new LevelEventPacket();
                 sound.setType(LevelEvent.SOUND_EXPERIENCE_ORB_PICKUP);
-                sound.setPosition(this.getPosition());
+                sound.setPosition(pickupPosition);
                 sound.setData(0);
                 this.sendPacket(sound);
                 pickedXPOrb = tick;
@@ -4438,12 +4457,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             return;
         }
 
-        if (this.itemStackNetManager.deferInventorySlotUpdate(inventory, slot)) {
-            return;
-        }
-
-        if (inventory == this.uiContainer) {
-            sendUISlot(slot, inventory.getItem(slot));
+        if (this.inventoryRequestQueue.deferInventorySlotUpdate(inventory, slot)) {
             return;
         }
 
@@ -4464,7 +4478,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         ItemStack itemStack = inventory.getItem(slot);
         InventorySlotPacket packet = new InventorySlotPacket();
         packet.setSlot(slot);
-        packet.setItem(ItemUtils.toNetworkNetId(itemStack));
+        packet.setItem(ItemStackPacketCodec.toNetworkNetId(itemStack));
         packet.setContainerId(containerId);
         this.sendPacket(packet);
 
@@ -4481,14 +4495,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             return;
         }
 
-        if (this.itemStackNetManager.deferInventoryContentsUpdate(inventory)) {
-            return;
-        }
-
-        if (inventory == this.uiContainer) {
-            for (int i = 0; i < inventory.size(); i++) {
-                sendUISlot(i, inventory.getItem(i));
-            }
+        if (this.inventoryRequestQueue.deferInventoryContentsUpdate(inventory)) {
             return;
         }
 
@@ -4503,7 +4510,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
         List<ItemData> contents = new ArrayList<>();
         for (ItemStack item : inventory.getContents()) {
-            contents.add(ItemUtils.toNetworkNetId(item));
+            contents.add(ItemStackPacketCodec.toNetworkNetId(item));
         }
 
         InventoryContentPacket packet = new InventoryContentPacket();
@@ -4520,60 +4527,20 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         }
     }
 
-    private void sendUISlot(int localSlot, ItemStack item) {
-        InventorySlotPacket packet = new InventorySlotPacket();
-        packet.setContainerId(ContainerId.UI);
-        packet.setSlot(localSlot + this.uiContainerSlotOffset);
-        packet.setContainerNameData(new FullContainerName(this.uiContainerSlotType, null));
-        packet.setItem(ItemUtils.toNetworkNetId(item));
-        this.sendPacket(packet);
-    }
-
     private int getContainerId(Container inventory) {
         if (inventory == this.container) {
             return ContainerId.INVENTORY;
-        } else if (inventory == this.armor.getContainer()) {
+        }
+
+        if (inventory == this.armor.getContainer()) {
             return ContainerId.ARMOR;
-        } else if (inventory == this.offhand.getContainer()) {
+        }
+
+        if (inventory == this.offhand.getContainer()) {
             return ContainerId.OFFHAND;
-        } else if (inventory == this.uiContainer) {
-            return ContainerId.UI;
         }
-        Byte dynamic = this.containerToWindowId.get(inventory);
-        return dynamic != null ? dynamic : ContainerId.NONE;
-    }
 
-    public byte assignContainerId(Container inventory) {
-        byte id = this.containerIdCounter;
-        this.containerToWindowId.put(inventory, id);
-        this.windowIdToContainer.put(id, inventory);
-        this.containerIdCounter = (byte) (this.containerIdCounter >= 99 ? 1 : this.containerIdCounter + 1);
-        return id;
-    }
-
-    public byte nextContainerId() {
-        byte id = this.containerIdCounter;
-        this.containerIdCounter = (byte) (this.containerIdCounter >= 99 ? 1 : this.containerIdCounter + 1);
-        return id;
-    }
-
-    public void registerUIContainer(Container container, ContainerSlotType slotType, int slotOffset) {
-        this.uiContainer = container;
-        this.uiContainerSlotType = slotType;
-        this.uiContainerSlotOffset = slotOffset;
-    }
-
-    public void clearUIContainer() {
-        this.uiContainer = null;
-        this.uiContainerSlotType = null;
-        this.uiContainerSlotOffset = 0;
-    }
-
-    public void unregisterContainerById(byte windowId) {
-        Container c = this.windowIdToContainer.remove(windowId);
-        if (c != null) {
-            this.containerToWindowId.remove(c);
-        }
+        return this.invManager.getWindowId(inventory);
     }
 
     public void sendHeldItemSlot() {
@@ -4655,12 +4622,6 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             } else {
                 CloudPlayer.this.server.getGlobalScheduler().execute(null, () -> CloudPlayer.this.close("", disconnectReason));
             }
-        }
-
-        @Override
-        public PacketSignal handlePacket(BedrockPacket packet) {
-            CloudPlayer.this.handleDataPacket(packet);
-            return PacketSignal.HANDLED;
         }
     }
 }

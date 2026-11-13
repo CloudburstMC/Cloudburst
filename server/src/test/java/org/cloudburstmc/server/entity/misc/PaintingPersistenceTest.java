@@ -2,7 +2,7 @@ package org.cloudburstmc.server.entity.misc;
 
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.data.PaintingData;
-import org.cloudburstmc.api.entity.misc.Painting.Motive;
+import org.cloudburstmc.api.entity.misc.PaintingVariant;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
@@ -52,7 +52,7 @@ class PaintingPersistenceTest {
                 .build();
         painting.loadAdditionalData(input);
 
-        assertEquals(Motive.SUNSET, painting.getMotive());
+        assertEquals(PaintingVariant.SUNSET, painting.getVariant());
 
         NbtMap saved = save(painting);
 
@@ -102,8 +102,8 @@ class PaintingPersistenceTest {
 
         painting.loadAdditionalData(NbtMap.EMPTY);
 
-        assertEquals(3, painting.getDirection().getIndex());
-        assertEquals(Motive.SUNSET, painting.getMotive());
+        assertEquals(3, painting.getFacing().getHorizontalIndex());
+        assertEquals(PaintingVariant.SUNSET, painting.getVariant());
     }
 
     @Test

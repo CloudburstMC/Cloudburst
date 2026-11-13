@@ -133,7 +133,7 @@ class IcicleBlockHandlersTest {
                 case 1 -> world.setState(ROOT.add(0, -1, 0), BlockStates.WATER);
                 case 2 -> world.setState(ROOT.add(0, -1, 0), icicle(false, DripstoneThickness.TIP));
                 case 3 -> world.unload(ROOT.add(0, -1, 0));
-                case 6 -> world.setLiquid(ROOT, LiquidState.of(BlockStates.WATER));
+                case 6 -> world.setLiquid(ROOT, BlockStates.WATER.getLiquidState());
                 default -> { }
             }
             IcicleBlockHandlers.grow(world.block(ROOT), scenario == 4 ? 5 : 0, scenario == 5);

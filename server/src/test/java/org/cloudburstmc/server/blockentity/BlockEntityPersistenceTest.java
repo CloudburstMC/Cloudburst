@@ -7,7 +7,7 @@ import org.cloudburstmc.api.nbt.NbtMapper;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.cloudburstmc.server.testutil.TestBlockEntities.LegacyBlockEntity;
@@ -212,7 +212,7 @@ class BlockEntityPersistenceTest {
                 .putInt("y", 2)
                 .putInt("z", 3)
                 .putList("Items", NbtType.COMPOUND, List.of(
-                        ItemUtils.serializeItem(ItemStack.from(ItemTypes.DIAMOND, 5), 0)))
+                        ItemStackNbtCodec.serializeItem(ItemStack.from(ItemTypes.DIAMOND, 5), 0)))
                 .build());
 
         assertEquals(ItemStack.from(ItemTypes.DIAMOND, 5), entity.getItem(0));

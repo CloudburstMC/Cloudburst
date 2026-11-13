@@ -494,7 +494,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         registerVanilla(VINDICATOR, EntityVindicator::new, 57, CreatureData.class);
         registerVanilla(PHANTOM, EntityPhantom::new, 58, CreatureData.class);
         registerVanilla(RAVAGER, EntityRavager::new, 59, CreatureData.class);
-        registerVanilla(ARMOR_STAND, EntityArmorStand::new, 61, org.cloudburstmc.api.entity.data.EntityData.class);
+        registerVanilla(ARMOR_STAND, EntityArmorStand::new, 61, org.cloudburstmc.api.entity.data.LivingData.class);
         registerVanilla(TRIPOD_CAMERA, EntityTripodCamera::new, 62, org.cloudburstmc.api.entity.data.EntityData.class);
         registerVanilla(ITEM, EntityItem::new, 64, DroppedItemData.class);
         registerVanilla(TNT, EntityPrimedTnt::new, 65, PrimedTntData.class);

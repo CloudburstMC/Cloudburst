@@ -48,10 +48,10 @@ class SkullPersistenceTest {
         NbtMap input = skullTag();
         entity.loadAdditionalData(input);
 
-        assertEquals(1, entity.getSkullType());
-        assertEquals(45.5f, entity.getRotation());
-        assertEquals(3, entity.getMouthTickCount());
-        assertTrue(entity.isMouthMoving());
+        assertEquals(1, entity.data().getSkullType());
+        assertEquals(45.5f, entity.data().getRotation());
+        assertEquals(3, entity.data().getMouthTickCount());
+        assertTrue(entity.data().isMouthMoving());
 
         NbtMap saved = entity.getServerTag();
         Set<String> expectedKeys = new HashSet<>(input.keySet());

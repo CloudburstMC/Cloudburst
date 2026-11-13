@@ -1,69 +1,88 @@
 package org.cloudburstmc.api.block.trait;
 
-import com.google.common.collect.ImmutableList;
-import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.util.Identifier;
 
+import java.util.HashSet;
 import java.util.List;
-import java.util.function.Predicate;
+import java.util.Objects;
+import java.util.Optional;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-@Getter
+/**
+ * A typed property with a fixed, nonempty set of allowed block-state values.
+ *
+ * <p>Traits are identified by instance, not by name. Use the constants in
+ * {@link org.cloudburstmc.api.block.BlockTraits} for built-in traits or obtain
+ * a trait from {@link org.cloudburstmc.api.block.BlockType#getTraits()}.
+ * Creating a trait with the same name does not make it interchangeable.
+ *
+ * @param <E> the value type
+ */
 public abstract sealed class BlockTrait<E extends Comparable<E>> permits BooleanBlockTrait, IntegerBlockTrait, EnumBlockTrait {
 
-    protected final Identifier name;
-    protected final Class<E> valueClass;
-    protected final boolean onlySerialize;
-    protected final ImmutableList<E> possibleValues;
-    protected final String vanillaName;
+    private final Identifier name;
+    private final Class<E> valueClass;
+    private final List<E> possibleValues;
+    private final E defaultValue;
 
-    BlockTrait(Identifier name, @Nullable String vanillaName, Class<E> valueClass, List<E> possibleValues, boolean onlySerialize) {
-        checkNotNull(name);
-        checkNotNull(valueClass);
-        checkNotNull(possibleValues);
-        this.name = name;
-        this.valueClass = valueClass;
-        this.onlySerialize = onlySerialize;
-        this.possibleValues = ImmutableList.copyOf(possibleValues);
-        this.vanillaName = vanillaName;
+    BlockTrait(Identifier name, Class<E> valueClass, List<E> possibleValues, E defaultValue) {
+        this.name = Objects.requireNonNull(name, "name");
+        this.valueClass = Objects.requireNonNull(valueClass, "valueClass");
+        this.possibleValues = List.copyOf(possibleValues);
+        this.defaultValue = Objects.requireNonNull(defaultValue, "defaultValue");
 
-        //BlockTraits.register(this);
-    }
-
-    public String getVanillaName() {
-        if (vanillaName != null) {
-            return vanillaName;
+        if (this.possibleValues.isEmpty() || new HashSet<>(this.possibleValues).size() != this.possibleValues.size()) {
+            throw new IllegalArgumentException("Trait values must be nonempty and distinct: " + name);
         }
 
-        return name.getName();
+        if (!this.possibleValues.stream().allMatch(valueClass::isInstance) || !this.possibleValues.contains(defaultValue)) {
+            throw new IllegalArgumentException("Trait values and default must belong to the declared domain: " + name);
+        }
     }
 
-    public abstract E getDefaultValue();
-
-    Predicate<E> getValidator() {
-        return e -> this.getPossibleValues().contains(e);
+    /**
+     * @return the trait identifier
+     */
+    public Identifier getName() {
+        return this.name;
     }
 
-    @SuppressWarnings("unchecked")
-    public boolean testValue(Object value) {
-        return getValidator().test((E) value);
+    /**
+     * @return the class of values accepted by this trait
+     */
+    public Class<E> getValueClass() {
+        return this.valueClass;
     }
 
-    public boolean isOnlySerialize() {
-        return onlySerialize;
+    /**
+     * @return the immutable allowed values
+     */
+    public List<E> getPossibleValues() {
+        return this.possibleValues;
     }
 
-    public ImmutableList<E> getPossibleValues() {
-        return possibleValues;
+    /**
+     * @return the value used in a block type's default state
+     */
+    public E getDefaultValue() {
+        return this.defaultValue;
     }
 
-    public abstract int getIndex(Object value);
+    /**
+     * @param value the value to test
+     * @return whether the value has the correct type and belongs to this trait's domain
+     */
+    public boolean testValue(@Nullable Object value) {
+        return this.valueClass.isInstance(value) && this.possibleValues.contains(this.valueClass.cast(value));
+    }
 
-    public abstract E parseValue(String text);
-
-    public abstract E parseStorageValue(Object value);
+    /**
+     * Parses a public trait value without substituting a default for invalid input.
+     *
+     * @param text the value text
+     * @return the parsed value, or empty if the text is invalid for this trait
+     */
+    public abstract Optional<E> parseValue(String text);
 
     @Override
     public String toString() {

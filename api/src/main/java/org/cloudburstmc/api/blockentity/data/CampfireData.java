@@ -1,5 +1,6 @@
 package org.cloudburstmc.api.blockentity.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -17,6 +18,12 @@ import org.cloudburstmc.api.nbt.NbtClient;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 public class CampfireData extends BlockEntityData {
+
+    @JsonIgnore
+    private final int[] duration = new int[4];
+
+    @JsonIgnore
+    private final boolean[] cookingPaused = new boolean[4];
 
     @NbtClient
     @JsonProperty("Item1")

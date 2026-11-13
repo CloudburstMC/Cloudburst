@@ -8,7 +8,6 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.api.block.BlockRegistrationAccess;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
@@ -20,9 +19,10 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemData;
 import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
+import org.cloudburstmc.server.block.CloudBlockType;
 import org.cloudburstmc.server.item.CloudItemDefinition;
 import org.cloudburstmc.server.item.ItemPalette;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackPacketCodec;
 import org.cloudburstmc.server.item.component.DefaultItemHandlers;
 import org.cloudburstmc.server.item.data.serializer.*;
 import org.cloudburstmc.server.item.serializer.DefaultItemSerializer;
@@ -103,7 +103,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         blockTypes.add(placement);
         Set<BlockType> blocks = Set.copyOf(blockTypes);
         for (BlockType block : blocks) {
-            BlockRegistrationAccess.linkItem(block, itemType);
+            CloudBlockType.require(block).linkItemType(itemType);
             this.typeMap.putIfAbsent(block.getId(), itemType);
         }
 
@@ -208,7 +208,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
     public @Nullable ItemStack getCreativeItem(int creativeNetId) {
         this.requireClosed();
         CreativeItemData entry = this.itemPalette.getCreativeItem(creativeNetId);
-        return entry == null ? null : ItemUtils.fromNetwork(entry.getItem());
+        return entry == null ? null : ItemStackPacketCodec.fromNetwork(entry.getItem());
     }
 
     @Override
@@ -323,6 +323,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
     }
 
     private void registerVanillaDataComponentSerializers() throws RegistryException {
+        this.registerDataComponentSerializer(ItemDataComponents.ARMOR_TRIM, new ArmorTrimSerializer());
         this.registerDataComponentSerializer(ItemDataComponents.BANNER_DATA, new BannerDataSerializer());
         this.registerDataComponentSerializer(ItemDataComponents.DYED_COLOR, new DyedColorSerializer());
         this.registerDataComponentSerializer(ItemDataComponents.DAMAGE, new PrimitiveSerializer<>("Damage", Integer.class));
@@ -336,6 +337,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         this.registerDataComponentSerializer(ItemDataComponents.CHARGED_PROJECTILE, new ChargedProjectileSerializer());
         this.registerDataComponentSerializer(ItemDataComponents.SPAWN_EGG_TYPE, new EntityTypeSerializer());
         this.registerDataComponentSerializer(ItemDataComponents.ENTITY_DATA, new EntitySnapshotSerializer());
+        this.registerDataComponentSerializer(ItemDataComponents.SHULKER_BOX_CONTENTS, new ShulkerBoxContentsSerializer());
     }
 
     private void registerDefaultComponents() {
@@ -350,20 +352,24 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         this.registerComponent(ItemBehaviors.CAN_DESTROY, DefaultItemHandlers.CAN_DESTROY);
         this.registerComponent(ItemBehaviors.CAN_DESTROY_IN_CREATIVE, () -> true);
         this.registerComponent(ItemBehaviors.CAN_ENCHANT_WITH, (item, enchantment) -> false);
+        this.registerComponent(ItemBehaviors.GET_ENCHANTABILITY, item -> 0);
         this.registerComponent(ItemBehaviors.CAN_REPAIR_WITH, (item, material) -> false);
         this.registerComponent(ItemBehaviors.CAN_STORE_ENCHANTMENTS, () -> true);
+        this.registerComponent(ItemBehaviors.COMPOSTING_CHANCE);
         this.registerComponent(ItemBehaviors.CONSUMABLE);
         this.registerComponent(ItemBehaviors.DEATH_PROTECTION);
         this.registerComponent(ItemBehaviors.DAMAGEABLE, () -> false);
         this.registerComponent(ItemBehaviors.FINISH_USE);
         this.registerComponent(ItemBehaviors.FOOD);
-        this.registerComponent(ItemBehaviors.FUEL_DURATION, () -> 0f);
+        this.registerComponent(ItemBehaviors.JUKEBOX_PLAYABLE);
+        this.registerComponent(ItemBehaviors.FUEL_DURATION, () -> 0);
         this.registerComponent(ItemBehaviors.GET_ATTACK_DAMAGE, (item) -> 1f);
         this.registerComponent(ItemBehaviors.GET_ATTACK_DURABILITY_DAMAGE, item -> 0);
         this.registerComponent(ItemBehaviors.GET_BLOCK, (item) -> Optional.empty());
         this.registerComponent(ItemBehaviors.GET_BLOCKING_DISABLE_SECONDS, item -> 0f);
         this.registerComponent(ItemBehaviors.GET_DAMAGE_CHANCE, (unbreaking) -> 0);
         this.registerComponent(ItemBehaviors.GET_EQUIPMENT_SLOT, item -> null);
+        this.registerComponent(ItemBehaviors.EQUIP_SOUND);
         this.registerComponent(ItemBehaviors.GET_MAX_DAMAGE, (item) -> 0);
         this.registerComponent(ItemBehaviors.GET_MAX_STACK_SIZE, (item) -> 64);
         this.registerComponent(ItemBehaviors.GET_TOOL, item -> null);

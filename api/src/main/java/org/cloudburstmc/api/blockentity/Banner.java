@@ -1,24 +1,21 @@
 package org.cloudburstmc.api.blockentity;
 
-import com.google.common.collect.ImmutableList;
-import org.cloudburstmc.api.util.data.BannerPattern;
-import org.cloudburstmc.api.util.data.DyeColor;
+import org.cloudburstmc.api.item.data.BannerData;
 
+/**
+ * A placed banner with a base color and ordered pattern layers.
+ */
 public interface Banner extends BlockEntity {
 
-    DyeColor getBase();
+    /**
+     * Returns the banner's current design.
+     */
+    BannerData getBannerData();
 
-    void setBase(DyeColor color);
-
-    int getBannerType();
-
-    void setBannerType(int type);
-
-    void addPattern(BannerPattern pattern);
-
-    BannerPattern getPattern(int index);
-
-    ImmutableList<BannerPattern> getPatterns();
-
-    void removePattern(int index);
+    /**
+     * Replaces the banner's design.
+     *
+     * @param data the new variant, base color, and pattern layers
+     */
+    void setBannerData(BannerData data);
 }

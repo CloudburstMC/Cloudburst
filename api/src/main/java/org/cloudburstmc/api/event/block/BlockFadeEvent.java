@@ -7,7 +7,7 @@ import org.cloudburstmc.api.event.Cancellable;
 import java.util.Objects;
 
 /**
- * Fired before a block fades, melts, dies, or hatches.
+ * Fired before a block fades, melts, dies, hatches, or collapses.
  * Cancellation prevents the proposed state change.
  */
 public class BlockFadeEvent extends BlockEvent implements Cancellable {

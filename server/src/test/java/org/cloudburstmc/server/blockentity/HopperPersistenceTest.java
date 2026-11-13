@@ -8,7 +8,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -44,7 +44,7 @@ class HopperPersistenceTest {
             } else {
                 stack = ItemStack.EMPTY;
             }
-            items.add(ItemUtils.serializeItem(stack, slot));
+            items.add(ItemStackNbtCodec.serializeItem(stack, slot));
         }
         return NbtMap.builder()
                 .putString("id", "Hopper")
@@ -103,7 +103,7 @@ class HopperPersistenceTest {
         assertEquals(NbtType.COMPOUND, items.getType());
         assertEquals(SIZE, items.size());
         for (int slot = 0; slot < SIZE; slot++) {
-            assertEquals(ItemUtils.serializeItem(ItemStack.EMPTY, slot), items.get(slot),
+            assertEquals(ItemStackNbtCodec.serializeItem(ItemStack.EMPTY, slot), items.get(slot),
                     "slot " + slot);
         }
     }

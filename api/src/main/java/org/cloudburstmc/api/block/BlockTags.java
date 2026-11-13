@@ -14,6 +14,11 @@ public class BlockTags {
     public static final BlockTagKey BARS = tag("bars");
 
     /**
+     * Blocks that count toward a beacon pyramid.
+     */
+    public static final BlockTagKey BEACON_BASE_BLOCKS = tag("beacon_base_blocks");
+
+    /**
      * Blocks that are beds.
      */
     public static final BlockTagKey BEDS = tag("beds");
@@ -39,6 +44,11 @@ public class BlockTags {
     public static final BlockTagKey CANNOT_SUPPORT_SEAGRASS = tag("cannot_support_seagrass");
 
     /**
+     * Blocks on which snow layers cannot settle.
+     */
+    public static final BlockTagKey CANNOT_SUPPORT_SNOW_LAYER = tag("cannot_support_snow_layer");
+
+    /**
      * Blocks that living entities can climb.
      */
     public static final BlockTagKey CLIMBABLE = tag("climbable");
@@ -47,6 +57,11 @@ public class BlockTags {
      * Blocks that count toward a conduit's frame.
      */
     public static final BlockTagKey CONDUIT_EFFECT_BLOCK = tag("conduit_effect_block");
+
+    /**
+     * Blocks that can be turned into mud with a water potion.
+     */
+    public static final BlockTagKey CONVERTIBLE_TO_MUD = tag("convertible_to_mud");
 
     /**
      * Living coral blocks on which sea pickles can multiply when fertilized.
@@ -144,6 +159,11 @@ public class BlockTags {
     public static final BlockTagKey INCORRECT_FOR_WOODEN_TOOL = tag("incorrect_for_wooden_tool");
 
     /**
+     * Standing and hanging lanterns, including soul and copper variants.
+     */
+    public static final BlockTagKey LANTERNS = tag("lanterns");
+
+    /**
      * Blocks that are leaves.
      */
     public static final BlockTagKey LEAVES = tag("leaves");
@@ -217,6 +237,11 @@ public class BlockTags {
      * Blocks that are planks.
      */
     public static final BlockTagKey PLANKS = tag("planks");
+
+    /**
+     * Plants that can be placed in flower pots.
+     */
+    public static final BlockTagKey POTTABLE_PLANTS = tag("pottable_plants");
 
     /**
      * Blocks that are pressure plates.
@@ -314,6 +339,11 @@ public class BlockTags {
     public static final BlockTagKey STEM = tag("stem");
 
     /**
+     * Blocks that can support snow layers even without a full collision top face.
+     */
+    public static final BlockTagKey SUPPORT_OVERRIDE_SNOW_LAYER = tag("support_override_snow_layer");
+
+    /**
      * Ground blocks that support a big dripleaf or its stem.
      */
     public static final BlockTagKey SUPPORTS_BIG_DRIPLEAF = tag("supports_big_dripleaf");
@@ -329,7 +359,7 @@ public class BlockTags {
     public static final BlockTagKey SUPPORTS_CHORUS_PLANT = tag("supports_chorus_plant");
 
     /**
-     * Blocks on which dry vegetation may survive.
+     * Blocks on which dead bushes and dry grasses may survive.
      */
     public static final BlockTagKey SUPPORTS_DRY_VEGETATION = tag("supports_dry_vegetation");
 

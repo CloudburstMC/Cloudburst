@@ -53,13 +53,11 @@ public abstract class CloudBlockContainerScreen extends CloudContainerScreen {
         ContainerType containerType = ContainerTypeRegistry.get(this.getType());
         Vector3i pos = block.getPosition();
 
-        byte windowId = player.assignContainerId(getStorageContainer());
-
+        Container storage = this.getStorageContainer();
         ContainerOpenPacket pkt = new ContainerOpenPacket();
-        pkt.setId(windowId);
         pkt.setType(containerType);
         pkt.setBlockPosition(pos);
-        this.openWindow(pkt);
+        this.openWindow(pkt, storage);
 
         player.getInventoryManager().sendAllInventories();
     }

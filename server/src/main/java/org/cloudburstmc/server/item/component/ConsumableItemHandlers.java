@@ -1,10 +1,12 @@
 package org.cloudburstmc.server.item.component;
 
 import lombok.experimental.UtilityClass;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.event.entity.PotionEffectCause;
 import org.cloudburstmc.api.event.player.PlayerItemConsumeEvent;
 import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.component.ConsumableComponent;
 import org.cloudburstmc.api.item.component.FinishUseHandler;
 import org.cloudburstmc.api.item.component.UseHandler;
@@ -75,11 +77,19 @@ public class ConsumableItemHandlers {
         }
 
         ConsumableComponent consumable = CloudItemRegistry.get().requireComponent(item.getType(), ItemBehaviors.CONSUMABLE);
-        if (consumable.remainder() == null) {
+        return afterConsumption(item, player, consumable.remainder());
+    }
+
+    public static ItemStack afterConsumption(ItemStack item, CloudPlayer player, @Nullable ItemType remainderType) {
+        if (player.isCreative()) {
+            return item;
+        }
+
+        if (remainderType == null) {
             return item.decreaseCount();
         }
 
-        ItemStack remainder = ItemStack.from(consumable.remainder());
+        ItemStack remainder = ItemStack.from(remainderType);
         if (item.getCount() == 1) {
             return remainder;
         }

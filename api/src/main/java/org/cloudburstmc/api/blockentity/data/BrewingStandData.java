@@ -37,5 +37,5 @@ public class BrewingStandData extends BlockEntityData {
 
     @NbtClient
     @JsonProperty("FuelTotal")
-    private short fuelTotal;
+    private int fuelTotal;
 }

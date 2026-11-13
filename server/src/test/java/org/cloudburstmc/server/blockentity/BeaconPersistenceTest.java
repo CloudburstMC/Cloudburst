@@ -57,15 +57,21 @@ class BeaconPersistenceTest {
 
         NbtMap saved = entity.getServerTag();
         Set<String> expectedKeys = new HashSet<>(input.keySet());
-        expectedKeys.addAll(Set.of("id", "x", "y", "z"));
+        expectedKeys.removeAll(Set.of("primary", "secondary"));
+        expectedKeys.addAll(Set.of("id", "x", "y", "z", "Primary", "Secondary"));
         assertEquals(expectedKeys, saved.keySet());
         for (String key : input.keySet()) {
+            if (key.equals("primary") || key.equals("secondary")) {
+                String canonical = Character.toUpperCase(key.charAt(0)) + key.substring(1);
+                assertEquals(input.getInt(key), saved.getInt(canonical));
+                continue;
+            }
             assertEquals(input.get(key), saved.get(key), "value of " + key);
             assertEquals(NbtType.byClass(input.get(key).getClass()),
                     NbtType.byClass(saved.get(key).getClass()), "type of " + key);
         }
 
-        assertEquals(Set.of("id"), entity.getClientTag().keySet());
+        assertEquals(Set.of("id", "Levels", "Primary", "Secondary"), entity.getClientTag().keySet());
     }
 
     @Test
@@ -83,8 +89,8 @@ class BeaconPersistenceTest {
 
         // Today's save throws on null effects; the data path omits the keys instead
         // so a configured beacon is never required before saving.
-        assertEquals(Set.of("id", "x", "y", "z", "isMovable"), entity.getServerTag().keySet());
-        assertEquals(Set.of("id"), entity.getClientTag().keySet());
+        assertEquals(Set.of("id", "x", "y", "z", "isMovable", "Primary", "Secondary"), entity.getServerTag().keySet());
+        assertEquals(Set.of("id", "Levels", "Primary", "Secondary"), entity.getClientTag().keySet());
     }
 
     @Test
@@ -135,10 +141,10 @@ class BeaconPersistenceTest {
         assertEquals(EffectTypes.REGENERATION, entity.getSecondaryEffect());
 
         NbtMap saved = entity.getServerTag();
-        assertEquals((int) NetworkUtils.effectToNetwork(EffectTypes.SPEED), saved.getInt("primary"));
-        assertEquals(NbtType.INT, NbtType.byClass(saved.get("primary").getClass()));
-        assertEquals((int) NetworkUtils.effectToNetwork(EffectTypes.REGENERATION), saved.getInt("secondary"));
-        assertEquals(NbtType.INT, NbtType.byClass(saved.get("secondary").getClass()));
+        assertEquals((int) NetworkUtils.effectToNetwork(EffectTypes.SPEED), saved.getInt("Primary"));
+        assertEquals(NbtType.INT, NbtType.byClass(saved.get("Primary").getClass()));
+        assertEquals((int) NetworkUtils.effectToNetwork(EffectTypes.REGENERATION), saved.getInt("Secondary"));
+        assertEquals(NbtType.INT, NbtType.byClass(saved.get("Secondary").getClass()));
 
         NbtMap client = entity.getClientTag();
         assertFalse(client.containsKey("primary"), "client tag still has primary");

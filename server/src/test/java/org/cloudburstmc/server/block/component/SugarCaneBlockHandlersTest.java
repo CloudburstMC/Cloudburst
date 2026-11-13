@@ -14,7 +14,6 @@ import org.cloudburstmc.server.testutil.BlockTestWorld;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,14 +34,14 @@ class SugarCaneBlockHandlersTest {
 
         assertFalse(held.has(ItemDataComponents.BLOCK_STATE));
 
-        Optional<?> placement = assertInstanceOf(Optional.class, items.requireComponent(held.getType(), ItemBehaviors.GET_BLOCK).execute(held));
+        BlockState placement = items.requireComponent(held.getType(), ItemBehaviors.GET_BLOCK).execute(held).orElseThrow();
 
-        assertSame(CANE, placement.orElseThrow());
+        assertSame(CANE, placement);
         assertSame(ItemTypes.SUGAR_CANE, BlockTypes.REEDS.asItem().orElseThrow());
         assertSame(ItemTypes.SUGAR_CANE, items.get(BlockTypes.REEDS.getId()).orElseThrow());
 
         BlockTestWorld world = world();
-        world.setState(POSITION, assertInstanceOf(BlockState.class, placement.orElseThrow()));
+        world.setState(POSITION, placement);
 
         assertTrue(REGISTRY.requireComponent(BlockTypes.REEDS, BlockComponents.CAN_SURVIVE).execute(world.block(POSITION)));
     }
@@ -77,7 +76,7 @@ class SugarCaneBlockHandlersTest {
         }
 
         world.setState(WATER, BlockTypes.MANGROVE_ROOTS.getDefaultState());
-        world.setLiquid(WATER, LiquidState.of(BlockStates.WATER));
+        world.setLiquid(WATER, BlockStates.WATER.getLiquidState());
 
         assertTrue(SugarCaneBlockHandlers.CAN_SURVIVE.execute(world.block(POSITION)));
     }

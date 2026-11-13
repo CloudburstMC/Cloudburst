@@ -30,6 +30,7 @@ import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.entity.data.LivingData;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
@@ -144,11 +145,12 @@ public abstract class EntityLiving extends CloudEntity implements Living {
 
     @Override
     public boolean isClimbing() {
-        if (this instanceof CloudPlayer player && (player.isSpectator() || player.getAbilities().get(Ability.FLYING))) {
+        if (this.level == null || this.vehicle != null || this instanceof CloudPlayer player && (player.isSpectator() || player.getAbilities().get(Ability.FLYING))) {
             return false;
         }
 
-        BlockState state = this.getLevel().getBlockState(this.getPosition().toInt());
+        Vector3i feet = this.getPosition().toInt();
+        BlockState state = this.level.getBlockState(feet);
         if (this instanceof EntityHuman human && human.isGliding() && state.is(BlockTags.CAN_GLIDE_THROUGH)) {
             return false;
         }
@@ -157,13 +159,13 @@ public abstract class EntityLiving extends CloudEntity implements Living {
             return true;
         }
 
-        if (!state.is(BlockTags.TRAPDOOR) || !Boolean.TRUE.equals(state.getTraits().get(BlockTraits.IS_OPEN))) {
+        if (!state.is(BlockTags.TRAPDOOR) || !state.ensureTrait(BlockTraits.IS_OPEN)) {
             return false;
         }
 
-        BlockState below = this.getLevel().getBlockState(this.getPosition().toInt().sub(0, 1, 0));
+        BlockState below = this.level.getBlockState(feet.sub(0, 1, 0));
         return below.getType() == BlockTypes.LADDER
-                && below.ensureTrait(BlockTraits.FACING_DIRECTION) == state.getTraits().get(BlockTraits.DIRECTION);
+                && below.ensureTrait(BlockTraits.FACING_DIRECTION) == state.ensureTrait(BlockTraits.DIRECTION);
     }
 
     public void collidingWith(Entity ent) { // can override (IronGolem|Bats)

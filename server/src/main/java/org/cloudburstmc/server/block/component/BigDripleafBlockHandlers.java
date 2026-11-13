@@ -102,7 +102,8 @@ public class BigDripleafBlockHandlers {
         }
     };
 
-    public static final EntityBlockHandler ON_PROJECTILE_HIT = (block, projectile) -> {
+    public static final ProjectileHitBlockHandler ON_PROJECTILE_HIT = (hit, projectile) -> {
+        Block block = hit.block();
         if (block.getState().ensureTrait(BlockTraits.DRIPLEAF_HEAD)) {
             setTilt(block, DripleafTilt.FULL_TILT, projectile);
         }

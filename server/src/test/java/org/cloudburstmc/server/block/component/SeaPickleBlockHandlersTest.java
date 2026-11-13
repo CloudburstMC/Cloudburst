@@ -38,9 +38,12 @@ class SeaPickleBlockHandlersTest {
             BlockState state = BlockStates.SEA_PICKLE.withTrait(BlockTraits.CLUSTER_COUNT, count);
             Block block = InterfaceProxy.create(Block.class, Map.of("getState", state));
 
-            assertEquals(count < 3, SeaPickleBlockHandlers.CAN_BE_REPLACED.execute(block, BlockStates.SEA_PICKLE, null, Direction.UP, Vector3f.ZERO));
-            assertEquals(count < 3, SeaPickleBlockHandlers.CAN_BE_REPLACED.execute(block, BlockStates.SEA_PICKLE, sneaking, Direction.UP, Vector3f.ZERO));
-            assertFalse(SeaPickleBlockHandlers.CAN_BE_REPLACED.execute(block, BlockStates.STONE, null, Direction.UP, Vector3f.ZERO));
+            BlockPlacementContext context = new BlockPlacementContext(block, Direction.UP, Vector3f.ZERO, null);
+            BlockPlacementContext sneakingContext = new BlockPlacementContext(block, Direction.UP, Vector3f.ZERO, sneaking);
+
+            assertEquals(count < 3, SeaPickleBlockHandlers.CAN_BE_REPLACED.execute(block, BlockStates.SEA_PICKLE, context));
+            assertEquals(count < 3, SeaPickleBlockHandlers.CAN_BE_REPLACED.execute(block, BlockStates.SEA_PICKLE, sneakingContext));
+            assertFalse(SeaPickleBlockHandlers.CAN_BE_REPLACED.execute(block, BlockStates.STONE, context));
 
             if (count < 3) {
                 BlockState stacked = SeaPickleBlockHandlers.RESOLVE_PLACEMENT_STATE.execute(BlockStates.SEA_PICKLE, block, sneaking, Direction.UP, Vector3f.ZERO);
@@ -80,8 +83,8 @@ class SeaPickleBlockHandlersTest {
     @Test
     void waterloggingTakesPrecedenceOverTheLiquidBreakReaction() {
         BlockState pickle = BlockStates.SEA_PICKLE.withTrait(BlockTraits.IS_DEAD, true);
-        LiquidState water = LiquidState.of(BlockStates.WATER);
-        LiquidState lava = LiquidState.of(BlockStates.LAVA);
+        LiquidState water = BlockStates.WATER.getLiquidState();
+        LiquidState lava = BlockStates.LAVA.getLiquidState();
 
         assertFalse(BlockLayerRules.requiresBlockRemoval(pickle, water));
         assertTrue(BlockLayerRules.requiresBlockRemoval(pickle, lava));
@@ -92,7 +95,7 @@ class SeaPickleBlockHandlersTest {
     @Test
     void placementPreservesSourceWaterButDoesNotCreateItOnLand() {
         for (BlockState replaced : new BlockState[]{BlockStates.AIR, BlockStates.WATER, BlockStates.FLOWING_WATER.withTrait(BlockTraits.LIQUID_DEPTH, 1)}) {
-            LiquidState liquid = LiquidState.of(replaced);
+            LiquidState liquid = replaced.getLiquidState();
             Block target = InterfaceProxy.create(Block.class, Map.of("getState", replaced, "getLiquid", liquid));
 
             BlockState proposed = SeaPickleBlockHandlers.RESOLVE_PLACEMENT_STATE.execute(BlockStates.SEA_PICKLE, target, null, Direction.UP, Vector3f.ZERO);
@@ -202,9 +205,9 @@ class SeaPickleBlockHandlersTest {
     }
 
     private static Block pickleTarget(@Nullable Level level, Vector3i position, BlockState state, BlockState support) {
-        LiquidState liquid = state.getType().isLiquid() ? LiquidState.of(state)
+        LiquidState liquid = state.getType().isLiquid() ? state.getLiquidState()
                 : state.getType() == BlockTypes.SEA_PICKLE && !state.ensureTrait(BlockTraits.IS_DEAD)
-                ? LiquidState.of(BlockStates.WATER) : LiquidState.empty();
+                ? BlockStates.WATER.getLiquidState() : LiquidState.empty();
 
         return InterfaceProxy.create(Block.class,
                 (proxy, method, arguments) -> switch (method.getName()) {

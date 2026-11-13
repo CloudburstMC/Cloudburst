@@ -13,6 +13,6 @@ public final class ItemStackDeserializer extends StdDeserializer<ItemStack> {
 
     @Override
     public ItemStack deserialize(JsonParser p, DeserializationContext ctxt) {
-        return org.cloudburstmc.server.item.ItemUtils.deserializeItem(NbtTags.readTag(p, ctxt));
+        return org.cloudburstmc.server.item.ItemStackNbtCodec.deserializeItem(NbtTags.readTag(p, ctxt));
     }
 }

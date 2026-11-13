@@ -23,7 +23,7 @@ public class CloudShulkerBoxContainerScreen extends CloudChestContainerScreen {
 
     public static @Nullable CloudShulkerBoxContainerScreen create(CloudPlayer player, Block block) {
         BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
-        if (!(blockEntity instanceof ShulkerBoxBlockEntity shulkerBox) || !shulkerBox.canOpen()) {
+        if (!(blockEntity instanceof ShulkerBoxBlockEntity shulkerBox) || shulkerBox.isOpeningBlocked()) {
             return null;
         }
 
@@ -32,10 +32,15 @@ public class CloudShulkerBoxContainerScreen extends CloudChestContainerScreen {
 
     @Override
     public void open() {
+        ShulkerBoxBlockEntity box = (ShulkerBoxBlockEntity) this.chestEntity;
+        if (box.isClosed() || box.isOpeningBlocked() || this.block.getLevel().getBlockEntity(this.block.getPosition()) != box) {
+            throw new IllegalStateException("Shulker box is no longer available");
+        }
+
         super.open();
 
         if (!this.player.isSpectator()) {
-            ((ShulkerBoxBlockEntity) this.chestEntity).startOpen();
+            box.startOpen();
             this.lifecycleStarted = true;
         }
     }

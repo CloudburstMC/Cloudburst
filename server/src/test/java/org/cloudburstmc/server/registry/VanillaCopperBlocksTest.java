@@ -11,37 +11,45 @@ import static org.junit.jupiter.api.Assertions.*;
 class VanillaCopperBlocksTest {
 
     @Test
-    void includesEveryWaxedCatalogBlockExactlyOnce() {
+    void pairsEveryWaxedCatalogBlockWithItsUnwaxedVariant() {
         List<BlockType> waxedTypes = values().stream()
                 .filter(type -> type.getId().getName().startsWith("waxed_"))
                 .toList();
-        assertEquals(waxedTypes.size(), VanillaCopperBlocks.WAX_OFF.size());
+
         for (BlockType waxed : waxedTypes) {
-            BlockType source = VanillaCopperBlocks.WAX_OFF.get(waxed);
+            BlockType source = VanillaCopperBlocks.unwaxed(waxed);
             assertNotNull(source, waxed.toString());
-            assertSame(waxed, VanillaCopperBlocks.WAXABLES.get(source));
+            assertSame(waxed, VanillaCopperBlocks.waxed(source));
+            assertEquals(-1, VanillaCopperBlocks.weatheringStage(waxed));
+            assertNull(VanillaCopperBlocks.next(waxed));
+            assertNull(VanillaCopperBlocks.previous(waxed));
         }
     }
 
     @Test
-    void scrapingRemovesExactlyOneStageWithoutRemovingWax() {
-        assertSame(WEATHERED_COPPER, VanillaCopperBlocks.PREVIOUS.get(OXIDIZED_COPPER));
-        assertSame(EXPOSED_COPPER, VanillaCopperBlocks.PREVIOUS.get(WEATHERED_COPPER));
-        assertSame(COPPER_BLOCK, VanillaCopperBlocks.PREVIOUS.get(EXPOSED_COPPER));
-        assertFalse(VanillaCopperBlocks.PREVIOUS.containsKey(COPPER_BLOCK));
-        assertFalse(VanillaCopperBlocks.PREVIOUS.containsKey(WAXED_OXIDIZED_COPPER));
-        VanillaCopperBlocks.PREVIOUS.forEach((source, previous) -> {
-            assertTrue(VanillaCopperBlocks.WAXABLES.containsKey(source));
-            assertTrue(VanillaCopperBlocks.WAXABLES.containsKey(previous));
-            assertEquals(previous.getDefaultState().getTraits().keySet(), source.getDefaultState().getTraits().keySet());
-        });
+    void weatheringAndScrapingMoveExactlyOneStage() {
+        assertSame(EXPOSED_COPPER, VanillaCopperBlocks.next(COPPER_BLOCK));
+        assertSame(COPPER_BLOCK, VanillaCopperBlocks.previous(EXPOSED_COPPER));
+        assertNull(VanillaCopperBlocks.previous(COPPER_BLOCK));
+        assertNull(VanillaCopperBlocks.next(OXIDIZED_COPPER));
+
+        for (BlockType source : values()) {
+            BlockType next = VanillaCopperBlocks.next(source);
+            if (next != null) {
+                assertSame(source, VanillaCopperBlocks.previous(next));
+                assertEquals(VanillaCopperBlocks.weatheringStage(source) + 1, VanillaCopperBlocks.weatheringStage(next));
+                assertEquals(source.getDefaultState().getTraits().keySet(), next.getDefaultState().getTraits().keySet());
+            }
+        }
     }
 
     @Test
-    void rejectsIncompleteStageCollections() {
-        assertThrows(IllegalArgumentException.class, () -> new CopperBlockFamily(
-                List.of(COPPER_BLOCK, EXPOSED_COPPER),
-                List.of(WAXED_COPPER, WAXED_EXPOSED_COPPER)
-        ));
+    void lanternFamilyContainsOnlyLanternVariants() {
+        assertEquals(List.of(
+                COPPER_LANTERN, WAXED_COPPER_LANTERN,
+                EXPOSED_COPPER_LANTERN, WAXED_EXPOSED_COPPER_LANTERN,
+                WEATHERED_COPPER_LANTERN, WAXED_WEATHERED_COPPER_LANTERN,
+                OXIDIZED_COPPER_LANTERN, WAXED_OXIDIZED_COPPER_LANTERN
+        ), VanillaCopperBlocks.family(COPPER_LANTERN));
     }
 }

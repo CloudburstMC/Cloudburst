@@ -17,23 +17,60 @@ settings:
   upnp: false
 
 network:
-  # Persistent private key. Keep it across restarts and do not share it.
-  identity-file: nethernet/identity.pem
-  # Public UDP endpoints when a port forward or tunnel changes the media address.
-  advertised-addresses: []
-  # PEM certificate chain and private key. Leave both empty to use HTTP signaling.
-  tls-certificate: ""
-  tls-private-key: ""
-  # Includes connections still negotiating or logging in.
+  # Use builtin for direct joins, nxs for provider-managed joins, or both.
+  signaling-mode: builtin
+  # Trusted UDP relays that send PROXY protocol v2.
+  media-proxy-relays: []
+  # Caps game connections across both modes, including players still logging in.
   max-connections: 128
-  # Caps both simultaneous signaling sockets and game connections from one IP.
+  # Caps concurrent connections per address and setup attempts per four-second window.
   max-connections-per-address: 8
-  # Caps pending signaling joins and queued login validations separately.
+  # Caps pending signaling joins, queued login validations and queued pack reads separately.
   max-pending-joins: 64
-  # Deadline for signaling and WebRTC connection establishment.
-  handshake-timeout-seconds: 30
   # Bounds authentication, resource pack negotiation and initial spawn readiness.
   login-timeout-seconds: 120
+
+  builtin:
+    # Local UDP port. Zero uses the server port.
+    media-port: 0
+    # Built-in signaling identity. Keep this private key across restarts.
+    identity-file: nethernet/identity.pem
+    # Public UDP endpoints when a port forward or tunnel changes the media address.
+    advertised-addresses: []
+    # Do not combine STUN servers with explicit advertised addresses or media relays.
+    stun-servers: []
+    # PEM certificate chain or PKCS#12 keystore. Leave empty to use HTTP signaling.
+    tls-certificate: ""
+    # Set only for a PEM certificate chain.
+    tls-private-key: ""
+    # Optional password or file:path relative to the server directory.
+    tls-password: ""
+    # TCP proxy IPs or CIDRs trusted to send X-Forwarded-For.
+    forwarded-for-proxies: []
+    # TCP proxy IPs or CIDRs trusted to send PROXY protocol headers.
+    proxy-protocol-proxies: []
+    # Use the trusted proxy's reported player address.
+    prefer-proxied-address: false
+    # Signaling and WebRTC handshake timeout.
+    handshake-timeout-seconds: 30
+
+  nxs:
+    # Provider HTTPS origin. HTTP is allowed only on loopback.
+    endpoint: ""
+    # Optional bearer token or file:path relative to nethernet/.
+    token: ""
+    # Zero uses the server port. In both mode the two UDP ports must differ.
+    media-port: 0
+    # UDP endpoints players can reach. Required when using media proxy relays.
+    advertised-addresses: []
+    # Allow the provider to check whether players can reach this server.
+    connection-checks: false
+    # Allow the provider to assist connection setup.
+    assisted-joins: false
+    # Discover public UDP endpoints when none are configured.
+    stun-discovery: false
+    # Enable for deployments that do not keep their registration state across restarts.
+    deregister-on-shutdown: false
 
 debug:
   # Save local crash reports for uncaught thread errors.

@@ -14,7 +14,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -57,8 +57,8 @@ class ChestBoatPersistenceTest {
 
         boat.loadAdditionalData(NbtMap.builder()
                 .putList("Items", NbtType.COMPOUND, List.of(
-                        ItemUtils.serializeItem(diamond, 0),
-                        ItemUtils.serializeItem(dirt, 5)))
+                        ItemStackNbtCodec.serializeItem(diamond, 0),
+                        ItemStackNbtCodec.serializeItem(dirt, 5)))
                 .build());
 
         assertEquals(diamond, boat.getInventory().getItem(0));
@@ -67,8 +67,8 @@ class ChestBoatPersistenceTest {
         NbtMap written = save(boat);
 
         List<NbtMap> expected = List.of(
-                ItemUtils.serializeItem(diamond, 0),
-                ItemUtils.serializeItem(dirt, 5));
+                ItemStackNbtCodec.serializeItem(diamond, 0),
+                ItemStackNbtCodec.serializeItem(dirt, 5));
         assertEquals(expected, written.getList("Items", NbtType.COMPOUND));
     }
 

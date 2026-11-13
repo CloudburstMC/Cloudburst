@@ -1,17 +1,20 @@
 package org.cloudburstmc.server.registry;
 
 import lombok.experimental.UtilityClass;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.block.trait.IntegerBlockTrait;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.item.component.BlockTransformation;
 
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -19,84 +22,106 @@ import static org.cloudburstmc.api.block.BlockTypes.*;
 
 @UtilityClass
 public class VanillaBlockTransformations {
-    public static final Map<BlockType, BlockTransformation> AXE = createAxe();
-    public static final Map<BlockType, BlockTransformation> HOE = createHoe();
-    public static final Map<BlockType, BlockTransformation> SHOVEL = createShovel();
-    public static final Map<BlockType, BlockTransformation> SHEARS = Map.of(KELP, BlockTransformation.builder()
-            .transform(state -> state.withTrait(BlockTraits.KELP_AGE, BlockTraits.KELP_AGE.getRange().getEnd()))
-            .soundOverride(SoundTypes.MOB_SHEEP_SHEAR)
-            .build());
-    public static final Map<BlockType, BlockTransformation> HONEYCOMB = createHoneycomb();
 
-    private static Map<BlockType, BlockTransformation> createAxe() {
-        Map<BlockType, BlockTransformation> rules = new LinkedHashMap<>();
-        rules.put(ACACIA_LOG, replacement(STRIPPED_ACACIA_LOG).build());
-        rules.put(ACACIA_WOOD, replacement(STRIPPED_ACACIA_WOOD).build());
-        rules.put(BAMBOO_BLOCK, replacement(STRIPPED_BAMBOO_BLOCK).build());
-        rules.put(BIRCH_LOG, replacement(STRIPPED_BIRCH_LOG).build());
-        rules.put(BIRCH_WOOD, replacement(STRIPPED_BIRCH_WOOD).build());
-        rules.put(CHERRY_LOG, replacement(STRIPPED_CHERRY_LOG).build());
-        rules.put(CHERRY_WOOD, replacement(STRIPPED_CHERRY_WOOD).build());
-        rules.put(CRIMSON_HYPHAE, replacement(STRIPPED_CRIMSON_HYPHAE).build());
-        rules.put(CRIMSON_STEM, replacement(STRIPPED_CRIMSON_STEM).build());
-        rules.put(DARK_OAK_LOG, replacement(STRIPPED_DARK_OAK_LOG).build());
-        rules.put(DARK_OAK_WOOD, replacement(STRIPPED_DARK_OAK_WOOD).build());
-        rules.put(JUNGLE_LOG, replacement(STRIPPED_JUNGLE_LOG).build());
-        rules.put(JUNGLE_WOOD, replacement(STRIPPED_JUNGLE_WOOD).build());
-        rules.put(MANGROVE_LOG, replacement(STRIPPED_MANGROVE_LOG).build());
-        rules.put(MANGROVE_WOOD, replacement(STRIPPED_MANGROVE_WOOD).build());
-        rules.put(OAK_LOG, replacement(STRIPPED_OAK_LOG).build());
-        rules.put(OAK_WOOD, replacement(STRIPPED_OAK_WOOD).build());
-        rules.put(PALE_OAK_LOG, replacement(STRIPPED_PALE_OAK_LOG).build());
-        rules.put(PALE_OAK_WOOD, replacement(STRIPPED_PALE_OAK_WOOD).build());
-        rules.put(POPLAR_LOG, replacement(STRIPPED_POPLAR_LOG).build());
-        rules.put(POPLAR_WOOD, replacement(STRIPPED_POPLAR_WOOD).build());
-        rules.put(SPRUCE_LOG, replacement(STRIPPED_SPRUCE_LOG).build());
-        rules.put(SPRUCE_WOOD, replacement(STRIPPED_SPRUCE_WOOD).build());
-        rules.put(WARPED_HYPHAE, replacement(STRIPPED_WARPED_HYPHAE).build());
-        rules.put(WARPED_STEM, replacement(STRIPPED_WARPED_STEM).build());
+    private static final String STRIPPED_PREFIX = "stripped_";
+    private static final Map<BlockType, BlockType> STRIPPABLES = indexStrippables();
+    private static final Set<BlockType> TILLABLE_SOILS = Set.of(DIRT, GRASS_BLOCK, GRASS_PATH);
+    private static final Set<BlockType> PATH_SOILS = Set.of(COARSE_DIRT, DIRT, DIRT_WITH_ROOTS, GRASS_BLOCK, MYCELIUM, PODZOL);
+    private static final Map<BlockType, IntegerBlockTrait> PRUNABLE_TIPS = Map.of(
+            KELP, BlockTraits.KELP_AGE,
+            CAVE_VINES, BlockTraits.CAVE_VINE_AGE,
+            CAVE_VINES_HEAD_WITH_BERRIES, BlockTraits.CAVE_VINE_AGE,
+            TWISTING_VINES, BlockTraits.TWISTING_VINES_AGE,
+            WEEPING_VINES, BlockTraits.WEEPING_VINES_AGE
+    );
 
-        VanillaCopperBlocks.WAX_OFF.forEach((waxed, source) -> rules.put(waxed, replacement(source)
-                .sound(SoundEvent.COPPER_WAX_OFF).particle(LevelEvent.PARTICLE_WAX_OFF).build()));
-        VanillaCopperBlocks.PREVIOUS.forEach((source, previous) -> rules.put(source, replacement(previous)
-                .sound(SoundEvent.SCRAPE).particle(LevelEvent.PARTICLE_SCRAPE).build()));
-        return Map.copyOf(rules);
-    }
-
-    private static Map<BlockType, BlockTransformation> createHoe() {
-        Map<BlockType, BlockTransformation> rules = new LinkedHashMap<>();
-        for (BlockType source : List.of(DIRT, GRASS_BLOCK, GRASS_PATH)) {
-            rules.put(source, replacement(FARMLAND).requiresAirAbove(true).disallowedFaces(Set.of(Direction.DOWN)).build());
+    public static final BlockTransformation.Resolver AXE = (state, _, _) -> {
+        BlockType type = state.getType();
+        BlockType stripped = STRIPPABLES.get(type);
+        if (stripped != null) {
+            return replacement(state, stripped).build();
         }
 
-        rules.put(COARSE_DIRT, replacement(DIRT).requiresAirAbove(true).disallowedFaces(Set.of(Direction.DOWN)).build());
-        rules.put(DIRT_WITH_ROOTS, replacement(DIRT).drop(ItemTypes.HANGING_ROOTS).build());
-        return Map.copyOf(rules);
-    }
-
-    private static Map<BlockType, BlockTransformation> createShovel() {
-        Map<BlockType, BlockTransformation> rules = new LinkedHashMap<>();
-        for (BlockType source : List.of(COARSE_DIRT, DIRT, DIRT_WITH_ROOTS, GRASS_BLOCK, MYCELIUM, PODZOL)) {
-            rules.put(source, replacement(GRASS_PATH).requiresAirAbove(true).disallowedFaces(Set.of(Direction.DOWN)).build());
+        BlockType unwaxed = VanillaCopperBlocks.unwaxed(type);
+        if (unwaxed != null) {
+            return replacement(state, unwaxed)
+                    .sound(SoundEvent.COPPER_WAX_OFF)
+                    .particle(LevelEvent.PARTICLE_WAX_OFF)
+                    .build();
         }
 
-        BlockTransformation extinguish = BlockTransformation.builder()
-                .transform(state -> state.withTrait(BlockTraits.IS_EXTINGUISHED, true))
-                .sound(SoundEvent.EXTINGUISH_FIRE).build();
-        rules.put(CAMPFIRE, extinguish);
-        rules.put(SOUL_CAMPFIRE, extinguish);
-        return Map.copyOf(rules);
+        BlockType previous = VanillaCopperBlocks.previous(type);
+        return previous == null ? null : replacement(state, previous)
+                .sound(SoundEvent.SCRAPE)
+                .particle(LevelEvent.PARTICLE_SCRAPE)
+                .build();
+    };
+
+    public static final BlockTransformation.Resolver HOE = (state, face, airAbove) -> {
+        BlockType type = state.getType();
+        if (type == DIRT_WITH_ROOTS) {
+            return replacement(state, DIRT).drop(ItemTypes.HANGING_ROOTS).build();
+        }
+
+        if (!airAbove || face == Direction.DOWN) {
+            return null;
+        }
+
+        if (type == COARSE_DIRT) {
+            return replacement(state, DIRT).build();
+        }
+
+        return TILLABLE_SOILS.contains(type) ? replacement(state, FARMLAND).build() : null;
+    };
+
+    public static final BlockTransformation.Resolver SHOVEL = (state, face, airAbove) -> {
+        BlockType type = state.getType();
+        if (type == CAMPFIRE || type == SOUL_CAMPFIRE) {
+            return state.ensureTrait(BlockTraits.IS_EXTINGUISHED) ? null : BlockTransformation.builder()
+                    .state(state.withTrait(BlockTraits.IS_EXTINGUISHED, true))
+                    .sound(SoundEvent.EXTINGUISH_FIRE)
+                    .build();
+        }
+
+        return airAbove && face != Direction.DOWN && PATH_SOILS.contains(type) ? replacement(state, GRASS_PATH).build() : null;
+    };
+
+    public static final BlockTransformation.Resolver SHEARS = (state, _, _) -> {
+        IntegerBlockTrait age = PRUNABLE_TIPS.get(state.getType());
+        if (age == null) {
+            return null;
+        }
+
+        int limit = age.getRange().getEnd();
+        return state.ensureTrait(age) == limit ? null : BlockTransformation.builder()
+                .state(state.withTrait(age, limit))
+                .soundOverride(SoundTypes.MOB_SHEEP_SHEAR)
+                .build();
+    };
+
+    public static final BlockTransformation.Resolver HONEYCOMB = (state, _, _) -> {
+        BlockType waxed = VanillaCopperBlocks.waxed(state.getType());
+        return waxed == null ? null : replacement(state, waxed)
+                .sound(SoundEvent.COPPER_WAX_ON)
+                .particle(LevelEvent.PARTICLE_WAX_ON)
+                .consumesItem(true)
+                .build();
+    };
+
+    private static Map<BlockType, BlockType> indexStrippables() {
+        Map<BlockType, BlockType> replacements = new HashMap<>();
+        for (BlockType stripped : BlockTypes.values()) {
+            String name = stripped.getId().getName();
+            if (name.startsWith(STRIPPED_PREFIX)) {
+                Identifier id = Identifier.parse(name.substring(STRIPPED_PREFIX.length()));
+                BlockType source = BlockTypes.get(id).orElseThrow(() -> new IllegalStateException("Missing block for " + stripped.getId()));
+                replacements.put(source, stripped);
+            }
+        }
+        return Map.copyOf(replacements);
     }
 
-    private static Map<BlockType, BlockTransformation> createHoneycomb() {
-        Map<BlockType, BlockTransformation> rules = new LinkedHashMap<>();
-        VanillaCopperBlocks.WAXABLES.forEach((source, waxed) -> rules.put(source, replacement(waxed)
-                .sound(SoundEvent.COPPER_WAX_ON).particle(LevelEvent.PARTICLE_WAX_ON)
-                .consumesItem(true).build()));
-        return Map.copyOf(rules);
-    }
-
-    private static BlockTransformation.BlockTransformationBuilder replacement(BlockType target) {
-        return BlockTransformation.builder().transform(source -> target.getDefaultState().copyTraits(source));
+    private static BlockTransformation.BlockTransformationBuilder replacement(BlockState source, BlockType target) {
+        return BlockTransformation.builder().state(target.getDefaultState().copyTraits(source));
     }
 }

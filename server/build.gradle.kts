@@ -5,9 +5,12 @@ import org.gradle.api.artifacts.ComponentMetadataRule
 import java.nio.file.Files
 
 plugins {
-    alias(libs.plugins.extra.java.module.info)
     alias(libs.plugins.git.properties)
     alias(libs.plugins.shadow)
+}
+
+java {
+    modularity.inferModulePath.set(false)
 }
 
 repositories {
@@ -42,6 +45,7 @@ dependencies {
     }
     api(libs.bedrock.adventure)
     implementation(libs.netty.transport.nethernet)
+    implementation(libs.netty.external.signaling)
     runtimeOnly(libs.libdatachannel.natives) {
         exclude(group = "dev.opencollab", module = "libdatachannel-java")
     }
@@ -75,57 +79,6 @@ dependencies {
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)
     testRuntimeOnly(libs.junit.platform.launcher)
-}
-
-extraJavaModuleInfo {
-    failOnAutomaticModules.set(false)
-    automaticModule(libs.spark.common, "me.lucko.spark.common")
-    automaticModule(libs.spark.api, "me.lucko.spark.api")
-    automaticModule("me.lucko:bytesocks-java-client", "me.lucko.bytesocks.client")
-    knownModule("net.kyori:adventure-text-feature-pagination", "net.kyori.adventure.text.feature.pagination")
-    knownModule("com.google.protobuf:protobuf-javalite", "com.google.protobuf")
-    automaticModule("tools.profiler:async-profiler", "tools.profiler.async")
-    automaticModule(libs.block.state.updater, "org.cloudburstmc.blockstateupdater") {
-        overrideModuleName()
-    }
-    module(libs.brigadier, "com.mojang.brigadier") {
-        overrideModuleName()
-        exportAllPackages()
-        requireAllDefinedDependencies()
-    }
-    module(libs.math.immutable, "org.cloudburstmc.math.immutable") {
-        overrideModuleName()
-        exportAllPackages()
-        requireAllDefinedDependencies()
-    }
-    automaticModule(libs.noise, "net.daporkchop.lib.noise")
-    automaticModule(libs.upnp, "org.cloudburstmc.upnp")
-    automaticModule("dev.opencollab:libdatachannel-java", "tel.schich.libdatachannel")
-    automaticModule(libs.libdatachannel.natives, "tel.schich.libdatachannel.natives")
-    automaticModule("net.daporkchop.lib:math", "net.daporkchop.lib.math")
-    automaticModule("net.daporkchop.lib:common", "net.daporkchop.lib.common")
-    automaticModule("net.daporkchop.lib:unsafe", "net.daporkchop.lib.unsafe")
-    automaticModule("net.daporkchop.lib:random", "net.daporkchop.lib.random")
-    automaticModule("net.daporkchop:leveldb-mcpe-jni", "net.daporkchop.leveldb.mcpe.jni")
-    automaticModule("net.sf.jopt-simple:jopt-simple", "net.sf.jopt.simple")
-    automaticModule("org.iq80.leveldb:leveldb", "org.iq80.leveldb.impl")
-    automaticModule("org.iq80.leveldb:leveldb-api", "org.iq80.leveldb.api")
-    automaticModule("net.daporkchop.lib:natives", "net.daporkchop.lib.natives")
-    automaticModule("org.iq80.snappy:snappy", "org.iq80.snappy")
-    automaticModule("io.airlift:aircompressor", "io.airlift.aircompressor")
-    automaticModule("com.github.stephenc.jcip:jcip-annotations", "com.github.stephenc.jcip.annotations")
-    automaticModule("aopalliance:aopalliance", "aopalliance.aop")
-    module("com.google.guava:failureaccess", "com.google.guava.failureaccess") {
-        patchRealModule()
-    }
-    automaticModule("com.google.code.findbugs:jsr305", "com.google.code.findbugs.jsr305")
-    module("com.google.j2objc:j2objc-annotations", "com.google.j2objc.annotations") {
-        patchRealModule()
-    }
-    automaticModule("com.google.guava:listenablefuture", "com.google.guava.listenablefuture")
-    automaticModule("net.jodah:expiringmap", "net.jodah.expiringmap")
-    automaticModule("org.osgi:org.osgi.resource", "org.osgi.resource")
-    automaticModule("org.osgi:org.osgi.service.serviceloader", "org.osgi.service.serviceloader")
 }
 
 publishing {

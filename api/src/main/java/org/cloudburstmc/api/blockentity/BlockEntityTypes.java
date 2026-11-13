@@ -40,7 +40,7 @@ public class BlockEntityTypes {
     public static final BlockEntityType<MobSpawner> MOB_SPAWNER = type("mob_spawner", MobSpawner.class);
     public static final BlockEntityType<MovingBlock> MOVING_BLOCK = type("moving_block", MovingBlock.class);
     public static final BlockEntityType<NetherReactor> NETHER_REACTOR = type("nether_reactor", NetherReactor.class);
-    public static final BlockEntityType<Noteblock> NOTEBLOCK = type("noteblock", Noteblock.class);
+    public static final BlockEntityType<NoteBlock> NOTE_BLOCK = type("noteblock", NoteBlock.class);
     public static final BlockEntityType<Piston> PISTON = type("piston", Piston.class);
     public static final BlockEntityType<ShulkerBox> SHULKER_BOX = type("shulker_box", ShulkerBox.class);
     public static final BlockEntityType<Sign> SIGN = type("sign", Sign.class);

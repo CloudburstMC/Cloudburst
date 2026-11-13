@@ -42,7 +42,7 @@ class CreativeItemRegistrationTest {
 
         assertEquals(vanilla.size() + 1, entries.size());
         assertEquals(entries.size(), entries.stream().map(CreativeItemData::getNetId).distinct().count());
-        assertEquals(arrow, ItemUtils.fromNetwork(appended.getItem()));
+        assertEquals(arrow, ItemStackPacketCodec.fromNetwork(appended.getItem()));
         assertTrue(palette.isCreativeItem(registry.getId(ItemTypes.ARROW)));
 
         CreativeContentPacket packet = palette.getCreativeContentPacket();

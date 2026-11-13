@@ -9,6 +9,16 @@ import lombok.experimental.UtilityClass;
 public class ItemTags {
 
     /**
+     * Items accepted as beacon payments.
+     */
+    public static final ItemTagKey BEACON_PAYMENT_ITEMS = tag("beacon_payment_items");
+
+    /**
+     * Logs and wood that can be smelted into charcoal.
+     */
+    public static final ItemTagKey LOGS_THAT_BURN = tag("logs_that_burn");
+
+    /**
      * Head equipment that conceals a player from locator maps unless they carry a copy.
      */
     public static final ItemTagKey MAP_INVISIBILITY_EQUIPMENT = tag("map_invisibility_equipment");
@@ -92,6 +102,11 @@ public class ItemTags {
      * Items that repair wolf armor.
      */
     public static final ItemTagKey REPAIRS_WOLF_ARMOR = tag("repairs_wolf_armor");
+
+    /**
+     * Armor items that can receive a trim at a smithing table.
+     */
+    public static final ItemTagKey TRIMMABLE_ARMORS = tag("trimmable_armors");
 
     private static ItemTagKey tag(String path) {
         return ItemTagKey.of("minecraft:" + path);

@@ -15,6 +15,7 @@ import java.util.function.Function;
  * Stores block trait names and values independently of runtime palette IDs.
  */
 public class BlockStateConfigurationCodec implements ConfigurationCodec<BlockState> {
+
     private final Function<Identifier, BlockState> blockResolver;
 
     public BlockStateConfigurationCodec(Function<Identifier, BlockState> blockResolver) {
@@ -31,7 +32,6 @@ public class BlockStateConfigurationCodec implements ConfigurationCodec<BlockSta
     }
 
     @Override
-    @SuppressWarnings({"rawtypes", "unchecked"})
     public BlockState decode(Map<String, Object> values) {
         if (!(values.get("block") instanceof String id) || !(values.get("traits") instanceof Map<?, ?> traits)) {
             throw new IllegalArgumentException("Block state requires block and traits");
@@ -49,12 +49,12 @@ public class BlockStateConfigurationCodec implements ConfigurationCodec<BlockSta
                 throw new IllegalArgumentException("Block trait names and values must be strings: " + entry);
             }
 
-            BlockTrait trait = type.getTraits().stream()
+            BlockTrait<?> trait = type.getTraits().stream()
                     .filter(candidate -> candidate.getName().toString().equals(name))
                     .findFirst()
                     .orElseThrow(() -> new IllegalArgumentException("Unknown block trait: " + entry.getKey()));
 
-            state = state.withTrait(trait, parseValue(trait, text));
+            state = withParsedTrait(state, trait, text);
         }
 
         return state;
@@ -64,10 +64,8 @@ public class BlockStateConfigurationCodec implements ConfigurationCodec<BlockSta
         return value instanceof Enum<?> enumeration ? enumeration.name() : value.toString();
     }
 
-    private static <T extends Comparable<T>> T parseValue(BlockTrait<T> trait, String text) {
-        return trait.getPossibleValues().stream()
-                .filter(candidate -> valueName(candidate).equalsIgnoreCase(text))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Invalid value for block trait " + trait.getName() + ": " + text));
+    private static <T extends Comparable<T>> BlockState withParsedTrait(BlockState state, BlockTrait<T> trait, String text) {
+        T value = trait.parseValue(text).orElseThrow(() -> new IllegalArgumentException("Invalid value for block trait " + trait.getName() + ": " + text));
+        return state.withTrait(trait, value);
     }
 }

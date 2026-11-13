@@ -7,25 +7,34 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
 import org.cloudburstmc.api.event.inventory.InventoryOpenEvent;
 import org.cloudburstmc.api.inventory.VirtualContainerScreen;
+import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
+import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
+import org.cloudburstmc.server.blockentity.ContainerBlockEntity;
 import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.server.container.screen.CloudHudScreen;
 import org.cloudburstmc.server.container.screen.CloudInventoryScreen;
+import org.cloudburstmc.server.container.view.CloudSlotGroupBase;
 import org.cloudburstmc.server.player.CloudPlayer;
 
+import java.util.LinkedHashSet;
 import java.util.Objects;
-import java.util.StringJoiner;
+import java.util.Set;
 
 /**
  * Owns the player's active screen and its network window. The HUD remains underneath it.
  */
 @Log4j2
-@Getter
 public class PlayerInventoryManager {
+
     private final CloudPlayer player;
+    @Getter
     private final CloudHudScreen defaultScreen;
-    private CloudInventoryScreen currentScreen;
+    private @Nullable CloudInventoryScreen currentScreen;
+    private @Nullable Window window;
+    private byte nextWindowId = 1;
     private boolean openingScreen;
     private @Nullable Byte closingWindowId;
     private @Nullable CloudInventoryScreen pendingScreen;
@@ -34,56 +43,15 @@ public class PlayerInventoryManager {
         this.player = player;
         this.defaultScreen = new CloudHudScreen(player);
         this.defaultScreen.setup();
-        this.player.getItemStackNetManager().pushScreen(this.defaultScreen);
     }
 
-    public void closeScreen(InventoryCloseEvent.Reason reason) {
-        this.pendingScreen = null;
-        this.closeScreen(reason, null);
+    @NonNull
+    public CloudInventoryScreen getScreen() {
+        return this.currentScreen == null ? this.defaultScreen : this.currentScreen;
     }
 
-    private void closeScreen(InventoryCloseEvent.Reason reason, @Nullable ContainerClosePacket request) {
-        CloudInventoryScreen screen = this.currentScreen;
-        if (screen == null) {
-            return;
-        }
-
-        this.currentScreen = null;
-        this.player.getItemStackNetManager().popScreen();
-        screen.closeWindow(request);
-
-        try {
-            screen.close();
-        } finally {
-            this.player.getServer().getEventManager().fire(new InventoryCloseEvent(screen, reason));
-        }
-    }
-
-    public void expectWindowClose(byte windowId) {
-        this.closingWindowId = windowId;
-    }
-
-    public void handleWindowClose(ContainerClosePacket packet) {
-        if (this.closingWindowId != null && this.closingWindowId == packet.getId()) {
-            this.closingWindowId = null;
-            this.player.sendPacket(packet);
-
-            CloudInventoryScreen pending = this.pendingScreen;
-            this.pendingScreen = null;
-            if (pending != null) {
-                this.openScreen(pending);
-            }
-
-            return;
-        }
-
-        CloudInventoryScreen screen = this.currentScreen;
-        if (screen != null && (screen.hasWindow(packet.getId()) || packet.getId() == ContainerId.NONE)) {
-            boolean rejected = packet.getId() == ContainerId.NONE;
-            this.closeScreen(rejected ? InventoryCloseEvent.Reason.CANT_USE : InventoryCloseEvent.Reason.PLAYER, packet);
-        } else {
-            this.player.sendPacket(packet);
-        }
+    public @Nullable CloudInventoryScreen getOpenContainer() {
+        return this.currentScreen;
     }
 
     public void openScreen(@NonNull CloudInventoryScreen screen) {
@@ -120,7 +88,6 @@ public class PlayerInventoryManager {
 
             screen.setup();
             this.currentScreen = screen;
-            this.player.getItemStackNetManager().pushScreen(screen);
 
             try {
                 screen.open();
@@ -140,35 +107,122 @@ public class PlayerInventoryManager {
         }
     }
 
-    @NonNull
-    public CloudInventoryScreen getScreen() {
-        return this.player.getItemStackNetManager().getScreen();
+    public void closeScreen(InventoryCloseEvent.Reason reason) {
+        this.pendingScreen = null;
+        this.closeScreen(reason, null);
     }
 
-    public CloudInventoryScreen getOpenContainer() {
-        return this.currentScreen;
+    private void closeScreen(InventoryCloseEvent.Reason reason, @Nullable ContainerClosePacket request) {
+        CloudInventoryScreen screen = this.currentScreen;
+        if (screen == null) {
+            return;
+        }
+
+        this.currentScreen = null;
+        try {
+            this.closeWindow(request);
+        } finally {
+            try {
+                screen.stopObservingContainers();
+            } finally {
+                try {
+                    screen.close();
+                } finally {
+                    this.player.getServer().getEventManager().fire(new InventoryCloseEvent(screen, reason));
+                }
+            }
+        }
+    }
+
+    public void openWindow(CloudInventoryScreen screen, ContainerOpenPacket packet, @Nullable Container storage) {
+        if (this.currentScreen != screen || this.window != null) {
+            throw new IllegalStateException("Only the active screen can open its window");
+        }
+
+        ContainerType type = Objects.requireNonNull(packet.getType(), "container type");
+        byte id = (byte) ContainerId.INVENTORY;
+        if (type != ContainerType.INVENTORY) {
+            id = this.nextWindowId;
+            this.nextWindowId = (byte) (id == 99 ? 1 : id + 1);
+        }
+
+        this.window = new Window(id, type, storage);
+        packet.setId(id);
+        this.player.sendPacket(packet);
+    }
+
+    public int getWindowId(Container container) {
+        Window active = this.window;
+        return active != null && active.storage() == container ? active.id() : ContainerId.NONE;
+    }
+
+    public void handleWindowClose(ContainerClosePacket packet) {
+        if (this.closingWindowId != null && this.closingWindowId == packet.getId()) {
+            this.closingWindowId = null;
+            this.player.sendPacket(packet);
+
+            CloudInventoryScreen pending = this.pendingScreen;
+            this.pendingScreen = null;
+            if (pending != null) {
+                this.openScreen(pending);
+            }
+
+            return;
+        }
+
+        Window active = this.window;
+        if (active != null && (active.id() == packet.getId() || packet.getId() == ContainerId.NONE)) {
+            boolean rejected = packet.getId() == ContainerId.NONE;
+            this.closeScreen(rejected ? InventoryCloseEvent.Reason.CANT_USE : InventoryCloseEvent.Reason.PLAYER, packet);
+        } else {
+            this.player.sendPacket(packet);
+        }
+    }
+
+    private void closeWindow(@Nullable ContainerClosePacket request) {
+        Window active = this.window;
+        this.window = null;
+        if (active == null || active.type() == ContainerType.LECTERN) {
+            return;
+        }
+
+        boolean serverInitiated = request == null;
+        if (serverInitiated) {
+            this.closingWindowId = active.id();
+        }
+
+        ContainerClosePacket packet = new ContainerClosePacket();
+        packet.setId(serverInitiated ? active.id() : request.getId());
+        packet.setType(serverInitiated ? active.type() : Objects.requireNonNullElse(request.getType(), ContainerType.NONE));
+        packet.setServerInitiated(serverInitiated);
+        this.player.sendPacket(packet);
+    }
+
+    public Set<Container> getAllInventories() {
+        Set<Container> inventories = new LinkedHashSet<>();
+        collectInventories(this.defaultScreen, inventories);
+        if (this.currentScreen != null) {
+            collectInventories(this.currentScreen, inventories);
+        }
+        return inventories;
     }
 
     public void sendAllInventories() {
-        for (Container inv : this.player.getItemStackNetManager().getAllInventories()) {
+        for (Container inv : this.getAllInventories()) {
             this.player.onInventoryContentsChange(inv);
         }
     }
 
-    @Override
-    public String toString() {
-        StringJoiner str = new StringJoiner("\n");
-        str.add("Player Inventories [" + player.getName() + ":");
-        str.add("Main Inventory: ");
-        for (int i = 0; i < player.getInventory().size(); i++) {
-            str.add("  " + i + ": " + player.getInventory().getItem(i));
+    private static void collectInventories(CloudInventoryScreen screen, Set<Container> inventories) {
+        for (SlotGroup view : screen.getAllSlotGroups()) {
+            if (view instanceof CloudSlotGroupBase section) {
+                inventories.add(section.getContainer());
+            } else if (view instanceof ContainerBlockEntity blockEntity) {
+                inventories.add(blockEntity.getContainer());
+            }
         }
-        str.add("===============");
-        str.add("EnderChest Inventory:");
-        for (int i = 0; i < player.getEnderChest().size(); i++) {
-            str.add("  " + i + ": " + player.getEnderChest().getItem(i));
-        }
+    }
 
-        return str.toString();
+    private record Window(byte id, ContainerType type, @Nullable Container storage) {
     }
 }

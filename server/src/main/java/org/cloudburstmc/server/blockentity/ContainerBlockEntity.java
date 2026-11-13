@@ -24,7 +24,7 @@ import org.cloudburstmc.server.container.CloudContainer;
  * block-entity class when required by the hopper/dropper/dispenser/crafter logic that
  * needs to interact with the container outside of a player-opened screen.</p>
  */
-public abstract class ContainerBlockEntity extends BaseBlockEntity {
+public abstract class ContainerBlockEntity extends BaseBlockEntity implements AutomatedBlockStorage {
 
     public ContainerBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
@@ -52,6 +52,11 @@ public abstract class ContainerBlockEntity extends BaseBlockEntity {
 
     public int size() {
         return items().size();
+    }
+
+    @Override
+    public ItemContainer insertionSlots() {
+        return this.getContainer();
     }
 
     public BlockEntity getBlockEntity() {

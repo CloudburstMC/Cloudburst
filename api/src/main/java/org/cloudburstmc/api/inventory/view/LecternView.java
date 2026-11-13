@@ -4,8 +4,7 @@ import org.checkerframework.checker.index.qual.NonNegative;
 import org.cloudburstmc.api.item.ItemStack;
 
 /**
- * Represents the item slot and page state of a lectern container.
- * The lectern holds a single book item and tracks the current open page.
+ * The book slot and shared reading position of a lectern.
  */
 public interface LecternView extends SlotGroup {
 
@@ -17,40 +16,37 @@ public interface LecternView extends SlotGroup {
     ItemStack getBook();
 
     /**
-     * Sets the book on the lectern.
+     * Sets the book on the lectern. Only one copy is stored.
+     * Changing the book resets the reading position. Removing it closes the readers' screens.
      *
-     * @param item the book item to place; use {@link ItemStack#EMPTY} to remove the book
+     * @param item a writable book, a written book, or {@link ItemStack#EMPTY} to remove the book
+     * @throws IllegalArgumentException if the item is not a book and is not empty
      */
     void setBook(ItemStack item);
 
     /**
-     * Returns {@code true} if a book is currently placed on the lectern.
-     *
-     * @return {@code true} if a book is present
+     * Returns whether the lectern holds a book, including a blank writable book.
      */
     boolean hasBook();
 
     /**
-     * Returns the total number of pages in the current book.
-     * Returns {@code 0} if no book is present.
-     *
-     * @return total page count
+     * Returns the number of individual pages, or {@code 0} if the lectern has no book or the book has no pages.
      */
     @NonNegative
     int getTotalPages();
 
     /**
-     * Returns the current open page index (0-based).
+     * Returns the zero-based index of the current two-page spread.
      *
-     * @return the current page index
+     * @return the current spread index, or {@code 0} if there is no book
      */
     int getPage();
 
     /**
-     * Sets the current open page index (0-based).
-     * Values are clamped to the valid range {@code [0, getTotalPages()]}.
+     * Sets the zero-based spread index, clamped to the book's available spreads.
+     * Changing the spread updates all readers and triggers a redstone pulse.
      *
-     * @param page the page index to open
+     * @param page the spread index to open
      */
     void setPage(@NonNegative int page);
 }

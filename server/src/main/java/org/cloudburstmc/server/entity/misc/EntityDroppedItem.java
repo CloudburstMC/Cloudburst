@@ -1,22 +1,26 @@
 package org.cloudburstmc.server.entity.misc;
 
+import org.cloudburstmc.api.entity.data.DroppedItemData;
+import org.cloudburstmc.api.entity.data.EntityData;
+import lombok.Getter;
+import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.blockentity.Bell;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.LiquidState;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
-import org.cloudburstmc.api.entity.data.DroppedItemData;
-import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.event.entity.ItemDespawnEvent;
 import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.item.data.ShulkerBoxContents;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
@@ -29,12 +33,11 @@ import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.item.ItemDisplayNameResolver;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
+import org.cloudburstmc.server.item.ItemStackPacketCodec;
+import org.cloudburstmc.server.item.ShulkerBoxItems;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
-
-import java.util.HashSet;
-import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -42,10 +45,36 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.OWNE
 
 public class EntityDroppedItem extends CloudEntity implements DroppedItem {
 
+    @Setter
     private boolean fromFishing;
 
     public EntityDroppedItem(EntityType<DroppedItem> type, Location location) {
         super(type, location);
+    }
+
+    @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return DroppedItemData.class;
+    }
+
+    @Override
+    protected DroppedItemData data() {
+        return (DroppedItemData) super.data();
+    }
+
+    @Override
+    public ItemStack getItem() {
+        return this.data().getItem();
+    }
+
+    @Override
+    public int getPickupDelay() {
+        return this.data().getPickupDelay();
+    }
+
+    @Override
+    public void setPickupDelay(int pickupDelay) {
+        this.data().setPickupDelay(pickupDelay);
     }
 
     @Override
@@ -91,57 +120,50 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
     }
 
     @Override
-    protected DroppedItemData data() {
-        return (DroppedItemData) super.data();
-    }
-
-    @Override
-    protected Class<? extends EntityData> minimumDataClass() {
-        return DroppedItemData.class;
-    }
-
-    @Override
     protected void loadCustom(NbtMap tag) {
-        // Health, age and owner run before the base load below,
-        // matching the historical load order. Each keeps its current value
-        // when its key is absent, exactly as the old null checks did.
-        if (tag.containsKey("Health")) {
-            this.setHealth(getShort(tag, "Health", (short) this.getHealth()));
-        }
-        if (tag.containsKey("Age")) {
-            this.age = getShort(tag, "Age", (short) this.age);
-        }
-        if (tag.containsKey("OwnerID")) {
-            this.data.set(OWNER_EID, getLong(tag, "OwnerID", this.data.require(OWNER_EID)));
-        }
         super.loadCustom(tag);
+
+        tag.listenForShort("Health", this::setHealth);
+        tag.listenForShort("Age", v -> this.age = v);
+        tag.listenForLong("OwnerID", v -> this.data.set(OWNER_EID, v));
     }
 
     @Override
     protected void saveCustom(NbtMapBuilder tag) {
         super.saveCustom(tag);
+
         tag.putShort("Health", (short) this.getHealth());
         tag.putShort("Age", (short) this.age);
         tag.putLong("OwnerID", this.data.require(OWNER_EID));
     }
 
     @Override
-    protected Set<String> customKeys() {
-        Set<String> keys = new HashSet<>(super.customKeys());
-        keys.add("Health");
-        keys.add("Age");
-        keys.add("OwnerID");
-        return Set.copyOf(keys);
-    }
-
-    @Override
     protected boolean applyDamage(CloudEntityDamageEvent source) {
-        return (source.getDamageType() == DamageTypes.OUT_OF_WORLD ||
+        boolean alive = this.isAlive();
+        boolean applied = (source.getDamageType() == DamageTypes.OUT_OF_WORLD ||
                 source.getDamageType() == DamageTypes.CACTUS ||
                 source.getDamageType() == DamageTypes.ON_FIRE ||
                 source.getDamageType().is(DamageTypeTags.IS_EXPLOSION) &&
-                        !this.isInsideOfWater() && (this.getItem().isEmpty() ||
-                        this.getItem().getType() != ItemTypes.NETHER_STAR)) && super.applyDamage(source);
+                        !this.isInsideOfWater() && (this.data().getItem() == null ||
+                        this.data().getItem().getType() != ItemTypes.NETHER_STAR)) && super.applyDamage(source);
+        if (applied && alive && !this.isAlive() && source.getDamageType() != DamageTypes.OUT_OF_WORLD) {
+            this.releaseShulkerContents();
+        }
+
+        return applied;
+    }
+
+    private void releaseShulkerContents() {
+        if (this.data().getItem() == null || !ShulkerBoxItems.TYPES.contains(this.data().getItem().getType())) {
+            return;
+        }
+
+        ShulkerBoxContents contents = this.data().getItem().get(ItemDataComponents.SHULKER_BOX_CONTENTS);
+        if (contents != null) {
+            for (ItemStack stack : contents.items().values()) {
+                this.getLevel().dropItem(this.getPosition(), stack);
+            }
+        }
     }
 
     @Override
@@ -158,7 +180,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
 
         this.lastUpdate = currentTick;
 
-        if (this.age % 60 == 0 && this.onGround && !this.getItem().isEmpty() && this.isAlive()) {
+        if (this.age % 60 == 0 && this.onGround && this.getItem() != null && this.isAlive()) {
             if (this.getItem().getCount() < CloudItemRegistry.get().requireComponent(getItem().getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute(getItem())) {
                 for (Entity entity : this.getLevel().getNearbyEntities(this, getBoundingBox().inflate(1, 1, 1), false)) {
                     if (entity instanceof EntityDroppedItem) {
@@ -166,7 +188,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
                             continue;
                         }
                         ItemStack closeItem = ((EntityDroppedItem) entity).getItem();
-                        if (closeItem.isEmpty() || !closeItem.isStackableWith(getItem())) {
+                        if (closeItem == null || !closeItem.isStackableWith(getItem())) {
                             continue;
                         }
 
@@ -192,15 +214,16 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
 
         this.entityBaseTick(tickDiff);
 
-        if (isInsideOfFire()) {
+        if (this.isAlive() && this.isInsideOfFire()) {
             this.kill();
+            this.releaseShulkerContents();
         }
 
         if (this.isAlive()) {
-            if (this.getPickupDelay() > 0 && this.getPickupDelay() < 32767) {
-                this.setPickupDelay(this.getPickupDelay() - tickDiff);
-                if (this.getPickupDelay() < 0) {
-                    this.setPickupDelay(0);
+            if (this.data().getPickupDelay() > 0 && this.data().getPickupDelay() < 32767) {
+                this.data().setPickupDelay(this.data().getPickupDelay() - tickDiff);
+                if (this.data().getPickupDelay() < 0) {
+                    this.data().setPickupDelay(0);
                 }
             } else {
                 for (Entity entity : this.level.getNearbyEntities(this, this.boundingBox.inflate(1, 0.5f, 1))) {
@@ -237,7 +260,12 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
                 this.moveTowardsClosestSpace(pos);
             }
 
+            boolean wasOnGround = this.onGround;
             this.move(this.motion);
+
+            if (!wasOnGround && this.onGround && this.level.getLoadedBlockEntity(this.getLandingBlockPosition()) instanceof Bell bell) {
+                bell.ring(this, null);
+            }
 
             double friction = 1 - this.getDrag();
 
@@ -274,7 +302,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
             return this.getNameTag();
         }
 
-        String customName = this.getItem().get(ItemDataComponents.CUSTOM_NAME);
+        String customName = this.data().getItem().get(ItemDataComponents.CUSTOM_NAME);
         return customName != null ? customName : super.getName();
     }
 
@@ -284,12 +312,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
             return Component.text(this.getNameTag());
         }
 
-        return ItemDisplayNameResolver.resolve(this.getItem());
-    }
-
-    public ItemStack getItem() {
-        ItemStack item = this.data().getItem();
-        return item == null ? ItemStack.EMPTY : item;
+        return ItemDisplayNameResolver.resolve(this.data().getItem());
     }
 
     @Override
@@ -304,22 +327,6 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
         return false;
     }
 
-    public int getPickupDelay() {
-        return this.data().getPickupDelay();
-    }
-
-    public void setPickupDelay(int pickupDelay) {
-        this.data().setPickupDelay(pickupDelay);
-    }
-
-    public boolean isFromFishing() {
-        return this.fromFishing;
-    }
-
-    public void setFromFishing(boolean fromFishing) {
-        this.fromFishing = fromFishing;
-    }
-
     @Override
     public BedrockPacket createAddEntityPacket() {
         Vector3f pos = this.getPosition();
@@ -330,7 +337,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
         addEntity.setMotion(this.getMotion());
         addEntity.setFromFishing(this.fromFishing);
         addEntity.getMetadata().putAll(this.data.snapshot());
-        addEntity.setItemInHand(ItemUtils.toNetwork(this.getItem()));
+        addEntity.setItemInHand(ItemStackPacketCodec.toNetwork(this.getItem()));
         return addEntity;
     }
 

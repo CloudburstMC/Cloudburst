@@ -86,7 +86,7 @@ class MangroveTreeGrowthTest {
     @Test
     void successfulBoneMealBuildsTheTreeAndPreservesWaterInItsRoots() {
         BlockTestWorld world = world();
-        world.setLiquid(ORIGIN, LiquidState.of(BlockStates.WATER));
+        world.setLiquid(ORIGIN, BlockStates.WATER.getLiquidState());
         FertilizationResult result = FertilizationResult.none();
 
         for (int seed = 0; seed < 256 && result.treeType() == null; seed++) {

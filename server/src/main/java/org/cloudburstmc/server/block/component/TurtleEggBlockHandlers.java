@@ -52,10 +52,12 @@ public class TurtleEggBlockHandlers {
         }
     };
 
-    public static final ReplaceBlockHandler CAN_BE_REPLACED = (block, replacement, player, face, click) ->
-            (player == null || !player.isSneaking())
-                    && replacement.getType() == BlockTypes.TURTLE_EGG
-                    && block.getState().ensureTrait(BlockTraits.TURTLE_EGG_COUNT) != TurtleEggCount.FOUR_EGG;
+    public static final ReplaceBlockHandler CAN_BE_REPLACED = (block, replacement, context) -> {
+        Player player = context.player();
+        return (player == null || !player.isSneaking())
+                && replacement.getType() == BlockTypes.TURTLE_EGG
+                && block.getState().ensureTrait(BlockTraits.TURTLE_EGG_COUNT) != TurtleEggCount.FOUR_EGG;
+    };
 
     public static final PlacementStateHandler RESOLVE_PLACEMENT_STATE = (state, block, player, face, click) -> {
         if (block.getState().getType() != BlockTypes.TURTLE_EGG) {

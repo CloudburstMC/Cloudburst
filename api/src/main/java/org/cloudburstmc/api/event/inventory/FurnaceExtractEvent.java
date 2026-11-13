@@ -1,65 +1,52 @@
 package org.cloudburstmc.api.event.inventory;
 
-import org.cloudburstmc.api.blockentity.Furnace;
-import org.cloudburstmc.api.event.Event;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.event.block.BlockExpEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.player.Player;
 
+import java.util.Objects;
+
 /**
- * Fired when a player takes a smelted item from a furnace result slot.
- *
- * <p>Set the experience awarded via {@link #setExperience(int)}.
- * The default is 0.
+ * Called when a player takes items from a furnace output slot.
  */
-public final class FurnaceExtractEvent extends Event {
+public class FurnaceExtractEvent extends BlockExpEvent {
 
     private final Player player;
-    private final Furnace furnace;
-    private final ItemStack item;
-    private int experience;
+    private final ItemStack itemStack;
 
-    public FurnaceExtractEvent(Player player, Furnace furnace, ItemStack item, int experience) {
-        this.player = player;
-        this.furnace = furnace;
-        this.item = item;
-        this.experience = experience;
+    public FurnaceExtractEvent(Player player, Block block, ItemStack itemStack, int experience) {
+        super(block, experience);
+        this.player = Objects.requireNonNull(player, "player");
+        this.itemStack = Objects.requireNonNull(itemStack, "itemStack");
     }
 
     /**
-     * Returns the player who took the item from the result slot.
+     * @return the player taking the items
      */
     public Player getPlayer() {
-        return player;
+        return this.player;
     }
 
     /**
-     * Returns the furnace the item was taken from.
+     * @return the type taken from the output slot
      */
-    public Furnace getFurnace() {
-        return furnace;
+    public ItemType getItemType() {
+        return this.itemStack.getType();
     }
 
     /**
-     * Returns the item that was extracted from the result slot.
+     * @return the exact stack taken from the output slot
      */
-    public ItemStack getItem() {
-        return item;
+    public ItemStack getItemStack() {
+        return this.itemStack;
     }
 
     /**
-     * Returns the amount of experience that will be awarded to the player.
-     * Defaults to 0 unless changed via {@link #setExperience(int)}.
+     * @return the number of items taken
      */
-    public int getExperience() {
-        return experience;
-    }
-
-    /**
-     * Overrides the experience awarded to the player for this extraction.
-     *
-     * @param experience the new XP amount
-     */
-    public void setExperience(int experience) {
-        this.experience = experience;
+    public int getItemAmount() {
+        return this.itemStack.getCount();
     }
 }

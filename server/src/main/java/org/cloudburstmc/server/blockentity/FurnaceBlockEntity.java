@@ -1,63 +1,70 @@
 package org.cloudburstmc.server.blockentity;
 
+import org.cloudburstmc.api.blockentity.data.FurnaceData;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Furnace;
-import org.cloudburstmc.api.blockentity.data.BlockEntityData;
-import org.cloudburstmc.api.blockentity.data.FurnaceData;
 import org.cloudburstmc.api.event.inventory.FurnaceBurnEvent;
+import org.cloudburstmc.api.event.inventory.FurnaceExtractEvent;
 import org.cloudburstmc.api.event.inventory.FurnaceSmeltEvent;
 import org.cloudburstmc.api.event.inventory.FurnaceStartSmeltEvent;
-import org.cloudburstmc.api.inventory.ItemContainer;
-import org.cloudburstmc.api.inventory.view.SlotGroup;
+import org.cloudburstmc.api.inventory.view.BlockFurnaceView;
 import org.cloudburstmc.api.inventory.view.SlotGroupType;
 import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
 import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
-import org.cloudburstmc.api.item.data.Bucket;
 import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerSetDataPacket;
+import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.ContainerListener;
-import org.cloudburstmc.server.crafting.CloudFurnaceRecipe;
+import org.cloudburstmc.server.crafting.CloudCookingRecipe;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
+import org.cloudburstmc.server.registry.VanillaCookingData;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import static org.cloudburstmc.api.block.BlockTypes.FURNACE;
-import static org.cloudburstmc.api.block.BlockTypes.LIT_FURNACE;
-
-/**
- * Base block entity implementation for smelting containers (furnace, blast furnace, smoker).
- * Manages a 3-slot container (ingredient, fuel, result) with tick-based smelting logic,
- * and fires {@link org.cloudburstmc.api.event.inventory.FurnaceBurnEvent}
- * and {@link org.cloudburstmc.api.event.inventory.FurnaceSmeltEvent} during processing.
- */
 public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace {
 
-    private static final int SLOT_SMELTING = 0;
-    private static final int SLOT_FUEL = 1;
-    private static final int SLOT_RESULT = 2;
+    public static final int INGREDIENT_SLOT = 0;
+    public static final int FUEL_SLOT = 1;
+    public static final int RESULT_SLOT = 2;
 
-    protected int currentCookDuration;
+    private static final int AVERAGE_AMBIENT_SOUND_INTERVAL = 60;
+
+    private final Map<Identifier, Integer> recipesUsed = new HashMap<>();
+    private int cookDuration;
+    private int importedExperience;
+    private @Nullable Identifier activeRecipe;
+    private @Nullable RecipeLookup recipeLookup;
 
     public FurnaceBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
+        this(type, chunk, position, new FurnaceStorage());
+    }
+
+    private FurnaceBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position, FurnaceStorage storage) {
         super(type, chunk, position);
-    }
-
-    @Override
-    public SlotGroupType<? extends SlotGroup> getSlotGroupType() {
-        return SlotGroupTypes.FURNACE;
-    }
-
-    @Override
-    public Furnace getBlockEntity() {
-        return this;
+        this.data().setItems(storage);
+        storage.owner = this;
     }
 
     @Override
@@ -71,228 +78,64 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
     }
 
     @Override
-    protected ItemContainer items() {
-        return data().getItems();
+    protected org.cloudburstmc.api.inventory.ItemContainer items() {
+        return this.data().getItems();
     }
 
     @Override
-    public void close() {
-        if (!closed) {
-            for (ContainerListener listener : new HashSet<>(this.getContainer().getListeners())) {
-                if (listener instanceof CloudPlayer) {
-                    ((CloudPlayer) listener).closeInventory();
-                }
+    public SlotGroupType<BlockFurnaceView> getSlotGroupType() {
+        return SlotGroupTypes.FURNACE;
+    }
+
+    @Override
+    public Furnace getBlockEntity() {
+        return this;
+    }
+
+    @Override
+    protected void loadCustom(NbtMap tag) {
+
+
+        this.data().setBurnTime(readTicks(tag, "BurnTime"));
+        this.data().setBurnDuration(Math.max(this.data().getBurnTime(), readTicks(tag, "BurnDuration")));
+        this.cookDuration = readTicks(tag, "CookDuration");
+        this.data().setCookTime(readTicks(tag, "CookTime"));
+        String recipe = tag.getString("ActiveRecipe", "");
+        this.activeRecipe = recipe.isEmpty() ? null : Identifier.parse(recipe);
+
+        this.importedExperience = readTicks(tag, "StoredXPInt");
+        this.recipesUsed.clear();
+        tag.getCompound("RecipesUsed").forEach((id, value) -> {
+            if (value instanceof Integer count && count > 0) {
+                this.recipesUsed.put(Identifier.parse(id), count);
             }
-            super.close();
-        }
+        });
     }
 
     @Override
-    public void onBreak() {
-        for (ItemStack content : getContainer().getContents()) {
-            this.dropItemOnBreak(content);
-        }
-    }
+    protected void saveCustom(NbtMapBuilder tag) {
 
-    protected float getBurnRate() {
-        return 1.0f;
-    }
-
-    protected void checkFuel(ItemStack fuel) {
-        FurnaceBurnEvent ev = new FurnaceBurnEvent(this, fuel,
-                (short) CloudItemRegistry.get().requireComponent(fuel.getType(), ItemBehaviors.FUEL_DURATION).get());
-        this.server.getEventManager().fire(ev);
-        if (ev.isCancelled()) {
-            return;
+        writeTicks(tag, "BurnTime", this.data().getBurnTime());
+        writeTicks(tag, "BurnDuration", this.data().getBurnDuration());
+        writeTicks(tag, "CookTime", this.data().getCookTime());
+        tag.putInt("CookDuration", this.cookDuration);
+        tag.putInt("StoredXPInt", this.importedExperience);
+        NbtMapBuilder recipes = NbtMap.builder();
+        this.recipesUsed.forEach((id, count) -> recipes.putInt(id.toString(), count));
+        tag.putCompound("RecipesUsed", recipes.build());
+        tag.remove("ActiveRecipe");
+        if (this.activeRecipe != null) {
+            tag.putString("ActiveRecipe", this.activeRecipe.toString());
         }
 
-        data().setBurnDuration((short) (ev.getBurnTime() / getBurnRate()));
-        data().setBurnTime((short) (ev.getBurnTime() / getBurnRate()));
-
-        if (getBlockState().getType() != getLitType()) {
-            lightFurnace();
-        }
-
-        if (data().getBurnTime() > 0 && ev.isBurning()) {
-            for (ContainerListener listener : this.getContainer().getListeners()) {
-                listener.onInventoryDataChange(this.getContainer(), ContainerSetDataPacket.FURNACE_LIT_DURATION, data().getBurnDuration());
-            }
-
-            if (fuel.getCount() <= 1) {
-                if (fuel.getType() == ItemTypes.BUCKET && fuel.get(ItemDataComponents.BUCKET_DATA) == Bucket.LAVA) {
-                    fuel = fuel.toBuilder().amount(1).setData(ItemDataComponents.BUCKET_DATA, Bucket.EMPTY).build();
-                } else {
-                    fuel = ItemStack.EMPTY;
-                }
-            } else {
-                fuel = fuel.decreaseCount();
-            }
-            this.setFuel(fuel);
-        }
     }
 
     @Override
-    public boolean onUpdate() {
-        if (this.closed) {
-            return false;
-        }
-
-        boolean ret = false;
-
-        ItemStack fuel = this.getFuel();
-        ItemStack raw = this.getSmelting();
-        ItemStack product = this.getResult();
-        BlockState state = getBlockState();
-        BlockType blockType = state.getType();
-        CloudFurnaceRecipe smelt = CloudRecipeRegistry.get().matchFurnaceRecipe(raw, product, this.getBlockState().getType().getId());
-        boolean canSmelt = smelt != null && raw.getCount() > 0 &&
-                (product.isEmpty() || (smelt.getResult().equals(product) && product.getCount() < CloudItemRegistry.get().requireComponent(product.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute(product)));
-
-        if (
-                data().getBurnTime() <= 0 && canSmelt
-                        && CloudItemRegistry.get().requireComponent(fuel.getType(), ItemBehaviors.FUEL_DURATION).get() > 0
-                        && fuel.getCount() > 0) {
-            this.checkFuel(fuel);
-        }
-
-        if (data().getBurnTime() > 0) {
-            data().setBurnTime((short) (data().getBurnTime() - 1));
-
-            if (smelt != null && canSmelt) {
-                if (data().getCookTime() == 0) {
-                    int defaultDuration = (int) (200 / getBurnRate());
-                    FurnaceStartSmeltEvent startEv = new FurnaceStartSmeltEvent(this, smelt, defaultDuration);
-                    this.server.getEventManager().fire(startEv);
-                    if (!startEv.isCancelled()) {
-                        currentCookDuration = startEv.getCookTime();
-                        data().setCookTime((short) (data().getCookTime() + 1));
-                    }
-                } else {
-                    data().setCookTime((short) (data().getCookTime() + 1));
-                }
-
-                if (data().getCookTime() > 0 && data().getCookTime() >= currentCookDuration) {
-                    product = smelt.getResult().increaseCount();
-
-                    FurnaceSmeltEvent ev = new FurnaceSmeltEvent(this, raw, product);
-                    this.server.getEventManager().fire(ev);
-                    if (!ev.isCancelled()) {
-                        this.setResult(ev.getResult());
-                        if (raw.getCount() <= 1) {
-                            raw = ItemStack.EMPTY;
-                        } else {
-                            raw = raw.decreaseCount();
-                        }
-                        this.setSmelting(raw);
-                    }
-
-                    data().setCookTime((short) (data().getCookTime() - currentCookDuration));
-                }
-            } else if (data().getBurnTime() <= 0) {
-                data().setBurnTime((short) 0);
-                data().setCookTime((short) 0);
-            } else {
-                data().setCookTime((short) 0);
-            }
-            ret = true;
-        } else {
-            if (state.getType() == getLitType()) {
-                extinguishFurnace();
-            }
-            data().setBurnTime((short) 0);
-            data().setCookTime((short) 0);
-        }
-
-        for (ContainerListener listener : this.getContainer().getListeners()) {
-            listener.onInventoryDataChange(this.getContainer(), ContainerSetDataPacket.FURNACE_TICK_COUNT, data().getCookTime());
-            listener.onInventoryDataChange(this.getContainer(), ContainerSetDataPacket.FURNACE_LIT_TIME, data().getBurnTime());
-        }
-
-        this.lastUpdate = System.currentTimeMillis();
-
-        return ret;
-    }
-
-    protected BlockType getLitType() {
-        return LIT_FURNACE;
-    }
-
-    protected BlockType getUnlitType() {
-        return FURNACE;
-    }
-
-    protected void extinguishFurnace() {
-        BlockState current = getBlockState();
-        this.getLevel().setBlockState(this.getPosition(),
-                getUnlitType().getDefaultState().copyTraits(current), true);
-    }
-
-    protected void lightFurnace() {
-        BlockState current = getBlockState();
-        this.getLevel().setBlockState(this.getPosition(),
-                getLitType().getDefaultState().copyTraits(current), true);
-    }
-
-    public int getBurnTime() {
-        return data().getBurnTime();
-    }
-
-    public void setBurnTime(int burnTime) {
-        data().setBurnTime((short) burnTime);
-        if (burnTime > 0) {
-            this.scheduleUpdate();
-        }
-    }
-
-    public int getCookTime() {
-        return data().getCookTime();
-    }
-
-    public void setCookTime(int cookTime) {
-        data().setCookTime((short) cookTime);
-    }
-
-    @Override
-    public int getCookProgress() {
-        return data().getCookTime();
-    }
-
-    @Override
-    public void setCookProgress(int ticks) {
-        data().setCookTime((short) Math.max(0, Math.min(ticks, getCookDuration())));
-        for (ContainerListener listener : this.getContainer().getListeners()) {
-            listener.onInventoryDataChange(this.getContainer(), ContainerSetDataPacket.FURNACE_TICK_COUNT, data().getCookTime());
-        }
-    }
-
-    @Override
-    public int getCookDuration() {
-        return (int) (200 / getBurnRate());
-    }
-
-    @Override
-    public int getBurnProgress() {
-        return data().getBurnTime();
-    }
-
-    @Override
-    public void setBurnProgress(int ticks) {
-        setBurnTime(Math.max(0, ticks));
-        for (ContainerListener listener : this.getContainer().getListeners()) {
-            listener.onInventoryDataChange(this.getContainer(), ContainerSetDataPacket.FURNACE_LIT_TIME, data().getBurnTime());
-        }
-    }
-
-    @Override
-    public int getBurnDuration() {
-        return data().getBurnDuration();
-    }
-
-    @Override
-    public void setBurnDuration(int ticks) {
-        data().setBurnDuration((short) Math.max(0, ticks));
-        for (ContainerListener listener : this.getContainer().getListeners()) {
-            listener.onInventoryDataChange(this.getContainer(), ContainerSetDataPacket.FURNACE_LIT_DURATION, data().getBurnDuration());
+    protected void saveCustomClient(NbtMapBuilder tag) {
+        super.saveCustomClient(tag);
+        String name = this.getCustomName();
+        if (name != null) {
+            tag.putString("CustomName", name);
         }
     }
 
@@ -302,32 +145,425 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
     }
 
     @Override
-    public ItemStack getResult() {
-        return items().getItem(SLOT_RESULT);
+    public void applyPlacementItem(ItemStack item) {
+        String name = item.get(ItemDataComponents.CUSTOM_NAME);
+        if (name != null && !name.isEmpty()) {
+            this.setCustomName(name);
+            this.setDirty();
+        }
     }
 
     @Override
-    public void setResult(ItemStack item) {
-        items().setItem(SLOT_RESULT, item);
+    public void close() {
+        if (!this.isClosed()) {
+            for (ContainerListener listener : List.copyOf(this.getContainer().getListeners())) {
+                if (listener instanceof CloudPlayer player) {
+                    player.closeInventory();
+                }
+            }
+            super.close();
+        }
     }
 
     @Override
-    public ItemStack getFuel() {
-        return items().getItem(SLOT_FUEL);
+    public void onBreak() {
+        for (ItemStack content : this.getContainer().getContents()) {
+            this.dropItemOnBreak(content);
+        }
+        this.getLevel().dropExpOrb(this.getPosition(), this.takeExperience());
     }
 
     @Override
-    public void setFuel(ItemStack item) {
-        items().setItem(SLOT_FUEL, item);
+    public boolean onUpdate() {
+        if (this.isClosed() || !this.isValid()) {
+            return false;
+        }
+        super.onUpdate();
+
+        int previousBurnTime = this.data().getBurnTime();
+        int previousBurnDuration = this.data().getBurnDuration();
+        int previousCookTime = this.data().getCookTime();
+        int previousCookDuration = this.cookDuration;
+
+        if (this.data().getBurnTime() > 0) {
+            this.data().setBurnTime(this.data().getBurnTime() - 1);
+        }
+
+        this.tickCooking();
+        if (this.isClosed() || !this.isValid()) {
+            return false;
+        }
+
+        this.updateLitState();
+        if (this.data().getBurnTime() > 0 && this.getLevel().getRandom().nextInt(AVERAGE_AMBIENT_SOUND_INTERVAL) == 0) {
+            this.getLevel().addLevelSoundEvent(this.getPosition(), this.getAmbientSound());
+        }
+
+        if (this.data().getBurnTime() != previousBurnTime || this.data().getBurnDuration() != previousBurnDuration || this.data().getCookTime() != previousCookTime || this.cookDuration != previousCookDuration) {
+            this.setDirty();
+            this.sendProgressChanges(previousBurnTime, previousBurnDuration, this.displayCookTime(previousCookTime, previousCookDuration));
+        }
+
+        return this.data().getBurnTime() > 0 || this.data().getCookTime() > 0;
     }
 
     @Override
     public ItemStack getSmelting() {
-        return items().getItem(SLOT_SMELTING);
+        return this.getItem(INGREDIENT_SLOT);
     }
 
     @Override
     public void setSmelting(ItemStack item) {
-        items().setItem(SLOT_SMELTING, item);
+        this.setItem(INGREDIENT_SLOT, item);
+    }
+
+    @Override
+    public ItemStack getFuel() {
+        return this.getItem(FUEL_SLOT);
+    }
+
+    @Override
+    public void setFuel(ItemStack item) {
+        this.setItem(FUEL_SLOT, item);
+    }
+
+    @Override
+    public ItemStack getResult() {
+        return this.getItem(RESULT_SLOT);
+    }
+
+    @Override
+    public void setResult(ItemStack item) {
+        this.setItem(RESULT_SLOT, item);
+    }
+
+    @Override
+    public int getCookProgress() {
+        return this.data().getCookTime();
+    }
+
+    @Override
+    public void setCookProgress(int ticks) {
+        this.cookDuration = this.getCookDuration();
+        this.data().setCookTime(Math.clamp(ticks, 0, this.cookDuration));
+        this.setDirty();
+        this.scheduleUpdate();
+        this.broadcastData(ContainerSetDataPacket.FURNACE_TICK_COUNT, this.displayCookTime(this.data().getCookTime(), this.cookDuration));
+    }
+
+    @Override
+    public int getCookDuration() {
+        if (this.cookDuration > 0) {
+            return this.cookDuration;
+        }
+        CloudCookingRecipe recipe = this.findRecipe(this.getSmelting());
+        return recipe == null ? this.standardCookTime() : recipe.getCookingTime();
+    }
+
+    @Override
+    public int getBurnProgress() {
+        return this.data().getBurnTime();
+    }
+
+    @Override
+    public void setBurnProgress(int ticks) {
+        this.data().setBurnTime(Math.max(0, ticks));
+        if (this.data().getBurnTime() > this.data().getBurnDuration()) {
+            this.setBurnDuration(this.data().getBurnTime());
+        }
+        this.setDirty();
+        this.scheduleUpdate();
+        this.broadcastData(ContainerSetDataPacket.FURNACE_LIT_TIME, this.data().getBurnTime());
+    }
+
+    @Override
+    public int getBurnDuration() {
+        return this.data().getBurnDuration();
+    }
+
+    @Override
+    public void setBurnDuration(int ticks) {
+        this.data().setBurnDuration(Math.max(this.data().getBurnTime(), ticks));
+        this.setDirty();
+        this.broadcastData(ContainerSetDataPacket.FURNACE_LIT_DURATION, this.data().getBurnDuration());
+    }
+
+    public boolean acceptsFuel(ItemStack item) {
+        if (isEmptyBucket(item)) {
+            return item.getCount() == 1;
+        }
+        return item.isEmpty() || fuelTicks(item) > 0;
+    }
+
+    @Override
+    public boolean canInsertFrom(int slot, Direction side, ItemStack item) {
+        return switch (side) {
+            case UP -> slot == INGREDIENT_SLOT;
+            case DOWN -> false;
+            default -> slot == FUEL_SLOT && acceptsFuel(item);
+        };
+    }
+
+    @Override
+    public boolean canExtractBelow(int slot) {
+        return switch (slot) {
+            case RESULT_SLOT -> true;
+            case FUEL_SLOT -> {
+                ItemStack fuel = this.getFuel();
+                yield isEmptyBucket(fuel) || fuel.getType() == ItemTypes.WATER_BUCKET;
+            }
+            default -> false;
+        };
+    }
+
+    public void extract(Player player, ItemStack taken) {
+        FurnaceExtractEvent event = new FurnaceExtractEvent(player, this.getBlock(), taken, this.takeExperience());
+        this.server.getEventManager().fire(event);
+        this.getLevel().dropExpOrb(player.getPosition(), event.getExpToDrop());
+    }
+
+    public void sendProgress(ContainerListener listener) {
+        listener.onInventoryDataChange(this.getContainer(), ContainerSetDataPacket.FURNACE_LIT_DURATION, this.data().getBurnDuration());
+        listener.onInventoryDataChange(this.getContainer(), ContainerSetDataPacket.FURNACE_LIT_TIME, this.data().getBurnTime());
+        listener.onInventoryDataChange(this.getContainer(), ContainerSetDataPacket.FURNACE_TICK_COUNT, this.displayCookTime(this.data().getCookTime(), this.cookDuration));
+    }
+
+    protected int standardCookTime() {
+        return VanillaCookingData.FURNACE_COOK_TICKS;
+    }
+
+    protected SoundEvent getAmbientSound() {
+        return SoundEvent.FURNACE_USE;
+    }
+
+    protected BlockType getUnlitType() {
+        return BlockTypes.FURNACE;
+    }
+
+    protected BlockType getLitType() {
+        return BlockTypes.LIT_FURNACE;
+    }
+
+    private void tickCooking() {
+        ItemStack ingredient = this.getSmelting();
+        CloudCookingRecipe recipe = this.findRecipe(ingredient);
+        if (recipe == null || this.isOutputBlocked(recipe.getResult())) {
+            this.resetCooking();
+            return;
+        }
+
+        if (this.activeRecipe != null && !this.activeRecipe.equals(recipe.getId())) {
+            this.resetCooking();
+        }
+
+        if (this.data().getBurnTime() == 0) {
+            this.ignite();
+            if (this.isClosed() || !this.isValid()
+                    || !ingredient.equals(this.getSmelting()) || this.isOutputBlocked(recipe.getResult())) {
+                return;
+            }
+        }
+
+        if (this.data().getBurnTime() > 0) {
+            this.cook(recipe, ingredient);
+        } else {
+            this.data().setCookTime(Math.max(0, this.data().getCookTime() - 2));
+            if (this.data().getCookTime() == 0) {
+                this.resetCooking();
+            }
+        }
+    }
+
+    private void ignite() {
+        ItemStack fuel = this.getFuel();
+        int ticks = (int) ((long) fuelTicks(fuel) * this.standardCookTime() / VanillaCookingData.FURNACE_COOK_TICKS);
+        if (ticks <= 0) {
+            return;
+        }
+
+        FurnaceBurnEvent event = new FurnaceBurnEvent(this.getBlock(), fuel, ticks);
+        this.server.getEventManager().fire(event);
+        if (event.isCancelled() || !event.isBurning() || event.getBurnTime() <= 0
+                || this.isClosed() || !this.isValid()
+                || !fuel.equals(this.getFuel())) {
+            return;
+        }
+
+        this.data().setBurnTime(event.getBurnTime());
+        this.data().setBurnDuration(this.data().getBurnTime());
+        if (event.willConsumeFuel()) {
+            this.setFuel(fuel.getType() == ItemTypes.LAVA_BUCKET ? ItemStack.from(ItemTypes.BUCKET) : fuel.decreaseCount());
+        }
+    }
+
+    private void cook(CloudCookingRecipe recipe, ItemStack ingredient) {
+        if (this.data().getCookTime() == 0) {
+            FurnaceStartSmeltEvent event = new FurnaceStartSmeltEvent(this.getBlock(), ingredient.withCount(recipe.getInputCount()), recipe);
+            this.server.getEventManager().fire(event);
+            if (this.isClosed() || !this.isValid() || !ingredient.equals(this.getSmelting()) || this.isOutputBlocked(recipe.getResult())) {
+                return;
+            }
+            this.cookDuration = event.getTotalCookTime();
+        } else if (this.cookDuration == 0) {
+            this.cookDuration = recipe.getCookingTime();
+        }
+
+        this.activeRecipe = recipe.getId();
+        this.data().setCookTime(this.data().getCookTime() + 1);
+        if (this.data().getCookTime() >= this.cookDuration) {
+            this.finishCooking(recipe, ingredient);
+            this.resetCooking();
+        }
+    }
+
+    private void finishCooking(CloudCookingRecipe recipe, ItemStack ingredient) {
+        FurnaceSmeltEvent event = new FurnaceSmeltEvent(this.getBlock(), ingredient.withCount(recipe.getInputCount()), recipe.getResult(), recipe);
+        this.server.getEventManager().fire(event);
+        if (event.isCancelled() || this.isClosed() || !this.isValid() || !ingredient.equals(this.getSmelting()) || this.isOutputBlocked(event.getResult())) {
+            return;
+        }
+
+        ItemStack result = event.getResult();
+        if (!result.isEmpty()) {
+            ItemStack existing = this.getResult();
+            this.setResult(existing.isEmpty() ? result : existing.increaseCount(result.getCount()));
+        }
+
+        if (ingredient.getType() == ItemTypes.WET_SPONGE && isEmptyBucket(this.getFuel())) {
+            this.setFuel(ItemStack.from(ItemTypes.WATER_BUCKET));
+        }
+
+        this.setSmelting(ingredient.decreaseCount(recipe.getInputCount()));
+        this.recipesUsed.merge(recipe.getId(), 1, Integer::sum);
+        this.setDirty();
+    }
+
+    private boolean isOutputBlocked(ItemStack result) {
+        if (result.isEmpty()) {
+            return false;
+        }
+
+        ItemStack existing = this.getResult();
+        if (!existing.isEmpty() && !existing.isStackableWith(result)) {
+            return true;
+        }
+
+        int itemLimit = CloudItemRegistry.get()
+                .requireComponent(result.getType(), ItemBehaviors.GET_MAX_STACK_SIZE)
+                .execute(result);
+        int slotLimit = Math.min(itemLimit, this.getContainer().getMaxStackSize());
+        return result.getCount() > slotLimit - existing.getCount();
+    }
+
+    private void resetCooking() {
+        this.data().setCookTime(0);
+        this.cookDuration = 0;
+        this.activeRecipe = null;
+    }
+
+    private @Nullable CloudCookingRecipe findRecipe(ItemStack ingredient) {
+        if (this.recipeLookup == null || this.recipeLookup.ingredient() != ingredient) {
+            this.recipeLookup = new RecipeLookup(ingredient,
+                    CloudRecipeRegistry.get().matchCookingRecipe(ingredient, this.getUnlitType().getId()));
+        }
+        return this.recipeLookup.recipe();
+    }
+
+    private record RecipeLookup(ItemStack ingredient, @Nullable CloudCookingRecipe recipe) {
+    }
+
+    private void updateLitState() {
+        BlockState current = this.getBlockState();
+        BlockType target = this.data().getBurnTime() > 0 ? this.getLitType() : this.getUnlitType();
+        if (current.getType() != target) {
+            this.getLevel().setBlockState(this.getPosition(), target.getDefaultState().copyTraits(current), true);
+        }
+    }
+
+    private int takeExperience() {
+        if (this.recipesUsed.isEmpty() && this.importedExperience == 0) {
+            return 0;
+        }
+
+        long experience = this.importedExperience;
+        CloudRecipeRegistry registry = CloudRecipeRegistry.get();
+        for (Map.Entry<Identifier, Integer> entry : this.recipesUsed.entrySet()) {
+            if (registry.getRecipe(entry.getKey()) instanceof CloudCookingRecipe recipe) {
+                double reward = (double) entry.getValue() * recipe.getExperience();
+                int whole = (int) reward;
+                experience += whole;
+                if (whole < Integer.MAX_VALUE && reward > whole && this.getLevel().getRandom().nextDouble() < reward - whole) {
+                    experience++;
+                }
+            }
+        }
+
+        this.recipesUsed.clear();
+        this.importedExperience = 0;
+        this.setDirty();
+        return (int) Math.min(experience, Integer.MAX_VALUE);
+    }
+
+    private int displayCookTime(int progress, int duration) {
+        return duration > 0 ? (int) ((long) progress * this.standardCookTime() / duration) : 0;
+    }
+
+    private void sendProgressChanges(int burnTime, int burnDuration, int cookTime) {
+        if (this.data().getBurnDuration() != burnDuration) {
+            this.broadcastData(ContainerSetDataPacket.FURNACE_LIT_DURATION, this.data().getBurnDuration());
+        }
+
+        if (this.data().getBurnTime() != burnTime) {
+            this.broadcastData(ContainerSetDataPacket.FURNACE_LIT_TIME, this.data().getBurnTime());
+        }
+
+        int display = this.displayCookTime(this.data().getCookTime(), this.cookDuration);
+        if (display != cookTime) {
+            this.broadcastData(ContainerSetDataPacket.FURNACE_TICK_COUNT, display);
+        }
+    }
+
+    private void broadcastData(int property, int value) {
+        for (ContainerListener listener : this.getContainer().getListeners()) {
+            listener.onInventoryDataChange(this.getContainer(), property, value);
+        }
+    }
+
+    private static int fuelTicks(ItemStack fuel) {
+        return fuel.isEmpty() ? 0 : CloudItemRegistry.get().requireComponent(fuel.getType(), ItemBehaviors.FUEL_DURATION).get();
+    }
+
+    private static boolean isEmptyBucket(ItemStack item) {
+        return item.getType() == ItemTypes.BUCKET;
+    }
+
+    private static int readTicks(NbtMap tag, String name) {
+        return tag.get(name) instanceof Number value ? Math.max(0, value.intValue()) : 0;
+    }
+
+    private static void writeTicks(NbtMapBuilder tag, String name, int ticks) {
+        if (ticks <= Short.MAX_VALUE) {
+            tag.putShort(name, (short) ticks);
+        } else {
+            tag.putInt(name, ticks);
+        }
+    }
+
+    private static class FurnaceStorage extends CloudContainer {
+
+        private @Nullable FurnaceBlockEntity owner;
+
+        private FurnaceStorage() {
+            super(3);
+        }
+
+        @Override
+        protected void onSlotChange(int index, ItemStack old) {
+            if (this.owner != null && !this.owner.isClosed()) {
+                this.owner.setDirty();
+                this.owner.scheduleUpdate();
+            }
+            super.onSlotChange(index, old);
+        }
     }
 }

@@ -40,7 +40,8 @@ public class BlockComponents {
     public static final ComponentType<Integer> BUTTON_PRESS_DURATION_TICKS = ComponentType.of("button_press_duration_ticks", Integer.class);
 
     /**
-     * Checks whether a proposed block may initially be placed. Defaults to {@link #CAN_SURVIVE}.
+     * Checks whether a proposed block may initially be placed. By default, checks
+     * build limits, layer compatibility and {@link #CAN_SURVIVE} for its block layers.
      */
     public static final ComponentType<BooleanBlockHandler> CAN_BE_PLACED = ComponentType.of("can_be_placed", BooleanBlockHandler.class);
 
@@ -48,6 +49,11 @@ public class BlockComponents {
      * Checks whether placement may replace the existing block with the supplied state.
      */
     public static final ComponentType<ReplaceBlockHandler> CAN_BE_REPLACED = ComponentType.of("can_be_replaced", ReplaceBlockHandler.class);
+
+    /**
+     * Checks whether a falling block can replace this block state.
+     */
+    public static final ComponentType<BooleanBlockStateHandler> CAN_BE_REPLACED_BY_FALLING_BLOCK = ComponentType.of("can_be_replaced_by_falling_block", BooleanBlockStateHandler.class);
 
     /**
      * Checks whether block interaction may call {@link #USE}.
@@ -121,6 +127,11 @@ public class BlockComponents {
     public static final ComponentType<ColorBlockHandler> GET_COLOR = ComponentType.of("get_color", ColorBlockHandler.class);
 
     /**
+     * Reads a block's analog output independently of its normal redstone signal.
+     */
+    public static final ComponentType<ComparatorOutputHandler> GET_COMPARATOR_OUTPUT = ComponentType.of("get_comparator_output", ComparatorOutputHandler.class);
+
+    /**
      * TODO: Implement block description queries.
      */
     public static final ComponentType<DescriptionBlockHandler> GET_DESCRIPTION_ID = ComponentType.of("get_description_id", DescriptionBlockHandler.class);
@@ -142,14 +153,24 @@ public class BlockComponents {
     public static final ComponentType<BlockExperienceHandler> GET_EXPERIENCE = ComponentType.of("get_experience", BlockExperienceHandler.class);
 
     /**
-     * Resolves item drops for explosions using the supplied loot context. Does not spawn items.
+     * Resolves explosion drops, including applicable game rules, without spawning items.
      */
     public static final ComponentType<BlockLootHandler> GET_EXPLOSION_LOOT = ComponentType.of("get_explosion_loot", BlockLootHandler.class);
+
+    /**
+     * Whether explosion yield reduces this block's loot.
+     */
+    public static final ComponentType<BooleanBlockHandler> EXPLOSION_LOOT_DECAYS = ComponentType.of("explosion_loot_decays", BooleanBlockHandler.class);
 
     /**
      * Resolves the damage source used when a falling entity carrying this block lands on another entity.
      */
     public static final ComponentType<FallingBlockDamageSourceHandler> GET_FALLING_DAMAGE_SOURCE = ComponentType.of("get_falling_damage_source", FallingBlockDamageSourceHandler.class);
+
+    /**
+     * Determines the item to drop when a falling block breaks on landing.
+     */
+    public static final ComponentType<FallingBlockDropHandler> GET_FALLING_BREAK_DROP = ComponentType.of("get_falling_break_drop", FallingBlockDropHandler.class);
 
     /**
      * TODO: Implement block gravity queries.
@@ -172,6 +193,11 @@ public class BlockComponents {
      * Resolves item drops for destruction using the supplied loot context. Does not spawn items.
      */
     public static final ComponentType<BlockLootHandler> GET_LOOT = ComponentType.of("get_loot", BlockLootHandler.class);
+
+    /**
+     * Returns the loot that survives breaking the block in creative mode.
+     */
+    public static final ComponentType<BlockLootHandler> GET_CREATIVE_LOOT = ComponentType.of("get_creative_loot", BlockLootHandler.class);
 
     /**
      * Resolves the color used to render this block on a map.
@@ -210,14 +236,14 @@ public class BlockComponents {
     public static final ComponentType<BooleanBlockStateHandler> IS_SOLID_SUPPORT = ComponentType.of("is_solid_support", BooleanBlockStateHandler.class);
 
     /**
+     * Selects the instrument this block contributes when placed above or below a note block.
+     */
+    public static final ComponentType<NoteBlockInstrument> NOTE_BLOCK_INSTRUMENT = ComponentType.of("note_block_instrument", NoteBlockInstrument.class);
+
+    /**
      * TODO: Implement block pick eligibility checks.
      */
     public static final ComponentType<BooleanBlockHandler> MAY_PICK = ComponentType.of("may_pick", BooleanBlockHandler.class);
-
-    /**
-     * TODO: Implement placement face eligibility checks.
-     */
-    public static final ComponentType<MayPlaceBlockHandler> MAY_PLACE = ComponentType.of("may_place", MayPlaceBlockHandler.class);
 
     /**
      * TODO: Implement placement support eligibility checks.
@@ -290,7 +316,7 @@ public class BlockComponents {
     /**
      * Handles a projectile hitting a block.
      */
-    public static final ComponentType<EntityBlockHandler> ON_PROJECTILE_HIT = ComponentType.of("on_projectile_hit", EntityBlockHandler.class);
+    public static final ComponentType<ProjectileHitBlockHandler> ON_PROJECTILE_HIT = ComponentType.of("on_projectile_hit", ProjectileHitBlockHandler.class);
 
     /**
      * Handles a randomly selected tick for a block type with {@link #CAN_RANDOM_TICK} enabled.
@@ -319,6 +345,11 @@ public class BlockComponents {
     public static final ComponentType<EntityBlockHandler> ON_STAND_ON = ComponentType.of("on_stand_on", EntityBlockHandler.class);
 
     /**
+     * Handles the start of mining. Creative instant breaking does not call this handler.
+     */
+    public static final ComponentType<EntityBlockHandler> ON_START_MINING = ComponentType.of("on_start_mining", EntityBlockHandler.class);
+
+    /**
      * TODO: Implement entity step-off callbacks.
      */
     public static final ComponentType<EntityBlockHandler> ON_STEP_OFF = ComponentType.of("on_step_off", EntityBlockHandler.class);
@@ -332,6 +363,11 @@ public class BlockComponents {
      * Handles scheduled or explicitly requested block ticks. The random source may be {@code null}.
      */
     public static final ComponentType<TickBlockHandler> ON_TICK = ComponentType.of("on_tick", TickBlockHandler.class);
+
+    /**
+     * Determines how a falling block settles on landing.
+     */
+    public static final ComponentType<FallingBlockPlacementHandler> RESOLVE_FALLING_PLACEMENT = ComponentType.of("resolve_falling_placement", FallingBlockPlacementHandler.class);
 
     /**
      * Resolves the proposed state before survival, collision and placement checks, without changing the level.

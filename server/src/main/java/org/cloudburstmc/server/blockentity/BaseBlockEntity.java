@@ -505,6 +505,9 @@ public abstract class BaseBlockEntity implements BlockEntity {
         return closed;
     }
 
+    public void applyPlacementItem(ItemStack item) {
+    }
+
     public void onBreak() {
 
     }

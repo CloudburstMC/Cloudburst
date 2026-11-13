@@ -9,6 +9,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.BlockLayerRules;
 import org.cloudburstmc.server.block.BlockLayers;
+import org.cloudburstmc.server.item.component.BlockTransformation;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.VanillaBlockTransformations;
 import org.cloudburstmc.server.testutil.BlockTestRegistry;
@@ -143,7 +144,7 @@ class KelpBlockHandlersTest {
         Vector3i tip = POSITION.add(0, 1, 0);
         Vector3i above = POSITION.add(0, 2, 0);
         world.setState(tip, kelp(25));
-        world.setLiquid(tip, LiquidState.of(BlockStates.WATER));
+        world.setLiquid(tip, BlockStates.WATER.getLiquidState());
         world.setState(above, BlockStates.WATER);
 
         KelpBlockHandlers.ON_RANDOM_TICK.execute(world.block(tip), new GrowthRandom());
@@ -171,7 +172,7 @@ class KelpBlockHandlersTest {
 
         Vector3i ceiling = Vector3i.from(0, 319, 0);
         world.setState(ceiling, kelp(0));
-        world.setLiquid(ceiling, LiquidState.of(BlockStates.WATER));
+        world.setLiquid(ceiling, BlockStates.WATER.getLiquidState());
         world.setState(ceiling.add(0, 1, 0), BlockStates.WATER);
 
         KelpBlockHandlers.ON_RANDOM_TICK.execute(world.block(ceiling), new GrowthRandom());
@@ -188,8 +189,10 @@ class KelpBlockHandlersTest {
 
         BlockState tip = world.state(POSITION);
         assertTrue(tip.ensureTrait(BlockTraits.KELP_AGE) < 25);
-        assertSame(kelp(25), VanillaBlockTransformations.SHEARS.get(BlockTypes.KELP).apply(tip, Direction.UP, false));
-        assertNull(VanillaBlockTransformations.SHEARS.get(BlockTypes.KELP).apply(kelp(25), Direction.UP, false));
+        BlockTransformation pruning = VanillaBlockTransformations.SHEARS.resolve(tip, Direction.UP, false);
+        assertNotNull(pruning);
+        assertSame(kelp(25), pruning.state());
+        assertNull(VanillaBlockTransformations.SHEARS.resolve(kelp(25), Direction.UP, false));
 
         List<ItemStack> drops = KelpBlockHandlers.GET_LOOT.execute(world.block(POSITION), BlockLootContext.empty(new Random(0)));
         assertEquals(List.of(ItemStack.from(ItemTypes.KELP)), drops);
@@ -199,7 +202,7 @@ class KelpBlockHandlersTest {
     private static BlockTestWorld wetPlant(int age) {
         BlockTestWorld world = new BlockTestWorld(REGISTRY);
         world.setState(POSITION, kelp(age));
-        world.setLiquid(POSITION, LiquidState.of(BlockStates.WATER));
+        world.setLiquid(POSITION, BlockStates.WATER.getLiquidState());
         world.setState(POSITION.add(0, -1, 0), BlockStates.STONE);
         return world;
     }

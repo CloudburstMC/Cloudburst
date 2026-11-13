@@ -64,7 +64,7 @@ class FlowerPotPersistenceTest {
                     NbtType.byClass(saved.get(key).getClass()), "type of " + key);
         }
 
-        assertEquals(Set.of("id"), entity.getClientTag().keySet());
+        assertEquals(Set.of("id", "PlantBlock"), entity.getClientTag().keySet());
     }
 
     @Test

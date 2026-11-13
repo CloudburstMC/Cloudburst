@@ -146,14 +146,15 @@ public interface Block extends BlockSnapshot {
     VoxelShape getOutlineShape();
 
     /**
-     * Returns the geometry used to support neighboring blocks.
+     * Returns the captured primary state's support geometry using the current surroundings.
      *
      * @return the block support shape
      */
     VoxelShape getBlockSupportShape();
 
     /**
-     * Checks whether a face provides the requested kind of block support.
+     * Checks whether the captured primary state's face provides the requested
+     * kind of support using the current surroundings.
      *
      * @param face        the face to check
      * @param supportType the required support type

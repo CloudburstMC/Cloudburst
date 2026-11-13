@@ -14,17 +14,18 @@ settings:
   deprecated-verbose: true
 
 network:
-  identity-file: keys/host.pem
-  advertised-addresses:
-    - "203.0.113.10:19132"
-    - "[2001:db8::1]:19132"
-  tls-certificate: tls/fullchain.pem
-  tls-private-key: tls/private.pem
   max-connections: 64
   max-connections-per-address: 4
   max-pending-joins: 16
-  handshake-timeout-seconds: 20
   login-timeout-seconds: 90
+  builtin:
+    identity-file: keys/host.pem
+    advertised-addresses:
+      - "203.0.113.10:19132"
+      - "[2001:db8::1]:19132"
+    tls-certificate: tls/fullchain.pem
+    tls-private-key: tls/private.pem
+    handshake-timeout-seconds: 20
 
 debug:
   # If > 1, it will show debug messages in the console

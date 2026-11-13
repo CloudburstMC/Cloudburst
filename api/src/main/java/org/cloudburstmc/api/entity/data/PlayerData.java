@@ -42,6 +42,9 @@ public class PlayerData extends HumanData {
     @JsonProperty("expLevel")
     private int expLevel;
 
+    @JsonProperty("enchantmentSeed")
+    private int enchantmentSeed;
+
     @JsonProperty("seenCredits")
     // A primitive on purpose: every player save writes the flag, including a
     // fresh player's false, exactly as players are stored today.

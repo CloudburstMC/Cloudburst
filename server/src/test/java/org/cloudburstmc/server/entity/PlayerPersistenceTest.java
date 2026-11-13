@@ -12,7 +12,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import tools.jackson.core.JacksonException;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.nbt.ServerNbt;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
@@ -134,9 +134,9 @@ class PlayerPersistenceTest {
         assertEquals(9, written.getInt("foodTickTimer"));
         assertTrue(written.get("seenCredits") instanceof Byte, "seenCredits must be a byte");
         assertTrue(written.getBoolean("seenCredits"));
-        assertEquals(List.of(ItemUtils.serializeItem(diamond, 0)),
+        assertEquals(List.of(ItemStackNbtCodec.serializeItem(diamond, 0)),
                 written.getList("Inventory", NbtType.COMPOUND));
-        assertEquals(List.of(ItemUtils.serializeItem(ingot, 4)),
+        assertEquals(List.of(ItemStackNbtCodec.serializeItem(ingot, 4)),
                 written.getList("EnderChestInventory", NbtType.COMPOUND));
         assertTrue(written.get("firstPlayed") instanceof Long, "firstPlayed must be a long");
         assertEquals(1000L, written.getLong("firstPlayed"));
@@ -268,7 +268,6 @@ class PlayerPersistenceTest {
                         "inventory", "a view over the live container in data().getInventory()",
                         "hotbar", "a hotbar view over the live container in data().getInventory()",
                         "enderChest", "a view over the live container in data().getEnderChest()",
-                        "uiContainer", "the transient currently-open container, never persisted",
                         "activeUseStack", "the transient in-use item, never persisted",
                         "level", "the current level reference, not the saved level id in data().getLevel()"));
         Set<String> fields = new HashSet<>();
@@ -310,7 +309,7 @@ class PlayerPersistenceTest {
 
         // A sparse list sets the listed slots on the same instance and keeps the rest.
         read(NbtMap.builder()
-                .putList("Inventory", NbtType.COMPOUND, List.of(ItemUtils.serializeItem(diamond, 0)))
+                .putList("Inventory", NbtType.COMPOUND, List.of(ItemStackNbtCodec.serializeItem(diamond, 0)))
                 .build(), data);
         assertSame(inventory, data.getInventory());
         assertEquals(diamond, data.getInventory().getItem(0));
@@ -330,8 +329,8 @@ class PlayerPersistenceTest {
         // The sparse write comes from that live instance.
         data.getInventory().setItem(2, ingot);
         assertEquals(
-                List.of(ItemUtils.serializeItem(diamond, 0), ItemUtils.serializeItem(kept, 1),
-                        ItemUtils.serializeItem(ingot, 2)),
+                List.of(ItemStackNbtCodec.serializeItem(diamond, 0), ItemStackNbtCodec.serializeItem(kept, 1),
+                        ItemStackNbtCodec.serializeItem(ingot, 2)),
                 write(data).getList("Inventory", NbtType.COMPOUND));
     }
 
@@ -346,7 +345,7 @@ class PlayerPersistenceTest {
 
         // An entry without a Slot binds slot 0, as the old byte read defaulted to.
         NbtMapBuilder entryBuilder = NbtMap.builder();
-        entryBuilder.putAll(ItemUtils.serializeItem(diamond));
+        entryBuilder.putAll(ItemStackNbtCodec.serializeItem(diamond));
         NbtMap entry = entryBuilder.build();
         assertFalse(entry.containsKey("Slot"));
         read(NbtMap.builder()
@@ -367,7 +366,7 @@ class PlayerPersistenceTest {
         // An out-of-range Slot fails the load with a bare exception, as the old
         // bounds check did, instead of keeping the current contents with a warning.
         NbtMap tag = NbtMap.builder()
-                .putList("Inventory", NbtType.COMPOUND, List.of(ItemUtils.serializeItem(diamond, 36)))
+                .putList("Inventory", NbtType.COMPOUND, List.of(ItemStackNbtCodec.serializeItem(diamond, 36)))
                 .build();
         JacksonException thrown = assertThrows(JacksonException.class, () -> read(tag, data));
         assertTrue(hasCause(thrown, IndexOutOfBoundsException.class));

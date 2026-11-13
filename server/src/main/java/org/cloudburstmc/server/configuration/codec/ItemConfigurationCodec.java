@@ -10,7 +10,7 @@ import org.cloudburstmc.nbt.NBTInputStream;
 import org.cloudburstmc.nbt.NBTOutputStream;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtUtils;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -33,8 +33,8 @@ public class ItemConfigurationCodec implements ConfigurationCodec<ItemStack> {
 
     @Override
     public Map<String, Object> encode(ItemStack value) {
-        NbtMap stored = ItemUtils.serializeItem(value.isEmpty() ? value : value.withCount(1));
-        ItemStack restored = ItemUtils.deserializeItem(stored);
+        NbtMap stored = ItemStackNbtCodec.serializeItem(value.isEmpty() ? value : value.withCount(1));
+        ItemStack restored = ItemStackNbtCodec.deserializeItem(stored);
 
         if (!restored.getType().equals(value.getType())) {
             throw new IllegalArgumentException("Item persistence cannot restore type " + value.getType().getId());
@@ -79,7 +79,7 @@ public class ItemConfigurationCodec implements ConfigurationCodec<ItemStack> {
                 throw new IllegalArgumentException("Item data must be a compound");
             }
 
-            ItemStack restored = ItemUtils.deserializeItem(stored);
+            ItemStack restored = ItemStackNbtCodec.deserializeItem(stored);
             if (!restored.getType().getId().toString().equals(stored.getString("Name"))) {
                 throw new IllegalArgumentException("Unknown stored item type: " + stored.getString("Name"));
             }

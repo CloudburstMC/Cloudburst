@@ -13,6 +13,6 @@ public final class ItemStackSerializer extends StdSerializer<ItemStack> {
 
     @Override
     public void serialize(ItemStack value, JsonGenerator gen, SerializationContext provider) {
-        gen.writeEmbeddedObject(org.cloudburstmc.server.item.ItemUtils.serializeItem(value));
+        gen.writeEmbeddedObject(org.cloudburstmc.server.item.ItemStackNbtCodec.serializeItem(value));
     }
 }

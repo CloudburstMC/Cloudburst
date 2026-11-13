@@ -17,6 +17,7 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.DripstoneThickness;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.block.CloudLiquidState;
 import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.projectile.EntityThrownTrident;
@@ -86,7 +87,8 @@ public class SpeleothemBlockHandlers {
         }
     };
 
-    public static final EntityBlockHandler ON_PROJECTILE_HIT = (block, entity) -> {
+    public static final ProjectileHitBlockHandler ON_PROJECTILE_HIT = (hit, entity) -> {
+        Block block = hit.block();
         if (!(entity instanceof EntityThrownTrident trident) || trident.getMotion().lengthSquared() <= 0.36f
                 || !block.getLevel().getGameRules().get(GameRules.PROJECTILES_CAN_BREAK_BLOCKS)) {
             return;
@@ -103,7 +105,7 @@ public class SpeleothemBlockHandlers {
             return;
         }
 
-        BlockState replacement = LiquidStateAccess.blockState(block.getLiquid());
+        BlockState replacement = CloudLiquidState.toBlockState(block.getLiquid());
         EntityChangeBlockEvent event = new EntityChangeBlockEvent(entity, block, replacement);
         block.getLevel().getServer().getEventManager().fire(event);
         if (!event.isCancelled() && block.getLevel().getBlockState(block.getPosition()) == block.getState()) {

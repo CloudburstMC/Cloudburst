@@ -3,14 +3,14 @@ package org.cloudburstmc.server.block;
 import lombok.ToString;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.component.BlockShapeContext;
+import org.cloudburstmc.api.level.Level;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.CollisionContext;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.VoxelShape;
 import org.cloudburstmc.api.util.component.ComponentMap;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.util.BlockSupport;
-import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
 
 import static org.cloudburstmc.api.block.BlockStates.AIR;
 
@@ -19,22 +19,22 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
 
     public static BlockState[] EMPTY = new BlockState[]{AIR, AIR};
 
-    private final CloudLevel level;
+    private final Level level;
     private final Vector3i position;
 
-    public CloudBlock(CloudLevel level, Vector3i position, BlockState[] states) {
+    public CloudBlock(Level level, Vector3i position, BlockState[] states) {
         super(states);
         this.level = level;
         this.position = position;
     }
 
     @Override
-    public CloudLevel getLevel() {
+    public Level getLevel() {
         return level;
     }
 
     @Override
-    public CloudChunk getChunk() {
+    public Chunk getChunk() {
         return level.getChunk(position);
     }
 
@@ -50,12 +50,12 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
 
     @Override
     public int getSkyLight() {
-        return this.level.getSkyLightAt(this.position.getX(), this.position.getY(), this.position.getZ());
+        return this.getChunk().getSkyLight(this.getX() & 15, this.getY(), this.getZ() & 15);
     }
 
     @Override
     public int getBlockLight() {
-        return this.level.getBlockLightAt(this.position.getX(), this.position.getY(), this.position.getZ());
+        return this.getChunk().getBlockLight(this.getX() & 15, this.getY(), this.getZ() & 15);
     }
 
     @Override
@@ -78,12 +78,12 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
 
     @Override
     public VoxelShape getBlockSupportShape() {
-        return BlockSupport.getBlockSupportShape(this.level, this.position);
+        return BlockSupport.getBlockSupportShape(this.level, this.position, this.getState());
     }
 
     @Override
     public boolean isFaceSturdy(Direction face, SupportType supportType) {
-        return BlockSupport.isFaceSturdy(this.level, this.position, face, supportType);
+        return BlockSupport.isFaceSturdy(this.level, this.position, this.getState(), face, supportType);
     }
 
     @Override
@@ -118,7 +118,7 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
 
     @Override
     public BlockSnapshot snapshot() {
-        return new CloudBlockSnapshot(new BlockState[]{this.getState(), this.getSecondaryState()});
+        return new CloudBlockSnapshot(this.getState(), this.getSecondaryState());
     }
 
     @Override

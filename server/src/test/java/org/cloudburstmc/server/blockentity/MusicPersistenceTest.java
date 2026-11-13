@@ -40,9 +40,9 @@ class MusicPersistenceTest {
     @Test
     void roundTripPreservesKeysAndTypes() {
         assertEquals(MusicData.class,
-                CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.NOTEBLOCK));
+                CloudBlockEntityRegistry.get().getDataClass(BlockEntityTypes.NOTE_BLOCK));
 
-        MusicBlockEntity entity = (MusicBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.NOTEBLOCK, POSITION);
+        NoteBlockEntity entity = (NoteBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.NOTE_BLOCK, POSITION);
         NbtMap input = musicTag();
         entity.loadAdditionalData(input);
 
@@ -64,7 +64,7 @@ class MusicPersistenceTest {
 
     @Test
     void defaultMusicBlockWritesSilentKeys() {
-        MusicBlockEntity entity = (MusicBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.NOTEBLOCK, POSITION);
+        NoteBlockEntity entity = (NoteBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.NOTE_BLOCK, POSITION);
         entity.loadAdditionalData(NbtMap.builder()
                 .putString("id", "Music")
                 .putInt("x", 10)
@@ -82,6 +82,6 @@ class MusicPersistenceTest {
 
     @Test
     void musicBlockEntityKeepsNoDuplicateState() {
-        DtoStateChecks.assertKeepsNoDuplicateState(MusicBlockEntity.class, MusicData.class);
+        DtoStateChecks.assertKeepsNoDuplicateState(NoteBlockEntity.class, MusicData.class);
     }
 }

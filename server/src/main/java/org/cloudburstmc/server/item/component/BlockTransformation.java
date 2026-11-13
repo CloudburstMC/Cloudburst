@@ -10,26 +10,24 @@ import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 
 import java.util.Objects;
-import java.util.Set;
-import java.util.function.UnaryOperator;
 
 @Builder
-public record BlockTransformation(UnaryOperator<BlockState> transform, boolean requiresAirAbove,
-                                  Set<Direction> disallowedFaces, SoundEvent sound,
-                                  @Nullable SoundType soundOverride, @Nullable LevelEvent particle,
-                                  @Nullable ItemType drop, boolean consumesItem) {
+public record BlockTransformation(
+        BlockState state,
+        SoundEvent sound,
+        @Nullable SoundType soundOverride,
+        @Nullable LevelEvent particle,
+        @Nullable ItemType drop,
+        boolean consumesItem
+) {
     public BlockTransformation {
-        Objects.requireNonNull(transform, "transform");
-        disallowedFaces = disallowedFaces == null ? Set.of() : Set.copyOf(disallowedFaces);
+        Objects.requireNonNull(state, "state");
         sound = sound == null ? SoundEvent.ITEM_USE_ON : sound;
     }
 
-    public @Nullable BlockState apply(BlockState source, Direction face, boolean airAbove) {
-        if (this.disallowedFaces.contains(face) || this.requiresAirAbove && !airAbove) {
-            return null;
-        }
-
-        BlockState result = this.transform.apply(source);
-        return result.equals(source) ? null : result;
+    @FunctionalInterface
+    public interface Resolver {
+        @Nullable
+        BlockTransformation resolve(BlockState state, Direction face, boolean airAbove);
     }
 }

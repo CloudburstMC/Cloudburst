@@ -8,7 +8,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -44,7 +44,7 @@ class BrewingStandPersistenceTest {
             } else {
                 stack = ItemStack.EMPTY;
             }
-            items.add(ItemUtils.serializeItem(stack, slot));
+            items.add(ItemStackNbtCodec.serializeItem(stack, slot));
         }
         return NbtMap.builder()
                 .putString("id", "BrewingStand")
@@ -73,15 +73,20 @@ class BrewingStandPersistenceTest {
         assertEquals(ItemStack.from(ItemTypes.GOLD_NUGGET, 1), entity.getIngredient());
         assertEquals(ItemStack.from(ItemTypes.DIAMOND, 5), entity.getBottle(0));
         assertEquals(ItemStack.from(ItemTypes.BLAZE_POWDER, 2), entity.getFuel());
-        assertEquals(350, entity.getCookTime());
-        assertEquals(15, entity.getFuelAmount());
-        assertEquals(20, entity.getFuelTotal());
+        assertEquals(350, entity.data().getCookTime());
+        assertEquals(15, entity.getFuelLevel());
+        assertEquals(20, entity.data().getFuelTotal());
 
         NbtMap saved = entity.getServerTag();
         Set<String> expectedKeys = new HashSet<>(input.keySet());
-        expectedKeys.addAll(Set.of("id", "x", "y", "z"));
+        expectedKeys.addAll(Set.of("id", "x", "y", "z", "BrewDuration"));
         assertEquals(expectedKeys, saved.keySet());
+        assertEquals(400, saved.getInt("BrewDuration"));
         for (String key : input.keySet()) {
+            if (key.equals("CookTime") || key.equals("FuelAmount")) {
+                assertEquals((short) input.getInt(key), saved.getShort(key));
+                continue;
+            }
             assertEquals(input.get(key), saved.get(key), "value of " + key);
             assertEquals(NbtType.byClass(input.get(key).getClass()),
                     NbtType.byClass(saved.get(key).getClass()), "type of " + key);
@@ -89,8 +94,8 @@ class BrewingStandPersistenceTest {
 
         NbtMap client = entity.getClientTag();
         assertEquals(Set.of("id", "FuelAmount", "FuelTotal"), client.keySet());
-        assertEquals(15, client.getInt("FuelAmount"));
-        assertEquals(NbtType.INT, NbtType.byClass(client.get("FuelAmount").getClass()));
+        assertEquals(15, client.getShort("FuelAmount"));
+        assertEquals(NbtType.SHORT, NbtType.byClass(client.get("FuelAmount").getClass()));
         assertEquals((short) 20, client.getShort("FuelTotal"));
         assertEquals(NbtType.SHORT, NbtType.byClass(client.get("FuelTotal").getClass()));
     }
@@ -106,10 +111,10 @@ class BrewingStandPersistenceTest {
                 .build());
 
         NbtMap saved = entity.getServerTag();
-        assertEquals(400, saved.getInt("CookTime"));
-        assertEquals(NbtType.INT, NbtType.byClass(saved.get("CookTime").getClass()));
-        assertEquals(0, saved.getInt("FuelAmount"));
-        assertEquals(NbtType.INT, NbtType.byClass(saved.get("FuelAmount").getClass()));
+        assertEquals(400, saved.getShort("CookTime"));
+        assertEquals(NbtType.SHORT, NbtType.byClass(saved.get("CookTime").getClass()));
+        assertEquals(0, saved.getShort("FuelAmount"));
+        assertEquals(NbtType.SHORT, NbtType.byClass(saved.get("FuelAmount").getClass()));
         assertEquals((short) 0, saved.getShort("FuelTotal"));
         assertEquals(NbtType.SHORT, NbtType.byClass(saved.get("FuelTotal").getClass()));
 
@@ -117,13 +122,13 @@ class BrewingStandPersistenceTest {
         assertEquals(NbtType.COMPOUND, items.getType());
         assertEquals(SIZE, items.size());
         for (int slot = 0; slot < SIZE; slot++) {
-            assertEquals(ItemUtils.serializeItem(ItemStack.EMPTY, slot), items.get(slot),
+            assertEquals(ItemStackNbtCodec.serializeItem(ItemStack.EMPTY, slot), items.get(slot),
                     "slot " + slot);
         }
 
         NbtMap client = entity.getClientTag();
         assertEquals(Set.of("id", "FuelAmount", "FuelTotal"), client.keySet());
-        assertEquals(0, client.getInt("FuelAmount"));
+        assertEquals(0, client.getShort("FuelAmount"));
         assertEquals((short) 0, client.getShort("FuelTotal"));
     }
 
@@ -138,9 +143,9 @@ class BrewingStandPersistenceTest {
                 .build());
 
         // A fresh stand idles at the full brew timer with no fuel and empty slots.
-        assertEquals(BrewingStandBlockEntity.MAX_COOK_TIME, entity.getCookTime());
-        assertEquals(0, entity.getFuelAmount());
-        assertEquals((short) 0, entity.getFuelTotal());
+        assertEquals(400, entity.data().getCookTime());
+        assertEquals(0, entity.getFuelLevel());
+        assertEquals((short) 0, entity.data().getFuelTotal());
         assertTrue(entity.getIngredient().isEmpty());
         assertTrue(entity.getFuel().isEmpty());
         for (int slot = 0; slot < 3; slot++) {

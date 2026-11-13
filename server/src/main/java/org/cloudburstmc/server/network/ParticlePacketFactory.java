@@ -8,7 +8,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SpawnParticleEffectPacket;
 import org.cloudburstmc.server.block.BlockPalette;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackPacketCodec;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
@@ -33,7 +33,7 @@ public class ParticlePacketFactory {
                 default -> throw unsupported(options);
             };
             case ItemParticleOptions item -> {
-                ItemData networkItem = ItemUtils.toNetwork(item.item());
+                ItemData networkItem = ItemStackPacketCodec.toNetwork(item.item());
                 yield (networkItem.getDefinition().getRuntimeId() << 16) | (networkItem.getDamage() & 0xffff);
             }
             case ColoredParticleOptions colored -> switch (type) {

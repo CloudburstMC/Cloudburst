@@ -9,7 +9,7 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.junit.jupiter.api.Test;
 
@@ -62,7 +62,7 @@ class EntitySnapshotTest {
         ItemStack plain = ItemStack.from(ItemTypes.PIG_SPAWN_EGG);
         ItemStack picked = plain.toBuilder().setData(ItemDataComponents.ENTITY_DATA, snapshot).build();
 
-        ItemStack restored = ItemUtils.deserializeItem(ItemUtils.serializeItem(picked));
+        ItemStack restored = ItemStackNbtCodec.deserializeItem(ItemStackNbtCodec.serializeItem(picked));
 
         assertEquals(snapshot, restored.get(ItemDataComponents.ENTITY_DATA));
         assertTrue(picked.isStackableWith(restored));

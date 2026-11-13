@@ -10,12 +10,22 @@ import static java.util.Objects.requireNonNull;
 /**
  * Defines the shared properties of one vanilla armor material.
  */
-public record ArmorMaterial(int durabilityMultiplier, int bootsDefense, int leggingsDefense, int chestplateDefense,
-                            int helmetDefense, float toughness, float knockbackResistance, ItemTagKey repairTag,
-                            SoundType equipSound) {
+public record ArmorMaterial(
+        int durabilityMultiplier,
+        int bootsDefense,
+        int leggingsDefense,
+        int chestplateDefense,
+        int helmetDefense,
+        int enchantability,
+        float toughness,
+        float knockbackResistance,
+        ItemTagKey repairTag,
+        SoundType equipSound
+) {
 
     public ArmorMaterial {
         checkArgument(durabilityMultiplier > 0, "durabilityMultiplier must be positive");
+        checkArgument(enchantability >= 0, "enchantability cannot be negative");
         checkArgument(bootsDefense >= 0 && leggingsDefense >= 0 && chestplateDefense >= 0 && helmetDefense >= 0, "defense must be non-negative");
         checkArgument(Float.isFinite(toughness) && toughness >= 0, "toughness must be finite and non-negative");
         checkArgument(Float.isFinite(knockbackResistance) && knockbackResistance >= 0 && knockbackResistance <= 1, "knockbackResistance must be between zero and one");

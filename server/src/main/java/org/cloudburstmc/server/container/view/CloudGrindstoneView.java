@@ -5,44 +5,58 @@ import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.container.CloudContainer;
 
-/**
- * Server-side implementation of {@link GrindstoneView}.
- * Wraps a 3-slot ephemeral container: slot 0 = input, slot 1 = additional, slot 2 = result.
- * This is an ephemeral section with no block entity backing.
- */
 public class CloudGrindstoneView extends CloudSlotGroupBase implements GrindstoneView {
 
-    public CloudGrindstoneView(CloudContainer container) {
-        super(SlotGroupTypes.GRINDSTONE, container);
+    public static final int INPUT_SLOT = 0;
+    public static final int ADDITIONAL_SLOT = 1;
+    public static final int RESULT_SLOT = 2;
+
+    private final Runnable inputChanged;
+
+    public CloudGrindstoneView(Runnable inputChanged) {
+        super(SlotGroupTypes.GRINDSTONE, new CloudContainer(RESULT_SLOT + 1));
+        this.inputChanged = inputChanged;
+    }
+
+    @Override
+    public void setItem(int slot, ItemStack item) {
+        if (slot == RESULT_SLOT) {
+            throw new IllegalArgumentException("Cannot modify a grindstone result directly");
+        }
+
+        ItemStack previous = this.getItem(slot);
+        super.setItem(slot, item);
+        if (!previous.equals(this.getItem(slot))) {
+            CloudContainer.afterSlotWrites(this.inputChanged);
+        }
     }
 
     @Override
     public ItemStack getInput() {
-        return getItem(0);
+        return this.getItem(INPUT_SLOT);
     }
 
     @Override
     public void setInput(ItemStack item) {
-        setItem(0, item);
+        this.setItem(INPUT_SLOT, item);
     }
 
     @Override
     public ItemStack getAdditional() {
-        return getItem(1);
+        return this.getItem(ADDITIONAL_SLOT);
     }
 
     @Override
     public void setAdditional(ItemStack item) {
-        setItem(1, item);
+        this.setItem(ADDITIONAL_SLOT, item);
     }
 
     @Override
     public ItemStack getResult() {
-        return getItem(2);
+        return this.getItem(RESULT_SLOT);
     }
 
-    @Override
-    public void setResult(ItemStack item) {
-        setItem(2, item);
+    public void updateResult(ItemStack item) {
+        super.setItem(RESULT_SLOT, item);
     }
 }

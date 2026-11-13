@@ -11,6 +11,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.BlockHitResult;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.CardinalDirection;
 import org.cloudburstmc.api.util.data.DripleafTilt;
@@ -97,7 +98,7 @@ class DripleafBlockHandlersTest {
         world.setState(POSITION, BlockStates.AIR);
         assertNull(SmallDripleafBlockHandlers.RESOLVE_PLACEMENT_STATE.execute(SMALL, world.block(POSITION), null, Direction.UP, Vector3f.ZERO));
         world.setState(POSITION, SMALL);
-        world.setLiquid(POSITION, LiquidState.of(BlockStates.WATER));
+        world.setLiquid(POSITION, BlockStates.WATER.getLiquidState());
         assertTrue(SmallDripleafBlockHandlers.CAN_SURVIVE.execute(world.block(POSITION)));
         world.setState(POSITION.add(0, -1, 0), BlockStates.STONE);
         assertFalse(SmallDripleafBlockHandlers.CAN_SURVIVE.execute(world.block(POSITION)));
@@ -110,7 +111,7 @@ class DripleafBlockHandlersTest {
             world.setState(POSITION.add(0, -1, 0), soil);
             world.setState(POSITION, SMALL);
             world.setState(POSITION.add(0, 1, 0), SMALL.withTrait(BlockTraits.IS_UPPER_BLOCK, true));
-            world.setLiquid(POSITION, LiquidState.of(BlockStates.WATER));
+            world.setLiquid(POSITION, BlockStates.WATER.getLiquidState());
             SmallDripleafBlockHandlers.ON_STATE_CHANGED.execute(world.block(POSITION));
             assertSame(SMALL, world.state(POSITION));
 
@@ -141,7 +142,7 @@ class DripleafBlockHandlersTest {
             BlockLayers layers = BlockLayerRules.resolveReplacement(new BlockLayers(water, BlockStates.AIR), BlockLayer.PRIMARY, state);
             assertNotNull(layers);
             Block proposed = InterfaceProxy.create(Block.class, Map.of("getLevel", world.block(POSITION).getLevel(),
-                    "getPosition", POSITION, "getState", layers.primary(), "getLiquid", LiquidState.of(layers.secondary())));
+                    "getPosition", POSITION, "getState", layers.primary(), "getLiquid", layers.secondary().getLiquidState()));
             boolean survives = depth == 0 || depth >= 8;
             assertTrue(REGISTRY.requireComponent(BlockTypes.SMALL_DRIPLEAF_BLOCK, BlockComponents.CAN_BE_PLACED).execute(proposed));
             assertEquals(survives, SmallDripleafBlockHandlers.CAN_SURVIVE.execute(proposed));
@@ -259,7 +260,8 @@ class DripleafBlockHandlersTest {
         BlockTestWorld world = world();
         world.setState(POSITION, HEAD);
         Entity projectile = InterfaceProxy.create(Entity.class, Map.of("getType", EntityTypes.ARROW));
-        BigDripleafBlockHandlers.ON_PROJECTILE_HIT.execute(world.block(POSITION), projectile);
+        BigDripleafBlockHandlers.ON_PROJECTILE_HIT.execute(
+                new BlockHitResult(POSITION.toFloat(), world.block(POSITION), Direction.UP, false), projectile);
 
         assertEquals(DripleafTilt.FULL_TILT, world.state(POSITION).ensureTrait(BlockTraits.DRIPLEAF_TILT));
         assertEquals(List.of(100), world.getScheduledDelays());
@@ -280,7 +282,8 @@ class DripleafBlockHandlersTest {
         world.onEvent(EntityChangeBlockEvent.class, event -> event.setCancelled(true));
         Entity projectile = InterfaceProxy.create(Entity.class, Map.of("getType", EntityTypes.ARROW));
 
-        BigDripleafBlockHandlers.ON_PROJECTILE_HIT.execute(world.block(POSITION), projectile);
+        BigDripleafBlockHandlers.ON_PROJECTILE_HIT.execute(
+                new BlockHitResult(POSITION.toFloat(), world.block(POSITION), Direction.UP, false), projectile);
 
         assertSame(HEAD, world.state(POSITION));
         assertTrue(world.getScheduledDelays().isEmpty());

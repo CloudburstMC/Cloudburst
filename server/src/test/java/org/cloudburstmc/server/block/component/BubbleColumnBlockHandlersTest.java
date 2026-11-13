@@ -74,7 +74,7 @@ class BubbleColumnBlockHandlersTest {
             world.setState(POSITION, BlockStates.WATER);
             world.setState(POSITION.add(0, 1, 0), obstruction);
             if (!obstruction.getType().isLiquid()) {
-                world.setLiquid(POSITION.add(0, 1, 0), LiquidState.of(BlockStates.WATER));
+                world.setLiquid(POSITION.add(0, 1, 0), BlockStates.WATER.getLiquidState());
             }
             world.setState(POSITION.add(0, 2, 0), BlockStates.WATER);
 

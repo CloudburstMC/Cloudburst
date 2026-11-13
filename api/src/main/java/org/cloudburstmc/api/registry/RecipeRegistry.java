@@ -4,7 +4,6 @@ import org.cloudburstmc.api.crafting.MixRecipe;
 import org.cloudburstmc.api.crafting.Recipe;
 import org.cloudburstmc.api.crafting.RecipeType;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.SmithingUpgrade;
 import org.cloudburstmc.api.item.TrimMaterial;
 import org.cloudburstmc.api.item.TrimPattern;
 import org.cloudburstmc.api.util.Identifier;
@@ -123,16 +122,6 @@ public interface RecipeRegistry extends KeyedRegistry<Recipe> {
      * Returns all registered trim materials.
      */
     Collection<TrimMaterial> getTrimMaterials();
-
-    /**
-     * Registers a netherite smithing upgrade pairing.
-     */
-    void registerSmithingUpgrade(SmithingUpgrade upgrade);
-
-    /**
-     * Returns all registered netherite smithing upgrade pairings.
-     */
-    Collection<SmithingUpgrade> getSmithingUpgrades();
 
     /**
      * Returns all registered recipes whose primary result matches the given item by type and metadata,

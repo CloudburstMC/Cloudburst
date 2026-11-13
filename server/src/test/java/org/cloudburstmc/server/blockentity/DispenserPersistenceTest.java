@@ -7,7 +7,7 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -42,7 +42,7 @@ class DispenserPersistenceTest {
             } else {
                 stack = ItemStack.EMPTY;
             }
-            items.add(ItemUtils.serializeItem(stack, slot));
+            items.add(ItemStackNbtCodec.serializeItem(stack, slot));
         }
         return NbtMap.builder()
                 .putString("id", "Dispenser")

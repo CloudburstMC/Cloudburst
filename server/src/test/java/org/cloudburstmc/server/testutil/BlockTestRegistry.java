@@ -12,12 +12,16 @@ public class BlockTestRegistry {
 
     private static final CloudBlockRegistry REGISTRY = createRegistry();
 
+    public static void ensureInitialized() {
+        // Class initialization creates and binds the shared registry.
+    }
+
     public static CloudBlockRegistry get() {
         return REGISTRY;
     }
 
     private static CloudBlockRegistry createRegistry() {
-        CloudBlockRegistry registry = new CloudBlockRegistry(CloudItemRegistry.get());
+        CloudBlockRegistry registry = CloudBlockRegistry.initialize(CloudItemRegistry.get());
         registry.close();
         return registry;
     }

@@ -112,13 +112,10 @@ public class CloudVirtualHopperScreen extends CloudContainerScreen implements Vi
         beData.setData(hopperEntityNbt);
         player.sendPacket(beData);
 
-        byte windowId = player.assignContainerId(backingContainer);
-
         ContainerOpenPacket openPkt = new ContainerOpenPacket();
-        openPkt.setId(windowId);
         openPkt.setType(ContainerType.HOPPER);
         openPkt.setBlockPosition(fakePos);
-        this.openWindow(openPkt);
+        this.openWindow(openPkt, backingContainer);
 
         player.getInventoryManager().sendAllInventories();
     }

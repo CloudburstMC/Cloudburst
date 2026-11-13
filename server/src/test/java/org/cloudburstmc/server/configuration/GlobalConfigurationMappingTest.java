@@ -2,10 +2,14 @@ package org.cloudburstmc.server.configuration;
 
 import lombok.SneakyThrows;
 import org.cloudburstmc.server.configuration.type.LevelDimension;
+import org.cloudburstmc.server.configuration.type.SignalingMode;
 import org.cloudburstmc.server.level.generator.GeneratorConfigurationMapper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,6 +18,35 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.*;
 
 class GlobalConfigurationMappingTest {
+
+    @Test
+    void readsExternalSignalingWithoutExposingCredentialsInSettingsDiagnostics(@TempDir Path directory) throws Exception {
+        Path file = directory.resolve("cloudburst-global.yml");
+        Files.writeString(file, """
+                network:
+                  signaling-mode: both
+                  builtin:
+                    media-port: 19132
+                    tls-password: test-keystore-password
+                    forwarded-for-proxies: [192.0.2.0/24]
+                  nxs:
+                    endpoint: https://provider.example
+                    token: test-provider-token
+                    media-port: 19133
+                    advertised-addresses: ['203.0.113.10:19133']
+                    assisted-joins: true
+                """);
+
+        GlobalConfiguration.Network network = GlobalConfiguration.fromFile(file).getNetwork();
+        assertEquals(SignalingMode.BOTH, network.getSignalingMode());
+        assertEquals(19132, network.getBuiltin().getMediaPort());
+        assertEquals(19133, network.getNxs().getMediaPort());
+        assertEquals(List.of("192.0.2.0/24"), network.getBuiltin().getForwardedForProxies());
+        assertEquals(List.of("203.0.113.10:19133"), network.getNxs().getAdvertisedAddresses());
+        assertTrue(network.getNxs().isAssistedJoins());
+        assertFalse(network.toString().contains("test-provider-token"));
+        assertFalse(network.toString().contains("test-keystore-password"));
+    }
 
     @Test
     @SneakyThrows
@@ -35,14 +68,16 @@ class GlobalConfigurationMappingTest {
 
         assertEquals(
                 GlobalConfiguration.Network.builder()
-                        .identityFile("keys/host.pem")
-                        .advertisedAddresses(List.of("203.0.113.10:19132", "[2001:db8::1]:19132"))
-                        .tlsCertificate("tls/fullchain.pem")
-                        .tlsPrivateKey("tls/private.pem")
+                        .builtin(GlobalConfiguration.BuiltinSignaling.builder()
+                                .identityFile("keys/host.pem")
+                                .advertisedAddresses(List.of("203.0.113.10:19132", "[2001:db8::1]:19132"))
+                                .tlsCertificate("tls/fullchain.pem")
+                                .tlsPrivateKey("tls/private.pem")
+                                .handshakeTimeoutSeconds(20)
+                                .build())
                         .maxConnections(64)
                         .maxConnectionsPerAddress(4)
                         .maxPendingJoins(16)
-                        .handshakeTimeoutSeconds(20)
                         .loginTimeoutSeconds(90)
                         .build(),
                 yml.getNetwork()

@@ -112,13 +112,10 @@ public class CloudVirtualChestScreen extends CloudContainerScreen implements Vir
         beData.setData(chestEntityNbt);
         player.sendPacket(beData);
 
-        byte windowId = player.assignContainerId(backingContainer);
-
         ContainerOpenPacket openPkt = new ContainerOpenPacket();
-        openPkt.setId(windowId);
         openPkt.setType(ContainerType.CONTAINER);
         openPkt.setBlockPosition(fakePos);
-        this.openWindow(openPkt);
+        this.openWindow(openPkt, backingContainer);
 
         player.getInventoryManager().sendAllInventories();
     }

@@ -7,7 +7,7 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -35,7 +35,7 @@ class ItemFramePersistenceTest {
                 .putInt("z", -5)
                 .putBoolean("isMovable", true)
                 .putString("CustomName", "Frame")
-                .putCompound("Item", ItemUtils.serializeItem(ItemStack.from(ItemTypes.DIAMOND, 1)))
+                .putCompound("Item", ItemStackNbtCodec.serializeItem(ItemStack.from(ItemTypes.DIAMOND, 1)))
                 .putFloat("ItemRotation", 90.0f)
                 .putFloat("ItemDropChance", 0.5f)
                 .putBoolean("Fixed", true)
@@ -147,7 +147,7 @@ class ItemFramePersistenceTest {
                 .putInt("x", 10)
                 .putInt("y", 64)
                 .putInt("z", -5)
-                .putCompound("Item", ItemUtils.serializeItem(ItemStack.EMPTY))
+                .putCompound("Item", ItemStackNbtCodec.serializeItem(ItemStack.EMPTY))
                 .putFloat("ItemRotation", 0.0f)
                 .putFloat("ItemDropChance", 1.0f)
                 .putBoolean("Fixed", false)

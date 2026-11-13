@@ -8,7 +8,7 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -43,7 +43,7 @@ class ShulkerBoxPersistenceTest {
             } else {
                 stack = ItemStack.EMPTY;
             }
-            items.add(ItemUtils.serializeItem(stack, slot));
+            items.add(ItemStackNbtCodec.serializeItem(stack, slot));
         }
         return NbtMap.builder()
                 .putString("id", "ShulkerBox")
@@ -71,8 +71,8 @@ class ShulkerBoxPersistenceTest {
 
         assertEquals(ItemStack.from(ItemTypes.DIAMOND, 5), entity.getItem(3));
         assertEquals(Direction.SOUTH, entity.getFacing());
-        assertEquals("minecraft:chests/simple_dungeon", entity.getLootTable());
-        assertEquals(12345, entity.getLootTableSeed());
+        assertEquals("minecraft:chests/simple_dungeon", entity.data().getLootTable());
+        assertEquals(12345, entity.data().getLootTableSeed());
 
         NbtMap saved = entity.getServerTag();
         Set<String> expectedKeys = new HashSet<>(input.keySet());
@@ -101,8 +101,8 @@ class ShulkerBoxPersistenceTest {
                 .putInt("LootTableSeed", 12345)
                 .build());
 
-        assertEquals("minecraft:chests/simple_dungeon", entity.getLootTable());
-        assertEquals(12345, entity.getLootTableSeed());
+        assertEquals("minecraft:chests/simple_dungeon", entity.data().getLootTable());
+        assertEquals(12345, entity.data().getLootTableSeed());
 
         NbtMap saved = entity.getServerTag();
         assertEquals("minecraft:chests/simple_dungeon", saved.getString("LootTable"));
@@ -119,8 +119,8 @@ class ShulkerBoxPersistenceTest {
                 .putInt("z", -5)
                 .build());
 
-        assertNull(plain.getLootTable());
-        assertNull(plain.getLootTableSeed());
+        assertNull(plain.data().getLootTable());
+        assertNull(plain.data().getLootTableSeed());
         assertFalse(plain.getServerTag().containsKey("LootTable"));
         assertFalse(plain.getServerTag().containsKey("LootTableSeed"));
     }

@@ -116,7 +116,7 @@ public class VanillaBlockEntityBlocks {
         index.put(BlockEntityTypes.MOB_SPAWNER, MOB_SPAWNERS);
         index.put(BlockEntityTypes.MOVING_BLOCK, MOVING_BLOCKS);
         index.put(BlockEntityTypes.NETHER_REACTOR, NETHER_REACTORS);
-        index.put(BlockEntityTypes.NOTEBLOCK, NOTE_BLOCKS);
+        index.put(BlockEntityTypes.NOTE_BLOCK, NOTE_BLOCKS);
         index.put(BlockEntityTypes.PISTON, PISTONS);
         index.put(BlockEntityTypes.SHULKER_BOX, SHULKER_BOXES);
         index.put(BlockEntityTypes.SIGN, SIGNS);

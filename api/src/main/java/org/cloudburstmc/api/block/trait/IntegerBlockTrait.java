@@ -4,73 +4,83 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.IntRange;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.Objects;
+import java.util.Optional;
 
+/**
+ * A trait accepting integers within an inclusive, finite range.
+ */
 public final class IntegerBlockTrait extends BlockTrait<Integer> {
+
     private final IntRange range;
-    private final int defaultValue;
 
-    private IntegerBlockTrait(String name, @Nullable String vanillaName, IntRange range, int defaultValue, boolean onlySerialize) {
-        super(Identifier.parse(name), vanillaName, Integer.class, range, onlySerialize);
+    private IntegerBlockTrait(String name, IntRange range, int defaultValue) {
+        super(Identifier.parse(name), Integer.class, range, defaultValue);
         this.range = range;
-        this.defaultValue = defaultValue;
     }
 
-    public static IntegerBlockTrait from(String name) {
-        return from(name, Integer.MIN_VALUE, Integer.MAX_VALUE);
+    /**
+     * @param name   the trait identifier
+     * @param length the positive number of values, starting at zero
+     * @return a trait whose default is zero
+     * @throws IllegalArgumentException if the length is not positive
+     */
+    public static IntegerBlockTrait of(String name, int length) {
+        if (length <= 0) {
+            throw new IllegalArgumentException("Trait length must be positive");
+        }
+        return of(name, 0, length - 1);
     }
 
-    public static IntegerBlockTrait from(String name, int length) {
-        return from(name, 0, length - 1, 0);
+    /**
+     * @param name  the trait identifier
+     * @param start the inclusive minimum
+     * @param end   the inclusive maximum
+     * @return a trait whose default is the minimum
+     * @throws IllegalArgumentException if the range is invalid
+     */
+    public static IntegerBlockTrait of(String name, int start, int end) {
+        return of(name, start, end, start);
     }
 
-    public static IntegerBlockTrait from(String name, int start, int end) {
-        return from(name, start, end, 0);
+    /**
+     * @param name         the trait identifier
+     * @param start        the inclusive minimum
+     * @param end          the inclusive maximum
+     * @param defaultValue the default value within the range
+     * @return the trait
+     * @throws IllegalArgumentException if the range or default is invalid
+     */
+    public static IntegerBlockTrait of(String name, int start, int end, int defaultValue) {
+        if (defaultValue < start || defaultValue > end) {
+            throw new IllegalArgumentException("Default value must belong to the trait range");
+        }
+        return new IntegerBlockTrait(name, new IntRange(start, end), defaultValue);
     }
 
-    public static IntegerBlockTrait from(String name, int start, int end, int defaultValue) {
-        return from(name, null, start, end, defaultValue);
-    }
-
-    public static IntegerBlockTrait from(String name, @Nullable String vanillaName, int start, int end, int defaultValue) {
-        return from(name, vanillaName, start, end, defaultValue, false);
-    }
-
-    public static IntegerBlockTrait from(String name, @Nullable String vanillaName, int start, int end, int defaultValue, boolean onlySerialize) {
-        checkNotNull(name, "name");
-        checkArgument(defaultValue >= start && defaultValue <= end, "defaultValue is not in range");
-        return new IntegerBlockTrait(name, vanillaName, new IntRange(start, end), defaultValue, onlySerialize);
-    }
-
-    @Override
-    public Integer getDefaultValue() {
-        return this.defaultValue;
-    }
-
-    @Override
-    public int getIndex(Object value) {
-        return getIndex((int) value);
-    }
-
-    public int getIndex(int value) {
-        int start = this.range.getStart();
-        int end = this.range.getEnd();
-        checkArgument(value >= start && value <= end, "value is not in range");
-        return value - start;
-    }
-
+    /**
+     * @return the inclusive allowed range
+     */
     public IntRange getRange() {
-        return range;
+        return this.range;
     }
 
     @Override
-    public Integer parseValue(String text) {
-        return Integer.parseInt(text);
+    public boolean testValue(@Nullable Object value) {
+        return value instanceof Integer number && number >= this.range.getStart() && number <= this.range.getEnd();
     }
 
+    /**
+     * Parses a decimal integer within the allowed range.
+     */
     @Override
-    public Integer parseStorageValue(Object value) {
-        return (int) value;
+    public Optional<Integer> parseValue(String text) {
+        Objects.requireNonNull(text, "text");
+        try {
+            int value = Integer.parseInt(text);
+            return this.testValue(value) ? Optional.of(value) : Optional.empty();
+        } catch (NumberFormatException ignored) {
+            return Optional.empty();
+        }
     }
 }

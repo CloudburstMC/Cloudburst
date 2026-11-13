@@ -83,7 +83,7 @@ public class VegetationBlockHandlers {
         return DefaultPlacementStateHandler.INSTANCE.execute(state, block, player, face, click);
     };
 
-    public static final ReplaceBlockHandler FLOWER_BED_REPLACEABLE = (block, replacement, player, face, click) ->
+    public static final ReplaceBlockHandler FLOWER_BED_REPLACEABLE = (block, replacement, context) ->
             block.getState().getType() == replacement.getType() && block.getState().ensureTrait(BlockTraits.GROWTH) < 3;
 
     public static final NeighborBlockHandler NEIGHBOUR_CHANGED = checkSurvival(CAN_SURVIVE);
@@ -141,6 +141,10 @@ public class VegetationBlockHandlers {
         block.getLevel().playSound(block.getPosition(), SoundTypes.BLOCK_SWEET_BERRY_BUSH_PICK);
         return true;
     };
+
+    public static SurviveBlockHandler supportedBy(BlockTagKey supportTag) {
+        return block -> block.getRelativeState(0, -1, 0).is(supportTag);
+    }
 
     public static NeighborBlockHandler checkSurvival(SurviveBlockHandler survival) {
         return (block, neighbor) -> {
@@ -243,23 +247,24 @@ public class VegetationBlockHandlers {
         };
     }
 
-    public static FertilizeBlockHandler spread(BlockType type, BlockTagKey supportTag) {
+    public static FertilizeBlockHandler spreadToEmptyNeighbor(BlockType type, SurviveBlockHandler survival) {
         return (block, player, random) -> {
-            Direction[] directions = {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST};
-            int start = random.nextInt(directions.length);
-            for (int offset = 0; offset < directions.length; offset++) {
-                Block target = block.getSide(directions[(start + offset) % directions.length]);
-                if (target.getState().isReplaceable() && target.getRelativeState(0, -1, 0).is(supportTag)) {
-                    return new FertilizationResult(List.of(new BlockChange(target, type.getDefaultState())), List.of());
+            Block[] candidates = new Block[4];
+            int count = 0;
+            for (Direction direction : Direction.Plane.HORIZONTAL) {
+                Block target = block.getSide(direction);
+                if (target.getState().getType() == BlockTypes.AIR && target.getLiquid().isEmpty() && survival.execute(target)) {
+                    candidates[count++] = target;
                 }
             }
 
-            return FertilizationResult.none();
-        };
-    }
+            if (count == 0) {
+                return FertilizationResult.none();
+            }
 
-    public static SurviveBlockHandler supportedBy(BlockTagKey supportTag) {
-        return block -> block.getRelativeState(0, -1, 0).is(supportTag);
+            BlockChange growth = new BlockChange(candidates[random.nextInt(count)], type.getDefaultState());
+            return new FertilizationResult(List.of(growth), List.of());
+        };
     }
 
     public static BlockState lowerHalf(BlockState state) {

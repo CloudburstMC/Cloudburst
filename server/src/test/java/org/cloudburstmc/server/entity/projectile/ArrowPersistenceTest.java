@@ -10,7 +10,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -53,7 +53,7 @@ class ArrowPersistenceTest {
                 .putInt("inBlockY", 2)
                 .putInt("inBlockZ", 3)
                 .putByte("pickup", (byte) 0)
-                .putCompound("Item", ItemUtils.serializeItem(stack))
+                .putCompound("Item", ItemStackNbtCodec.serializeItem(stack))
                 .putInt("PotionGroundTicks", 5)
                 .putInt("Mystery", 7)
                 .build();
@@ -95,7 +95,7 @@ class ArrowPersistenceTest {
         assertFalse(saved.getBoolean("inGround"));
         assertEquals((byte) 0, saved.getByte("PierceLevel"));
         assertEquals((byte) 1, saved.getByte("pickup"));
-        assertEquals(ItemUtils.serializeItem(ItemStack.from(ItemTypes.ARROW)), saved.getCompound("Item"));
+        assertEquals(ItemStackNbtCodec.serializeItem(ItemStack.from(ItemTypes.ARROW)), saved.getCompound("Item"));
         assertTrue(saved.get("PotionGroundTicks") instanceof Integer, "PotionGroundTicks must be an int");
         assertEquals(0, saved.getInt("PotionGroundTicks"));
     }
@@ -107,7 +107,7 @@ class ArrowPersistenceTest {
         arrow.setPickupStatus(ArrowPickupStatus.CREATIVE_ONLY);
         arrow.loadAdditionalData(NbtMap.builder()
                 .putBoolean("inGround", true)
-                .putCompound("Item", ItemUtils.serializeItem(ItemStack.from(ItemTypes.ARROW)))
+                .putCompound("Item", ItemStackNbtCodec.serializeItem(ItemStack.from(ItemTypes.ARROW)))
                 .build());
 
         arrow.loadAdditionalData(NbtMap.EMPTY);
@@ -124,13 +124,13 @@ class ArrowPersistenceTest {
     void absentPotionGroundTicksResetToZero() {
         EntityArrow arrow = (EntityArrow) PersistenceFixtures.entity(EntityTypes.ARROW);
         arrow.loadAdditionalData(NbtMap.builder()
-                .putCompound("Item", ItemUtils.serializeItem(ItemStack.from(ItemTypes.ARROW)))
+                .putCompound("Item", ItemStackNbtCodec.serializeItem(ItemStack.from(ItemTypes.ARROW)))
                 .putInt("PotionGroundTicks", 500)
                 .build());
 
         // The ground ticks have a load default of zero, so they reset when absent.
         arrow.loadAdditionalData(NbtMap.builder()
-                .putCompound("Item", ItemUtils.serializeItem(ItemStack.from(ItemTypes.ARROW)))
+                .putCompound("Item", ItemStackNbtCodec.serializeItem(ItemStack.from(ItemTypes.ARROW)))
                 .build());
 
         NbtMap saved = save(arrow);

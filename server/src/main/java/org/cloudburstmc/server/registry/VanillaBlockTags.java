@@ -2,6 +2,7 @@ package org.cloudburstmc.server.registry;
 
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.server.block.CloudBlockType;
 
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -19,6 +20,11 @@ class VanillaBlockTags {
     private static final Map<BlockTagKey, BlockTag> RESOLVED = new IdentityHashMap<>();
 
     static {
+        tag(LANTERNS, LANTERN, SOUL_LANTERN);
+        tag(LANTERNS, VanillaCopperBlocks.family(COPPER_LANTERN).toArray(BlockType[]::new));
+        inherit(MINEABLE_WITH_PICKAXE, LANTERNS);
+        tag(BEACON_BASE_BLOCKS, IRON_BLOCK, GOLD_BLOCK, EMERALD_BLOCK, DIAMOND_BLOCK, NETHERITE_BLOCK);
+        tag(CONVERTIBLE_TO_MUD, DIRT, COARSE_DIRT, DIRT_WITH_ROOTS);
         initReplaceable();
         initSnowloggable();
         initSolid();
@@ -73,6 +79,8 @@ class VanillaBlockTags {
         tag(CONDUIT_EFFECT_BLOCK, PRISMARINE, PRISMARINE_BRICKS, DARK_PRISMARINE, SEA_LANTERN);
         tag(CANNOT_SUPPORT_SEAGRASS, MAGMA);
         tag(CANNOT_SUPPORT_KELP, MAGMA);
+        tag(CANNOT_SUPPORT_SNOW_LAYER, ICE, BARRIER);
+        tag(SUPPORT_OVERRIDE_SNOW_LAYER, HONEY_BLOCK, SOUL_SAND, MUD);
         tag(WATER_SOURCE_PLANTS, KELP, SEAGRASS);
         tag(SUPPORTS_LILY_PAD, ICE, FROSTED_ICE);
         tag(BlockTags.SAND, BlockTypes.SAND, RED_SAND, SUSPICIOUS_SAND);
@@ -108,6 +116,12 @@ class VanillaBlockTags {
                 DANDELION, POPPY, BLUE_ORCHID, ALLIUM, AZURE_BLUET, RED_TULIP, ORANGE_TULIP, WHITE_TULIP,
                 PINK_TULIP, OXEYE_DAISY, CORNFLOWER, LILY_OF_THE_VALLEY, WITHER_ROSE, TORCHFLOWER,
                 OPEN_EYEBLOSSOM, CLOSED_EYEBLOSSOM, GOLDEN_DANDELION);
+        tag(POTTABLE_PLANTS, DANDELION, GOLDEN_DANDELION, POPPY, BLUE_ORCHID, ALLIUM, AZURE_BLUET,
+                RED_TULIP, ORANGE_TULIP, WHITE_TULIP, PINK_TULIP, OXEYE_DAISY, CORNFLOWER, LILY_OF_THE_VALLEY,
+                WITHER_ROSE, TORCHFLOWER, CLOSED_EYEBLOSSOM, OPEN_EYEBLOSSOM, AZALEA, FLOWERING_AZALEA,
+                OAK_SAPLING, SPRUCE_SAPLING, BIRCH_SAPLING, JUNGLE_SAPLING, ACACIA_SAPLING, DARK_OAK_SAPLING,
+                CHERRY_SAPLING, PALE_OAK_SAPLING, POPLAR_SAPLING, MANGROVE_PROPAGULE, DEADBUSH, FERN, CACTUS,
+                BAMBOO, BROWN_MUSHROOM, RED_MUSHROOM, CRIMSON_FUNGUS, WARPED_FUNGUS, CRIMSON_ROOTS, WARPED_ROOTS);
         inherit(SUPPORTS_DRY_VEGETATION, SUPPORTS_VEGETATION);
         tag(SUPPORTS_DRY_VEGETATION, BlockTypes.SAND, RED_SAND, HARDENED_CLAY,
                 BLACK_TERRACOTTA, BLUE_TERRACOTTA, BROWN_TERRACOTTA, CYAN_TERRACOTTA,
@@ -129,7 +143,7 @@ class VanillaBlockTags {
                 tags.add(key);
             }
         }
-        BlockRegistrationAccess.bindTags(type, tags);
+        CloudBlockType.require(type).bindTags(tags);
     }
 
     static void freeze() {
@@ -1646,6 +1660,7 @@ class VanillaBlockTags {
                 ANCIENT_DEBRIS,
                 ANDESITE,
                 BASALT,
+                BLAST_FURNACE,
                 BLUE_ICE,
                 BREWING_STAND,
                 BRICK_BLOCK,
@@ -1682,6 +1697,7 @@ class VanillaBlockTags {
                 GOLD_BLOCK,
                 GOLD_ORE,
                 GRANITE,
+                GRINDSTONE,
                 HEAVY_WEIGHTED_PRESSURE_PLATE,
                 ICE,
                 IRON_BLOCK,
@@ -1690,6 +1706,9 @@ class VanillaBlockTags {
                 LAPIS_BLOCK,
                 LAPIS_ORE,
                 LIGHT_WEIGHTED_PRESSURE_PLATE,
+                LIT_BLAST_FURNACE,
+                LIT_FURNACE,
+                LIT_SMOKER,
                 MOSSY_COBBLESTONE,
                 MOSSY_STONE_BRICKS,
                 NETHERITE_BLOCK,
@@ -1712,6 +1731,7 @@ class VanillaBlockTags {
                 RESPAWN_ANCHOR,
                 SANDSTONE,
                 SANDSTONE_STAIRS,
+                SMOKER,
                 STONE,
                 STONE_BRICKS,
                 STONE_BRICK_STAIRS,

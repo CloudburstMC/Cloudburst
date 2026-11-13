@@ -185,7 +185,7 @@ class BlockRegistryTest {
             Block alreadyLit = InterfaceProxy.create(Block.class, Map.of("getState", lit, "getLiquid", LiquidState.empty()));
             assertNull(component(type, BlockComponents.GET_IGNITED_STATE).execute(alreadyLit));
             Block waterlogged = InterfaceProxy.create(Block.class,
-                    Map.of("getState", unlit, "getLiquid", LiquidState.of(BlockStates.WATER)));
+                    Map.of("getState", unlit, "getLiquid", BlockStates.WATER.getLiquidState()));
             assertNull(component(type, BlockComponents.GET_IGNITED_STATE).execute(waterlogged));
         }
 
@@ -228,10 +228,10 @@ class BlockRegistryTest {
         Block besideWood = InterfaceProxy.create(Block.class, Map.of("getSide", wood, "getLiquid", LiquidState.empty()));
         assertTrue(component(BlockTypes.FIRE, BlockComponents.CAN_SURVIVE).execute(besideWood));
 
-        Block submerged = InterfaceProxy.create(Block.class, Map.of("getSide", stone, "getLiquid", LiquidState.of(BlockStates.WATER)));
+        Block submerged = InterfaceProxy.create(Block.class, Map.of("getSide", stone, "getLiquid", BlockStates.WATER.getLiquidState()));
         assertFalse(component(BlockTypes.FIRE, BlockComponents.CAN_SURVIVE).execute(submerged));
 
-        Block wetWood = InterfaceProxy.create(Block.class, Map.of("getState", BlockTypes.OAK_PLANKS.getDefaultState(), "getLiquid", LiquidState.of(BlockStates.WATER)));
+        Block wetWood = InterfaceProxy.create(Block.class, Map.of("getState", BlockTypes.OAK_PLANKS.getDefaultState(), "getLiquid", BlockStates.WATER.getLiquidState()));
         Block besideWetWood = InterfaceProxy.create(Block.class, Map.of("getSide", wetWood, "getLiquid", LiquidState.empty()));
         assertFalse(component(BlockTypes.FIRE, BlockComponents.CAN_SURVIVE).execute(besideWetWood));
     }
@@ -262,13 +262,13 @@ class BlockRegistryTest {
 
             Block sourceWater = InterfaceProxy.create(Block.class, Map.of("getState", BlockStates.WATER));
             assertTrue(component(BlockTypes.WATER, BlockComponents.CAN_BE_REPLACED)
-                    .execute(sourceWater, type.getDefaultState(), null, Direction.UP, Vector3f.ZERO));
+                    .execute(sourceWater, type.getDefaultState(), new BlockPlacementContext(sourceWater, Direction.UP, Vector3f.ZERO, null)));
             BlockLayers placement = Objects.requireNonNull(BlockLayerRules.resolveReplacement(
                     new BlockLayers(BlockStates.WATER, BlockStates.AIR), BlockLayer.PRIMARY, type.getDefaultState()));
             assertSame(BlockStates.WATER, placement.secondary());
             assertFalse(placement.primary().ensureTrait(BlockTraits.IS_LIT));
             Block placed = InterfaceProxy.create(Block.class, Map.of(
-                    "getState", placement.primary(), "getLiquid", LiquidState.of(placement.secondary()),
+                    "getState", placement.primary(), "getLiquid", placement.secondary().getLiquidState(),
                     "getLevel", level, "getPosition", Vector3i.ZERO,
                     "getRelativeState", BlockTypes.STONE.getDefaultState()));
             assertTrue(component(type, BlockComponents.CAN_SURVIVE).execute(placed));

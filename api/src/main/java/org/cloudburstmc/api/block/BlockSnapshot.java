@@ -1,6 +1,13 @@
 package org.cloudburstmc.api.block;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.block.data.BlockData;
+import org.cloudburstmc.api.level.Level;
+import org.cloudburstmc.api.util.data.BlockMirror;
+import org.cloudburstmc.api.util.data.BlockRotation;
+import org.cloudburstmc.math.vector.Vector3i;
+
+import java.util.Optional;
 
 /**
  * A read-only view of the block states stored at one level position.
@@ -9,6 +16,17 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * no block state coexists with the primary state.
  */
 public interface BlockSnapshot {
+
+    /**
+     * Returns a typed property view of the primary state. Views that depend on
+     * both layers, such as {@link org.cloudburstmc.api.block.data.Waterlogged},
+     * include the secondary state.
+     *
+     * @param dataType the requested view interface
+     * @param <D>      the view type
+     * @return the view, or empty if the snapshot does not support it
+     */
+    <D extends BlockData> Optional<D> getData(Class<D> dataType);
 
     /**
      * Returns the primary state at this position.
@@ -57,7 +75,7 @@ public interface BlockSnapshot {
      */
     default LiquidState getLiquid() {
         BlockLayer layer = this.getLiquidLayer();
-        return layer == null ? LiquidState.empty() : LiquidState.of(this.getState(layer));
+        return layer == null ? LiquidState.empty() : this.getState(layer).getLiquidState();
     }
 
     /**
@@ -68,4 +86,45 @@ public interface BlockSnapshot {
     default boolean containsLiquid() {
         return this.getLiquidLayer() != null;
     }
+
+    /**
+     * Checks whether both captured layers could remain at the target position.
+     * Evaluates these exact layers against the current surroundings without
+     * placing blocks. Does not check replacement rules, entity collisions or permissions.
+     *
+     * @param level    the level to query
+     * @param position the target block position
+     * @return whether the layers coexist and are supported, or false outside the build limits
+     */
+    boolean isSupported(Level level, Vector3i position);
+
+    /**
+     * Checks support for both captured layers at the block's level position.
+     *
+     * @param block the target block
+     * @return whether these layers could remain at the target
+     */
+    default boolean isSupported(Block block) {
+        return this.isSupported(block.getLevel(), block.getPosition());
+    }
+
+    /**
+     * Rotates both captured block layers without changing a level.
+     *
+     * @param rotation the horizontal rotation
+     * @return the resulting snapshot
+     * @throws IllegalArgumentException      if a layer cannot represent the transformed properties
+     * @throws UnsupportedOperationException if a layer has an unsupported encoded orientation
+     */
+    BlockSnapshot rotate(BlockRotation rotation);
+
+    /**
+     * Reflects both captured block layers without changing a level.
+     *
+     * @param mirror the reflection
+     * @return the resulting snapshot
+     * @throws IllegalArgumentException      if a layer cannot represent the transformed properties
+     * @throws UnsupportedOperationException if a layer has an unsupported encoded orientation
+     */
+    BlockSnapshot mirror(BlockMirror mirror);
 }

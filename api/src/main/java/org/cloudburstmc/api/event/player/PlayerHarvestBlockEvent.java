@@ -11,6 +11,7 @@ import java.util.Objects;
 
 /**
  * Called when a player harvests items from a block without breaking it.
+ * Cancelling prevents the harvest and its drops.
  */
 public class PlayerHarvestBlockEvent extends PlayerEvent implements Cancellable {
 

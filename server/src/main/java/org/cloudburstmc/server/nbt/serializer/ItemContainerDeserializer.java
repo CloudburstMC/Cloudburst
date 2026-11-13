@@ -143,7 +143,7 @@ public final class ItemContainerDeserializer extends StdDeserializer<ItemContain
                         "Slot " + index + " is out of range for a container of size " + size);
             }
             staged.add(new StagedEntry(index,
-                    org.cloudburstmc.server.item.ItemUtils.deserializeItem(item)));
+                    org.cloudburstmc.server.item.ItemStackNbtCodec.deserializeItem(item)));
         }
         return staged;
     }
@@ -180,7 +180,7 @@ public final class ItemContainerDeserializer extends StdDeserializer<ItemContain
                         "Slot " + index + " is out of range for a container of size " + size);
             }
             staged.add(new StagedEntry(index,
-                    org.cloudburstmc.server.item.ItemUtils.deserializeItem(item)));
+                    org.cloudburstmc.server.item.ItemStackNbtCodec.deserializeItem(item)));
         }
         return staged;
     }
@@ -199,7 +199,7 @@ public final class ItemContainerDeserializer extends StdDeserializer<ItemContain
                 throw mismatch(p, entry);
             }
             staged.add(new StagedEntry(index,
-                    org.cloudburstmc.server.item.ItemUtils.deserializeItem(item)));
+                    org.cloudburstmc.server.item.ItemStackNbtCodec.deserializeItem(item)));
         }
         return staged;
     }

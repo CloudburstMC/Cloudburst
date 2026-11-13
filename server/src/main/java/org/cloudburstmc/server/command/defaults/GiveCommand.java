@@ -15,7 +15,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.server.command.AdvertisedCommand;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.network.CommandNetworkData;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.List;
@@ -55,7 +55,7 @@ public class GiveCommand extends AdvertisedCommand {
         boolean air = type.isAir();
         ItemStack prototype = air
                 ? ItemStack.EMPTY
-                : ItemUtils.deserializeItem(type.getId(), data, 1, NbtMap.EMPTY);
+                : ItemStackNbtCodec.deserializeItem(type.getId(), data, 1, NbtMap.EMPTY);
         if (prototype.isEmpty() && !air) {
             sender.sendMessage(Component.translatable("commands.give.item.invalid", Component.text(type.getId().toString())).color(NamedTextColor.RED));
             return success();

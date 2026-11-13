@@ -43,7 +43,7 @@ class FireBlockHandlersTest {
         BlockTestWorld world = world();
         Vector3i neighbor = Direction.NORTH.relative(POSITION);
         world.setState(neighbor, BlockStates.OAK_FENCE);
-        world.setLiquid(neighbor, LiquidState.of(BlockStates.WATER));
+        world.setLiquid(neighbor, BlockStates.WATER.getLiquidState());
 
         assertFalse(FireBlockHandlers.placementState(world.block(POSITION)).ensureTrait(BlockTraits.CONNECTION_NORTH));
     }

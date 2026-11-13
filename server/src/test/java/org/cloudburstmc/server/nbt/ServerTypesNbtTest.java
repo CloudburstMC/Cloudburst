@@ -15,7 +15,7 @@ import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.junit.jupiter.api.Test;
 
@@ -53,7 +53,7 @@ class ServerTypesNbtTest {
         assertEquals(NbtType.COMPOUND, written.getType());
         List<NbtMap> expected = new ArrayList<>(SIZE);
         for (int slot = 0; slot < SIZE; slot++) {
-            expected.add(ItemUtils.serializeItem(slot == 3 ? stack : ItemStack.EMPTY, slot));
+            expected.add(ItemStackNbtCodec.serializeItem(slot == 3 ? stack : ItemStack.EMPTY, slot));
         }
         assertEquals(expected, written);
     }
@@ -66,7 +66,7 @@ class ServerTypesNbtTest {
         dto.items.setItem(5, ItemStack.from(ItemTypes.DIRT, 32));
         ItemStack stack = ItemStack.from(ItemTypes.DIAMOND, 5);
         NbtMap tag = NbtMap.builder()
-                .putList("Items", NbtType.COMPOUND, List.of(ItemUtils.serializeItem(stack, 2)))
+                .putList("Items", NbtType.COMPOUND, List.of(ItemStackNbtCodec.serializeItem(stack, 2)))
                 .build();
 
         mapper.readInto(tag, dto);
@@ -85,7 +85,7 @@ class ServerTypesNbtTest {
     void readCreatesIndependentContainers() {
         NbtMap tag = NbtMap.builder()
                 .putList("Items", NbtType.COMPOUND,
-                        List.of(ItemUtils.serializeItem(ItemStack.from(ItemTypes.DIAMOND, 5), 2)))
+                        List.of(ItemStackNbtCodec.serializeItem(ItemStack.from(ItemTypes.DIAMOND, 5), 2)))
                 .build();
 
         Chest first = mapper.read(tag, Chest.class);
@@ -113,7 +113,7 @@ class ServerTypesNbtTest {
         dto.items.setItem(5, ItemStack.from(ItemTypes.DIRT, 32));
         NbtMap tag = NbtMap.builder()
                 .putList("Items", NbtType.COMPOUND,
-                        List.of(ItemUtils.serializeItem(ItemStack.from(ItemTypes.DIAMOND, 5), SIZE)))
+                        List.of(ItemStackNbtCodec.serializeItem(ItemStack.from(ItemTypes.DIAMOND, 5), SIZE)))
                 .build();
 
         // An out-of-range Slot fails the read with a bare exception, as the old bounds
@@ -164,7 +164,7 @@ class ServerTypesNbtTest {
     void readWithoutSizeAnnotationFails() {
         NbtMap tag = NbtMap.builder()
                 .putList("Items", NbtType.COMPOUND,
-                        List.of(ItemUtils.serializeItem(ItemStack.from(ItemTypes.DIAMOND, 5), 1)))
+                        List.of(ItemStackNbtCodec.serializeItem(ItemStack.from(ItemTypes.DIAMOND, 5), 1)))
                 .build();
 
         assertThrows(Exception.class, () -> mapper.read(tag, Unsized.class));

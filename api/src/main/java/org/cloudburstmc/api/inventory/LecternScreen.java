@@ -1,15 +1,22 @@
 package org.cloudburstmc.api.inventory;
 
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.inventory.view.BlockLecternView;
 
 /**
- * Represents an open lectern screen.
- *
- * <p>A lectern is a book viewer, not a chest-like container; the player's own
- * inventory is <strong>not</strong> shown alongside it. This screen therefore extends
- * {@link InventoryScreen} directly rather than {@link ContainerScreen}.</p>
+ * A screen for reading the book on a lectern.
  */
 public interface LecternScreen extends InventoryScreen {
 
+    /**
+     * Returns the lectern being read.
+     */
     BlockLecternView getLectern();
+
+    /**
+     * Returns the block being read from.
+     */
+    default Block getBlock() {
+        return this.getLectern().getBlock();
+    }
 }

@@ -1,56 +1,54 @@
 package org.cloudburstmc.api.block;
 
-import com.google.common.collect.ImmutableMap;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.block.data.BlockData;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.api.block.trait.IntegerBlockTrait;
+import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.util.VoxelShape;
+import org.cloudburstmc.api.util.data.BlockMirror;
+import org.cloudburstmc.api.util.data.BlockRotation;
+import org.cloudburstmc.math.vector.Vector3i;
 
 import java.awt.*;
-import java.util.Collections;
-import java.util.IdentityHashMap;
 import java.util.Map;
-
-import static com.google.common.base.Preconditions.*;
+import java.util.Optional;
 
 /**
  * A block type paired with immutable trait values and physical properties.
+ *
+ * <p>Use {@link #getData(Class)} for named property operations or
+ * {@link #getTraits()} and {@link #ensureTrait(BlockTrait)} for direct trait
+ * access. Property changes return another state and do not change blocks in a level.
  */
-public final class BlockState {
-
-    private final BlockType type;
-    private final Map<BlockTrait<?>, Comparable<?>> traits;
-    private volatile LiquidState liquidState;
-    private volatile Data data;
-    private Map<BlockTrait<?>, BlockState[]> blockStates;
-
-    BlockState(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits) {
-        this.type = type;
-        this.traits = traits;
-    }
+public interface BlockState {
 
     /**
      * @return the block type represented by this state
      */
-    public BlockType getType() {
-        return type;
-    }
+    BlockType getType();
 
     /**
      * @return the immutable trait values of this state
      */
-    public Map<BlockTrait<?>, Comparable<?>> getTraits() {
-        return traits;
-    }
+    Map<BlockTrait<?>, Comparable<?>> getTraits();
+
+    /**
+     * Returns a typed view for common block properties, such as
+     * {@link org.cloudburstmc.api.block.data.Ageable} or
+     * {@link org.cloudburstmc.api.block.data.Directional}.
+     *
+     * @param dataType the requested view interface
+     * @param <D>      the view type
+     * @return the view, or empty if this state does not support it
+     */
+    <D extends BlockData> Optional<D> getData(Class<D> dataType);
 
     /**
      * @param tag the block tag to test
      * @return whether this state's type belongs to the tag
      */
-    public boolean is(BlockTagKey tag) {
-        return this.type.is(tag);
-    }
+    boolean is(BlockTagKey tag);
 
     /**
      * Returns a required trait value.
@@ -58,15 +56,9 @@ public final class BlockState {
      * @param trait the trait to read
      * @param <T>   the trait value type
      * @return the current value
-     * @throws NullPointerException if the trait is null or absent from this state
+     * @throws IllegalArgumentException if the trait is absent from this state
      */
-    @SuppressWarnings("unchecked")
-    public <T extends Comparable<T>> T ensureTrait(BlockTrait<T> trait) {
-        checkNotNull(trait, "trait");
-        T val = (T) this.traits.get(trait);
-        checkNotNull(val, "Trait '%s' does not exist for type '%s'", trait, this.type);
-        return val;
-    }
+    <T extends Comparable<T>> T ensureTrait(BlockTrait<T> trait);
 
     /**
      * Returns a state with one trait changed, leaving this state unchanged.
@@ -77,10 +69,7 @@ public final class BlockState {
      * @return the resulting state
      * @throws IllegalArgumentException if the trait or value is not supported
      */
-    public <T extends Comparable<T>> BlockState withTrait(BlockTrait<T> trait, T value) {
-        checkNotNull(trait, "trait");
-        return stateForTrait(trait, trait.getIndex(value), value);
-    }
+    <T extends Comparable<T>> BlockState withTrait(BlockTrait<T> trait, T value);
 
     /**
      * @param trait the integer trait to change
@@ -88,10 +77,7 @@ public final class BlockState {
      * @return a state with the replacement value, leaving this state unchanged
      * @throws IllegalArgumentException if the trait or value is not supported
      */
-    public BlockState withTrait(IntegerBlockTrait trait, int value) {
-        checkNotNull(trait, "trait");
-        return stateForTrait(trait, trait.getIndex(value), value);
-    }
+    BlockState withTrait(IntegerBlockTrait trait, int value);
 
     /**
      * @param trait the boolean trait to change
@@ -99,10 +85,7 @@ public final class BlockState {
      * @return a state with the replacement value, leaving this state unchanged
      * @throws IllegalArgumentException if the trait or value is not supported
      */
-    public BlockState withTrait(BooleanBlockTrait trait, boolean value) {
-        checkNotNull(trait, "trait");
-        return stateForTrait(trait, trait.getIndex(value), value);
-    }
+    BlockState withTrait(BooleanBlockTrait trait, boolean value);
 
     /**
      * Copies values for traits shared with another state. Traits absent from this
@@ -111,51 +94,54 @@ public final class BlockState {
      * @param from state supplying trait values
      * @return state with the shared values applied
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public BlockState copyTraits(BlockState from) {
-        checkNotNull(from, "from");
-
-        BlockState result = this;
-        for (Map.Entry<BlockTrait<?>, Comparable<?>> entry : from.getTraits().entrySet()) {
-            if (this.traits.containsKey(entry.getKey())) {
-                result = result.withTrait((BlockTrait) entry.getKey(), (Comparable) entry.getValue());
-            }
-        }
-
-        return result;
-    }
+    BlockState copyTraits(BlockState from);
 
     /**
      * Increases a trait by one without exceeding its declared maximum.
      *
      * @param trait the integer trait to change
      * @return the resulting state, leaving this state unchanged
+     * @throws IllegalArgumentException if the trait is absent from this state
      */
-    public BlockState incrementTrait(IntegerBlockTrait trait) {
-        checkNotNull(trait, "trait");
-        return withTrait(trait, Math.min(trait.getRange().getEnd(), ensureTrait(trait) + 1));
-    }
+    BlockState incrementTrait(IntegerBlockTrait trait);
 
     /**
      * Decreases a trait by one without going below its declared minimum.
      *
      * @param trait the integer trait to change
      * @return the resulting state, leaving this state unchanged
+     * @throws IllegalArgumentException if the trait is absent from this state
      */
-    public BlockState decrementTrait(IntegerBlockTrait trait) {
-        checkNotNull(trait, "trait");
-        return withTrait(trait, Math.max(trait.getRange().getStart(), ensureTrait(trait) - 1));
-    }
+    BlockState decrementTrait(IntegerBlockTrait trait);
 
     /**
      * @param trait the boolean trait to invert
      * @return a state with the inverted value, leaving this state unchanged
+     * @throws IllegalArgumentException if the trait is absent from this state
      */
-    public BlockState toggleTrait(BooleanBlockTrait trait) {
-        checkNotNull(trait, "trait");
-        boolean value = !ensureTrait(trait);
-        return stateForTrait(trait, trait.getIndex(value), value);
-    }
+    BlockState toggleTrait(BooleanBlockTrait trait);
+
+    /**
+     * Rotates orientation and connection properties around the vertical axis.
+     * Other properties and this state remain unchanged.
+     *
+     * @param rotation the horizontal rotation
+     * @return the resulting state
+     * @throws IllegalArgumentException      if this type cannot represent the transformed properties
+     * @throws UnsupportedOperationException if an encoded orientation has no supported transform
+     */
+    BlockState rotate(BlockRotation rotation);
+
+    /**
+     * Reflects orientation, connections and handed properties across a vertical plane.
+     * Other properties and this state remain unchanged.
+     *
+     * @param mirror the reflection
+     * @return the resulting state
+     * @throws IllegalArgumentException      if this type cannot represent the transformed properties
+     * @throws UnsupportedOperationException if an encoded orientation has no supported transform
+     */
+    BlockState mirror(BlockMirror mirror);
 
     /**
      * Returns state-only collision geometry in block-local coordinates.
@@ -164,9 +150,7 @@ public final class BlockState {
      *
      * @return collision shape
      */
-    public VoxelShape getCollisionShape() {
-        return data().collisionShape();
-    }
+    VoxelShape getCollisionShape();
 
     /**
      * Returns state-only selection geometry in block-local coordinates.
@@ -174,230 +158,114 @@ public final class BlockState {
      *
      * @return outline shape
      */
-    public VoxelShape getOutlineShape() {
-        return data().outlineShape();
+    VoxelShape getOutlineShape();
+
+    /**
+     * Checks whether this state could remain at the target position, retaining
+     * compatible coexisting contents. Does not place blocks or check replacement
+     * rules, entity collisions or player permissions.
+     *
+     * @param level    the level to query
+     * @param position the target block position
+     * @return whether the state is supported, or false outside the build limits
+     */
+    boolean isSupported(Level level, Vector3i position);
+
+    /**
+     * Checks support at the block's level position using its current surroundings.
+     *
+     * @param block the target block
+     * @return whether this state could remain at the target
+     */
+    default boolean isSupported(Block block) {
+        return this.isSupported(block.getLevel(), block.getPosition());
     }
 
     /**
      * @return this state's hardness
      */
-    public float getHardness() {
-        return data().hardness();
-    }
+    float getHardness();
 
     /**
      * @return this state's explosion resistance
      */
-    public float getExplosionResistance() {
-        return data().explosionResistance();
-    }
+    float getExplosionResistance();
 
     /**
      * @return this state's surface friction
      */
-    public float getFriction() {
-        return data().friction();
-    }
+    float getFriction();
 
     /**
      * @return this state's translucency
      */
-    public float getTranslucency() {
-        return data().translucency();
-    }
+    float getTranslucency();
 
     /**
      * @return this state's thickness
      */
-    public float getThickness() {
-        return data().thickness();
-    }
+    float getThickness();
 
     /**
      * @return this state's chance of catching fire
      */
-    public int getBurnOdds() {
-        return data().burnOdds();
-    }
+    int getBurnOdds();
 
     /**
      * @return this state's chance of spreading fire
      */
-    public int getFlameOdds() {
-        return data().flameOdds();
-    }
+    int getFlameOdds();
 
     /**
      * @return the light removed while passing through this state
      */
-    public int getLightDampening() {
-        return data().lightDampening();
-    }
+    int getLightDampening();
 
     /**
      * @return the light emitted by this state
      */
-    public int getLightEmission() {
-        return data().lightEmission();
-    }
+    int getLightEmission();
 
     /**
      * @return whether this state is solid
      */
-    public boolean isSolid() {
-        return data().solid();
-    }
+    boolean isSolid();
 
     /**
      * @return whether this state's drops require the correct tool
      */
-    public boolean requiresCorrectToolForDrops() {
-        return data().requiresCorrectToolForDrops();
-    }
+    boolean requiresCorrectToolForDrops();
 
     /**
      * @return this state's map color
      */
-    public Color getMapColor() {
-        return data().mapColor();
-    }
+    Color getMapColor();
 
     /**
      * @return whether this state can share its position with a liquid source
      */
-    public boolean canContainLiquidSource() {
-        return data().canContainLiquidSource();
-    }
+    boolean canContainLiquidSource();
 
     /**
      * @return this state's reaction to flowing liquid
      */
-    public LiquidReaction getLiquidReaction() {
-        return data().liquidReaction();
-    }
+    LiquidReaction getLiquidReaction();
 
     /**
      * @return whether this state can share its position with flowing liquid
      */
-    public boolean canContainFlowingLiquid() {
-        return !isReplaceable() && getLiquidReaction().allowsFlow();
-    }
+    boolean canContainFlowingLiquid();
 
     /**
      * @return whether this state may be replaced by normal block placement
      */
-    public boolean isReplaceable() {
-        return this.type.is(BlockTags.REPLACEABLE);
-    }
+    boolean isReplaceable();
 
-    LiquidState asLiquidState() {
-        checkState(this.type.isLiquid(), "Block state is not liquid: %s", this);
-        LiquidState liquidState = this.liquidState;
-        if (liquidState == null) {
-            synchronized (this) {
-                liquidState = this.liquidState;
-                if (liquidState == null) {
-                    liquidState = new LiquidState(this, this.type.getLiquidType());
-                    this.liquidState = liquidState;
-                }
-            }
-        }
-
-        return liquidState;
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append(this.type);
-        if (!this.traits.isEmpty()) {
-            builder.append('{');
-            this.traits.forEach((trait, value) ->
-                    builder.append(trait).append('=').append(value.toString().toLowerCase()).append(',').append(' '));
-            builder.setLength(builder.length() - 1);
-            builder.setCharAt(builder.length() - 1, '}');
-        }
-        return builder.toString();
-    }
-
-    void initialize(Map<Map<BlockTrait<?>, Comparable<?>>, BlockState> map) {
-        checkState(this.blockStates == null, "BlockTrait states has already been built");
-        Map<BlockTrait<?>, BlockState[]> statesMap = new IdentityHashMap<>();
-
-        for (Map.Entry<BlockTrait<?>, Comparable<?>> entry : this.traits.entrySet()) {
-            BlockTrait<?> trait = entry.getKey();
-            BlockState[] states = new BlockState[trait.getPossibleValues().size()];
-            statesMap.put(trait, states);
-
-            for (Comparable<?> comparable : trait.getPossibleValues()) {
-                states[trait.getIndex(comparable)] = map.get(this.getTraitsWithValue(trait, comparable));
-            }
-        }
-
-        this.blockStates = Collections.unmodifiableMap(statesMap);
-    }
-
-    synchronized void bindData(VoxelShape collisionShape, @Nullable VoxelShape outlineShape,
-                               float hardness, float explosionResistance, float friction,
-                               float translucency, float thickness, int burnOdds, int flameOdds,
-                               int lightDampening, int lightEmission, boolean solid,
-                               boolean requiresCorrectToolForDrops, Color mapColor,
-                               boolean canContainLiquidSource, LiquidReaction liquidReaction) {
-        checkState(this.data == null, "Block state data has already been initialized");
-        this.data = new Data(collisionShape, outlineShape, hardness, explosionResistance, friction,
-                translucency, thickness, burnOdds, flameOdds, lightDampening, lightEmission, solid,
-                requiresCorrectToolForDrops, mapColor, canContainLiquidSource, liquidReaction);
-    }
-
-    private ImmutableMap<BlockTrait<?>, Comparable<?>> getTraitsWithValue(BlockTrait<?> trait, Comparable<?> comparable) {
-        ImmutableMap.Builder<BlockTrait<?>, Comparable<?>> builder = ImmutableMap.builder();
-        this.traits.forEach((k, v) -> builder.put(k, k == trait ? comparable : v));
-        return builder.build();
-    }
-
-    private BlockState stateForTrait(BlockTrait<?> trait, int index, Object value) {
-        checkState(this.blockStates != null, "Block states have not been bound for type '%s'", this.type);
-
-        BlockState[] states = this.blockStates.get(trait);
-        checkArgument(states != null, "Trait '%s' does not exist for type '%s'", trait, this.type);
-        checkArgument(index >= 0 && index < states.length,
-                "Trait value '%s' is not valid for trait '%s' on type '%s'", value, trait, this.type);
-
-        BlockState state = states[index];
-        checkArgument(state != null, "Trait value '%s' is not valid for trait '%s' on type '%s'", value, trait, this.type);
-
-        return state;
-    }
-
-    private Data data() {
-        Data data = this.data;
-        checkState(data != null, "Block state data has not been initialized");
-        return data;
-    }
-
-    private record Data(
-            VoxelShape collisionShape,
-            VoxelShape outlineShape,
-            float hardness,
-            float explosionResistance,
-            float friction,
-            float translucency,
-            float thickness,
-            int burnOdds,
-            int flameOdds,
-            int lightDampening,
-            int lightEmission,
-            boolean solid,
-            boolean requiresCorrectToolForDrops,
-            Color mapColor,
-            boolean canContainLiquidSource,
-            LiquidReaction liquidReaction
-    ) {
-        private Data {
-            checkNotNull(collisionShape, "collisionShape");
-            outlineShape = outlineShape == null ? collisionShape : outlineShape;
-            checkNotNull(mapColor, "mapColor");
-            checkNotNull(liquidReaction, "liquidReaction");
-        }
-    }
+    /**
+     * Returns the liquid represented by this state, or empty for a non-liquid block.
+     * Use {@link BlockSnapshot#getLiquid()} for the combined contents of block layers.
+     *
+     * @return this state's liquid
+     */
+    LiquidState getLiquidState();
 }

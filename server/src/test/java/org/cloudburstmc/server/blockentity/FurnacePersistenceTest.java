@@ -8,7 +8,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -42,7 +42,7 @@ class FurnacePersistenceTest {
             } else {
                 stack = ItemStack.EMPTY;
             }
-            items.add(ItemUtils.serializeItem(stack, slot));
+            items.add(ItemStackNbtCodec.serializeItem(stack, slot));
         }
         return items;
     }
@@ -82,7 +82,7 @@ class FurnacePersistenceTest {
 
         NbtMap saved = entity.getServerTag();
         Set<String> expectedKeys = new HashSet<>(input.keySet());
-        expectedKeys.addAll(Set.of("id", "x", "y", "z"));
+        expectedKeys.addAll(Set.of("id", "x", "y", "z", "CookDuration", "StoredXPInt", "RecipesUsed"));
         assertEquals(expectedKeys, saved.keySet());
         for (String key : input.keySet()) {
             assertEquals(input.get(key), saved.get(key), "value of " + key);
@@ -93,7 +93,7 @@ class FurnacePersistenceTest {
         // LootTable is not a declared furnace key; it passes through the raw-tag merge unchanged.
         assertEquals("minecraft:chests/simple_dungeon", saved.getString("LootTable"));
 
-        assertEquals(Set.of("id"), entity.getClientTag().keySet());
+        assertEquals(Set.of("id", "CustomName"), entity.getClientTag().keySet());
     }
 
     @Test
@@ -118,7 +118,7 @@ class FurnacePersistenceTest {
         assertEquals(NbtType.COMPOUND, items.getType());
         assertEquals(SIZE, items.size());
         for (int slot = 0; slot < SIZE; slot++) {
-            assertEquals(ItemUtils.serializeItem(ItemStack.EMPTY, slot), items.get(slot),
+            assertEquals(ItemStackNbtCodec.serializeItem(ItemStack.EMPTY, slot), items.get(slot),
                     "slot " + slot);
         }
 
@@ -138,14 +138,14 @@ class FurnacePersistenceTest {
 
         NbtMap saved = blast.getServerTag();
         Set<String> expectedKeys = new HashSet<>(input.keySet());
-        expectedKeys.addAll(Set.of("id", "x", "y", "z"));
+        expectedKeys.addAll(Set.of("id", "x", "y", "z", "CookDuration", "StoredXPInt", "RecipesUsed"));
         assertEquals(expectedKeys, saved.keySet());
         for (String key : input.keySet()) {
             assertEquals(input.get(key), saved.get(key), "value of " + key);
             assertEquals(NbtType.byClass(input.get(key).getClass()),
                     NbtType.byClass(saved.get(key).getClass()), "type of " + key);
         }
-        assertEquals(Set.of("id"), blast.getClientTag().keySet());
+        assertEquals(Set.of("id", "CustomName"), blast.getClientTag().keySet());
 
         SmokerBlockEntity smoker = (SmokerBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.SMOKER, POSITION);
         NbtMap smokerInput = furnaceTag().toBuilder().putString("id", "Smoker").build();
@@ -153,14 +153,14 @@ class FurnacePersistenceTest {
 
         NbtMap smokerSaved = smoker.getServerTag();
         Set<String> smokerExpected = new HashSet<>(smokerInput.keySet());
-        smokerExpected.addAll(Set.of("id", "x", "y", "z"));
+        smokerExpected.addAll(Set.of("id", "x", "y", "z", "CookDuration", "StoredXPInt", "RecipesUsed"));
         assertEquals(smokerExpected, smokerSaved.keySet());
         for (String key : smokerInput.keySet()) {
             assertEquals(smokerInput.get(key), smokerSaved.get(key), "value of " + key);
             assertEquals(NbtType.byClass(smokerInput.get(key).getClass()),
                     NbtType.byClass(smokerSaved.get(key).getClass()), "type of " + key);
         }
-        assertEquals(Set.of("id"), smoker.getClientTag().keySet());
+        assertEquals(Set.of("id", "CustomName"), smoker.getClientTag().keySet());
     }
 
     @Test

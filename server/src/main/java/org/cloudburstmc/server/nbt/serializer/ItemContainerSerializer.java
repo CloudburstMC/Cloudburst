@@ -48,7 +48,7 @@ public final class ItemContainerSerializer extends StdSerializer<ItemContainer> 
             if (skipEmpty && item.isEmpty()) {
                 continue;
             }
-            items.add(org.cloudburstmc.server.item.ItemUtils.serializeItem(item, slot));
+            items.add(org.cloudburstmc.server.item.ItemStackNbtCodec.serializeItem(item, slot));
         }
         gen.writeEmbeddedObject(new NbtList<>(NbtType.COMPOUND, items));
     }

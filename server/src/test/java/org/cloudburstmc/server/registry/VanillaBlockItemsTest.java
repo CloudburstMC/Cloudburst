@@ -6,6 +6,7 @@ import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.item.ToolUtils;
 import org.cloudburstmc.server.testutil.BlockTestRegistry;
 import org.cloudburstmc.server.testutil.BlockTestWorld;
 import org.junit.jupiter.api.Test;
@@ -47,12 +48,24 @@ class VanillaBlockItemsTest {
         for (BlockType form : List.of(BlockTypes.OAK_WALL_SIGN, BlockTypes.OAK_DOUBLE_SLAB,
                 BlockTypes.LIT_FURNACE, BlockTypes.POWERED_REPEATER, BlockTypes.BRAIN_CORAL_WALL_FAN)) {
             ItemStack picked = ItemStack.from(form.getDefaultState());
-            BlockState placed = assertInstanceOf(BlockState.class, placement(picked).orElseThrow());
-            BlockState defaultPlacement = assertInstanceOf(BlockState.class,
-                    placement(ItemStack.from(picked.getType())).orElseThrow());
+            BlockState placed = placement(picked).orElseThrow();
+            BlockState defaultPlacement = placement(ItemStack.from(picked.getType())).orElseThrow();
 
             assertSame(defaultPlacement.getType(), placed.getType());
             assertSame(picked.getType(), placed.getType().asItem().orElseThrow());
+        }
+    }
+
+    @Test
+    void woodenPickaxeHarvestsAllFurnaceStates() {
+        ItemStack pickaxe = ItemStack.from(ItemTypes.WOODEN_PICKAXE);
+        for (BlockType type : List.of(
+                BlockTypes.FURNACE, BlockTypes.LIT_FURNACE,
+                BlockTypes.BLAST_FURNACE, BlockTypes.LIT_BLAST_FURNACE,
+                BlockTypes.SMOKER, BlockTypes.LIT_SMOKER)) {
+            BlockState state = type.getDefaultState();
+            assertTrue(ToolUtils.isCorrectForDrops(pickaxe, state), type.getId().toString());
+            assertFalse(ToolUtils.isCorrectForDrops(ItemStack.EMPTY, state), type.getId().toString());
         }
     }
 
@@ -81,6 +94,19 @@ class VanillaBlockItemsTest {
     }
 
     @Test
+    void tntPlacementUsesTheItemsUnprimedBlockType() {
+        ItemStack tnt = ItemStack.builder(ItemTypes.TNT)
+                .setData(ItemDataComponents.BLOCK_STATE, BlockTypes.UNDERWATER_TNT.getDefaultState())
+                .build();
+        ItemStack underwater = ItemStack.builder(ItemTypes.UNDERWATER_TNT)
+                .setData(ItemDataComponents.BLOCK_STATE, BlockTypes.UNDERWATER_TNT.getDefaultState().withTrait(BlockTraits.EXPLODE, true))
+                .build();
+
+        assertSame(BlockTypes.TNT.getDefaultState().withTrait(BlockTraits.EXPLODE, false), placement(tnt).orElseThrow());
+        assertSame(BlockTypes.UNDERWATER_TNT.getDefaultState().withTrait(BlockTraits.EXPLODE, false), placement(underwater).orElseThrow());
+    }
+
+    @Test
     void candleCakeHasNoItemButStillPicksCake() {
         BlockTestWorld world = new BlockTestWorld(BLOCKS);
         Vector3i position = Vector3i.from(0, 64, 0);
@@ -92,7 +118,7 @@ class VanillaBlockItemsTest {
         assertSame(ItemTypes.CAKE, picked.getType());
     }
 
-    private static Optional<?> placement(ItemStack item) {
-        return assertInstanceOf(Optional.class, ITEMS.requireComponent(item.getType(), ItemBehaviors.GET_BLOCK).execute(item));
+    private static Optional<BlockState> placement(ItemStack item) {
+        return ITEMS.requireComponent(item.getType(), ItemBehaviors.GET_BLOCK).execute(item);
     }
 }

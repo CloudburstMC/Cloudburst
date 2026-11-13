@@ -11,7 +11,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.container.CloudContainer;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -50,7 +50,7 @@ class ChestPersistenceTest {
             } else {
                 stack = ItemStack.EMPTY;
             }
-            items.add(ItemUtils.serializeItem(stack, slot));
+            items.add(ItemStackNbtCodec.serializeItem(stack, slot));
         }
         return items;
     }
@@ -116,7 +116,7 @@ class ChestPersistenceTest {
         assertEquals(NbtType.COMPOUND, items.getType());
         assertEquals(SIZE, items.size());
         for (int slot = 0; slot < SIZE; slot++) {
-            assertEquals(ItemUtils.serializeItem(ItemStack.EMPTY, slot), items.get(slot),
+            assertEquals(ItemStackNbtCodec.serializeItem(ItemStack.EMPTY, slot), items.get(slot),
                     "slot " + slot);
         }
 
@@ -130,7 +130,7 @@ class ChestPersistenceTest {
     void badItemFailsLoadInsteadOfEmptyingChest() {
         ChestBlockEntity entity = (ChestBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CHEST, POSITION);
         // A suspicious stew with an out-of-range variant has no effects list,
-        // so ItemUtils.deserializeItem rejects it.
+        // so ItemStackNbtCodec.deserializeItem rejects it.
         NbtMap badStew = NbtMap.builder()
                 .putString("Name", "minecraft:suspicious_stew")
                 .putShort("Damage", (short) 99)
@@ -155,7 +155,7 @@ class ChestPersistenceTest {
 
         // An entry without a Slot binds slot 0, as the old byte read defaulted to.
         NbtMapBuilder entryBuilder = NbtMap.builder();
-        entryBuilder.putAll(ItemUtils.serializeItem(diamond));
+        entryBuilder.putAll(ItemStackNbtCodec.serializeItem(diamond));
         NbtMap entry = entryBuilder.build();
         assertFalse(entry.containsKey("Slot"));
         entity.loadAdditionalData(NbtMap.builder()
@@ -175,7 +175,7 @@ class ChestPersistenceTest {
         ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 5);
 
         // Only a byte Slot binds, as the old byte read did: a short Slot binds slot 0.
-        NbtMapBuilder entryBuilder = ItemUtils.serializeItem(diamond, 5).toBuilder();
+        NbtMapBuilder entryBuilder = ItemStackNbtCodec.serializeItem(diamond, 5).toBuilder();
         entryBuilder.putShort("Slot", (short) 5);
         NbtMap entry = entryBuilder.build();
         assertTrue(entry.get("Slot") instanceof Short);
@@ -204,7 +204,7 @@ class ChestPersistenceTest {
                 .putInt("x", 10)
                 .putInt("y", 64)
                 .putInt("z", -5)
-                .putList("Items", NbtType.COMPOUND, List.of(ItemUtils.serializeItem(diamond, SIZE)))
+                .putList("Items", NbtType.COMPOUND, List.of(ItemStackNbtCodec.serializeItem(diamond, SIZE)))
                 .build();
 
         tools.jackson.core.JacksonException thrown =
