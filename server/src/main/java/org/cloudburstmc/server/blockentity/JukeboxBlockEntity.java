@@ -125,13 +125,13 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox, Auto
     }
 
     @Override
-    public boolean canInsertFrom(int slot, Direction side, ItemStack item) {
-        return slot == 0 && this.getRecord().isEmpty() && songFor(item) != null;
+    public boolean blocksInsertionFrom(int slot, Direction side, ItemStack item) {
+        return slot != 0 || !this.getRecord().isEmpty() || songFor(item) == null;
     }
 
     @Override
-    public boolean canExtractBelow(int slot) {
-        return slot == 0 && !this.isPlaying();
+    public boolean blocksExtractionBelow(int slot) {
+        return slot != 0 || this.isPlaying();
     }
 
     @Override

@@ -232,17 +232,17 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
     }
 
     @Override
-    public boolean canInsertFrom(int slot, Direction side, ItemStack item) {
+    public boolean blocksInsertionFrom(int slot, Direction side, ItemStack item) {
         return switch (side) {
-            case UP -> slot == INGREDIENT_SLOT && this.acceptsItem(slot, item);
-            case DOWN -> false;
-            default -> slot != INGREDIENT_SLOT && this.acceptsItem(slot, item);
+            case UP -> slot != INGREDIENT_SLOT || !this.acceptsItem(slot, item);
+            case DOWN -> true;
+            default -> slot == INGREDIENT_SLOT || !this.acceptsItem(slot, item);
         };
     }
 
     @Override
-    public boolean canExtractBelow(int slot) {
-        return isBottleSlot(slot) || slot == INGREDIENT_SLOT && this.getIngredient().getType() == ItemTypes.GLASS_BOTTLE;
+    public boolean blocksExtractionBelow(int slot) {
+        return !isBottleSlot(slot) && (slot != INGREDIENT_SLOT || this.getIngredient().getType() != ItemTypes.GLASS_BOTTLE);
     }
 
     @Override

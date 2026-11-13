@@ -147,7 +147,7 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
             }
 
             for (int slot : slots) {
-                if (!containerView.canExtractBelow(slot)) {
+                if (containerView.blocksExtractionBelow(slot)) {
                     continue;
                 }
                 ItemStack sourceStack = containerView.getItem(slot);
@@ -166,7 +166,7 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
                 this.server.getEventManager().fire(ev);
 
                 if (ev.isCancelled() || this.isClosed() || containerView.isClosed()
-                        || !containerView.canExtractBelow(slot) || !sourceStack.equals(containerView.getItem(slot))) {
+                        || containerView.blocksExtractionBelow(slot) || !sourceStack.equals(containerView.getItem(slot))) {
                     return false;
                 }
 
@@ -285,7 +285,7 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
                     ItemStack target = container.getItem(s);
                     int count = target.getCount() + 1;
                     if ((!target.isEmpty() && !target.isStackableWith(item)) || count > maxStackSize
-                            || !containerView.canInsertFrom(s, direction.getOpposite(), item.withCount(count))) {
+                            || containerView.blocksInsertionFrom(s, direction.getOpposite(), item.withCount(count))) {
                         continue;
                     }
                     if (target.isEmpty()) {
@@ -310,7 +310,7 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
                 ItemStack updated = target.isEmpty() ? item : target.withCount(target.getCount() + 1);
                 if (event.isCancelled() || this.isClosed() || containerView.isClosed()
                         || !sourceStack.equals(this.getContainer().getItem(i)) || !target.equals(container.getItem(slot))
-                        || !containerView.canInsertFrom(slot, direction.getOpposite(), updated)) {
+                        || containerView.blocksInsertionFrom(slot, direction.getOpposite(), updated)) {
                     return false;
                 }
 

@@ -293,23 +293,23 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
     }
 
     @Override
-    public boolean canInsertFrom(int slot, Direction side, ItemStack item) {
+    public boolean blocksInsertionFrom(int slot, Direction side, ItemStack item) {
         return switch (side) {
-            case UP -> slot == INGREDIENT_SLOT;
-            case DOWN -> false;
-            default -> slot == FUEL_SLOT && acceptsFuel(item);
+            case UP -> slot != INGREDIENT_SLOT;
+            case DOWN -> true;
+            default -> slot != FUEL_SLOT || !acceptsFuel(item);
         };
     }
 
     @Override
-    public boolean canExtractBelow(int slot) {
+    public boolean blocksExtractionBelow(int slot) {
         return switch (slot) {
-            case RESULT_SLOT -> true;
+            case RESULT_SLOT -> false;
             case FUEL_SLOT -> {
                 ItemStack fuel = this.getFuel();
-                yield isEmptyBucket(fuel) || fuel.getType() == ItemTypes.WATER_BUCKET;
+                yield !isEmptyBucket(fuel) && fuel.getType() != ItemTypes.WATER_BUCKET;
             }
-            default -> false;
+            default -> true;
         };
     }
 

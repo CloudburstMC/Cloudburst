@@ -14,11 +14,11 @@ public interface AutomatedBlockStorage extends BlockEntity, ItemContainer {
         return this;
     }
 
-    default boolean canInsertFrom(int slot, Direction side, ItemStack item) {
-        return true;
+    default boolean blocksInsertionFrom(int slot, Direction side, ItemStack item) {
+        return false;
     }
 
-    default boolean canExtractBelow(int slot) {
-        return true;
+    default boolean blocksExtractionBelow(int slot) {
+        return false;
     }
 }

@@ -133,8 +133,8 @@ public class ShulkerBoxBlockEntity extends ContainerBlockEntity implements Shulk
     }
 
     @Override
-    public boolean canInsertFrom(int slot, Direction side, ItemStack item) {
-        return ShulkerBoxItems.accepts(item);
+    public boolean blocksInsertionFrom(int slot, Direction side, ItemStack item) {
+        return !ShulkerBoxItems.accepts(item);
     }
 
     @Override
