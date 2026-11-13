@@ -5,10 +5,10 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
-import org.cloudburstmc.server.nbt.NbtContainerSize;
-import org.cloudburstmc.server.nbt.NbtKeepUnlisted;
 import org.cloudburstmc.server.nbt.NbtKindMismatchException;
-import org.cloudburstmc.server.nbt.NbtPositional;
+import org.cloudburstmc.server.nbt.annotation.NbtContainerSize;
+import org.cloudburstmc.server.nbt.annotation.NbtKeepUnlisted;
+import org.cloudburstmc.server.nbt.annotation.NbtPositional;
 import org.cloudburstmc.server.nbt.internal.NbtParser;
 import tools.jackson.core.JsonParser;
 import tools.jackson.databind.BeanProperty;
@@ -21,7 +21,7 @@ import tools.jackson.databind.exc.MismatchedInputException;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class ItemContainerDeserializer extends StdDeserializer<ItemContainer> {
+public class ItemContainerDeserializer extends StdDeserializer<ItemContainer> {
 
     /**
      * The slot count of containers this instance creates, from the property's
@@ -71,29 +71,17 @@ public final class ItemContainerDeserializer extends StdDeserializer<ItemContain
     public ItemContainer deserialize(JsonParser p, DeserializationContext ctxt) {
         if (size < 0) {
             throw new IllegalArgumentException("Cannot read an item container without an existing instance."
-                    + " declare its slot count with @NbtContainerSize on the property");
+                    + " Declare its slot count with @NbtContainerSize on the property");
         }
+
         if (!(p instanceof NbtParser parser) || !(parser.currentTag() instanceof List<?> list)) {
             return (ItemContainer) ctxt.handleUnexpectedToken(ItemContainer.class, p);
         }
         p.skipChildren();
 
-        // Stage every entry before the container is created, so a failed
-        // read never leaves a partially filled container behind.
-        List<StagedEntry> staged;
-        if (positional) {
-            staged = stagePositional(p, list, size);
-        } else if (keepUnlisted) {
-            staged = stageKeepUnlisted(p, list, size);
-        } else {
-            staged = stage(p, list, size);
-        }
-
-        ItemContainer created = new CloudContainer(size);
-        for (StagedEntry entry : staged) {
-            created.setItem(entry.slot(), entry.item());
-        }
-
+        List<StagedEntry> entries = this.decodeEntries(p, list, this.size);
+        ItemContainer created = new CloudContainer(this.size);
+        apply(created, entries);
         return created;
     }
 
@@ -103,123 +91,55 @@ public final class ItemContainerDeserializer extends StdDeserializer<ItemContain
             return (ItemContainer) ctxt.handleUnexpectedToken(ItemContainer.class, p);
         }
         p.skipChildren();
-        if (positional) {
-            // Creature equipment loads as today: entries fill slots by
-            // position, extra entries are ignored, and missing slots keep
-            // their current item instead of being cleared.
-            List<StagedEntry> staged = stagePositional(p, list, into.size());
-            for (StagedEntry entry : staged) {
-                into.setItem(entry.slot(), entry.item());
-            }
-            return into;
-        }
-        // Stage every entry before the container is touched, so a failed
-        // read never leaves a partially updated container behind. Sparse
-        // player inventories keep the slots the list omits; every other
-        // container is cleared first, as its load always was.
-        List<StagedEntry> staged = keepUnlisted ? stageKeepUnlisted(p, list, size) : stage(p, list, into.size());
-        if (!keepUnlisted) {
+
+        List<StagedEntry> entries = this.decodeEntries(p, list, into.size());
+        if (!this.positional && !this.keepUnlisted) {
             into.clear();
         }
-        for (StagedEntry entry : staged) {
-            into.setItem(entry.slot(), entry.item());
-        }
+
+        apply(into, entries);
         return into;
     }
 
-    /**
-     * Reads every entry of a container list without touching any container, so the
-     * caller can fill or replace contents only after the whole tag proved usable.
-     * A non-compound entry throws a mismatch (the read keeps the current value);
-     * an item the registry rejects throws its own failure, before anything was
-     * applied. The slot binds like the old byte read: only a byte tag binds, so a
-     * missing or non-byte {@code Slot} binds slot 0; an index outside the
-     * container fails the read with a bare exception, as the old bounds check
-     * did, failing the load instead of keeping the current contents with a
-     * warning (which would lose the stored items on the next save).
-     */
-    private static List<StagedEntry> stage(JsonParser p, List<?> list, int size) {
-        List<StagedEntry> staged = new ArrayList<>(list.size());
+    private List<StagedEntry> decodeEntries(JsonParser parser, List<?> list, int slotCount) {
+        int entryCount = this.positional ? Math.min(list.size(), slotCount) : list.size();
+        List<StagedEntry> entries = new ArrayList<>(entryCount);
+
+        int position = 0;
         for (Object entry : list) {
+            if (position == entryCount) {
+                break;
+            }
             if (!(entry instanceof NbtMap item)) {
-                throw mismatch(p, entry);
+                throw mismatch(parser, entry);
             }
-            int index = slotIndex(item.get("Slot"));
-            if (index < 0 || index >= size) {
-                throw new IndexOutOfBoundsException(
-                        "Slot " + index + " is out of range for a container of size " + size);
+
+            int slot = this.positional ? position : item.getByte("Slot");
+
+            if (slot < 0 || slot >= slotCount) {
+                throw new IndexOutOfBoundsException("Slot " + slot + " is out of range for a container of size " + slotCount);
             }
-            staged.add(new StagedEntry(index,
-                    ItemStackNbtCodec.deserializeItem(item)));
+
+            entries.add(new StagedEntry(slot, ItemStackNbtCodec.deserializeItem(item)));
+            position++;
         }
-        return staged;
+
+        return entries;
     }
 
-    /**
-     * Reads the slot the way the old byte read did: a byte tag binds its signed
-     * value, anything else, including a missing tag, binds slot 0.
-     */
-    private static int slotIndex(Object slot) {
-        return slot instanceof Byte b ? b : 0;
-    }
-
-    /**
-     * Reads every entry of a sparse keep-unlisted container list (a player
-     * inventory or ender chest) without touching any container, so the caller
-     * can fill or replace contents only after the whole tag proved usable. An
-     * entry without a {@code Slot} binds slot 0, as today's player load read
-     * the slot with a default of zero; an index outside the container fails
-     * the read with a bare exception, as the old bounds check did, failing
-     * the load instead of keeping the current contents with a warning.
-     */
-    private static List<StagedEntry> stageKeepUnlisted(JsonParser p, List<?> list, int size) {
-        List<StagedEntry> staged = new ArrayList<>(list.size());
-        for (Object entry : list) {
-            if (!(entry instanceof NbtMap item)) {
-                throw mismatch(p, entry);
-            }
-            Object slot = item.get("Slot");
-            // Only a byte tag binds, as the old byte read did: anything else,
-            // including a missing tag, binds slot 0.
-            int index = slotIndex(slot);
-            if (index < 0 || index >= size) {
-                throw new IndexOutOfBoundsException(
-                        "Slot " + index + " is out of range for a container of size " + size);
-            }
-            staged.add(new StagedEntry(index,
-                    ItemStackNbtCodec.deserializeItem(item)));
+    private static void apply(ItemContainer container, List<StagedEntry> entries) {
+        for (StagedEntry entry : entries) {
+            container.setItem(entry.slot(), entry.item());
         }
-        return staged;
-    }
-
-    /**
-     * Reads every entry of a positional container list without touching any
-     * container: entries fill slots by position, ignoring any {@code Slot}
-     * tag, and entries past the container's size are ignored. A failed item
-     * read throws before anything was applied.
-     */
-    private static List<StagedEntry> stagePositional(JsonParser p, List<?> list, int size) {
-        List<StagedEntry> staged = new ArrayList<>(Math.min(list.size(), size));
-        for (int index = 0; index < list.size() && index < size; index++) {
-            Object entry = list.get(index);
-            if (!(entry instanceof NbtMap item)) {
-                throw mismatch(p, entry);
-            }
-            staged.add(new StagedEntry(index,
-                    ItemStackNbtCodec.deserializeItem(item)));
-        }
-        return staged;
-    }
-
-    private record StagedEntry(int slot, ItemStack item) {
     }
 
     private static MismatchedInputException mismatch(JsonParser p, Object entry) {
         MismatchedInputException mismatch = MismatchedInputException.from(p, ItemContainer.class,
-                "Cannot read an item container entry " + NbtTags.describe(entry)
-                        + ". Expected an item compound");
-        mismatch.initCause(new NbtKindMismatchException(
-                "Item container entries need an item compound"));
+                "Cannot read an item container entry " + NbtTags.describe(entry) + ". Expected an item compound");
+        mismatch.initCause(new NbtKindMismatchException("Item container entries need an item compound"));
         return mismatch;
+    }
+
+    private record StagedEntry(int slot, ItemStack item) {
     }
 }

@@ -2,10 +2,10 @@ package org.cloudburstmc.server.nbt.internal;
 
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.server.nbt.NbtCodec;
-import org.cloudburstmc.server.nbt.NbtTag;
 import org.cloudburstmc.server.nbt.NbtTagType;
 import org.cloudburstmc.server.nbt.NbtValueCodec;
+import org.cloudburstmc.server.nbt.annotation.NbtCodec;
+import org.cloudburstmc.server.nbt.annotation.NbtTag;
 import org.jetbrains.annotations.Nullable;
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.databind.BeanDescription;
@@ -27,54 +27,54 @@ import java.util.List;
  * resolved tag type before writing, {@link NbtCodec} properties use their codec, and {@link NbtMap} and
  * {@link NbtList} values are written unchanged.
  */
-public final class NbtPropertyModifier extends ValueSerializerModifier {
+public class NbtSerializerModifier extends ValueSerializerModifier {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
     @Override
-    public List<BeanPropertyWriter> changeProperties(SerializationConfig config, BeanDescription.Supplier beanDesc,
-                                                     List<BeanPropertyWriter> beanProperties) {
+    public List<BeanPropertyWriter> changeProperties(
+            SerializationConfig config,
+            BeanDescription.Supplier beanDesc, List<BeanPropertyWriter> beanProperties
+    ) {
         List<BeanPropertyWriter> typed = new ArrayList<>(beanProperties.size());
         for (BeanPropertyWriter writer : beanProperties) {
             NbtValueCodec<Object> codec = NbtCodecs.codec(writer.getAnnotation(NbtCodec.class));
             if (codec != null) {
-                // The codec returns exact NBT values, so nothing is expected of them
                 TypedPropertyWriter coded = new TypedPropertyWriter(writer, NbtTagType.AUTO, NbtTagType.AUTO);
                 coded.assignSerializer(NbtCodecs.serializer(codec));
                 typed.add(coded);
                 continue;
             }
+
             NbtTypeResolver.Resolution resolution =
                     NbtTypeResolver.resolve(writer.getType(), writer.getAnnotation(NbtTag.class));
             typed.add(new TypedPropertyWriter(writer, resolution.value(),
                     resolution.element() != NbtTagType.AUTO ? resolution.element() : null));
         }
+
         return typed;
     }
 
     @Override
-    public ValueSerializer<?> modifyMapSerializer(SerializationConfig config, MapType valueType,
-                                                  BeanDescription.Supplier beanDesc, ValueSerializer<?> serializer) {
+    public ValueSerializer<?> modifyMapSerializer(
+            SerializationConfig config, MapType valueType,
+            BeanDescription.Supplier beanDesc, ValueSerializer<?> serializer
+    ) {
         return NbtMap.class.isAssignableFrom(valueType.getRawClass()) ? PassthroughSerializer.INSTANCE : serializer;
     }
 
     @Override
-    public ValueSerializer<?> modifyCollectionSerializer(SerializationConfig config, CollectionType valueType,
-                                                         BeanDescription.Supplier beanDesc,
-                                                         ValueSerializer<?> serializer) {
+    public ValueSerializer<?> modifyCollectionSerializer(
+            SerializationConfig config, CollectionType valueType,
+            BeanDescription.Supplier beanDesc, ValueSerializer<?> serializer
+    ) {
         return NbtList.class.isAssignableFrom(valueType.getRawClass()) ? PassthroughSerializer.INSTANCE : serializer;
     }
 
     private static final class TypedPropertyWriter extends BeanPropertyWriter {
-        @Serial
-        private static final long serialVersionUID = 1L;
 
         private final NbtTagType value;
-        /**
-         * The element type, or {@code null} until it is resolved against the serializers on
-         * first use.
-         */
         private volatile @Nullable NbtTagType element;
 
         /**
@@ -93,15 +93,19 @@ public final class NbtPropertyModifier extends ValueSerializerModifier {
                 super.serializeAsProperty(bean, g, ctxt);
                 return;
             }
+
             if (generator.omits(this)) {
                 return;
             }
+
             NbtTagType element = this.element;
             if (element == null) {
                 this.element = element = NbtTypeResolver.elementType(getType(), ctxt);
             }
+
             generator.expect(value, element);
             generator.approveName();
+
             try {
                 super.serializeAsProperty(bean, g, ctxt);
             } finally {

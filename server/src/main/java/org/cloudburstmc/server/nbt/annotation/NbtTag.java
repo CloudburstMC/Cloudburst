@@ -1,4 +1,6 @@
-package org.cloudburstmc.server.nbt;
+package org.cloudburstmc.server.nbt.annotation;
+
+import org.cloudburstmc.server.nbt.NbtTagType;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -22,8 +24,7 @@ public @interface NbtTag {
     NbtTagType value() default NbtTagType.AUTO;
 
     /**
-     * The tag type of the elements of a {@link NbtTagType#LIST} property, or of the values
-     * of a {@link NbtTagType#COMPOUND} map property. It also decides the type of an empty list.
+     * The tag kind for list elements or map values. Empty lists retain this element kind.
      */
     NbtTagType element() default NbtTagType.AUTO;
 }

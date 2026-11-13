@@ -6,7 +6,7 @@ import tools.jackson.core.JsonGenerator;
 import tools.jackson.databind.SerializationContext;
 import tools.jackson.databind.ser.std.StdSerializer;
 
-public final class ItemStackSerializer extends StdSerializer<ItemStack> {
+public class ItemStackSerializer extends StdSerializer<ItemStack> {
 
     public ItemStackSerializer() {
         super(ItemStack.class);

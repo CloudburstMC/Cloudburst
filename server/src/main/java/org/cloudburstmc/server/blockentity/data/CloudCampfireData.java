@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.nbt.NbtClient;
+import org.cloudburstmc.server.nbt.client.NbtClient;
 
 @Getter
 @Setter

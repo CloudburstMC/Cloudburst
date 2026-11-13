@@ -7,7 +7,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.inventory.ItemContainer;
-import org.cloudburstmc.server.nbt.*;
+import org.cloudburstmc.server.nbt.NbtTagType;
+import org.cloudburstmc.server.nbt.annotation.NbtContainerSize;
+import org.cloudburstmc.server.nbt.annotation.NbtKeepUnlisted;
+import org.cloudburstmc.server.nbt.annotation.NbtSkipEmpty;
+import org.cloudburstmc.server.nbt.annotation.NbtTag;
 
 /**
  * Player inventories are loaded in place without clearing unlisted slots.

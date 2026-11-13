@@ -12,6 +12,9 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
+import org.cloudburstmc.server.nbt.annotation.NbtContainerSize;
+import org.cloudburstmc.server.nbt.annotation.NbtKeepUnlisted;
+import org.cloudburstmc.server.nbt.annotation.NbtTag;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.junit.jupiter.api.Test;
 
@@ -131,6 +134,23 @@ class ServerTypesNbtTest {
     }
 
     @Test
+    void sparseReadValidatesAgainstTheLiveContainerBeforeApplyingEntries() {
+        SparseInventory dto = new SparseInventory();
+        ItemStack original = ItemStack.from(ItemTypes.DIRT, 32);
+        ItemStack incoming = ItemStack.from(ItemTypes.DIAMOND, 5);
+        dto.items.setItem(0, original);
+        NbtMap tag = NbtMap.builder()
+                .putList("Items", NbtType.COMPOUND, List.of(
+                        ItemStackNbtCodec.serializeItem(incoming, 0),
+                        ItemStackNbtCodec.serializeItem(incoming, 1)))
+                .build();
+
+        assertThrows(tools.jackson.core.JacksonException.class, () -> mapper.readInto(tag, dto));
+
+        assertEquals(original, dto.items.getItem(0));
+    }
+
+    @Test
     void unreadableItemLeavesContainerUnchanged() {
         Chest dto = new Chest();
         dto.items.setItem(0, ItemStack.from(ItemTypes.DIRT, 32));
@@ -207,6 +227,15 @@ class ServerTypesNbtTest {
         @NbtTag(value = NbtTagType.LIST, element = NbtTagType.COMPOUND)
         @NbtContainerSize(SIZE)
         ItemContainer items = new CloudContainer(SIZE);
+    }
+
+    @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)
+    static class SparseInventory {
+        @JsonProperty("Items")
+        @NbtTag(value = NbtTagType.LIST, element = NbtTagType.COMPOUND)
+        @NbtContainerSize(SIZE)
+        @NbtKeepUnlisted
+        ItemContainer items = new CloudContainer(1);
     }
 
     @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)

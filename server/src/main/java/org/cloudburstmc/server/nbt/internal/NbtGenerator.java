@@ -1,9 +1,6 @@
 package org.cloudburstmc.server.nbt.internal;
 
-import org.cloudburstmc.nbt.NbtList;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.server.nbt.NbtTagType;
 import org.jetbrains.annotations.Nullable;
 import tools.jackson.core.*;
@@ -27,35 +24,27 @@ import java.util.List;
  * {@link #expect} for the next property, else the element type of the enclosing list or
  * compound, else the natural type of the written token.
  */
-public final class NbtGenerator extends GeneratorBase {
+public class NbtGenerator extends GeneratorBase {
 
     private final Class<? extends java.lang.annotation.Annotation> rootPropertyMarker;
     private SimpleStreamWriteContext writeContext = SimpleStreamWriteContext.createRootContext(null);
     private Container container = new Root();
     private @Nullable NbtTagType expectedValue;
     private NbtTagType expectedElement = NbtTagType.AUTO;
-    /**
-     * Whether a selected property approved the next root name.
-     */
     private boolean nameApproved;
-
-    /**
-     * Creates a generator that writes every property.
-     */
-    public NbtGenerator() {
-        this(null);
-    }
 
     /**
      * Creates a generator.
      *
      * @param rootPropertyMarker annotation required on root properties, or null to write all
      */
+    @SuppressWarnings("resource")
     public NbtGenerator(Class<? extends java.lang.annotation.Annotation> rootPropertyMarker) {
         super(ObjectWriteContext.empty(), new IOContext(StreamReadConstraints.defaults(),
                 StreamWriteConstraints.defaults(), ErrorReportConfiguration.defaults(), null,
                 ContentReference.unknown(), false, null).markBufferRecyclerReleased(),
-                StreamWriteFeature.collectDefaults());
+                StreamWriteFeature.collectDefaults()
+        );
         this.rootPropertyMarker = rootPropertyMarker;
     }
 
@@ -65,8 +54,7 @@ public final class NbtGenerator extends GeneratorBase {
      * @param property the property about to be written
      */
     public boolean omits(tools.jackson.databind.ser.BeanPropertyWriter property) {
-        return this.rootPropertyMarker != null && this.atRootCompound()
-                && property.getAnnotation(this.rootPropertyMarker) == null;
+        return this.rootPropertyMarker != null && this.atRootCompound() && property.getAnnotation(this.rootPropertyMarker) == null;
     }
 
     /**
@@ -185,7 +173,6 @@ public final class NbtGenerator extends GeneratorBase {
         Compound compound = (Compound) container;
         compound.name = name;
         if (this.rootPropertyMarker != null && compound.parent instanceof Root) {
-            // Names emitted outside a selected property must not pass the filter.
             compound.discard = !nameApproved;
             nameApproved = false;
         }
@@ -196,10 +183,6 @@ public final class NbtGenerator extends GeneratorBase {
     public JsonGenerator writePropertyId(long id) throws JacksonException {
         return writeName(Long.toString(id));
     }
-
-    /*
-     * Scalars
-     */
 
     @Override
     public JsonGenerator writeString(String value) throws JacksonException {
@@ -243,7 +226,7 @@ public final class NbtGenerator extends GeneratorBase {
 
     @Override
     public JsonGenerator writeArray(int[] array, int offset, int length) throws JacksonException {
-        if (!expects(NbtTagType.INT_ARRAY)) {
+        if (hasConflictingType(NbtTagType.INT_ARRAY)) {
             return super.writeArray(array, offset, length);
         }
         _verifyValueWrite("write an int array");
@@ -254,7 +237,7 @@ public final class NbtGenerator extends GeneratorBase {
 
     @Override
     public JsonGenerator writeArray(long[] array, int offset, int length) throws JacksonException {
-        if (!expects(NbtTagType.LONG_ARRAY)) {
+        if (hasConflictingType(NbtTagType.LONG_ARRAY)) {
             return super.writeArray(array, offset, length);
         }
         _verifyValueWrite("write a long array");
@@ -330,54 +313,46 @@ public final class NbtGenerator extends GeneratorBase {
         if (object == null) {
             return writeNull();
         }
-        if (!(object instanceof NbtMap) && !(object instanceof NbtList<?>)) {
-            return writeTagValue(object);
-        }
-        _verifyValueWrite("write an NBT value");
-        takeExpected();
-        if (this.rootPropertyMarker != null && container instanceof Root) {
-            // An embedded root compound has no annotated properties.
-            container.add(object instanceof NbtMap ? NbtMap.EMPTY : object);
-            return this;
-        }
-        container.add(object);
-        return this;
-    }
 
-    private JsonGenerator writeTagValue(Object value) {
-        NbtTagType kind = switch (value) {
-            case Byte ignored -> NbtTagType.BYTE;
-            case Short ignored -> NbtTagType.SHORT;
-            case Integer ignored -> NbtTagType.INT;
-            case Long ignored -> NbtTagType.LONG;
-            case Float ignored -> NbtTagType.FLOAT;
-            case Double ignored -> NbtTagType.DOUBLE;
-            case String ignored -> NbtTagType.STRING;
-            case byte[] ignored -> NbtTagType.BYTE_ARRAY;
-            case int[] ignored -> NbtTagType.INT_ARRAY;
-            case long[] ignored -> NbtTagType.LONG_ARRAY;
-            default -> null;
-        };
-        if (kind == null) {
-            String name = writeContext.currentName();
-            throw _constructWriteException(String.format("NBT cannot hold a %s%s", value.getClass().getName(),
-                    name == null ? "" : " (property '" + name + "')"));
-        }
+        NbtType<?> kind = this.embeddedType(object);
         _verifyValueWrite("write an NBT value");
+
+        NbtTagType element = this.expectedElement;
         NbtTagType expected = takeExpected();
-        if (expected != NbtTagType.AUTO && expected != kind) {
-            throw mismatch("an NBT " + kind, expected);
+        if (expected != NbtTagType.AUTO && expected.getNbtType() != kind) {
+            throw mismatch("an NBT " + kind.getEnum(), expected);
         }
-        // Arrays are copied, as the other array writes do
-        container.add(switch (value) {
-            case byte[] array -> array.clone();
-            case int[] array -> array.clone();
-            case long[] array -> array.clone();
-            default -> value;
-        });
+
+        if (object instanceof NbtList<?> list && element != NbtTagType.AUTO && list.getType() != element.getNbtType()) {
+            throw mismatch("an NBT list of " + list.getType().getEnum(), element);
+        }
+
+        if (this.rootPropertyMarker != null && container instanceof Root && object instanceof NbtMap) {
+            container.add(NbtMap.EMPTY);
+        } else {
+            container.add(NbtUtils.copy(object));
+        }
+
         return this;
     }
 
+    private NbtType<?> embeddedType(Object value) {
+        if (value instanceof NbtMap) {
+            return NbtType.COMPOUND;
+        }
+
+        if (value instanceof NbtList<?>) {
+            return NbtType.LIST;
+        }
+
+        try {
+            return NbtType.byClass(value.getClass());
+        } catch (IllegalArgumentException e) {
+            String name = writeContext.currentName();
+            String property = name == null ? "" : " (property '" + name + "')";
+            throw _constructWriteException("NBT cannot hold a %s%s", value.getClass().getName(), property);
+        }
+    }
     private JsonGenerator writeNumber(Number value, NbtTagType natural) {
         _verifyValueWrite(WRITE_NUMBER);
         NbtTagType expected = takeExpected();
@@ -394,13 +369,9 @@ public final class NbtGenerator extends GeneratorBase {
         return this;
     }
 
-    /*
-     * Expected types
-     */
-
-    private boolean expects(NbtTagType type) {
+    private boolean hasConflictingType(NbtTagType type) {
         NbtTagType expected = expectedValue != null ? expectedValue : container.element;
-        return expected == NbtTagType.AUTO || expected == type;
+        return expected != NbtTagType.AUTO && expected != type;
     }
 
     private NbtTagType takeExpected() {
@@ -415,150 +386,6 @@ public final class NbtGenerator extends GeneratorBase {
                 expected == NbtTagType.AUTO ? "without a declared NBT type" : "as NBT " + expected,
                 name == null ? "" : " (property '" + name + "')"));
     }
-
-    private static NbtType<?> nbtType(NbtTagType type) {
-        return switch (type) {
-            case AUTO -> NbtType.END;
-            case BYTE -> NbtType.BYTE;
-            case SHORT -> NbtType.SHORT;
-            case INT -> NbtType.INT;
-            case LONG -> NbtType.LONG;
-            case FLOAT -> NbtType.FLOAT;
-            case DOUBLE -> NbtType.DOUBLE;
-            case STRING -> NbtType.STRING;
-            case BYTE_ARRAY -> NbtType.BYTE_ARRAY;
-            case INT_ARRAY -> NbtType.INT_ARRAY;
-            case LONG_ARRAY -> NbtType.LONG_ARRAY;
-            case LIST -> NbtType.LIST;
-            case COMPOUND -> NbtType.COMPOUND;
-        };
-    }
-
-    /*
-     * Value containers
-     */
-
-    private abstract static sealed class Container permits Root, Compound, ListContainer, ArrayContainer {
-        final Container parent;
-        /**
-         * The type of values written into this container without an explicit expectation.
-         */
-        final NbtTagType element;
-
-        Container(Container parent, NbtTagType element) {
-            this.parent = parent;
-            this.element = element;
-        }
-
-        abstract void add(Object value);
-
-        Object build() {
-            throw new IllegalStateException();
-        }
-    }
-
-    private static final class Root extends Container {
-        Object value;
-
-        Root() {
-            super(null, NbtTagType.AUTO);
-        }
-
-        @Override
-        void add(Object value) {
-            this.value = value;
-        }
-    }
-
-    private static final class Compound extends Container {
-        final NbtMapBuilder builder = NbtMap.builder();
-        String name;
-        /**
-         * Whether the value of the current name is dropped instead of added.
-         */
-        boolean discard;
-
-        Compound(Container parent, NbtTagType element) {
-            super(parent, element);
-        }
-
-        @Override
-        void add(Object value) {
-            if (!discard) {
-                builder.put(name, value);
-            }
-            name = null;
-            discard = false;
-        }
-    }
-
-    private final class ListContainer extends Container {
-        final List<Object> values = new ArrayList<>();
-        NbtType<?> type;
-
-        ListContainer(Container parent, NbtTagType element) {
-            super(parent, element);
-        }
-
-        @Override
-        void add(Object value) {
-            NbtType<?> valueType = value instanceof NbtList<?> ? NbtType.LIST
-                    : value instanceof NbtMap ? NbtType.COMPOUND
-                    : NbtType.byClass(value.getClass());
-            if (type == null) {
-                type = valueType;
-            } else if (type != valueType) {
-                throw _constructWriteException("NBT list of %s cannot hold a %s", type.getTypeName(),
-                        valueType.getTypeName());
-            }
-            values.add(value);
-        }
-
-        @Override
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        Object build() {
-            return new NbtList(type != null ? type : nbtType(element), values);
-        }
-    }
-
-    private static final class ArrayContainer extends Container {
-        final NbtTagType kind;
-        final List<Number> values = new ArrayList<>();
-
-        ArrayContainer(Container parent, NbtTagType kind) {
-            super(parent, switch (kind) {
-                case BYTE_ARRAY -> NbtTagType.BYTE;
-                case INT_ARRAY -> NbtTagType.INT;
-                default -> NbtTagType.LONG;
-            });
-            this.kind = kind;
-        }
-
-        @Override
-        void add(Object value) {
-            values.add((Number) value);
-        }
-
-        @Override
-        Object build() {
-            int size = values.size();
-            return switch (kind) {
-                case BYTE_ARRAY -> {
-                    byte[] array = new byte[size];
-                    for (int i = 0; i < size; i++) {
-                        array[i] = values.get(i).byteValue();
-                    }
-                    yield array;
-                }
-                case INT_ARRAY -> values.stream().mapToInt(Number::intValue).toArray();
-                default -> values.stream().mapToLong(Number::longValue).toArray();
-            };
-        }
-    }
-
-    /*
-     * Generator plumbing
-     */
 
     @Override
     public Version version() {
@@ -636,6 +463,116 @@ public final class NbtGenerator extends GeneratorBase {
     protected void _verifyValueWrite(String typeMsg) throws JacksonException {
         if (!writeContext.writeValue()) {
             throw _constructWriteException("Cannot %s, expecting a property name", typeMsg);
+        }
+    }
+
+    private abstract static sealed class Container permits Root, Compound, ListContainer, ArrayContainer {
+        final Container parent;
+        final NbtTagType element;
+
+        Container(Container parent, NbtTagType element) {
+            this.parent = parent;
+            this.element = element;
+        }
+
+        abstract void add(Object value);
+
+        Object build() {
+            throw new IllegalStateException();
+        }
+    }
+
+    private static final class Root extends Container {
+        Object value;
+
+        Root() {
+            super(null, NbtTagType.AUTO);
+        }
+
+        @Override
+        void add(Object value) {
+            this.value = value;
+        }
+    }
+
+    private static final class Compound extends Container {
+        final NbtMapBuilder builder = NbtMap.builder();
+        String name;
+        boolean discard;
+
+        Compound(Container parent, NbtTagType element) {
+            super(parent, element);
+        }
+
+        @Override
+        void add(Object value) {
+            if (!discard) {
+                builder.put(name, value);
+            }
+            name = null;
+            discard = false;
+        }
+    }
+
+    private final class ListContainer extends Container {
+        final List<Object> values = new ArrayList<>();
+        NbtType<?> type;
+
+        ListContainer(Container parent, NbtTagType element) {
+            super(parent, element);
+        }
+
+        @Override
+        void add(Object value) {
+            NbtType<?> valueType = embeddedType(value);
+            if (type == null) {
+                type = valueType;
+            } else if (type != valueType) {
+                throw _constructWriteException("NBT list of %s cannot hold a %s", type.getTypeName(),
+                        valueType.getTypeName());
+            }
+            values.add(value);
+        }
+
+        @Override
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        Object build() {
+            return new NbtList(type != null ? type : element.getNbtType(), values);
+        }
+    }
+
+    private static final class ArrayContainer extends Container {
+        final NbtTagType kind;
+        final List<Number> values = new ArrayList<>();
+
+        ArrayContainer(Container parent, NbtTagType kind) {
+            super(parent, switch (kind) {
+                case BYTE_ARRAY -> NbtTagType.BYTE;
+                case INT_ARRAY -> NbtTagType.INT;
+                default -> NbtTagType.LONG;
+            });
+            this.kind = kind;
+        }
+
+        @Override
+        void add(Object value) {
+            values.add((Number) value);
+        }
+
+        @Override
+        Object build() {
+            int size = values.size();
+            return switch (kind) {
+                case BYTE_ARRAY -> {
+                    byte[] array = new byte[size];
+                    for (int i = 0; i < size; i++) {
+                        array[i] = values.get(i).byteValue();
+                    }
+                    yield array;
+                }
+                case INT_ARRAY -> values.stream().mapToInt(Number::intValue).toArray();
+                default -> values.stream().mapToLong(Number::longValue).toArray();
+            };
         }
     }
 }

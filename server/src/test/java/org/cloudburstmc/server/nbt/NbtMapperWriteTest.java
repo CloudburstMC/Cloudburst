@@ -6,7 +6,9 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.nbt.annotation.NbtTag;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
 
 import java.util.List;
 
@@ -108,6 +110,28 @@ class NbtMapperWriteTest {
     static class Nested {
         @JsonProperty("value")
         int value = 9;
+    }
+
+    @Test
+    void embeddedCompoundMustMatchDeclaredType() {
+        assertThrows(JacksonException.class, () -> mapper.write(new WrongEmbeddedType()));
+    }
+
+    @Test
+    void embeddedListMustMatchDeclaredElementType() {
+        assertThrows(JacksonException.class, () -> mapper.write(new WrongEmbeddedElementType()));
+    }
+
+    @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)
+    static class WrongEmbeddedType {
+        @NbtTag(NbtTagType.STRING)
+        NbtMap value = NbtMap.EMPTY;
+    }
+
+    @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)
+    static class WrongEmbeddedElementType {
+        @NbtTag(value = NbtTagType.LIST, element = NbtTagType.STRING)
+        NbtList<Integer> value = new NbtList<>(NbtType.INT, 1);
     }
 
     @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)

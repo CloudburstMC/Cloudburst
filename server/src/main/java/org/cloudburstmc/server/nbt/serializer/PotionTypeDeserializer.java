@@ -9,7 +9,7 @@ import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.deser.std.StdDeserializer;
 import tools.jackson.databind.exc.MismatchedInputException;
 
-public final class PotionTypeDeserializer extends StdDeserializer<PotionType> {
+public class PotionTypeDeserializer extends StdDeserializer<PotionType> {
 
     public PotionTypeDeserializer() {
         super(PotionType.class);

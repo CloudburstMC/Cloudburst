@@ -8,9 +8,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.entity.projectile.ArrowPickupStatus;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.server.nbt.NbtCodec;
-import org.cloudburstmc.server.nbt.NbtTag;
 import org.cloudburstmc.server.nbt.NbtTagType;
+import org.cloudburstmc.server.nbt.annotation.NbtCodec;
+import org.cloudburstmc.server.nbt.annotation.NbtTag;
 import org.cloudburstmc.server.nbt.codec.ArrowPickupStatusCodec;
 
 @Getter

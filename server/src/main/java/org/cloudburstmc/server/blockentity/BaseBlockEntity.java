@@ -19,8 +19,8 @@ import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
-import org.cloudburstmc.server.nbt.ClientNbt;
 import org.cloudburstmc.server.nbt.ServerNbt;
+import org.cloudburstmc.server.nbt.client.ClientNbtWriter;
 import org.cloudburstmc.server.persistence.CloudPersistentDataContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
@@ -303,7 +303,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
 //            log.info(NbtUtils.toString(tag.build()));
 //            log.info("\n\n\n");
         } else {
-            tag.putAll(ClientNbt.write(ServerNbt.MAPPER, this.data));
+            tag.putAll(ClientNbtWriter.write(ServerNbt.MAPPER, this.data));
             this.saveCustomClient(tag);
         }
 

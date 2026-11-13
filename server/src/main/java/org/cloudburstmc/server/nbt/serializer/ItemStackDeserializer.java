@@ -6,7 +6,7 @@ import tools.jackson.core.JsonParser;
 import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.deser.std.StdDeserializer;
 
-public final class ItemStackDeserializer extends StdDeserializer<ItemStack> {
+public class ItemStackDeserializer extends StdDeserializer<ItemStack> {
 
     public ItemStackDeserializer() {
         super(ItemStack.class);

@@ -9,7 +9,7 @@ import org.cloudburstmc.server.nbt.NbtValueCodec;
  * Stores a shulker box facing as the byte of its 3-D index, as shulker boxes are stored today.
  */
 @NoArgsConstructor
-public final class ShulkerFacingCodec implements NbtValueCodec<Direction> {
+public class ShulkerFacingCodec implements NbtValueCodec<Direction> {
 
     @Override
     public Object toNbt(Direction value) {

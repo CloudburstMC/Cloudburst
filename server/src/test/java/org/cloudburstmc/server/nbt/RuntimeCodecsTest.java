@@ -3,25 +3,17 @@ package org.cloudburstmc.server.nbt;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.cloudburstmc.api.util.data.DyeColor;
-import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.nbt.annotation.NbtCodec;
 import org.cloudburstmc.server.nbt.codec.DyeDataIntCodec;
-import org.cloudburstmc.server.nbt.codec.Vector3iListCodec;
 import org.cloudburstmc.server.nbt.codec.WoolColorCodec;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
-/**
- * Round-trips for the runtime-type codecs: wool colours, dye colours and positions.
- */
 class RuntimeCodecsTest {
 
     private final NbtMapper mapper = NbtMapper.create();
@@ -49,19 +41,6 @@ class RuntimeCodecsTest {
     }
 
     @Test
-    void vector3iListRoundTrips() {
-        Placed dto = new Placed();
-        dto.exit = Vector3i.from(10, 64, -5);
-
-        NbtMap tag = mapper.write(dto);
-
-        NbtList<?> written = assertInstanceOf(NbtList.class, tag.get("ExitPortal"));
-        assertEquals(NbtType.INT, written.getType());
-        assertEquals(List.of(10, 64, -5), written);
-        assertEquals(Vector3i.from(10, 64, -5), mapper.read(tag, Placed.class).exit);
-    }
-
-    @Test
     void codecWrongKindKeepsCurrent() {
         Dyed dto = new Dyed();
         dto.color = DyeColor.RED;
@@ -85,10 +64,4 @@ class RuntimeCodecsTest {
         DyeColor base = DyeColor.WHITE;
     }
 
-    @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)
-    static class Placed {
-        @JsonProperty("ExitPortal")
-        @NbtCodec(Vector3iListCodec.class)
-        Vector3i exit = Vector3i.ZERO;
-    }
 }

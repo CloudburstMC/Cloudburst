@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.nbt.internal;
 
 import lombok.experimental.UtilityClass;
-import org.cloudburstmc.server.nbt.NbtCodec;
 import org.cloudburstmc.server.nbt.NbtKindMismatchException;
 import org.cloudburstmc.server.nbt.NbtValueCodec;
+import org.cloudburstmc.server.nbt.annotation.NbtCodec;
 import org.jetbrains.annotations.Nullable;
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.JsonParser;
@@ -115,7 +115,8 @@ public class NbtCodecs {
             try {
                 return codec.fromNbt(tag);
             } catch (NbtKindMismatchException e) {
-                MismatchedInputException mismatch = MismatchedInputException.from(p, handledType(), String.format("NBT %s does not fit codec %s: %s", tag.getClass().getSimpleName(), codec.getClass().getName(), e.getMessage()));
+                String message = String.format("NBT %s does not fit codec %s: %s", tag.getClass().getSimpleName(), codec.getClass().getName(), e.getMessage());
+                MismatchedInputException mismatch = MismatchedInputException.from(p, handledType(), message);
                 mismatch.initCause(e);
                 throw mismatch;
             }

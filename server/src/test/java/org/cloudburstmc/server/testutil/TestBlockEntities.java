@@ -14,7 +14,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.blockentity.ChestBlockEntity;
 import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
-import org.cloudburstmc.server.nbt.NbtClient;
+import org.cloudburstmc.server.nbt.client.NbtClient;
 
 import java.util.Set;
 

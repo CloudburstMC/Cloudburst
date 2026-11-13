@@ -1,10 +1,10 @@
-package org.cloudburstmc.server.nbt;
+package org.cloudburstmc.server.nbt.module;
 
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.BlockStateCodec;
-import org.cloudburstmc.server.nbt.internal.NbtParser;
+import org.cloudburstmc.server.nbt.annotation.NbtShortBlockState;
+import org.cloudburstmc.server.nbt.serializer.NbtTags;
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.JsonParser;
 import tools.jackson.databind.BeanProperty;
@@ -16,9 +16,8 @@ import tools.jackson.databind.module.SimpleModule;
 import tools.jackson.databind.ser.std.StdSerializer;
 
 /**
- * Maps block states to their persisted named form. Properties annotated with
- * {@link NbtShortBlockState} write the bare {@code {name, states}} compound instead;
- * every shape reads back through the same codec.
+ * Reads named block states and writes their persisted form. {@link NbtShortBlockState}
+ * selects the short form containing only the name and states.
  */
 public class BlockStateNbtModule extends SimpleModule {
 
@@ -49,9 +48,7 @@ public class BlockStateNbtModule extends SimpleModule {
 
         @Override
         public void serialize(BlockState value, JsonGenerator gen, SerializationContext provider) {
-            gen.writeEmbeddedObject(shortForm
-                    ? BlockPalette.INSTANCE.getDefinition(value).getState()
-                    : BlockPalette.INSTANCE.getSerialized(value));
+            gen.writeEmbeddedObject(shortForm ? BlockPalette.INSTANCE.getDefinition(value).getState() : BlockPalette.INSTANCE.getSerialized(value));
         }
     }
 
@@ -63,11 +60,7 @@ public class BlockStateNbtModule extends SimpleModule {
 
         @Override
         public BlockState deserialize(JsonParser p, DeserializationContext ctxt) {
-            if (p instanceof NbtParser parser && parser.currentTag() instanceof NbtMap tag) {
-                p.skipChildren();
-                return BlockStateCodec.read(tag);
-            }
-            return BlockStateCodec.read(ctxt.readValue(p, NbtMap.class));
+            return BlockStateCodec.read(NbtTags.readTag(p, ctxt));
         }
     }
 }

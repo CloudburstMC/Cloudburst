@@ -7,10 +7,10 @@ import org.cloudburstmc.server.nbt.NbtValueCodec;
 
 /**
  * Stores an arrow pickup rule as its byte value, as arrows are stored today.
- * Any other value reads as open pickup, exactly like the previous load path.
+ * Unrecognized values allow pickup.
  */
 @NoArgsConstructor
-public final class ArrowPickupStatusCodec implements NbtValueCodec<ArrowPickupStatus> {
+public class ArrowPickupStatusCodec implements NbtValueCodec<ArrowPickupStatus> {
 
     @Override
     public Object toNbt(ArrowPickupStatus value) {

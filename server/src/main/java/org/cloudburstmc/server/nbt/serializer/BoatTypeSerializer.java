@@ -6,12 +6,7 @@ import tools.jackson.core.JsonGenerator;
 import tools.jackson.databind.SerializationContext;
 import tools.jackson.databind.ser.std.StdSerializer;
 
-/**
- * Stores a boat hull as its variant int, as boats are stored today.
- * An id the variant mapping does not know fails the read with the mapping's own
- * error, exactly like the previous load path.
- */
-public final class BoatTypeSerializer extends StdSerializer<BoatType> {
+public class BoatTypeSerializer extends StdSerializer<BoatType> {
 
     public BoatTypeSerializer() {
         super(BoatType.class);

@@ -9,7 +9,7 @@ import org.cloudburstmc.server.nbt.NbtValueCodec;
  * Stores a dye color as its wool data in a byte, as bed colors are stored today.
  */
 @NoArgsConstructor
-public final class WoolColorCodec implements NbtValueCodec<DyeColor> {
+public class WoolColorCodec implements NbtValueCodec<DyeColor> {
 
     @Override
     public Object toNbt(DyeColor value) {

@@ -6,8 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.util.data.DyeColor;
-import org.cloudburstmc.server.nbt.NbtClient;
-import org.cloudburstmc.server.nbt.NbtCodec;
+import org.cloudburstmc.server.nbt.annotation.NbtCodec;
+import org.cloudburstmc.server.nbt.client.NbtClient;
 import org.cloudburstmc.server.nbt.codec.WoolColorCodec;
 
 @Getter

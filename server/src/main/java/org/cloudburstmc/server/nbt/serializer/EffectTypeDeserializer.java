@@ -9,7 +9,7 @@ import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.deser.std.StdDeserializer;
 import tools.jackson.databind.exc.MismatchedInputException;
 
-public final class EffectTypeDeserializer extends StdDeserializer<EffectType> {
+public class EffectTypeDeserializer extends StdDeserializer<EffectType> {
 
     public EffectTypeDeserializer() {
         super(EffectType.class);

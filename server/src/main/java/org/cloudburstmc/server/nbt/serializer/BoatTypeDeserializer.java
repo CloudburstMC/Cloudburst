@@ -9,7 +9,7 @@ import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.deser.std.StdDeserializer;
 import tools.jackson.databind.exc.MismatchedInputException;
 
-public final class BoatTypeDeserializer extends StdDeserializer<BoatType> {
+public class BoatTypeDeserializer extends StdDeserializer<BoatType> {
 
     public BoatTypeDeserializer() {
         super(BoatType.class);

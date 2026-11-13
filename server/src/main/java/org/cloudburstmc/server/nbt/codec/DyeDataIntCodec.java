@@ -6,10 +6,10 @@ import org.cloudburstmc.server.nbt.NbtKindMismatchException;
 import org.cloudburstmc.server.nbt.NbtValueCodec;
 
 /**
- * Stores a dye colour as its dye data in an int, as banner bases are stored today.
+ * Stores a dye color as its dye data in an int, as banner bases are stored today.
  */
 @NoArgsConstructor
-public final class DyeDataIntCodec implements NbtValueCodec<DyeColor> {
+public class DyeDataIntCodec implements NbtValueCodec<DyeColor> {
 
     @Override
     public Object toNbt(DyeColor value) {

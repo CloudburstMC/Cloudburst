@@ -6,7 +6,7 @@ import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
-import org.cloudburstmc.server.nbt.NbtSkipEmpty;
+import org.cloudburstmc.server.nbt.annotation.NbtSkipEmpty;
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.databind.BeanProperty;
 import tools.jackson.databind.SerializationContext;
@@ -17,12 +17,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Writes an item container in the format {@code ItemUtils} writes: a list with one
- * compound per slot holding the item's fields, plus a byte {@code Slot} tag. Empty
- * slots are kept as air compounds, so the saved list has one entry per slot, unless
- * the property is marked {@link NbtSkipEmpty}.
+ * Writes item compounds with a byte {@code Slot} tag.
+ * Empty slots are written as air unless the property is marked {@link NbtSkipEmpty}.
  */
-public final class ItemContainerSerializer extends StdSerializer<ItemContainer> {
+public class ItemContainerSerializer extends StdSerializer<ItemContainer> {
 
     private final boolean skipEmpty;
 

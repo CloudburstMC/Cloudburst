@@ -8,7 +8,11 @@ import lombok.Setter;
 import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.container.CloudContainer;
-import org.cloudburstmc.server.nbt.*;
+import org.cloudburstmc.server.nbt.NbtTagType;
+import org.cloudburstmc.server.nbt.annotation.NbtCodec;
+import org.cloudburstmc.server.nbt.annotation.NbtContainerSize;
+import org.cloudburstmc.server.nbt.annotation.NbtTag;
+import org.cloudburstmc.server.nbt.client.NbtClient;
 import org.cloudburstmc.server.nbt.codec.ShulkerFacingCodec;
 
 @Getter

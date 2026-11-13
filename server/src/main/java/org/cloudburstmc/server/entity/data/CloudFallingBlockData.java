@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
-import org.cloudburstmc.server.nbt.NbtShortBlockState;
+import org.cloudburstmc.server.nbt.annotation.NbtShortBlockState;
 
 @Getter
 @Setter

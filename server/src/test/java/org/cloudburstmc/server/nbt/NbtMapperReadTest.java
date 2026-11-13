@@ -8,6 +8,9 @@ import lombok.EqualsAndHashCode;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.nbt.annotation.NbtTag;
+import org.cloudburstmc.server.nbt.client.ClientNbtWriter;
+import org.cloudburstmc.server.nbt.client.NbtClient;
 import org.junit.jupiter.api.Test;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonParser;
@@ -144,7 +147,7 @@ class NbtMapperReadTest {
 
     @Test
     void writeClientIncludesOnlyClientProperties() {
-        NbtMap tag = ClientNbt.write(mapper, new ClientView());
+        NbtMap tag = ClientNbtWriter.write(mapper, new ClientView());
 
         assertEquals(Set.of("Shown", "Patterns"), tag.keySet());
         assertEquals(1, assertInstanceOf(Integer.class, tag.get("Shown")));
@@ -162,7 +165,7 @@ class NbtMapperReadTest {
     void writeClientDropsNamesNoClientPropertyApproved() {
         AnyGetter dto = new AnyGetter();
 
-        assertEquals(Set.of("Shown"), ClientNbt.write(mapper, dto).keySet());
+        assertEquals(Set.of("Shown"), ClientNbtWriter.write(mapper, dto).keySet());
         // The full view writes the extra keys, so the client view really drops them
         assertEquals(Set.of("Shown", "Secret", "Other"), mapper.write(dto).keySet());
     }
@@ -173,7 +176,7 @@ class NbtMapperReadTest {
         secrets.put("Secret", 1);
         secrets.put("Nested", Map.of("a", "b"));
 
-        assertEquals(NbtMap.EMPTY, ClientNbt.write(mapper, secrets));
+        assertEquals(NbtMap.EMPTY, ClientNbtWriter.write(mapper, secrets));
         assertEquals(Set.of("Secret", "Nested"), mapper.write(secrets).keySet());
     }
 
@@ -181,7 +184,7 @@ class NbtMapperReadTest {
     void writeClientOfNbtMapRootIsEmpty() {
         NbtMap secrets = NbtMap.builder().putInt("Secret", 1).build();
 
-        assertEquals(NbtMap.EMPTY, ClientNbt.write(mapper, secrets));
+        assertEquals(NbtMap.EMPTY, ClientNbtWriter.write(mapper, secrets));
         assertEquals(secrets, mapper.write(secrets));
     }
 
@@ -189,7 +192,7 @@ class NbtMapperReadTest {
     void writeClientOfJsonValueRootIsEmpty() {
         ValueRoot dto = new ValueRoot();
 
-        assertEquals(NbtMap.EMPTY, ClientNbt.write(mapper, dto));
+        assertEquals(NbtMap.EMPTY, ClientNbtWriter.write(mapper, dto));
         assertEquals(Set.of("Secret"), mapper.write(dto).keySet());
     }
 

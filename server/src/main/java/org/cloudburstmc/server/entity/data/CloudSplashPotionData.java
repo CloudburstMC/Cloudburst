@@ -6,8 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.potion.PotionType;
-import org.cloudburstmc.server.nbt.NbtTag;
 import org.cloudburstmc.server.nbt.NbtTagType;
+import org.cloudburstmc.server.nbt.annotation.NbtTag;
 
 @Getter
 @Setter

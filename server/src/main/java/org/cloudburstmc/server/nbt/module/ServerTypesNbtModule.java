@@ -1,4 +1,4 @@
-package org.cloudburstmc.server.nbt;
+package org.cloudburstmc.server.nbt.module;
 
 import org.cloudburstmc.api.entity.vehicle.BoatType;
 import org.cloudburstmc.api.inventory.ItemContainer;
@@ -7,20 +7,7 @@ import org.cloudburstmc.api.player.skin.Skin;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.api.potion.PotionType;
-import org.cloudburstmc.server.nbt.serializer.BoatTypeDeserializer;
-import org.cloudburstmc.server.nbt.serializer.BoatTypeSerializer;
-import org.cloudburstmc.server.nbt.serializer.EffectTypeDeserializer;
-import org.cloudburstmc.server.nbt.serializer.EffectTypeSerializer;
-import org.cloudburstmc.server.nbt.serializer.ItemContainerDeserializer;
-import org.cloudburstmc.server.nbt.serializer.ItemContainerSerializer;
-import org.cloudburstmc.server.nbt.serializer.ItemStackDeserializer;
-import org.cloudburstmc.server.nbt.serializer.ItemStackSerializer;
-import org.cloudburstmc.server.nbt.serializer.PotionEffectDeserializer;
-import org.cloudburstmc.server.nbt.serializer.PotionEffectSerializer;
-import org.cloudburstmc.server.nbt.serializer.PotionTypeDeserializer;
-import org.cloudburstmc.server.nbt.serializer.PotionTypeSerializer;
-import org.cloudburstmc.server.nbt.serializer.SkinDeserializer;
-import org.cloudburstmc.server.nbt.serializer.SkinSerializer;
+import org.cloudburstmc.server.nbt.serializer.*;
 import tools.jackson.databind.module.SimpleModule;
 
 /**

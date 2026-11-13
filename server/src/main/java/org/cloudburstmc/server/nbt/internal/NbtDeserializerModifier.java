@@ -2,9 +2,9 @@ package org.cloudburstmc.server.nbt.internal;
 
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.server.nbt.NbtCodec;
 import org.cloudburstmc.server.nbt.NbtKindMismatchException;
 import org.cloudburstmc.server.nbt.NbtValueCodec;
+import org.cloudburstmc.server.nbt.annotation.NbtCodec;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,25 +27,18 @@ import java.io.Serial;
 import java.util.*;
 
 /**
- * Adapts Jackson deserializers to {@link NbtParser}:
- * <ul>
- * <li>a bean property whose tag cannot be bound keeps its current value instead of
- * failing the read, including when its codec throws {@link NbtKindMismatchException};</li>
- * <li>a bean property whose current value can be updated is filled in place;</li>
- * <li>an {@link NbtCodec} property is read by its codec;</li>
- * <li>{@link NbtMap} and {@link NbtList} properties take the tag unchanged.</li>
- * </ul>
+ * Applies property codecs and preserves existing values when tags cannot be bound.
+ * Deserializers that support in-place updates can retain the existing instance.
  */
-public final class NbtReadModifier extends ValueDeserializerModifier {
+public class NbtDeserializerModifier extends ValueDeserializerModifier {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private static final Logger log = LoggerFactory.getLogger(NbtReadModifier.class);
+    private static final Logger log = LoggerFactory.getLogger(NbtDeserializerModifier.class);
 
     @Override
-    public BeanDeserializerBuilder updateBuilder(DeserializationConfig config, BeanDescription.Supplier beanDesc,
-                                                 BeanDeserializerBuilder builder) {
+    public BeanDeserializerBuilder updateBuilder(DeserializationConfig config, BeanDescription.Supplier beanDesc, BeanDeserializerBuilder builder) {
         List<SettableBeanProperty> properties = new ArrayList<>();
         for (Iterator<SettableBeanProperty> it = builder.getProperties(); it.hasNext(); ) {
             SettableBeanProperty property = it.next();
@@ -53,26 +46,27 @@ public final class NbtReadModifier extends ValueDeserializerModifier {
                 properties.add(property);
             }
         }
+
         if (properties.isEmpty()) {
             return builder;
         }
+
         Map<String, AnnotatedMember> accessors = accessors(config, beanDesc);
         for (SettableBeanProperty property : properties) {
             NbtValueCodec<Object> codec = NbtCodecs.codec(property.getAnnotation(NbtCodec.class));
             if (codec != null) {
-                property = property.withValueDeserializer(
-                        NbtCodecs.deserializer(codec, property.getType().getRawClass()));
+                property = property.withValueDeserializer(NbtCodecs.deserializer(codec, property.getType().getRawClass()));
             }
             builder.addOrReplaceProperty(new LenientProperty(property, accessors.get(property.getName())), true);
         }
+
         return builder;
     }
 
     /**
      * Finds the member that reads each property's current value, keyed by property name.
      */
-    private static Map<String, AnnotatedMember> accessors(DeserializationConfig config,
-                                                          BeanDescription.Supplier beanDesc) {
+    private static Map<String, AnnotatedMember> accessors(DeserializationConfig config, BeanDescription.Supplier beanDesc) {
         Map<String, AnnotatedMember> accessors = new HashMap<>();
         for (BeanPropertyDefinition definition : beanDesc.get().findProperties()) {
             AnnotatedMember accessor = definition.getAccessor();
@@ -87,19 +81,13 @@ public final class NbtReadModifier extends ValueDeserializerModifier {
     }
 
     @Override
-    public ValueDeserializer<?> modifyMapDeserializer(DeserializationConfig config, MapType type,
-                                                      BeanDescription.Supplier beanDesc,
-                                                      ValueDeserializer<?> deserializer) {
-        return NbtMap.class.isAssignableFrom(type.getRawClass()) ? new PassthroughDeserializer(NbtMap.class)
-                : deserializer;
+    public ValueDeserializer<?> modifyMapDeserializer(DeserializationConfig config, MapType type, BeanDescription.Supplier beanDesc, ValueDeserializer<?> deserializer) {
+        return NbtMap.class.isAssignableFrom(type.getRawClass()) ? new PassthroughDeserializer(NbtMap.class) : deserializer;
     }
 
     @Override
-    public ValueDeserializer<?> modifyCollectionDeserializer(DeserializationConfig config, CollectionType type,
-                                                             BeanDescription.Supplier beanDesc,
-                                                             ValueDeserializer<?> deserializer) {
-        return NbtList.class.isAssignableFrom(type.getRawClass()) ? new PassthroughDeserializer(NbtList.class)
-                : deserializer;
+    public ValueDeserializer<?> modifyCollectionDeserializer(DeserializationConfig config, CollectionType type, BeanDescription.Supplier beanDesc, ValueDeserializer<?> deserializer) {
+        return NbtList.class.isAssignableFrom(type.getRawClass()) ? new PassthroughDeserializer(NbtList.class) : deserializer;
     }
 
     /**
@@ -112,7 +100,7 @@ public final class NbtReadModifier extends ValueDeserializerModifier {
         if (!start.isStructStart()) {
             return;
         }
-        // A struct start opens a context one level deeper; its end returns to the level before
+
         int outside = depth - 1;
         JsonToken token = p.currentToken();
         while (token != null) {
@@ -120,9 +108,11 @@ public final class NbtReadModifier extends ValueDeserializerModifier {
                 p.skipChildren();
                 token = p.currentToken();
             }
+
             if (token.isStructEnd() && p.streamReadContext().getNestingDepth() == outside) {
                 return;
             }
+
             token = p.nextToken();
         }
     }
@@ -131,12 +121,7 @@ public final class NbtReadModifier extends ValueDeserializerModifier {
      * Binds one property leniently, filling its current value in place where it can.
      */
     private static final class LenientProperty extends SettableBeanProperty.Delegating {
-        @Serial
-        private static final long serialVersionUID = 1L;
 
-        /**
-         * Reads the property's current value, or {@code null} if it has no readable member.
-         */
         private final @Nullable AnnotatedMember accessor;
 
         LenientProperty(SettableBeanProperty delegate, @Nullable AnnotatedMember accessor) {
@@ -169,6 +154,7 @@ public final class NbtReadModifier extends ValueDeserializerModifier {
                 if (hasNonJacksonCause(e)) {
                     throw e;
                 }
+
                 skipped(p, start, depth, e);
             }
         }
@@ -182,6 +168,7 @@ public final class NbtReadModifier extends ValueDeserializerModifier {
                 if (current == null) {
                     return delegate.deserializeSetAndReturn(p, ctxt, instance);
                 }
+
                 Object value = delegate.deserializeWith(p, ctxt, current);
                 return value != current ? delegate.setAndReturn(ctxt, instance, value) : instance;
             } catch (InvalidDefinitionException e) {
@@ -190,6 +177,7 @@ public final class NbtReadModifier extends ValueDeserializerModifier {
                 if (hasNonJacksonCause(e)) {
                     throw e;
                 }
+
                 skipped(p, start, depth, e);
                 return instance;
             }
@@ -209,11 +197,12 @@ public final class NbtReadModifier extends ValueDeserializerModifier {
             if (accessor == null || delegate.hasValueTypeDeserializer() || getType().isContainerType()) {
                 return null;
             }
+
             ValueDeserializer<Object> deserializer = delegate.getValueDeserializer();
-            if (deserializer instanceof BeanDeserializerBase
-                    || !Boolean.TRUE.equals(deserializer.supportsUpdate(ctxt.getConfig()))) {
+            if (deserializer instanceof BeanDeserializerBase || !Boolean.TRUE.equals(deserializer.supportsUpdate(ctxt.getConfig()))) {
                 return null;
             }
+
             return accessor.getValue(instance);
         }
 
@@ -232,26 +221,26 @@ public final class NbtReadModifier extends ValueDeserializerModifier {
             Throwable cause = e.getCause();
             while (cause != null) {
                 if (cause instanceof NbtKindMismatchException) {
-                    // A codec reporting a value of the wrong kind is a shape mismatch too
                     return false;
                 }
+
                 if (!(cause instanceof JacksonException)) {
                     return true;
                 }
+
                 cause = cause.getCause();
             }
+
             return false;
         }
 
         private void skipped(JsonParser p, JsonToken start, int depth, JacksonException e) {
             if (e.getCause() instanceof NbtKindMismatchException) {
-                // Logged with the codec's exception, so its own cause is kept
-                log.warn("NBT key {} does not fit {}, keeping its current value: {}",
-                        getName(), getDeclaringClass().getName(), e.getOriginalMessage(), e.getCause());
+                log.warn("NBT key {} does not fit {}, keeping its current value: {}", getName(), getDeclaringClass().getName(), e.getOriginalMessage(), e.getCause());
             } else {
-                log.warn("NBT key {} does not fit {}, keeping its current value: {}",
-                        getName(), getDeclaringClass().getName(), e.getOriginalMessage());
+                log.warn("NBT key {} does not fit {}, keeping its current value: {}", getName(), getDeclaringClass().getName(), e.getOriginalMessage());
             }
+
             skipValue(p, start, depth);
         }
     }
@@ -263,12 +252,12 @@ public final class NbtReadModifier extends ValueDeserializerModifier {
 
         @Override
         public Object deserialize(JsonParser p, DeserializationContext ctxt) {
-            if (p instanceof NbtParser parser && p.currentToken().isStructStart()
-                    && handledType().isInstance(parser.currentTag())) {
+            if (p instanceof NbtParser parser && p.currentToken().isStructStart() && handledType().isInstance(parser.currentTag())) {
                 Object tag = parser.currentTag();
                 p.skipChildren();
                 return tag;
             }
+
             return ctxt.handleUnexpectedToken(handledType(), p);
         }
     }

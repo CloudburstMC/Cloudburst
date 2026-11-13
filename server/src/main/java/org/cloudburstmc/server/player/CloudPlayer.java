@@ -102,7 +102,7 @@ import org.cloudburstmc.server.item.component.ConsumableItemHandlers;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.EndPortals;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
-import org.cloudburstmc.server.nbt.SkinNbt;
+import org.cloudburstmc.server.nbt.serializer.SkinNbt;
 import org.cloudburstmc.server.network.*;
 import org.cloudburstmc.server.network.inventory.InventoryRequestQueue;
 import org.cloudburstmc.server.network.nethernet.CloudLoginTimeoutHandler;

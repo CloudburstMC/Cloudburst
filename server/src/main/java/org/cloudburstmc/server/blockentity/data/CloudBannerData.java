@@ -8,10 +8,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.util.data.BannerPattern;
 import org.cloudburstmc.api.util.data.DyeColor;
-import org.cloudburstmc.server.nbt.NbtClient;
-import org.cloudburstmc.server.nbt.NbtCodec;
-import org.cloudburstmc.server.nbt.NbtTag;
 import org.cloudburstmc.server.nbt.NbtTagType;
+import org.cloudburstmc.server.nbt.annotation.NbtCodec;
+import org.cloudburstmc.server.nbt.annotation.NbtTag;
+import org.cloudburstmc.server.nbt.client.NbtClient;
 import org.cloudburstmc.server.nbt.codec.BannerPatternsCodec;
 import org.cloudburstmc.server.nbt.codec.DyeDataIntCodec;
 

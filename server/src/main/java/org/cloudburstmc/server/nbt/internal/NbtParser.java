@@ -20,7 +20,7 @@ import java.util.Map;
  * Numeric accessors convert between widths with plain casts, so any numeric tag can
  * bind to any numeric property.
  */
-public final class NbtParser extends ParserMinimalBase {
+public class NbtParser extends ParserMinimalBase {
 
     private final NbtMap root;
     private @Nullable Cursor cursor;
@@ -63,8 +63,19 @@ public final class NbtParser extends ParserMinimalBase {
             return _updateTokenToNull();
         }
         switch (token) {
-            case START_OBJECT -> this.cursor = new CompoundCursor(cursor, (NbtMap) cursor.value);
-            case START_ARRAY -> this.cursor = new ListCursor(cursor, cursor.value);
+            case START_OBJECT -> {
+                if (!(cursor.value instanceof NbtMap compound)) {
+                    throw new IllegalStateException("An NBT object token must contain a compound");
+                }
+                this.cursor = new CompoundCursor(cursor, compound);
+            }
+            case START_ARRAY -> {
+                Object elements = cursor.value;
+                if (elements == null) {
+                    throw new IllegalStateException("An NBT array token must contain elements");
+                }
+                this.cursor = new ListCursor(cursor, elements);
+            }
             case END_OBJECT, END_ARRAY -> this.cursor = cursor.parent;
             default -> {
             }
@@ -279,13 +290,6 @@ public final class NbtParser extends ParserMinimalBase {
         };
     }
 
-    private Number number() {
-        if (_currToken != null && _currToken.isNumeric() && currentTag() instanceof Number number) {
-            return number;
-        }
-        throw _constructNotNumericType(_currToken, 0);
-    }
-
     /*
      * Other values
      */
@@ -306,6 +310,13 @@ public final class NbtParser extends ParserMinimalBase {
     /*
      * Cursors
      */
+
+    private Number number() {
+        if (_currToken != null && _currToken.isNumeric() && currentTag() instanceof Number number) {
+            return number;
+        }
+        throw _constructNotNumericType(_currToken, 0);
+    }
 
     private static JsonToken tokenOf(@Nullable Object value) {
         return switch (value) {
@@ -427,7 +438,7 @@ public final class NbtParser extends ParserMinimalBase {
         private final Object elements;
         private final int size;
 
-        ListCursor(Cursor parent, @Nullable Object elements) {
+        ListCursor(Cursor parent, Object elements) {
             super(TYPE_ARRAY, parent);
             this.elements = elements;
             this.size = elements instanceof List<?> list ? list.size() : Array.getLength(elements);

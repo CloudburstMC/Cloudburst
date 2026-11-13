@@ -5,7 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.cloudburstmc.server.nbt.NbtClient;
+import org.cloudburstmc.server.nbt.client.NbtClient;
 
 @Getter
 @Setter

@@ -3,6 +3,9 @@ package org.cloudburstmc.server.nbt;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.server.nbt.annotation.NbtCodec;
+import org.cloudburstmc.server.nbt.client.ClientNbtWriter;
+import org.cloudburstmc.server.nbt.client.NbtClient;
 import org.junit.jupiter.api.Test;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
@@ -115,7 +118,7 @@ class NbtCodecTest {
         Painted dto = new Painted();
         dto.color = Color.MAGENTA;
 
-        NbtMap tag = ClientNbt.write(mapper, dto);
+        NbtMap tag = ClientNbtWriter.write(mapper, dto);
 
         assertEquals(Set.of("Color"), tag.keySet());
         assertEquals((byte) 2, assertInstanceOf(Byte.class, tag.get("Color")));
