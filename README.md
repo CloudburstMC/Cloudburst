@@ -1,6 +1,6 @@
 ![Cloudburst](.github/images/banner.png)
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](server/LICENSE)
+[![License: LGPL-3.0-or-later](https://img.shields.io/badge/License-LGPL--3.0--or--later-blue.svg)](LICENSE.LESSER)
 [![Build Status](https://github.com/CloudburstMC/Cloudburst/actions/workflows/deploy.yml/badge.svg?branch=develop)](https://github.com/CloudburstMC/Cloudburst/actions/workflows/deploy.yml)
 [![Discord](https://img.shields.io/discord/393465748535640064.svg)](https://discord.gg/5PzMkyK)
 
@@ -59,3 +59,7 @@ docker attach cloudburst
 ## Contributing
 
 Please read the [CONTRIBUTING](.github/CONTRIBUTING.md) guide before submitting any issue. Issues with insufficient information or in the wrong format will be closed and will not be reviewed.
+
+## Licence
+
+Cloudburst is licensed under **LGPL-3.0-or-later**. See [LICENSE.LESSER](LICENSE.LESSER) and the incorporated terms in [LICENSE](LICENSE).
