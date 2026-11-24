@@ -89,6 +89,10 @@ public enum CreatureSpawnReason {
      */
     SILVERFISH_BLOCK,
     /**
+     * Spawned by an active potion effect.
+     */
+    POTION_EFFECT,
+    /**
      * Spawned as a mount.
      */
     MOUNT,

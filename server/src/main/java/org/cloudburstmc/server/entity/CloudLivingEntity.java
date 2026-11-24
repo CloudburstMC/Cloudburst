@@ -49,6 +49,7 @@ import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.data.CloudLivingData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.potion.InfestedPotionEffect;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
@@ -602,6 +603,7 @@ public abstract class CloudLivingEntity extends CloudEntity implements LivingEnt
             livingAttacker.knockBack(0.5f, direction.getX(), direction.getY(), KnockbackCause.SHIELD_BLOCK, this);
         }
     }
+
     /**
      * Runs entity-specific effects after cancellation is checked and before health changes.
      *
@@ -609,6 +611,14 @@ public abstract class CloudLivingEntity extends CloudEntity implements LivingEnt
      * @param damageBeforeReductions damage after the hurt cooldown and before reductions
      */
     protected void applyDamageEffects(CloudEntityDamageEvent source, float damageBeforeReductions) {
+    }
+
+    @Override
+    protected void onDamageApplied(DamageSource source) {
+        super.onDamageApplied(source);
+        if (this.hasPotionEffect(EffectTypes.INFESTED)) {
+            InfestedPotionEffect.onHurt(this);
+        }
     }
 
     protected void broadcastHurtEvent(DamageEffect effect) {

@@ -220,6 +220,16 @@ public class BlockComponents {
     public static final ComponentType<RedstoneSignalHandler> GET_REDSTONE_SIGNAL = ComponentType.of("get_redstone_signal", RedstoneSignalHandler.class);
 
     /**
+     * The ordinary block type an infested block reverts to.
+     */
+    public static final ComponentType<BlockType> INFESTATION_HOST = ComponentType.of("infestation_host", BlockType.class);
+
+    /**
+     * The block type a compatible host becomes when infested.
+     */
+    public static final ComponentType<BlockType> INFESTED_VARIANT = ComponentType.of("infested_variant", BlockType.class);
+
+    /**
      * Checks whether the supplied item is allowed to break a block. This is separate from mining speed and loot eligibility.
      */
     public static final ComponentType<CanBreakBlockHandler> IS_BREAKABLE = ComponentType.of("is_breakable", CanBreakBlockHandler.class);

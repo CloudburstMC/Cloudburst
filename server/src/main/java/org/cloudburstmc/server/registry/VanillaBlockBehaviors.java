@@ -412,6 +412,24 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.CAN_RANDOM_TICK, true)
                 .set(BlockComponents.ON_RANDOM_TICK, IcicleBlockHandlers.ON_RANDOM_TICK)
                 .set(BlockComponents.ON_FALL_ON, SpeleothemBlockHandlers.ON_FALL_ON);
+
+        Map.of(
+                STONE, INFESTED_STONE,
+                COBBLESTONE, INFESTED_COBBLESTONE,
+                STONE_BRICKS, INFESTED_STONE_BRICKS,
+                MOSSY_STONE_BRICKS, INFESTED_MOSSY_STONE_BRICKS,
+                CRACKED_STONE_BRICKS, INFESTED_CRACKED_STONE_BRICKS,
+                CHISELED_STONE_BRICKS, INFESTED_CHISELED_STONE_BRICKS,
+                DEEPSLATE, INFESTED_DEEPSLATE
+        ).forEach((host, infested) -> {
+            registry.configure(host).set(BlockComponents.INFESTED_VARIANT, infested);
+            registry.configure(infested)
+                    .set(BlockComponents.INFESTATION_HOST, host)
+                    .set(BlockComponents.GET_LOOT, InfestedBlockHandlers.GET_LOOT)
+                    .set(BlockComponents.AFTER_BREAK, InfestedBlockHandlers.AFTER_BREAK)
+                    .set(BlockComponents.ON_EXPLOSION_HIT, InfestedBlockHandlers.ON_EXPLOSION_HIT);
+        });
+
         configureDoor(registry, IRON_DOOR);
         configureOre(registry, IRON_ORE, OreLoot.iron(IRON_ORE.getDefaultState()));
         configureTrapdoor(registry, IRON_TRAPDOOR);

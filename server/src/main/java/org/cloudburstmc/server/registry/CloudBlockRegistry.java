@@ -218,6 +218,8 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerComponent(BlockComponents.GET_PICK_BLOCK, DefaultBlockHandlers.GET_PICK_BLOCK);
         this.registerComponent(BlockComponents.GET_REDSTONE_SIGNAL, (block, face) -> 0);
         this.registerComponent(BlockComponents.NOTE_BLOCK_INSTRUMENT, NoteBlockInstrument.HARP);
+        this.registerComponent(BlockComponents.INFESTATION_HOST);
+        this.registerComponent(BlockComponents.INFESTED_VARIANT);
         this.registerComponent(BlockComponents.IS_BREAKABLE, (block, item) -> true);
         this.registerComponent(BlockComponents.IS_FREE_TO_FALL, (block) -> false);
         this.registerComponent(BlockComponents.IS_SOLID_SUPPORT, BlockState::isSolid);

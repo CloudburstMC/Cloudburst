@@ -2545,18 +2545,19 @@ public abstract class CloudEntity implements Entity {
             this.setAbsorption(absorption - damage.absorbedDamage());
         }
 
-        if (damage.healthDamage() == 0) {
-            return;
+        DamageSource source = event.getDamageSource();
+        if (damage.healthDamage() > 0) {
+            float remainingHealth = this.getHealth() - damage.healthDamage();
+            if (remainingHealth > 0) {
+                this.setHealth(remainingHealth);
+            } else if (!this.tryPreventDeath(source) && !this.isClosed() && this.isAlive()) {
+                this.setHealth(0);
+            }
+
+            this.onHealthDamageApplied(source);
         }
 
-        float remainingHealth = this.getHealth() - damage.healthDamage();
-        if (remainingHealth > 0) {
-            this.setHealth(remainingHealth);
-        } else if (!this.tryPreventDeath(event.getDamageSource()) && !this.isClosed() && this.isAlive()) {
-            this.setHealth(0);
-        }
-
-        this.onHealthDamageApplied(event.getDamageSource());
+        this.onDamageApplied(source);
     }
 
     /**
@@ -2576,6 +2577,12 @@ public abstract class CloudEntity implements Entity {
      * Handles a resolved hit that dealt damage beyond absorption.
      */
     protected void onHealthDamageApplied(DamageSource source) {
+    }
+
+    /**
+     * Handles a resolved hit that consumed health or absorption.
+     */
+    protected void onDamageApplied(DamageSource source) {
     }
 
     protected boolean tryPreventDeath(DamageSource source) {

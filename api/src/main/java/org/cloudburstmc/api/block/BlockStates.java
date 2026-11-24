@@ -249,6 +249,7 @@ public class BlockStates {
     public static final BlockState INFESTED_CHISELED_STONE_BRICKS = BlockTypes.INFESTED_CHISELED_STONE_BRICKS.getDefaultState();
     public static final BlockState INFESTED_COBBLESTONE = BlockTypes.INFESTED_COBBLESTONE.getDefaultState();
     public static final BlockState INFESTED_CRACKED_STONE_BRICKS = BlockTypes.INFESTED_CRACKED_STONE_BRICKS.getDefaultState();
+    public static final BlockState INFESTED_DEEPSLATE = BlockTypes.INFESTED_DEEPSLATE.getDefaultState();
     public static final BlockState INFESTED_MOSSY_STONE_BRICKS = BlockTypes.INFESTED_MOSSY_STONE_BRICKS.getDefaultState();
     public static final BlockState INFESTED_STONE = BlockTypes.INFESTED_STONE.getDefaultState();
     public static final BlockState INFESTED_STONE_BRICKS = BlockTypes.INFESTED_STONE_BRICKS.getDefaultState();
