@@ -236,8 +236,6 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
     @Getter
     private Entity killer;
 
-    public long lastBreak;
-    public Block breakingBlock;
     private @Nullable EntityFishingHook fishingHook;
 
     @Getter
@@ -257,7 +255,6 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
         this.session = session;
         this.packetHandler = new PlayerPacketHandler(this);
         this.server = CloudServer.getInstance();
-        this.lastBreak = -1;
         this.saveData.setGameMode(this.server.getGameMode());
         this.boundingBox = new BoundingBox(0, 0, 0, 0, 0, 0);
         this.lastSkinChange = -1;
@@ -2768,7 +2765,7 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
     }
 
     public boolean isBreakingBlock() {
-        return this.breakingBlock != null;
+        return this.packetHandler.isBreakingBlock();
     }
 
     public boolean canInteractWithBlock(Vector3i position) {

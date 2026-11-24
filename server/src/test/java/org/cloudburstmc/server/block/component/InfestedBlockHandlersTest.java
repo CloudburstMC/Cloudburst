@@ -11,14 +11,17 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.registry.BlockRegistry;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.item.ToolUtils;
 import org.cloudburstmc.server.testutil.BlockTestRegistry;
 import org.cloudburstmc.server.testutil.BlockTestWorld;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -29,6 +32,21 @@ class InfestedBlockHandlersTest {
 
     private static final BlockRegistry REGISTRY = BlockTestRegistry.get();
     private static final Vector3i POSITION = Vector3i.from(0, 64, 0);
+
+    @Test
+    void netheritePickaxeUsesItsMiningSpeedOnInfestedBlocks() {
+        ItemStack pickaxe = ItemStack.from(ItemTypes.NETHERITE_PICKAXE);
+        List<BlockType> infestedBlocks = List.of(INFESTED_CHISELED_STONE_BRICKS, INFESTED_COBBLESTONE,
+                INFESTED_CRACKED_STONE_BRICKS, INFESTED_DEEPSLATE, INFESTED_MOSSY_STONE_BRICKS,
+                INFESTED_STONE, INFESTED_STONE_BRICKS);
+
+        for (BlockType type : infestedBlocks) {
+            assertEquals(9f, ToolUtils.getMiningSpeed(pickaxe, type.getDefaultState()), type.getId().toString());
+        }
+
+        Player player = InterfaceProxy.create(Player.class, Map.of("isOnGround", true));
+        assertEquals(0.2D, ToolUtils.getDestroyProgress(player, pickaxe, BlockStates.INFESTED_DEEPSLATE), 1e-6);
+    }
 
     @Test
     void onlySilkTouchDropsTheMatchingHostBlock() {

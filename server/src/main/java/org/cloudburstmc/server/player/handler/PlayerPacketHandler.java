@@ -100,14 +100,16 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
     @Inject
     private GlobalRegistry globalRegistry;
-    private Vector3i lastBreakPosition = Vector3i.ZERO;
     private @Nullable Vector3i completedInstantBreakPosition;
     private @Nullable BlockBreakSession blockBreakSession;
-    private @Nullable Vector3i blockBreakAnimationPosition;
     private boolean awaitingRespawnCompletion;
 
     public PlayerPacketHandler(CloudPlayer player) {
         this.player = player;
+    }
+
+    public boolean isBreakingBlock() {
+        return this.blockBreakSession != null;
     }
 
     @Override
@@ -172,7 +174,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (inputData.contains(PlayerAuthInputData.PERFORM_BLOCK_ACTIONS)) {
             processBlockActions(packet);
         } else {
-            refreshBlockBreak();
+            refreshBlockBreak(packet.getTick());
         }
 
         if (inputData.contains(PlayerAuthInputData.PERFORM_ITEM_INTERACTION)) {
@@ -344,7 +346,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             Vector3i blockPos = actionData.getBlockPosition();
 
             switch (actionData.getAction()) {
-                case START_BREAK -> handleStartBreak(blockPos, Direction.fromIndex(actionData.getFace()));
+                case START_BREAK -> handleStartBreak(blockPos, Direction.fromIndex(actionData.getFace()), packet.getTick());
                 case ABORT_BREAK, STOP_BREAK -> handleStopBreak(blockPos);
                 case CONTINUE_BREAK, BLOCK_CONTINUE_DESTROY -> {
                     if (index + 1 < actions.size()) {
@@ -355,12 +357,12 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     }
 
                     if (!blockPos.equals(this.completedInstantBreakPosition)) {
-                        handleContinueBreak(blockPos, Direction.fromIndex(actionData.getFace()));
+                        handleContinueBreak(blockPos, Direction.fromIndex(actionData.getFace()), packet.getTick());
                     }
                 }
                 case BLOCK_PREDICT_DESTROY -> {
                     if (!acknowledgeInstantBreak(blockPos)) {
-                        handleBlockPredictDestroy(blockPos, Direction.fromIndex(actionData.getFace()));
+                        handleBlockPredictDestroy(blockPos, Direction.fromIndex(actionData.getFace()), packet.getTick());
                     }
                 }
                 default -> {}
@@ -368,18 +370,29 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
     }
 
-    private void handleStartBreak(Vector3i blockPos, Direction face) {
-        long currentBreak = System.currentTimeMillis();
-        if ((lastBreakPosition.equals(blockPos) && (currentBreak - player.lastBreak) < 10) || player.getPosition().distanceSquared(blockPos.toFloat()) > 100) {
+    private void handleStartBreak(Vector3i blockPos, Direction face, long inputTick) {
+        CloudLevel level = player.getLevel();
+        if (player.isSpectator() || !player.canInteractWithBlock(blockPos)) {
             return;
         }
 
+        Block target = getLoadedMiningBlock(blockPos);
+        if (target == null) {
+            return;
+        }
+
+        BlockState targetState = target.getState();
+        ItemStack tool = player.getInventory().getSelectedItem();
+        BlockBreakSession session = this.blockBreakSession;
+        if (session != null && session.matches(blockPos, targetState, tool)) {
+            return;
+        }
+
+        clearBlockBreak();
         this.completedInstantBreakPosition = null;
 
-        Block target = player.getLevel().getBlock(blockPos);
-        BlockState targetState = target.getState();
-
-        PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(player, player.getInventory().getSelectedItem(), target, face, targetState == BlockStates.AIR ? PlayerInteractEvent.Action.LEFT_CLICK_AIR : PlayerInteractEvent.Action.LEFT_CLICK_BLOCK);
+        PlayerInteractEvent.Action action = targetState == BlockStates.AIR ? PlayerInteractEvent.Action.LEFT_CLICK_AIR : PlayerInteractEvent.Action.LEFT_CLICK_BLOCK;
+        PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(player, tool, target, face, action);
         player.getServer().getEventManager().fire(playerInteractEvent);
         if (playerInteractEvent.isCancelled()) {
             if (player.isCreative()) {
@@ -393,8 +406,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         player.interruptBlocking();
         AttackBlockHandler attackHandler = target.getComponent(BlockComponents.ATTACK);
         if (attackHandler != null && attackHandler.execute(target, player, face)) {
-            player.breakingBlock = null;
-            this.blockBreakSession = null;
             this.completedInstantBreakPosition = blockPos;
             restorePredictedBlock(blockPos);
             return;
@@ -403,167 +414,153 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         Block block = target.getSide(face);
         if (block.getState().getType() == BlockTypes.FIRE) {
             block.set(BlockStates.AIR, true);
-            player.getLevel().addLevelSoundEvent(block.getPosition(), SoundEvent.EXTINGUISH_FIRE);
+            level.addLevelSoundEvent(block.getPosition(), SoundEvent.EXTINGUISH_FIRE);
             return;
         }
 
-        player.lastBreak = currentBreak;
-        lastBreakPosition = blockPos;
+        if (targetState == BlockStates.AIR || !targetState.equals(level.getBlockState(blockPos))) {
+            return;
+        }
 
-        if (player.isCreative()) {
-            completeInstantBreak(blockPos);
-        } else {
-            int breakTicks = ToolUtils.getBreakTicks(player, player.getInventory().getSelectedItem(), targetState);
-            if (breakTicks > 0) {
-                target.requireComponent(BlockComponents.ON_START_MINING).execute(target, player);
-                if (player.getLevel().getBlockState(blockPos) != targetState) {
-                    this.blockBreakSession = null;
-                    player.breakingBlock = null;
-                    restorePredictedBlock(blockPos);
-                    return;
-                }
-
-                startBlockBreakAnimation(blockPos, targetState);
-                sendBlockBreakParticle(blockPos, targetState, face);
-                this.blockBreakSession = new BlockBreakSession(blockPos, targetState, face, getDestroyProgress(targetState));
-                sendBlockBreakEvent(LevelEvent.BLOCK_UPDATE_BREAK, blockPos, encodeBreakEventData(targetState));
-            } else {
-                this.blockBreakSession = null;
+        tool = player.getInventory().getSelectedItem();
+        double progress = ToolUtils.getDestroyProgress(player, tool, targetState);
+        if (!player.isCreative() && progress > 0D) {
+            target.requireComponent(BlockComponents.ON_START_MINING).execute(target, player);
+            if (!targetState.equals(level.getBlockState(blockPos))) {
+                restorePredictedBlock(blockPos);
+                return;
             }
-            player.breakingBlock = target;
+            tool = player.getInventory().getSelectedItem();
+            progress = ToolUtils.getDestroyProgress(player, tool, targetState);
+        }
+
+        if (player.isCreative() || progress >= 1D) {
+            this.completedInstantBreakPosition = blockPos;
+            finishBlockBreak(blockPos, tool, null);
+        } else if (progress > 0D) {
+            this.blockBreakSession = new BlockBreakSession(blockPos, targetState, tool, face, progress, inputTick);
+            sendBlockBreakEvent(LevelEvent.BLOCK_START_BREAK, blockPos, encodeBreakEventData(progress));
+            sendBlockBreakParticle(blockPos, targetState, face);
         }
     }
 
     private void handleStopBreak(Vector3i blockPos) {
-        stopBlockBreakAnimation(blockPos);
-        player.breakingBlock = null;
-        this.blockBreakSession = null;
-    }
-
-    private void handleContinueBreak(Vector3i blockPos, Direction face) {
-        if (!player.isBreakingBlock() || this.blockBreakSession == null) {
-            handleStartBreak(blockPos, face);
-            return;
-        }
-
-        if (!this.blockBreakSession.matches(blockPos)) {
-            handleStopBreak(this.blockBreakSession.position());
-            handleStartBreak(blockPos, face);
-            return;
-        }
-
-        Block block = player.getLevel().getBlock(blockPos);
-        BlockState state = block.getState();
-        if (!state.equals(this.blockBreakSession.state())) {
-            handleStopBreak(blockPos);
-            handleStartBreak(blockPos, face);
-            return;
-        }
-
-        sendBlockBreakParticle(blockPos, state, face);
-
-        int breakTicks = ToolUtils.getBreakTicks(player, player.getInventory().getSelectedItem(), state);
-        if (breakTicks > 0) {
-            this.blockBreakSession = this.blockBreakSession.advance(face, getDestroyProgress(state));
-            sendBlockBreakEvent(LevelEvent.BLOCK_UPDATE_BREAK, blockPos, encodeBreakEventData(state));
+        if (this.blockBreakSession != null && this.blockBreakSession.matches(blockPos)) {
+            clearBlockBreak();
         }
     }
 
-    private void refreshBlockBreak() {
-        if (!player.isBreakingBlock() || this.blockBreakSession == null) {
-            return;
-        }
-
-        Vector3i blockPos = this.blockBreakSession.position();
-        BlockState state = player.getLevel().getBlock(blockPos).getState();
-        if (!state.equals(this.blockBreakSession.state())) {
-            handleStopBreak(blockPos);
-            return;
-        }
-
-        int breakTicks = ToolUtils.getBreakTicks(player, player.getInventory().getSelectedItem(), state);
-        if (breakTicks > 0) {
-            this.blockBreakSession = this.blockBreakSession.advance(this.blockBreakSession.face(), getDestroyProgress(state));
-            if (player.getServer().getTick() % 5 == 0) {
-                sendBlockBreakParticle(blockPos, state, this.blockBreakSession.face());
-            }
-            sendBlockBreakEvent(LevelEvent.BLOCK_UPDATE_BREAK, blockPos, encodeBreakEventData(state));
-        }
-    }
-
-    private void handleBlockPredictDestroy(Vector3i blockPos, Direction face) {
-        if (!player.spawned || !player.isAlive()) {
-            return;
-        }
-
-        Block predictedBlock = player.getLevel().getBlock(blockPos);
-        BlockState predictedState = predictedBlock.getState();
-        boolean hasMatchingSession = this.blockBreakSession != null
-                && this.blockBreakSession.matches(blockPos)
-                && this.blockBreakSession.state().equals(predictedState);
-
-        if (!hasMatchingSession) {
-            handleStartBreak(blockPos, face);
-            if (acknowledgeInstantBreak(blockPos)) {
-                return;
-            }
-        } else {
-            this.blockBreakSession = this.blockBreakSession.advance(face, getDestroyProgress(predictedState));
-        }
-
+    private void handleContinueBreak(Vector3i blockPos, Direction face, long inputTick) {
         BlockBreakSession session = this.blockBreakSession;
-        Boolean fastBreak = getPredictedFastBreak(blockPos, predictedState);
-
-        ItemStack selectedItem = player.getInventory().getSelectedItem();
-        ItemStack oldItem = selectedItem;
-
-        if (player.canInteractWithBlock(blockPos)) {
-            if (Boolean.TRUE.equals(fastBreak)) {
-                restorePredictedBlock(blockPos);
-                return;
-            }
-
-            selectedItem = player.getLevel().breakBlockPredicted(blockPos, selectedItem, player, true, fastBreak, this::resetBlockBreakAnimation);
-            if (selectedItem != null) {
-                if (player.isSurvival() || player.isAdventure()) {
-                    player.addExhaustion(0.005f, ExhaustionReason.BLOCK_MINED);
-                    if (!selectedItem.equals(oldItem) || selectedItem.getCount() != oldItem.getCount()) {
-                        player.getInventory().setSelectedItem(selectedItem);
-                    }
-                }
-
-                Block remaining = player.getLevel().getBlock(blockPos);
-                this.blockBreakSession = player.isCreative() || session == null || !session.matches(blockPos) ? null : session.continueAfterBreak(remaining.getState());
-                player.breakingBlock = this.blockBreakSession == null ? null : remaining;
-                if (this.blockBreakSession != null) {
-                    sendBlockBreakParticle(blockPos, remaining.getState(), face);
-                    sendBlockBreakEvent(LevelEvent.BLOCK_UPDATE_BREAK, blockPos, encodeBreakEventData(remaining.getState()));
-                }
-
-                sendAuthoritativeBlock(blockPos);
-                return;
-            }
+        if (session == null || !session.matches(blockPos)) {
+            handleStartBreak(blockPos, face, inputTick);
+            return;
         }
 
-        player.breakingBlock = null;
-        this.blockBreakSession = null;
-        stopBlockBreakAnimation(blockPos);
-        restorePredictedBlock(blockPos);
+        Block target = getLoadedMiningBlock(blockPos);
+        ItemStack tool = player.getInventory().getSelectedItem();
+        if (target == null || !session.matches(blockPos, target.getState(), tool)) {
+            clearBlockBreak();
+            handleStartBreak(blockPos, face, inputTick);
+            return;
+        }
+
+        updateBlockBreak(session, face, inputTick, true);
     }
 
-    private void completeInstantBreak(Vector3i blockPos) {
-        this.blockBreakSession = null;
-        player.breakingBlock = null;
+    private void refreshBlockBreak(long inputTick) {
+        BlockBreakSession session = this.blockBreakSession;
+        if (session == null) {
+            return;
+        }
 
-        ItemStack selectedItem = player.getInventory().getSelectedItem();
-        ItemStack result = player.getLevel().breakBlock(blockPos, selectedItem, player, true);
-        if (result == null) {
+        Vector3i blockPos = session.position();
+        Block target = getLoadedMiningBlock(blockPos);
+        ItemStack tool = player.getInventory().getSelectedItem();
+        if (target == null || !session.matches(blockPos, target.getState(), tool) || !player.canInteractWithBlock(blockPos)) {
+            clearBlockBreak();
+            return;
+        }
+
+        updateBlockBreak(session, session.face(), inputTick, player.getServer().getTick() % 5 == 0);
+    }
+
+    private void updateBlockBreak(BlockBreakSession session, Direction face, long inputTick, boolean particles) {
+        double progress = ToolUtils.getDestroyProgress(player, session.tool(), session.state());
+        BlockBreakSession advanced = session.advance(face, progress, inputTick);
+        if (advanced == session) {
+            return;
+        }
+
+        this.blockBreakSession = advanced;
+        if (particles) {
+            sendBlockBreakParticle(session.position(), session.state(), face);
+        }
+        sendBlockBreakEvent(LevelEvent.BLOCK_UPDATE_BREAK, session.position(), encodeBreakEventData(progress));
+    }
+
+    private void handleBlockPredictDestroy(Vector3i blockPos, Direction face, long inputTick) {
+        BlockBreakSession session = this.blockBreakSession;
+        Block target = getLoadedMiningBlock(blockPos);
+        ItemStack tool = player.getInventory().getSelectedItem();
+        if (session == null || target == null || !session.matches(blockPos, target.getState(), tool)
+                || !player.canInteractWithBlock(blockPos)) {
+            handleStopBreak(blockPos);
             restorePredictedBlock(blockPos);
             return;
         }
 
-        this.completedInstantBreakPosition = blockPos;
+        double progress = ToolUtils.getDestroyProgress(player, tool, session.state());
+        session = session.advance(face, progress, inputTick);
+        this.blockBreakSession = session;
+        if (!session.canConfirmPrediction()) {
+            restorePredictedBlock(blockPos);
+            return;
+        }
+
+        finishBlockBreak(blockPos, tool, session);
+    }
+
+    private void finishBlockBreak(Vector3i blockPos, ItemStack tool, @Nullable BlockBreakSession session) {
+        CloudLevel level = player.getLevel();
+        ItemStack result = level.breakBlock(blockPos, tool, player, true);
+        if (result == null) {
+            clearBlockBreak();
+            restorePredictedBlock(blockPos);
+            return;
+        }
+
+        if (player.isSurvival() || player.isAdventure()) {
+            player.addExhaustion(0.005f, ExhaustionReason.BLOCK_MINED);
+            if (!result.equals(tool)) {
+                player.getInventory().setSelectedItem(result);
+            }
+        }
+
         sendAuthoritativeBlock(blockPos);
+        clearBlockBreak();
+        if (session == null) {
+            return;
+        }
+
+        BlockState remainingState = level.getBlockState(blockPos);
+        ItemStack heldTool = player.getInventory().getSelectedItem();
+        BlockBreakSession continued = session.continueAfterBreak(remainingState, heldTool);
+        if (continued != null) {
+            double progress = ToolUtils.getDestroyProgress(player, heldTool, remainingState);
+            if (progress > 0D) {
+                this.blockBreakSession = continued;
+                sendBlockBreakEvent(LevelEvent.BLOCK_START_BREAK, blockPos, encodeBreakEventData(progress));
+            }
+        }
+    }
+
+    private void clearBlockBreak() {
+        BlockBreakSession session = this.blockBreakSession;
+        this.blockBreakSession = null;
+        if (session != null) {
+            sendBlockBreakEvent(LevelEvent.BLOCK_STOP_BREAK, session.position(), 0);
+        }
     }
 
     private boolean acknowledgeInstantBreak(Vector3i blockPos) {
@@ -581,7 +578,11 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     }
 
     private void sendAuthoritativeBlock(Vector3i blockPos) {
-        Block target = player.getLevel().getBlock(blockPos);
+        Block target = getLoadedMiningBlock(blockPos);
+        if (target == null) {
+            return;
+        }
+
         BlockEntity blockEntity = player.getLevel().getLoadedBlockEntity(blockPos);
         player.getLevel().sendBlocks(new CloudPlayer[]{player}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
 
@@ -590,25 +591,12 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
     }
 
-    private void startBlockBreakAnimation(Vector3i blockPos, BlockState state) {
-        if (this.blockBreakAnimationPosition != null && !this.blockBreakAnimationPosition.equals(blockPos)) {
-            stopBlockBreakAnimation(this.blockBreakAnimationPosition);
+    private @Nullable Block getLoadedMiningBlock(Vector3i blockPos) {
+        CloudLevel level = player.getLevel();
+        if (level.isOutsideBuildHeight(blockPos.getY())) {
+            return null;
         }
-
-        sendBlockBreakEvent(LevelEvent.BLOCK_START_BREAK, blockPos, encodeBreakEventData(state));
-        this.blockBreakAnimationPosition = blockPos;
-    }
-
-    private void stopBlockBreakAnimation(Vector3i blockPos) {
-        sendBlockBreakEvent(LevelEvent.BLOCK_STOP_BREAK, blockPos, 0);
-        if (blockPos.equals(this.blockBreakAnimationPosition)) {
-            this.blockBreakAnimationPosition = null;
-        }
-    }
-
-    private void resetBlockBreakAnimation(Block block) {
-        stopBlockBreakAnimation(block.getPosition());
-        startBlockBreakAnimation(block.getPosition(), block.getState());
+        return level.getLoadedBlock(blockPos);
     }
 
     private void sendBlockBreakEvent(LevelEvent event, Vector3i blockPos, int data) {
@@ -635,24 +623,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         CloudServer.broadcastPacket(viewers.toArray(Player[]::new), packet);
     }
 
-    private @Nullable Boolean getPredictedFastBreak(Vector3i blockPos, BlockState state) {
-        if (this.blockBreakSession == null || !this.blockBreakSession.matches(blockPos) || !this.blockBreakSession.state().equals(state)) {
-            return null;
-        }
-
-        return this.blockBreakSession.progress() < 0.7D;
-    }
-
-    private int encodeBreakEventData(BlockState state) {
-        double progress = getDestroyProgress(state);
-        if (progress <= 0 || !Double.isFinite(progress)) {
-            return 0;
-        }
-        return Math.max(1, (int) (65535 * progress));
-    }
-
-    private double getDestroyProgress(BlockState state) {
-        return ToolUtils.getDestroyProgress(player, player.getInventory().getSelectedItem(), state);
+    private static int encodeBreakEventData(double progress) {
+        return progress > 0D ? Math.clamp((int) (65535 * progress), 1, 65535) : 0;
     }
 
     /**
@@ -1244,10 +1216,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         this.lastRightClickFace = null;
         this.usingItemOnBlock = false;
         this.blockItemActivationTick = Integer.MIN_VALUE;
-        this.lastBreakPosition = Vector3i.ZERO;
         this.completedInstantBreakPosition = null;
-        this.blockBreakSession = null;
-        player.breakingBlock = null;
+        clearBlockBreak();
         player.setUsingItem(false);
     }
 

@@ -119,7 +119,6 @@ public class CloudLevel implements Level, BlockStateRegion {
 
     // Lower values use less memory
     public static final int MAX_BLOCK_CACHE = 512;
-    private static final double MINIMUM_PREDICTED_BREAK_PROGRESS = 0.7D;
 
     private final Set<BlockEntity> blockEntities = Collections.newSetFromMap(new IdentityHashMap<>());
 
@@ -1758,22 +1757,6 @@ public class CloudLevel implements Level, BlockStateRegion {
         this.dropItem(dropPosition, item);
     }
 
-    public ItemStack breakBlock(Vector3i pos) {
-        return this.breakBlock(pos, null);
-    }
-
-    public ItemStack breakBlock(Vector3i pos, ItemStack item) {
-        return this.breakBlock(pos, item, null);
-    }
-
-    public ItemStack breakBlock(Vector3i pos, ItemStack item, Player player) {
-        return this.breakBlock(pos, item, player, false);
-    }
-
-    public ItemStack breakBlock(Vector3i pos, ItemStack item, Player player, boolean createParticles) {
-        return breakBlock(pos, item, player, createParticles, false, null);
-    }
-
     @Override
     public boolean explode(Vector3f position, ExplosionSettings settings) {
         ExplosionSettings primed = this.primeExplosion(settings);
@@ -1794,22 +1777,25 @@ public class CloudLevel implements Level, BlockStateRegion {
         return event.isCancelled() ? null : new ExplosionSettings(event.getRadius(), event.getBlockInteraction(), event.causesFire(), settings.sourceEntity(), null);
     }
 
-    public ItemStack breakBlockPredicted(Vector3i pos, ItemStack item, Player player, boolean createParticles, @Nullable Boolean fastBreakOverride, Consumer<Block> beforeDestruction) {
-        boolean fastBreak = fastBreakOverride != null ? fastBreakOverride : isBreakingTooFast(pos, item, player);
-        return breakBlock(pos, item, player, createParticles, fastBreak, Objects.requireNonNull(beforeDestruction, "beforeDestruction"));
+    public ItemStack breakBlock(Vector3i pos) {
+        return this.breakBlock(pos, null);
     }
 
-    private ItemStack breakBlock(Vector3i pos, ItemStack item, Player player, boolean createParticles, boolean fastBreak, @Nullable Consumer<Block> beforeDestruction) {
+    public ItemStack breakBlock(Vector3i pos, ItemStack item) {
+        return this.breakBlock(pos, item, null);
+    }
+
+    public ItemStack breakBlock(Vector3i pos, ItemStack item, Player player) {
+        return this.breakBlock(pos, item, player, false);
+    }
+
+    public ItemStack breakBlock(Vector3i pos, ItemStack item, Player player, boolean createParticles) {
         if (player != null && player.getGameMode() == GameMode.SPECTATOR) {
             return null;
         }
 
         if (item == null || item.isEmpty()) {
             item = ItemStack.EMPTY;
-        }
-
-        if (player != null && fastBreak) {
-            return null;
         }
 
         Block target = this.getBlock(pos);
@@ -1851,8 +1837,6 @@ public class CloudLevel implements Level, BlockStateRegion {
                 return null;
             }
 
-            ((CloudPlayer) player).lastBreak = System.currentTimeMillis();
-
             dropItems = ev.isDropItems();
             dropExp = ev.getExpToDrop();
 
@@ -1891,10 +1875,6 @@ public class CloudLevel implements Level, BlockStateRegion {
                 if (above.getState().getType() == BlockTypes.FIRE) {
                     this.setBlockState(above.getPosition(), BlockStates.AIR, true);
                 }
-            }
-
-            if (beforeDestruction != null) {
-                beforeDestruction.accept(target);
             }
 
             if (createParticles) {
@@ -1957,18 +1937,6 @@ public class CloudLevel implements Level, BlockStateRegion {
         }
 
         return item;
-    }
-
-    private boolean isBreakingTooFast(Vector3i position, ItemStack item, Player player) {
-        if (player.isCreative()) {
-            return false;
-        }
-
-        ItemStack tool = item == null || item.isEmpty() ? ItemStack.EMPTY : item;
-        BlockState state = this.getBlockState(position);
-        long breakTimeMillis = Math.round(ToolUtils.getBreakTicks(player, tool, state)
-                * 50L * MINIMUM_PREDICTED_BREAK_PROGRESS);
-        return ((CloudPlayer) player).lastBreak + breakTimeMillis > System.currentTimeMillis();
     }
 
     @Override
