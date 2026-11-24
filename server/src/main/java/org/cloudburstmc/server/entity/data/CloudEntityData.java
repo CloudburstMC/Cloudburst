@@ -27,8 +27,14 @@ public class CloudEntityData {
     @JsonProperty("Invulnerable")
     private boolean invulnerable;
 
+    @JsonProperty("Cloudburst.BaseMaxHealth")
+    private Integer baseMaxHealthOverride;
+
     @JsonProperty("TicksFrozen")
     private Integer ticksFrozen;
+
+    @JsonProperty("Cloudburst.FreezeLock")
+    private Boolean freezeTickingLocked;
 
     @JsonProperty("FromBucket")
     private Boolean fromBucket;

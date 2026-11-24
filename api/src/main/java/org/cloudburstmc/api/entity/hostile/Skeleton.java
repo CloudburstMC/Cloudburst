@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.hostile;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface Skeleton extends Entity {
+/**
+ * The standard bow-wielding skeleton type.
+ */
+public interface Skeleton extends AbstractSkeleton {
 }

@@ -20,7 +20,7 @@ public class EntityTeleportEndGatewayEvent extends EntityTeleportEvent {
      * @param gateway the gateway causing the teleport
      */
     public EntityTeleportEndGatewayEvent(Entity entity, Location from, Location to, EndGateway gateway) {
-        super(entity, from, to);
+        super(entity, from, to, TeleportCause.END_GATEWAY);
         this.gateway = gateway;
     }
 

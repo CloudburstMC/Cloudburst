@@ -12,7 +12,6 @@ import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.server.entity.vehicle.DismountHelper;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -94,14 +93,14 @@ public class RespawnAnchorBlockHandlers {
         }
         safePosition = findHorizontalStandUpPosition(level, position, 1, avoidDanger);
         return safePosition != null ? safePosition
-                : DismountHelper.findSafeDismountLocation(level, position.add(0, 1, 0), avoidDanger);
+                : StandUpPosition.find(level, position.add(0, 1, 0), avoidDanger);
     }
 
     private static @Nullable Vector3f findHorizontalStandUpPosition(CloudLevel level, Vector3i position,
                                                                      int yOffset, boolean avoidDanger) {
         for (Vector3i horizontalOffset : HORIZONTAL_OFFSETS) {
             Vector3i candidate = position.add(horizontalOffset).add(0, yOffset, 0);
-            Vector3f safePosition = DismountHelper.findSafeDismountLocation(level, candidate, avoidDanger);
+            Vector3f safePosition = StandUpPosition.find(level, candidate, avoidDanger);
             if (safePosition != null) {
                 return safePosition;
             }

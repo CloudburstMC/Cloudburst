@@ -22,7 +22,7 @@ public class EntitySnapshotSerializer implements ItemDataComponentSerializer<Ent
 
         tag.putCompound(TAG, NbtMap.builder()
                 .putString("type", snapshot.getType().getId().toString())
-                .putCompound("data", snapshot.data())
+                .putCompound("data", snapshot.copyData())
                 .build());
     }
 

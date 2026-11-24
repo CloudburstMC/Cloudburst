@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.hostile;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface Piglin extends Entity {
+/**
+ * The Nether humanoid associated with gold bartering.
+ */
+public interface Piglin extends Monster {
 }

@@ -7,10 +7,14 @@ import org.cloudburstmc.api.util.Identifier;
 import java.util.*;
 
 import static org.cloudburstmc.api.entity.damage.DamageEffect.*;
-import static org.cloudburstmc.api.entity.damage.DamageScaling.*;
+import static org.cloudburstmc.api.entity.damage.DamageScaling.ALWAYS;
+import static org.cloudburstmc.api.entity.damage.DamageScaling.WHEN_CAUSED_BY_LIVING_NON_PLAYER;
 import static org.cloudburstmc.api.entity.damage.DamageTypeTags.*;
 import static org.cloudburstmc.api.entity.damage.DeathMessageType.*;
 
+/**
+ * Built-in damage types used to construct damage sources.
+ */
 @UtilityClass
 public class DamageTypes {
     private static final BuiltInTypeCatalog<DamageType> TYPES = BuiltInTypeCatalog.create(DamageType::getId);
@@ -40,7 +44,7 @@ public class DamageTypes {
     public static final DamageType INDIRECT_MAGIC = type("indirect_magic", "indirectMagic", WHEN_CAUSED_BY_LIVING_NON_PLAYER, 0, HURT, DEFAULT, BYPASSES_ARMOR, WITCH_RESISTANT_TO, BYPASSES_WOLF_ARMOR, PANIC_CAUSES);
     public static final DamageType LAVA = type("lava", "lava", WHEN_CAUSED_BY_LIVING_NON_PLAYER, 0.1f, BURNING, DEFAULT, BYPASSES_SHIELD, IS_FIRE, NO_KNOCKBACK, PANIC_ENVIRONMENTAL_CAUSES);
     public static final DamageType LIGHTNING_BOLT = type("lightning_bolt", "lightningBolt", WHEN_CAUSED_BY_LIVING_NON_PLAYER, 0.1f, HURT, DEFAULT, BYPASSES_SHIELD, IS_LIGHTNING, NO_KNOCKBACK, PANIC_ENVIRONMENTAL_CAUSES);
-    public static final DamageType MACE_SMASH = type("mace_smash", "maceSmash.player", WHEN_CAUSED_BY_LIVING_NON_PLAYER, 0.1f, HURT, DEFAULT, SULFUR_CUBE_WITH_BLOCK_IMMUNE_TO, IS_PLAYER_ATTACK, IS_MACE_SMASH);
+    public static final DamageType MACE_SMASH = type("mace_smash", "maceSmash.player", WHEN_CAUSED_BY_LIVING_NON_PLAYER, 0.1f, HURT, DEFAULT, SULFUR_CUBE_WITH_BLOCK_IMMUNE_TO, IS_PLAYER_ATTACK, DamageTypeTags.MACE_SMASH);
     public static final DamageType MAGIC = type("magic", "magic", WHEN_CAUSED_BY_LIVING_NON_PLAYER, 0, HURT, DEFAULT, BYPASSES_ARMOR, WITCH_RESISTANT_TO, AVOIDS_GUARDIAN_THORNS, ALWAYS_TRIGGERS_SILVERFISH, NO_KNOCKBACK, BYPASSES_WOLF_ARMOR, PANIC_CAUSES);
     public static final DamageType MOB_ATTACK = type("mob_attack", "mob", WHEN_CAUSED_BY_LIVING_NON_PLAYER, 0.1f, HURT, DEFAULT, SULFUR_CUBE_WITH_BLOCK_IMMUNE_TO, PANIC_CAUSES);
     public static final DamageType MOB_ATTACK_NO_AGGRO = type("mob_attack_no_aggro", "mob", WHEN_CAUSED_BY_LIVING_NON_PLAYER, 0.1f, HURT, DEFAULT, SULFUR_CUBE_WITH_BLOCK_IMMUNE_TO, NO_ANGER);

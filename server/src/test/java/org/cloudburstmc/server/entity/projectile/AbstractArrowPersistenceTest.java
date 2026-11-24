@@ -48,6 +48,20 @@ class AbstractArrowPersistenceTest {
     }
 
     @Test
+    void criticalStateSurvivesReloadAndCanBeCleared() {
+        TestArrow arrow = arrow();
+        arrow.setCritical(true);
+
+        TestArrow restored = arrow();
+        restored.loadAdditionalData(save(arrow));
+        assertTrue(restored.isCritical());
+
+        restored.setCritical(false);
+        arrow.loadAdditionalData(save(restored));
+        assertFalse(arrow.isCritical());
+    }
+
+    @Test
     void dataRoundTripPreservesKeysAndTypes() {
         TestArrow arrow = arrow();
 

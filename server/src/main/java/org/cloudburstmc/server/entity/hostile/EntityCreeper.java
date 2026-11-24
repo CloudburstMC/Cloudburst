@@ -29,7 +29,7 @@ public class EntityCreeper extends EntityHostile implements Creeper {
     protected void initEntity() {
         super.initEntity();
 
-        this.setMaxHealth(20);
+        this.setDefaultMaxHealth(20);
     }
 
     @Override
@@ -44,10 +44,8 @@ public class EntityCreeper extends EntityHostile implements Creeper {
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // Runs before the living-state load below,
-        // matching the historical load order.
         if (tag.containsKey("powered")) {
-            this.setPowered(getBoolean(tag, "powered", this.isPowered()));
+            this.data.setFlag(POWERED, getBoolean(tag, "powered", this.isPowered()));
         }
         super.loadCustom(tag);
     }
@@ -65,35 +63,34 @@ public class EntityCreeper extends EntityHostile implements Creeper {
         return Set.copyOf(keys);
     }
 
+    @Override
     public boolean isPowered() {
         return this.data.getFlag(POWERED);
     }
 
-    public void setPowered(LightningBolt lightningBolt) {
-        CreeperPowerEvent ev = new CreeperPowerEvent(this, lightningBolt, CreeperPowerEvent.PowerCause.LIGHTNING);
-        this.getServer().getEventManager().fire(ev);
-
-        if (!ev.isCancelled()) {
-            this.data.setFlag(POWERED, true);
-        }
+    @Override
+    public void setPowered(boolean powered) {
+        CreeperPowerEvent.PowerCause cause = powered ? CreeperPowerEvent.PowerCause.SET_ON
+                : CreeperPowerEvent.PowerCause.SET_OFF;
+        this.changePower(new CreeperPowerEvent(this, cause), powered);
     }
 
-    public void setPowered(boolean powered) {
-        CreeperPowerEvent ev = new CreeperPowerEvent(this, powered ? CreeperPowerEvent.PowerCause.SET_ON : CreeperPowerEvent.PowerCause.SET_OFF);
-        this.getServer().getEventManager().fire(ev);
-
-        if (!ev.isCancelled()) {
+    private void changePower(CreeperPowerEvent event, boolean powered) {
+        this.getServer().getEventManager().fire(event);
+        if (!event.isCancelled() && !this.isClosed() && this.isPowered() != powered) {
             this.data.setFlag(POWERED, powered);
+            this.markChunkDirty();
         }
     }
 
     @Override
     public void onStruckByLightning(LightningBolt lightningBolt) {
-        this.setPowered(true);
+        super.onStruckByLightning(lightningBolt);
+        this.changePower(new CreeperPowerEvent(this, lightningBolt, CreeperPowerEvent.PowerCause.LIGHTNING), true);
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Creeper";
     }
 

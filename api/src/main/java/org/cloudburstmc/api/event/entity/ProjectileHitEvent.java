@@ -1,6 +1,6 @@
 package org.cloudburstmc.api.event.entity;
 
-import org.cloudburstmc.api.entity.Projectile;
+import org.cloudburstmc.api.entity.projectile.Projectile;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.util.BlockHitResult;
 import org.cloudburstmc.api.util.EntityHitResult;
@@ -44,6 +44,9 @@ public class ProjectileHitEvent extends EntityEvent implements Cancellable {
         this.hit = requireNonNull(hit, "hit");
     }
 
+    /**
+     * Returns the projectile involved in this hit.
+     */
     @Override
     public Projectile getEntity() {
         return (Projectile) this.entity;

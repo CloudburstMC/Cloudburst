@@ -12,6 +12,9 @@ import org.cloudburstmc.api.util.Identifier;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Built-in entity types. Use the entity registry to look up custom types.
+ */
 @UtilityClass
 public class EntityTypes {
     private static final BuiltInTypeCatalog<EntityType<?>> TYPES = BuiltInTypeCatalog.create(EntityType::getId);
@@ -30,7 +33,7 @@ public class EntityTypes {
     public static final EntityType<Boat> BOAT = type("boat", Boat.class);
     public static final EntityType<Bogged> BOGGED = type("bogged", Bogged.class);
     public static final EntityType<Breeze> BREEZE = type("breeze", Breeze.class);
-    public static final EntityType<BreezeWindChargeProjectile> BREEZE_WIND_CHARGE_PROJECTILE = type("breeze_wind_charge_projectile", BreezeWindChargeProjectile.class);
+    public static final EntityType<BreezeWindCharge> BREEZE_WIND_CHARGE = type("breeze_wind_charge_projectile", BreezeWindCharge.class);
     public static final EntityType<Camel> CAMEL = type("camel", Camel.class);
     public static final EntityType<CamelHusk> CAMEL_HUSK = type("camel_husk", CamelHusk.class);
     public static final EntityType<Cat> CAT = type("cat", Cat.class);
@@ -59,13 +62,12 @@ public class EntityTypes {
     public static final EntityType<EnderPearl> ENDER_PEARL = type("ender_pearl", EnderPearl.class);
     public static final EntityType<Enderman> ENDERMAN = type("enderman", Enderman.class);
     public static final EntityType<Endermite> ENDERMITE = type("endermite", Endermite.class);
-    public static final EntityType<EvocationFang> EVOCATION_FANG = type("evocation_fang", EvocationFang.class);
-    public static final EntityType<EvocationIllager> EVOCATION_ILLAGER = type("evocation_illager", EvocationIllager.class);
+    public static final EntityType<Evoker> EVOKER = type("evocation_illager", Evoker.class);
+    public static final EntityType<EvokerFangs> EVOKER_FANGS = type("evocation_fang", EvokerFangs.class);
     public static final EntityType<ExperienceOrb> XP_ORB = type("xp_orb", ExperienceOrb.class);
     public static final EntityType<EyeOfEnderSignal> EYE_OF_ENDER_SIGNAL = type("eye_of_ender_signal", EyeOfEnderSignal.class);
     public static final EntityType<FallingBlock> FALLING_BLOCK = type("falling_block", FallingBlock.class);
-    public static final EntityType<Fireball> FIREBALL = type("fireball", Fireball.class);
-    public static final EntityType<FireworksRocket> FIREWORKS_ROCKET = type("fireworks_rocket", FireworksRocket.class);
+    public static final EntityType<FireworkRocket> FIREWORK_ROCKET = type("fireworks_rocket", FireworkRocket.class);
     public static final EntityType<FishingHook> FISHING_HOOK = type("fishing_hook", FishingHook.class);
     public static final EntityType<Fox> FOX = type("fox", Fox.class);
     public static final EntityType<Frog> FROG = type("frog", Frog.class);
@@ -77,10 +79,11 @@ public class EntityTypes {
     public static final EntityType<Hoglin> HOGLIN = type("hoglin", Hoglin.class);
     public static final EntityType<HopperMinecart> HOPPER_MINECART = type("hopper_minecart", HopperMinecart.class);
     public static final EntityType<Horse> HORSE = type("horse", Horse.class);
-    public static final EntityType<Human> PLAYER = type("player", Human.class);
+    public static final EntityType<HumanEntity> PLAYER = type("player", HumanEntity.class);
     public static final EntityType<Husk> HUSK = type("husk", Husk.class);
     public static final EntityType<IceBomb> ICE_BOMB = type("ice_bomb", IceBomb.class);
     public static final EntityType<IronGolem> IRON_GOLEM = type("iron_golem", IronGolem.class);
+    public static final EntityType<LargeFireball> LARGE_FIREBALL = type("fireball", LargeFireball.class);
     public static final EntityType<LeashKnot> LEASH_KNOT = type("leash_knot", LeashKnot.class);
     public static final EntityType<LightningBolt> LIGHTNING_BOLT = type("lightning_bolt", LightningBolt.class);
     public static final EntityType<LingeringPotion> LINGERING_POTION = type("lingering_potion", LingeringPotion.class);
@@ -127,6 +130,7 @@ public class EntityTypes {
     public static final EntityType<Strider> STRIDER = type("strider", Strider.class);
     public static final EntityType<SulfurCube> SULFUR_CUBE = type("sulfur_cube", SulfurCube.class);
     public static final EntityType<Tadpole> TADPOLE = type("tadpole", Tadpole.class);
+    public static final EntityType<ThrownExperienceBottle> THROWN_EXPERIENCE_BOTTLE = type("xp_bottle", ThrownExperienceBottle.class);
     public static final EntityType<ThrownTrident> THROWN_TRIDENT = type("thrown_trident", ThrownTrident.class);
     public static final EntityType<TntMinecart> TNT_MINECART = type("tnt_minecart", TntMinecart.class);
     public static final EntityType<TraderLlama> TRADER_LLAMA = type("trader_llama", TraderLlama.class);
@@ -138,20 +142,19 @@ public class EntityTypes {
     public static final EntityType<Vindicator> VINDICATOR = type("vindicator", Vindicator.class);
     public static final EntityType<WanderingTrader> WANDERING_TRADER = type("wandering_trader", WanderingTrader.class);
     public static final EntityType<Warden> WARDEN = type("warden", Warden.class);
-    public static final EntityType<WindChargeProjectile> WIND_CHARGE_PROJECTILE = type("wind_charge_projectile", WindChargeProjectile.class);
+    public static final EntityType<WindCharge> WIND_CHARGE = type("wind_charge_projectile", WindCharge.class);
     public static final EntityType<Witch> WITCH = type("witch", Witch.class);
     public static final EntityType<Wither> WITHER = type("wither", Wither.class);
     public static final EntityType<WitherSkeleton> WITHER_SKELETON = type("wither_skeleton", WitherSkeleton.class);
     public static final EntityType<WitherSkull> WITHER_SKULL = type("wither_skull", WitherSkull.class);
     public static final EntityType<WitherSkull> WITHER_SKULL_DANGEROUS = type("wither_skull_dangerous", WitherSkull.class);
     public static final EntityType<Wolf> WOLF = type("wolf", Wolf.class);
-    public static final EntityType<XpBottle> XP_BOTTLE = type("xp_bottle", XpBottle.class);
     public static final EntityType<Zoglin> ZOGLIN = type("zoglin", Zoglin.class);
     public static final EntityType<Zombie> ZOMBIE = type("zombie", Zombie.class);
     public static final EntityType<ZombieHorse> ZOMBIE_HORSE = type("zombie_horse", ZombieHorse.class);
     public static final EntityType<ZombieNautilus> ZOMBIE_NAUTILUS = type("zombie_nautilus", ZombieNautilus.class);
-    public static final EntityType<ZombiePigman> ZOMBIE_PIGMAN = type("zombie_pigman", ZombiePigman.class);
     public static final EntityType<ZombieVillager> ZOMBIE_VILLAGER = type("zombie_villager_v2", ZombieVillager.class);
+    public static final EntityType<ZombifiedPiglin> ZOMBIFIED_PIGLIN = type("zombie_pigman", ZombifiedPiglin.class);
 
     /**
      * Finds a built-in entity type by identifier.

@@ -1,13 +1,13 @@
 package org.cloudburstmc.api.entity.misc;
 
-import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.LivingEntity;
 import org.cloudburstmc.api.item.EquipmentSlot;
 import org.cloudburstmc.api.item.ItemStack;
 
 /**
  * A stand that displays armor and held items.
  */
-public interface ArmorStand extends Entity {
+public interface ArmorStand extends LivingEntity {
 
     /**
      * Returns the stack in the slot, or an empty stack if the slot is unoccupied.

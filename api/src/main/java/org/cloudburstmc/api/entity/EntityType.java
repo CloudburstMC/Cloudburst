@@ -5,6 +5,11 @@ import org.cloudburstmc.api.util.Identifier;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * An entity type identified by a namespaced key and its API class.
+ *
+ * @param <T> the entity API type
+ */
 public final class EntityType<T extends Entity> {
     private final Identifier identifier;
     private final Class<T> entityClass;

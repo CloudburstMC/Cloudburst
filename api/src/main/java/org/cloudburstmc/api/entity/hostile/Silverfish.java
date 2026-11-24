@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.hostile;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface Silverfish extends Entity {
+/**
+ * The small monster associated with infested blocks.
+ */
+public interface Silverfish extends Monster {
 }

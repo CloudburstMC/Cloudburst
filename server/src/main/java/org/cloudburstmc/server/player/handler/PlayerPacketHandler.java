@@ -64,8 +64,6 @@ import org.cloudburstmc.server.entity.vehicle.EntityAbstractMinecart;
 import org.cloudburstmc.server.entity.vehicle.EntityBoat;
 import org.cloudburstmc.server.entity.vehicle.EntityChestBoat;
 import org.cloudburstmc.server.event.server.DataPacketReceiveEvent;
-import org.cloudburstmc.server.form.CustomForm;
-import org.cloudburstmc.server.form.Form;
 import org.cloudburstmc.server.item.BookEditor;
 import org.cloudburstmc.server.item.ItemStackPacketCodec;
 import org.cloudburstmc.server.item.ToolUtils;
@@ -81,15 +79,11 @@ import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.ItemPickController;
 import org.cloudburstmc.server.player.RespawnConfig;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import static org.cloudburstmc.server.player.CloudPlayer.DEFAULT_SPEED;
 
 /**
  * Handles all incoming packets from a connected player.
@@ -239,9 +233,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         boolean horizontalCollision = packet.getInputData().contains(PlayerAuthInputData.HORIZONTAL_COLLISION);
         boolean onGround = verticalCollision && delta.getY() <= 0;
 
-        player.isCollidedVertically = verticalCollision;
-        player.isCollidedHorizontally = horizontalCollision;
-        player.setOnGround(onGround);
+        player.updateCollisionContact(horizontalCollision, onGround, null);
 
         Vector3f newPos = rawPos.sub(0, player.getBaseOffset(), 0);
         Vector3f currentPos = player.getPosition();
@@ -279,7 +271,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
 
         player.setNewPosition(newPos);
-        player.setForceMovement(null);
 
     }
 
@@ -290,7 +281,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
         player.setRotation(packet.getRotation().getY() % 360, packet.getRotation().getX() % 360);
         if (player.getVehicle() instanceof EntityAbstractMinecart minecart) {
-            minecart.setInputMotionY(readForwardInput(packet));
+            minecart.handleRiderInput(player, readMinecartInput(packet));
         } else if (player.getVehicle() instanceof EntityBoat boat && boat.isControlling(player)) {
             Set<PlayerAuthInputData> input = packet.getInputData();
             Vector2f rotation = packet.getVehicleRotation();
@@ -331,21 +322,19 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
     }
 
-    private float readForwardInput(PlayerAuthInputPacket packet) {
+    private static Vector2f readMinecartInput(PlayerAuthInputPacket packet) {
         InputMode inputMode = packet.getInputMode();
-        boolean isMobileClassic = inputMode == InputMode.TOUCH && packet.getInputInteractionModel() == InputInteractionModel.CLASSIC;
-        if (inputMode == InputMode.MOUSE || isMobileClassic) {
-            Set<PlayerAuthInputData> inputData = packet.getInputData();
-            if (inputData.contains(PlayerAuthInputData.UP)) {
-                return 1.0f;
-            } else if (inputData.contains(PlayerAuthInputData.DOWN)) {
-                return -1.0f;
-            }
-
-            return 0.0f;
+        boolean classicTouch = inputMode == InputMode.TOUCH && packet.getInputInteractionModel() == InputInteractionModel.CLASSIC;
+        if (inputMode != InputMode.MOUSE && !classicTouch) {
+            return packet.getAnalogMoveVector();
         }
 
-        return packet.getAnalogMoveVector().getY();
+        Set<PlayerAuthInputData> input = packet.getInputData();
+        boolean forward = input.contains(PlayerAuthInputData.UP) || input.contains(PlayerAuthInputData.UP_LEFT) || input.contains(PlayerAuthInputData.UP_RIGHT);
+        boolean backward = input.contains(PlayerAuthInputData.DOWN) || input.contains(PlayerAuthInputData.DOWN_LEFT) || input.contains(PlayerAuthInputData.DOWN_RIGHT);
+        boolean left = input.contains(PlayerAuthInputData.LEFT) || input.contains(PlayerAuthInputData.UP_LEFT) || input.contains(PlayerAuthInputData.DOWN_LEFT);
+        boolean right = input.contains(PlayerAuthInputData.RIGHT) || input.contains(PlayerAuthInputData.UP_RIGHT) || input.contains(PlayerAuthInputData.DOWN_RIGHT);
+        return Vector2f.from(left == right ? 0 : left ? 1 : -1, forward == backward ? 0 : forward ? 1 : -1);
     }
 
     private void processBlockActions(PlayerAuthInputPacket packet) {
@@ -1064,11 +1053,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     }
                     break;
                 case STOP_GLIDING:
-                    if (player.isGliding()) {
-                        player.stopGliding();
-                    } else {
-                        player.sendFlags(player);
-                    }
+                    player.stopGliding();
                     break;
                 default:
                     break;
@@ -1144,7 +1129,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
         int newSlot = packet.getHotbarSlot();
         if (newSlot < 0 || newSlot > 8) {
-            player.sendHeldItemSlot();
+            player.sendHotbarSelection();
             return PacketSignal.HANDLED;
         }
 
@@ -1160,7 +1145,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         PlayerItemHeldEvent event = new PlayerItemHeldEvent(player, heldItem, slot);
         player.getServer().getEventManager().fire(event);
         if (event.isCancelled()) {
-            player.sendHeldItemSlot();
+            player.sendHotbarSelection();
             return;
         }
         player.acknowledgeHotbarSlot(slot);
@@ -1216,18 +1201,17 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         player.getAbilities().set(Ability.FLYING, false);
         player.getData().set(EntityDataTypes.AIR_SUPPLY, (short) 400);
         player.deadTicks = 0;
-        player.noDamageTicks = 60;
+        player.setNoDamageTicks(60);
         player.clearActivePotionEffects(PotionEffectCause.DEATH);
         player.setHealth(player.getMaxHealth());
         player.getFoodData().reset();
-        player.setMovementSpeed(DEFAULT_SPEED);
 
         player.recalculateBoundingBox();
         player.sendAttributes();
         player.sendData(player);
         player.getAbilities().update();
         player.getInventoryManager().sendAllInventories();
-        player.spawnToAll();
+        player.refreshViewers();
         player.scheduleUpdate();
 
         PlayerPostRespawnEvent postRespawnEvent = new PlayerPostRespawnEvent(player, respawnLocation, bedSpawn, anchorSpawn);
@@ -1301,41 +1285,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     }
 
     @Override
-    public PacketSignal handle(ModalFormResponsePacket packet) {
-        if (!player.spawned || !player.isAlive()) {
-            return PacketSignal.HANDLED;
-        }
-
-        Form<?> window = player.removeFormWindow(packet.getFormId());
-
-        if (window == null) {
-            if (player.getServerSettings() != null && player.getServerSettingsId() == packet.getFormId()) {
-                window = player.getServerSettings();
-            } else {
-                return PacketSignal.HANDLED;
-            }
-        }
-
-        try {
-            JsonNode response = new JsonMapper().readTree(packet.getFormData());
-
-            if (response.isNull()) {
-                window.close(player);
-            } else {
-                try {
-                    window.handleResponse(player, response);
-                } catch (Exception e) {
-                    log.error("Error while handling form response", e);
-                    window.error(player);
-                }
-            }
-        } catch (JacksonException e) {
-            log.debug("Received corrupted form json data");
-        }
-        return PacketSignal.HANDLED;
-    }
-
-    @Override
     public PacketSignal handle(InteractPacket packet) {
         if (!player.spawned || !player.isAlive()) {
             return PacketSignal.HANDLED;
@@ -1371,13 +1320,9 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 player.dismount(player.getVehicle(), true, exitPosition);
                 break;
             case OPEN_INVENTORY:
-                if (targetEntity instanceof EntityChestBoat chestBoat) {
-                    chestBoat.openInventory(player);
-                    break;
-                }
-
-                if (targetEntity == player && player.getVehicle() instanceof EntityChestBoat chestBoat) {
-                    chestBoat.openInventory(player);
+                Entity storageTarget = targetEntity == player ? player.getVehicle() : targetEntity;
+                if (storageTarget instanceof EntityChestBoat chestBoat) {
+                    chestBoat.openStorage(player);
                     break;
                 }
 
@@ -1439,7 +1384,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
         Entity entity = player.getLevel().getEntityByRuntimeId(packet.getRuntimeEntityId());
         if (entity == null || entity.isClosed() || !entity.isAlive()
-                || !entity.getViewers().contains(player) || !player.canInteractWithEntity(entity)) {
+                || !entity.getViewers().contains(player) || player.isEntityOutOfReach(entity)) {
             return PacketSignal.HANDLED;
         }
 
@@ -1732,19 +1677,23 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     break;
                 }
 
-                if (!player.canInteractWithEntity(target)) {
+                if (player.isEntityOutOfReach(target)) {
                     break;
                 }
 
                 Vector3f clickPos = packet.getClickPosition();
                 switch (packet.getActionType()) {
                     case 0: { // interact with entity
+                        if (!(target instanceof CloudEntity entity)) {
+                            break;
+                        }
+
                         PlayerInteractEntityEvent interactEntityEvent = new PlayerInteractEntityEvent(player, target, heldItem, clickPos);
                         player.getServer().getEventManager().fire(interactEntityEvent);
                         if (interactEntityEvent.isCancelled()) {
                             break;
                         }
-                        target.onInteract(player, heldItem, clickPos);
+                        entity.handleInteraction(player, heldItem, clickPos);
                         break;
                     }
                     case 1: { // attack entity
@@ -1770,25 +1719,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             default:
                 player.getInventoryManager().sendAllInventories();
                 break;
-        }
-        return PacketSignal.HANDLED;
-    }
-
-    @Override
-    public PacketSignal handle(ServerSettingsRequestPacket packet) {
-        CustomForm settings = player.getServerSettings();
-
-        if (settings == null) {
-            return PacketSignal.HANDLED;
-        }
-
-        try {
-            ServerSettingsResponsePacket re = new ServerSettingsResponsePacket();
-            re.setFormId(player.getServerSettingsId());
-            re.setFormData(new JsonMapper().writeValueAsString(settings));
-            player.sendPacket(re);
-        } catch (JacksonException e) {
-            log.error("Error while writing form data", e);
         }
         return PacketSignal.HANDLED;
     }

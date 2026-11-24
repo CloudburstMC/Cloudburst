@@ -13,7 +13,7 @@ public class EntityAllay extends Animal implements Allay {
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(20);
+        this.setDefaultMaxHealth(20);
     }
 
     @Override
@@ -27,7 +27,7 @@ public class EntityAllay extends Animal implements Allay {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Allay";
     }
 }

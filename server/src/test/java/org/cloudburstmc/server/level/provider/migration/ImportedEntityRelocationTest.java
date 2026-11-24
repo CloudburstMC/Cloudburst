@@ -44,8 +44,9 @@ class ImportedEntityRelocationTest {
             tag.remove("identifier");
             tag.putString("id", name);
 
-            assertEquals(expected.toString(), ImportedEntityData.entities(List.of(tag.build()), UnaryOperator.identity())
-                    .getFirst().getString("identifier"));
+            NbtMap converted = ImportedEntityData.entities(List.of(tag.build()), UnaryOperator.identity()).getFirst();
+            assertEquals(expected.toString(), converted.getString("identifier"));
+            assertFalse(converted.containsKey("id"));
         });
 
         assertNull(registry.getIdentifier("UnregisteredTestEntity"));
@@ -54,6 +55,45 @@ class ImportedEntityRelocationTest {
 
         assertThrows(IllegalArgumentException.class,
                 () -> ImportedEntityData.entities(List.of(unsupported), UnaryOperator.identity()));
+    }
+
+    @Test
+    void importNormalizesLegacyNamesWithoutReplacingCustomNames() {
+        NbtMap legacy = entity("legacy", 1, 64, 1).toBuilder()
+                .putString("NameTag", "Old name")
+                .build();
+        NbtMap current = legacy.toBuilder()
+                .putString("CustomName", "Current name")
+                .build();
+
+        List<NbtMap> converted = ImportedEntityData.entities(List.of(legacy, current), UnaryOperator.identity());
+
+        assertEquals("Old name", converted.getFirst().getString("CustomName"));
+        assertEquals("Current name", converted.getLast().getString("CustomName"));
+        assertFalse(converted.getFirst().containsKey("NameTag"));
+        assertFalse(converted.getLast().containsKey("NameTag"));
+    }
+
+    @Test
+    void stripsRetiredKeysOnlyFromTheEntitiesThatRetiredThem() {
+        NbtMap base = entity("test", 1, 64, 1).toBuilder()
+                .putLong("OwnerID", 123L)
+                .putFloat("damage", 2f)
+                .build();
+        NbtMap wolf = base.toBuilder()
+                .putString("identifier", "minecraft:wolf")
+                .putString("Cloudburst.OwnerUUID", "12345678-1234-4321-8234-123456789abc")
+                .build();
+        NbtMap eye = base.toBuilder().putString("identifier", "minecraft:eye_of_ender_signal").build();
+        NbtMap arrow = base.toBuilder().putString("identifier", "minecraft:arrow").build();
+
+        List<NbtMap> converted = ImportedEntityData.entities(List.of(base, wolf, eye, arrow), UnaryOperator.identity());
+
+        assertEquals(123L, converted.getFirst().getLong("OwnerID"));
+        assertFalse(converted.get(1).containsKey("OwnerID"));
+        assertEquals(wolf.getString("Cloudburst.OwnerUUID"), converted.get(1).getString("Cloudburst.OwnerUUID"));
+        assertFalse(converted.get(2).containsKey("damage"));
+        assertEquals(2f, converted.getLast().getFloat("damage"));
     }
 
     @Test

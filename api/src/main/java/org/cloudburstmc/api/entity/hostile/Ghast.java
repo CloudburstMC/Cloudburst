@@ -1,6 +1,9 @@
 package org.cloudburstmc.api.entity.hostile;
 
-import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.Mob;
 
-public interface Ghast extends Entity {
+/**
+ * The hostile Nether ghast, distinct from a happy ghast.
+ */
+public interface Ghast extends Mob, Enemy {
 }

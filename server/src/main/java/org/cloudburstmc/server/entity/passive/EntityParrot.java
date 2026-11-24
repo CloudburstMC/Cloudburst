@@ -9,13 +9,14 @@ import org.cloudburstmc.api.level.Location;
 /**
  * @author PikyCZ
  */
-public class EntityParrot extends Animal implements Parrot {
+public class EntityParrot extends EntityTameable implements Parrot {
 
     public EntityParrot(EntityType<Parrot> type, Location location) {
         super(type, location);
     }
 
-    public String getName() {
+    @Override
+    protected String getDefaultName() {
         return "Parrot";
     }
 
@@ -30,9 +31,9 @@ public class EntityParrot extends Animal implements Parrot {
     }
 
     @Override
-    public void initEntity() {
+    protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(6);
+        this.setDefaultMaxHealth(6);
     }
 
     @Override

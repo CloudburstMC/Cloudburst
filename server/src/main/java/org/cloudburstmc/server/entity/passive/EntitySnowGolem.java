@@ -3,18 +3,18 @@ package org.cloudburstmc.server.entity.passive;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.passive.SnowGolem;
-import org.cloudburstmc.api.event.player.PlayerShearEntityEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.server.entity.EntityCreature;
+import org.cloudburstmc.server.entity.CloudMob;
+import org.cloudburstmc.server.entity.component.MobNameTagInteraction;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
-import org.cloudburstmc.server.item.component.DefaultItemHandlers;
 
 import java.util.HashSet;
 import java.util.List;
@@ -23,9 +23,9 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.SHEARED;
 
-public class EntitySnowGolem extends EntityCreature implements SnowGolem {
+public class EntitySnowGolem extends CloudMob implements SnowGolem {
 
-    public EntitySnowGolem(EntityType<?> type, Location location) {
+    public EntitySnowGolem(EntityType<SnowGolem> type, Location location) {
         super(type, location);
     }
 
@@ -40,26 +40,22 @@ public class EntitySnowGolem extends EntityCreature implements SnowGolem {
     }
 
     @Override
-    public void initEntity() {
+    protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(4);
+        this.setDefaultMaxHealth(4);
         this.setHealth(4);
     }
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // Runs before the living-state load below,
-        // matching the historical load order.
-        if (tag.containsKey("Pumpkin")) {
-            this.setDerp(!getBoolean(tag, "Pumpkin", !this.isDerp()));
-        }
         super.loadCustom(tag);
+        this.setPumpkin(getBoolean(tag, "Pumpkin", this.hasPumpkin()));
     }
 
     @Override
     protected void saveCustom(NbtMapBuilder tag) {
         super.saveCustom(tag);
-        tag.putBoolean("Pumpkin", !this.isDerp());
+        tag.putBoolean("Pumpkin", this.hasPumpkin());
     }
 
     @Override
@@ -70,34 +66,41 @@ public class EntitySnowGolem extends EntityCreature implements SnowGolem {
     }
 
     @Override
-    public boolean onInteract(Player player, ItemStack item) {
-        if (item.getType() != ItemTypes.SHEARS || this.isDerp()) {
-            return false;
-        }
-
-        ItemStack pumpkin = ItemStack.builder(BlockStates.CARVED_PUMPKIN).build();
-        PlayerShearEntityEvent event = new PlayerShearEntityEvent(player, this, item, List.of(pumpkin));
-        this.server.getEventManager().fire(event);
-        if (event.isCancelled()) {
-            return true;
-        }
-
-        this.setDerp(true);
-        this.level.addLevelSoundEvent(this.getPosition(), SoundEvent.SHEAR);
-        for (ItemStack drop : event.getDrops()) {
-            this.level.dropItem(this.getPosition().add(0, this.getEyeHeight(), 0), drop);
-        }
-
-        if (!player.isCreative()) {
-            player.getInventory().setSelectedItem(DefaultItemHandlers.ON_DAMAGE.execute(item, 1, player));
-        }
-
-        return true;
+    protected boolean interactDefault(Player player, ItemStack item, Vector3f clickedPos) {
+        return PlayerShearing.tryShear(this, player, item, this::createShearingDrops, this::applyShearing)
+                || MobNameTagInteraction.tryApply(this, player, item);
     }
 
     @Override
-    protected boolean applyDamage(CloudEntityDamageEvent source) {
-        if (!super.applyDamage(source)) {
+    public boolean readyForShearing() {
+        return this.isAlive() && this.hasPumpkin();
+    }
+
+    @Override
+    public boolean shear() {
+        if (!this.readyForShearing()) {
+            return false;
+        }
+
+        this.applyShearing(this.createShearingDrops());
+        return true;
+    }
+
+    private List<ItemStack> createShearingDrops() {
+        return List.of(ItemStack.builder(BlockStates.CARVED_PUMPKIN).build());
+    }
+
+    private void applyShearing(List<ItemStack> drops) {
+        this.setPumpkin(false);
+        this.level.addLevelSoundEvent(this.getPosition(), SoundEvent.SHEAR);
+        for (ItemStack drop : drops) {
+            this.level.dropItem(this.getPosition().add(0, this.getEyeHeight(), 0), drop);
+        }
+    }
+
+    @Override
+    protected boolean applyDamage(CloudEntityDamageEvent event) {
+        if (!super.applyDamage(event)) {
             return false;
         }
 
@@ -114,13 +117,17 @@ public class EntitySnowGolem extends EntityCreature implements SnowGolem {
     }
 
     @Override
-    public boolean isDerp() {
-        return this.data.getFlag(SHEARED);
+    public boolean hasPumpkin() {
+        return !this.data.getFlag(SHEARED);
     }
 
     @Override
-    public void setDerp(boolean derp) {
-        this.data.setFlag(SHEARED, derp);
+    public void setPumpkin(boolean hasPumpkin) {
+        if (this.hasPumpkin() != hasPumpkin) {
+            this.data.setFlag(SHEARED, !hasPumpkin);
+            if (this.isValid()) {
+                this.markChunkDirty();
+            }
+        }
     }
-
 }

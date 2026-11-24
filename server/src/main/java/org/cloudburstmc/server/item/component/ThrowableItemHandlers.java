@@ -2,7 +2,7 @@ package org.cloudburstmc.server.item.component;
 
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.Projectile;
+import org.cloudburstmc.api.entity.projectile.Projectile;
 import org.cloudburstmc.api.item.component.UseHandler;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector3f;

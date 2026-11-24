@@ -47,6 +47,7 @@ dependencies {
         exclude(group = "dev.opencollab", module = "libdatachannel-java")
     }
     implementation(libs.adventure.text.logger.slf4j)
+    implementation(libs.adventure.text.serializer.gson)
     implementation(libs.adventure.text.serializer.plain)
     api(libs.block.state.updater)
     api(libs.bundles.fastutil)

@@ -85,6 +85,16 @@ public class CloudEntityDamageEvent extends EntityDamageEvent {
         return Math.max(0, this.getDamageAfterReductions() - this.absorption);
     }
 
+    /**
+     * Resolves the accepted hit against the absorption still available after callbacks.
+     * The event's damage preview remains based on the original defenses.
+     */
+    public DamageSplit resolveDamage(float availableAbsorption) {
+        float damage = this.getDamageAfterReductions();
+        float absorbed = Math.min(damage, Math.min(this.absorption, availableAbsorption));
+        return new DamageSplit(damage - absorbed, absorbed);
+    }
+
     private float getDamageAfterReductions() {
         return evaluate(this.reduction, this.getDamageBeforeReductions());
     }
@@ -93,5 +103,8 @@ public class CloudEntityDamageEvent extends EntityDamageEvent {
         double result = operation.applyAsDouble(damage);
         checkArgument(Double.isFinite(result) && result >= 0, "Damage calculation must be finite and non-negative");
         return (float) Math.min(result, Float.MAX_VALUE);
+    }
+
+    public record DamageSplit(float healthDamage, float absorbedDamage) {
     }
 }

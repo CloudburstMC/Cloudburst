@@ -4,7 +4,6 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockStates;
-import org.cloudburstmc.api.block.LiquidTypes;
 import org.cloudburstmc.api.entity.component.TickEntityHandler;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
@@ -20,14 +19,14 @@ import org.cloudburstmc.server.registry.CloudBiomeRegistry;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class SnowGolemEntityHandlers {
 
-    public static final TickEntityHandler ON_TICK = (entity, currentTick) -> {
+    public static final TickEntityHandler ON_TICK = (entity, _) -> {
         EntitySnowGolem snowGolem = (EntitySnowGolem) entity;
         if (!snowGolem.isAlive()) {
             return false;
         }
 
         damageFromEnvironment(snowGolem);
-        if (snowGolem.getLevel().getGameRules().get(GameRules.MOB_GRIEFING)) {
+        if (snowGolem.isAlive() && snowGolem.getLevel().getGameRules().get(GameRules.MOB_GRIEFING)) {
             placeSnowTrail(snowGolem);
         }
 
@@ -42,7 +41,7 @@ public final class SnowGolemEntityHandlers {
             snowGolem.damage(1, DamageSource.of(DamageTypes.ON_FIRE));
         }
 
-        if (level.getBlock(position).getLiquid().getType().isSameFamily(LiquidTypes.WATER)) {
+        if (snowGolem.isAlive() && snowGolem.isInWaterOrRain()) {
             snowGolem.damage(1, DamageSource.of(DamageTypes.DROWN));
         }
     }

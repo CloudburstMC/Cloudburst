@@ -1,52 +1,27 @@
 package org.cloudburstmc.server.entity.hostile;
 
-import org.cloudburstmc.api.entity.EntityAgeable;
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.item.ItemDataComponents;
+import org.cloudburstmc.api.entity.hostile.Enemy;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.server.container.view.CloudPlayerInventory;
-import org.cloudburstmc.server.entity.EntityCreature;
-import org.cloudburstmc.server.entity.data.CloudCreatureData;
+import org.cloudburstmc.server.entity.CloudMob;
+import org.cloudburstmc.server.entity.component.MobNameTagInteraction;
+import org.cloudburstmc.server.entity.data.CloudMobData;
 
-import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BABY;
-
-/**
- * Abstract base class for hostile mobs. Extends {@link EntityCreature} and implements {@link EntityAgeable}
- * for baby/adult state.
- */
-public abstract class EntityHostile extends EntityCreature implements EntityAgeable {
+public abstract class EntityHostile extends CloudMob implements Enemy {
 
     public EntityHostile(EntityType<?> type, Location location) {
-        this(type, location, new CloudCreatureData());
+        this(type, location, new CloudMobData());
     }
 
-    protected EntityHostile(EntityType<?> type, Location location, CloudCreatureData state) {
+    protected EntityHostile(EntityType<?> type, Location location, CloudMobData state) {
         super(type, location, state);
     }
 
     @Override
-    public boolean isBaby() {
-        return this.data.getFlag(BABY);
-    }
-
-    @Override
-    public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
-        if (super.onInteract(player, item, clickedPos)) {
-            return true;
-        }
-
-        if (item.getType() == ItemTypes.NAME_TAG) {
-            if (item.get(ItemDataComponents.CUSTOM_NAME) != null) {
-                this.setNameTag(item.get(ItemDataComponents.CUSTOM_NAME));
-                this.setNameTagVisible(true);
-                ((CloudPlayerInventory) player.getInventory()).getContainer().removeItem(item);
-                return true;
-            }
-        }
-        return false;
+    protected boolean interactDefault(Player player, ItemStack item, Vector3f clickedPos) {
+        return super.interactDefault(player, item, clickedPos) || MobNameTagInteraction.tryApply(this, player, item);
     }
 }

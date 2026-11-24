@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface Mooshroom extends Entity {
+/**
+ * A mushroom-covered cow, distinct from the standard {@link Cow}.
+ */
+public interface Mooshroom extends AbstractCow {
 }

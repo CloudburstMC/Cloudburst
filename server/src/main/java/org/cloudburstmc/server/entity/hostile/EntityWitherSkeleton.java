@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.entity.hostile;
 
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.Smiteable;
 import org.cloudburstmc.api.entity.hostile.WitherSkeleton;
 import org.cloudburstmc.api.level.Location;
 
@@ -10,16 +9,16 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMU
 /**
  * @author PikyCZ
  */
-public class EntityWitherSkeleton extends EntityHostile implements WitherSkeleton, Smiteable {
+public class EntityWitherSkeleton extends EntityAbstractSkeleton implements WitherSkeleton {
 
-    public EntityWitherSkeleton(EntityType<WitherSkeleton> type, Location location) {
-        super(type, location);
+    public EntityWitherSkeleton(EntityType<WitherSkeleton> entityType, Location location) {
+        super(entityType, location);
     }
 
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(20);
+        this.setDefaultMaxHealth(20);
 
         this.fireProof = true;
         this.data.setFlag(FIRE_IMMUNE, true);
@@ -36,13 +35,9 @@ public class EntityWitherSkeleton extends EntityHostile implements WitherSkeleto
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "WitherSkeleton";
     }
 
-    @Override
-    public boolean isUndead() {
-        return true;
-    }
 
 }

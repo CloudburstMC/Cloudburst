@@ -1,6 +1,6 @@
 package org.cloudburstmc.api.event.entity;
 
-import org.cloudburstmc.api.entity.Living;
+import org.cloudburstmc.api.entity.LivingEntity;
 import org.cloudburstmc.api.entity.misc.AreaEffectCloud;
 import org.cloudburstmc.api.event.Cancellable;
 
@@ -14,7 +14,7 @@ import static java.util.Objects.requireNonNull;
  * Called before an area effect cloud applies its effects.
  */
 public class AreaEffectCloudApplyEvent extends EntityEvent implements Cancellable {
-    private final List<Living> affectedEntities;
+    private final List<LivingEntity> affectedEntities;
 
     /**
      * Creates an area effect cloud application event.
@@ -22,7 +22,7 @@ public class AreaEffectCloudApplyEvent extends EntityEvent implements Cancellabl
      * @param areaEffectCloud  the applying cloud
      * @param affectedEntities the mutable list of entities selected for this application
      */
-    public AreaEffectCloudApplyEvent(AreaEffectCloud areaEffectCloud, List<Living> affectedEntities) {
+    public AreaEffectCloudApplyEvent(AreaEffectCloud areaEffectCloud, List<LivingEntity> affectedEntities) {
         this.entity = requireNonNull(areaEffectCloud, "areaEffectCloud");
         this.affectedEntities = new ArrayList<>(requireNonNull(affectedEntities, "affectedEntities"));
         checkArgument(!this.affectedEntities.contains(null), "affectedEntities cannot contain null");
@@ -40,7 +40,7 @@ public class AreaEffectCloudApplyEvent extends EntityEvent implements Cancellabl
      *
      * @return affected entities
      */
-    public List<Living> getAffectedEntities() {
+    public List<LivingEntity> getAffectedEntities() {
         return this.affectedEntities;
     }
 }

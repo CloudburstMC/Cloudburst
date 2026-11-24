@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.hostile;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface Husk extends Entity {
+/**
+ * The desert zombie variant.
+ */
+public interface Husk extends Zombie {
 }

@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.hostile;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface Zoglin extends Entity {
+/**
+ * The undead counterpart of a {@link Hoglin}.
+ */
+public interface Zoglin extends Monster {
 }

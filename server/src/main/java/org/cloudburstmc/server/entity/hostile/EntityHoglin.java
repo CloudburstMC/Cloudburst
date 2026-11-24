@@ -13,7 +13,7 @@ public class EntityHoglin extends EntityHostile implements Hoglin {
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(40);
+        this.setDefaultMaxHealth(40);
     }
 
     @Override
@@ -27,7 +27,7 @@ public class EntityHoglin extends EntityHostile implements Hoglin {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Hoglin";
     }
 }

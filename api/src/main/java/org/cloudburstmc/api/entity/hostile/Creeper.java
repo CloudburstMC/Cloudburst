@@ -1,6 +1,17 @@
 package org.cloudburstmc.api.entity.hostile;
 
-import org.cloudburstmc.api.entity.Entity;
+/**
+ * An explosive monster that can become charged.
+ */
+public interface Creeper extends Monster {
 
-public interface Creeper extends Entity {
+    /**
+     * Returns whether this creeper is charged.
+     */
+    boolean isPowered();
+
+    /**
+     * Changes whether this creeper is charged.
+     */
+    void setPowered(boolean powered);
 }

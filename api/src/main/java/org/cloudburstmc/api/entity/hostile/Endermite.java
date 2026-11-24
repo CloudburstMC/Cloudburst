@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.hostile;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface Endermite extends Entity {
+/**
+ * The small monster associated with ender pearl use.
+ */
+public interface Endermite extends Monster {
 }

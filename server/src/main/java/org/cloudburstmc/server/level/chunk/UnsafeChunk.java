@@ -11,6 +11,7 @@ import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.event.entity.EntityRemoveCause;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.player.Player;
@@ -443,12 +444,12 @@ final class UnsafeChunk implements Chunk, Closeable {
     @Override
     public void close() {
         if (CLOSED_FIELD.compareAndSet(this, 0, 1)) {
-            Entity[] entitySnapshot = this.entities.toArray(new Entity[0]);
-            for (Entity entity : entitySnapshot) {
+            CloudEntity[] entitySnapshot = this.entities.toArray(CloudEntity[]::new);
+            for (CloudEntity entity : entitySnapshot) {
                 if (entity instanceof Player) {
                     continue;
                 }
-                entity.close();
+                entity.remove(EntityRemoveCause.UNLOAD);
             }
 
             BaseBlockEntity[] tileSnapshot = this.tiles.values().toArray(new BaseBlockEntity[0]);

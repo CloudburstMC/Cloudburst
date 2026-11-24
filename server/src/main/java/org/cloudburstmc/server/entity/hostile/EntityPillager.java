@@ -13,7 +13,7 @@ public class EntityPillager extends EntityHostile implements Pillager {
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(24);
+        this.setDefaultMaxHealth(24);
     }
 
     @Override
@@ -27,7 +27,7 @@ public class EntityPillager extends EntityHostile implements Pillager {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Pillager";
     }
 }

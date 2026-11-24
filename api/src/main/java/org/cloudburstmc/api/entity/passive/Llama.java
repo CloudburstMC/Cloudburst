@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface Llama extends Entity {
+/**
+ * A pack animal and the base type for {@link TraderLlama}.
+ */
+public interface Llama extends AbstractHorse {
 }

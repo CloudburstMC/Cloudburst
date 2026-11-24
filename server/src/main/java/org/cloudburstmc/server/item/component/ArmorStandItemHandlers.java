@@ -1,19 +1,21 @@
 package org.cloudburstmc.server.item.component;
 
 import lombok.experimental.UtilityClass;
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.event.entity.EntityPlaceEvent;
+import org.cloudburstmc.api.event.entity.EntityRemoveCause;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.component.UseOnHandler;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.server.entity.CloudEntitySnapshot;
 import org.cloudburstmc.server.entity.misc.EntityArmorStand;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
 @UtilityClass
 public class ArmorStandItemHandlers {
@@ -32,25 +34,24 @@ public class ArmorStandItemHandlers {
 
         Vector3f feet = target.toFloat().add(0.5f, 0, 0.5f);
         float yaw = Math.round((player.getYaw() - 180) / 45f) * 45f;
-        EntityArmorStand stand = (EntityArmorStand) CloudEntitySnapshot.createFromItem(item, EntityTypes.ARMOR_STAND, Location.from(feet, yaw, 0, level));
+        EntityArmorStand stand = (EntityArmorStand) CloudEntityRegistry.get().createFromItem(item, EntityTypes.ARMOR_STAND, Location.from(feet, yaw, 0, level));
         if (stand.isClosed() || !stand.isAlive() || isObstructed(level, stand)) {
-            stand.close();
+            stand.remove(EntityRemoveCause.DISCARD);
             return item;
         }
 
         String name = item.get(ItemDataComponents.CUSTOM_NAME);
         if (name != null) {
-            stand.setNameTag(name);
+            stand.customName(Component.text(name));
         }
 
         EntityPlaceEvent event = new EntityPlaceEvent(stand, player, clicked, face);
         player.getServer().getEventManager().fire(event);
         if (event.isCancelled() || stand.isClosed() || stand.getLevel() != level || isObstructed(level, stand) || !stand.spawn()) {
-            stand.close();
+            stand.remove(EntityRemoveCause.DISCARD);
             return item;
         }
 
-        stand.spawnToAll();
         stand.playPlacementSound();
         return player.isCreative() ? item : item.decreaseCount();
     };

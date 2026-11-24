@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.hostile;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface Blaze extends Entity {
+/**
+ * The Nether fortress monster associated with small fireballs.
+ */
+public interface Blaze extends Monster {
 }

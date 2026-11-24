@@ -5,6 +5,7 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.projectile.Arrow;
+import org.cloudburstmc.api.event.entity.EntityRemoveCause;
 import org.cloudburstmc.api.event.entity.PotionEffectCause;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
@@ -46,10 +47,6 @@ public class EntityArrow extends EntityAbstractArrow implements Arrow {
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // The item and ground ticks run before the abstract-arrow
-        // load below, matching the historical load order. The item setter
-        // re-runs to keep its validation, as the previous load did; the ground ticks
-        // have a load default of zero, so they reset when absent.
         if (tag.containsKey("Item")) {
             ItemStack item = this.data().getItem();
             if (item != null) {
@@ -109,7 +106,8 @@ public class EntityArrow extends EntityAbstractArrow implements Arrow {
         int base = super.getResultDamage();
 
         if (this.isCritical()) {
-            base += ThreadLocalRandom.current().nextInt(base / 2 + 2);
+            long bonus = ThreadLocalRandom.current().nextInt(base / 2 + 2);
+            base = (int) Math.min(base + bonus, Integer.MAX_VALUE);
         }
 
         return base;
@@ -147,16 +145,15 @@ public class EntityArrow extends EntityAbstractArrow implements Arrow {
     }
 
     @Override
-    public boolean onUpdate(int currentTick) {
-        if (this.closed) {
+    protected boolean tickEntity(int currentTick, int elapsedTicks) {
+        if (this.isClosed()) {
             return false;
         }
 
-        int tickDiff = Math.max(0, currentTick - this.lastUpdate);
-        boolean hasUpdate = super.onUpdate(currentTick);
+        boolean hasUpdate = super.tickEntity(currentTick, elapsedTicks);
 
         if (this.isEmbedded() && this.getItemStack().has(ItemDataComponents.POTION_TYPE)) {
-            this.data().setPotionGroundTicks(this.data().getPotionGroundTicks() + tickDiff);
+            this.data().setPotionGroundTicks(this.data().getPotionGroundTicks() + elapsedTicks);
             if (this.data().getPotionGroundTicks() >= 600) {
                 this.setItemStack(ItemStack.from(ItemTypes.ARROW));
                 hasUpdate = true;
@@ -165,12 +162,12 @@ public class EntityArrow extends EntityAbstractArrow implements Arrow {
             this.data().setPotionGroundTicks(0);
         }
 
-        if (this.onGround || this.hadCollision) {
+        if (this.isOnGround() || this.hadCollision) {
             this.setCritical(false);
         }
 
         if (this.age > 1200) {
-            this.close();
+            this.remove(EntityRemoveCause.DESPAWN);
             hasUpdate = true;
         }
 

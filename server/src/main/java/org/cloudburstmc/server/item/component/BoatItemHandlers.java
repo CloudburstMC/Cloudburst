@@ -15,10 +15,10 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.*;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.server.entity.CloudEntitySnapshot;
 import org.cloudburstmc.server.entity.vehicle.EntityBoat;
 import org.cloudburstmc.server.entity.vehicle.VanillaBoats;
 import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
 @UtilityClass
 public class BoatItemHandlers {
@@ -61,9 +61,7 @@ public class BoatItemHandlers {
             }
         }
 
-        EntityBoat boat = (EntityBoat) CloudEntitySnapshot.createFromItem(item,
-                chest ? EntityTypes.CHEST_BOAT : EntityTypes.BOAT,
-                Location.from(hit.position(), user.getYaw(), 0, level));
+        EntityBoat boat = (EntityBoat) CloudEntityRegistry.get().createFromItem(item, chest ? EntityTypes.CHEST_BOAT : EntityTypes.BOAT, Location.from(hit.position(), user.getYaw(), 0, level));
         boat.setBoatType(definition.type());
         if (hit.liquid()) {
             boat.setPosition(hit.position().sub(0, boat.getBaseOffset(), 0));
@@ -82,7 +80,6 @@ public class BoatItemHandlers {
             return item;
         }
 
-        boat.spawnToAll();
         return user instanceof Player player && player.isCreative() ? item : item.decreaseCount();
     }
 }

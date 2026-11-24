@@ -6,7 +6,8 @@ import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.projectile.EnderPearl;
-import org.cloudburstmc.api.event.player.PlayerTeleportCause;
+import org.cloudburstmc.api.event.entity.EntityRemoveCause;
+import org.cloudburstmc.api.event.entity.TeleportCause;
 import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
@@ -53,19 +54,19 @@ public class EntityEnderPearl extends EntityProjectile implements EnderPearl {
     }
 
     @Override
-    public boolean onUpdate(int currentTick) {
-        if (this.closed) {
+    protected boolean tickEntity(int currentTick, int elapsedTicks) {
+        if (this.isClosed()) {
             return false;
         }
 
-        boolean hasUpdate = super.onUpdate(currentTick);
+        boolean hasUpdate = super.tickEntity(currentTick, elapsedTicks);
 
-        if (this.isCollided) {
+        if (this.hasBlockImpact()) {
             resolveImpact();
         }
 
-        if (this.age > 1200 || this.isCollided) {
-            this.kill();
+        if (this.age > 1200 || this.hasBlockImpact()) {
+            this.remove(this.hasBlockImpact() ? EntityRemoveCause.HIT : EntityRemoveCause.DESPAWN);
             hasUpdate = true;
         }
 
@@ -93,28 +94,28 @@ public class EntityEnderPearl extends EntityProjectile implements EnderPearl {
 
         Entity owner = this.getOwner();
         if (owner == null || !owner.isAlive() || owner instanceof CloudPlayer player && player.isSleeping()) {
-            this.close();
+            this.remove(EntityRemoveCause.HIT);
             return;
         }
 
         Vector3f ownerPosition = owner.getPosition();
         Location destination = Location.from(this.getPosition(), owner.getYaw(), owner.getPitch(), this.level);
         if (this.isOnPortalCooldown() && owner instanceof CloudEntity cloudOwner) {
-            cloudOwner.setPortalCooldown();
+            cloudOwner.resetPortalCooldown();
         }
 
-        if (owner.teleport(destination, PlayerTeleportCause.ENDER_PEARL)) {
+        if (owner.teleport(destination, TeleportCause.ENDER_PEARL)) {
             owner.resetFallDistance();
             if (owner instanceof CloudPlayer) {
                 spawnEndermite(ownerPosition);
                 DamageSource source = DamageSource.builder(DamageTypes.ENDER_PEARL)
                         .directEntity(this).causingEntity(owner).build();
-                owner.damage(5f, source);
+                CloudEntity.applyDamage(owner, 5f, source);
             }
         }
 
         this.level.playSound(this.getPosition(), SoundTypes.MOB_ENDERMEN_PORTAL);
-        this.close();
+        this.remove(EntityRemoveCause.HIT);
     }
 
     private void spawnEndermite(Vector3f position) {
@@ -125,6 +126,6 @@ public class EntityEnderPearl extends EntityProjectile implements EnderPearl {
         }
 
         Entity endermite = CloudEntityRegistry.get().newEntity(EntityTypes.ENDERMITE, Location.from(position, this.level));
-        endermite.spawnToAll();
+        endermite.spawn();
     }
 }

@@ -9,7 +9,6 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.entity.data.CloudPlayerData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.nbt.annotation.NbtTag;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
@@ -58,10 +57,8 @@ class ServerNbtTest {
 
     @Test
     void detachedContainersBuildFreeStandingData() {
-
         assertEquals(27, new org.cloudburstmc.server.blockentity.data.CloudChestData().getItems().size());
         assertEquals(27, new org.cloudburstmc.server.entity.data.CloudChestBoatData().getItems().size());
-        new CloudPlayerData();
     }
 
     @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)

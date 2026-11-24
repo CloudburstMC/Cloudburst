@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.hostile;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface Breeze extends Entity {
+/**
+ * A trial chamber monster associated with wind charges.
+ */
+public interface Breeze extends Monster {
 }

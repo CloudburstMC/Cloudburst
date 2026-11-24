@@ -13,7 +13,7 @@ public class EntityFrog extends Animal implements Frog {
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(10);
+        this.setDefaultMaxHealth(10);
     }
 
     @Override
@@ -27,7 +27,7 @@ public class EntityFrog extends Animal implements Frog {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Frog";
     }
 }

@@ -7,8 +7,8 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.CloudCreatureData;
-import org.cloudburstmc.server.entity.data.SyncedEntityData;
+import org.cloudburstmc.server.entity.data.CloudMobData;
+import org.cloudburstmc.server.entity.metadata.SyncedEntityData;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -21,6 +21,24 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.COLO
 import static org.junit.jupiter.api.Assertions.*;
 
 class SheepPersistenceTest {
+
+    @Test
+    void juvenileAgeSurvivesLoadAndPreventsShearingUntilAdulthood() {
+        EntitySheep sheep = (EntitySheep) PersistenceFixtures.entity(EntityTypes.SHEEP);
+        sheep.loadAdditionalData(NbtMap.builder().putInt("Age", -4).build());
+
+        assertTrue(sheep.isBaby());
+        assertFalse(sheep.readyForShearing());
+        NbtMapBuilder saved = NbtMap.builder();
+        sheep.saveAdditionalData(saved);
+        assertEquals(-4, saved.build().getInt("Age"));
+
+        sheep.setAge(0);
+
+        assertEquals(0, sheep.getAge());
+        assertFalse(sheep.isBaby());
+        assertTrue(sheep.readyForShearing());
+    }
 
     private static NbtMap save(CloudEntity entity) {
         NbtMapBuilder builder = NbtMap.builder();
@@ -103,7 +121,7 @@ class SheepPersistenceTest {
     @Test
     void sheepKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntitySheep.class, CloudCreatureData.class,
+                EntitySheep.class, CloudMobData.class,
                 Map.of(
                         "armor", "an armor view over the live container in data().getArmor()",
                         "offhand", "an offhand view over the live container in data().getOffhand()"));

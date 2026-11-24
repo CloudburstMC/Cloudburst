@@ -2,9 +2,9 @@ package org.cloudburstmc.server.entity.misc;
 
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.Explosive;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.PrimedTnt;
+import org.cloudburstmc.api.event.entity.EntityRemoveCause;
 import org.cloudburstmc.api.level.ExplosionBlockInteraction;
 import org.cloudburstmc.api.level.ExplosionSettings;
 import org.cloudburstmc.api.level.Location;
@@ -17,7 +17,9 @@ import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.FUSE_TIME;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.IGNITED;
 
-public class EntityPrimedTnt extends CloudEntity implements PrimedTnt, Explosive {
+public class EntityPrimedTnt extends CloudEntity implements PrimedTnt {
+
+    private static final float DEFAULT_YIELD = 4;
 
     private final CloudPrimedTntData persistenceState;
 
@@ -68,8 +70,8 @@ public class EntityPrimedTnt extends CloudEntity implements PrimedTnt, Explosive
     }
 
     @Override
-    protected boolean applyDamage(CloudEntityDamageEvent source) {
-        return source.getDamageType() == DamageTypes.OUT_OF_WORLD && super.applyDamage(source);
+    protected boolean applyDamage(CloudEntityDamageEvent event) {
+        return event.getDamageType() == DamageTypes.OUT_OF_WORLD && super.applyDamage(event);
     }
 
     protected void initEntity() {
@@ -84,11 +86,8 @@ public class EntityPrimedTnt extends CloudEntity implements PrimedTnt, Explosive
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // The fuse runs before the base load below, matching the
-        // historical load order, and keeps its current value when absent.
-        // The setter re-runs to keep its validation, as the previous load did.
         if (tag.containsKey("Fuse")) {
-            this.setFuse(this.data().getFuse());
+            this.setFuseTicks(this.data().getFuseTicks());
         }
         super.loadCustom(tag);
     }
@@ -97,18 +96,12 @@ public class EntityPrimedTnt extends CloudEntity implements PrimedTnt, Explosive
         return false;
     }
 
-    public boolean onUpdate(int currentTick) {
-        if (closed) {
+    protected boolean tickEntity(int currentTick, int elapsedTicks) {
+        if (this.isClosed()) {
             return false;
         }
 
-        int tickDiff = currentTick - lastUpdate;
-        if (tickDiff <= 0 && !justCreated) {
-            return true;
-        }
-
-        lastUpdate = currentTick;
-        boolean hasUpdate = entityBaseTick(tickDiff);
+        boolean hasUpdate = this.entityBaseTick(elapsedTicks);
 
         if (isAlive()) {
             this.motion = this.motion.sub(0, this.getGravity(), 0);
@@ -119,23 +112,23 @@ public class EntityPrimedTnt extends CloudEntity implements PrimedTnt, Explosive
 
             updateMovement();
 
-            if (onGround) {
+            if (this.isOnGround()) {
                 this.motion = this.motion.mul(0.7, -0.5, 0.7);
             }
 
             this.data.setFlag(IGNITED, true);
-            this.setFuse(Math.max(0, this.getFuse() - tickDiff));
+            this.setFuseTicks(Math.max(0, this.getFuseTicks() - elapsedTicks));
             this.flushEntityData();
-            if (this.getFuse() == 0) {
-                this.explode();
-                this.close();
+            if (this.getFuseTicks() == 0) {
+                this.detonate();
+                this.remove(EntityRemoveCause.EXPLODE);
             }
         }
 
-        return !this.closed && (hasUpdate || this.getFuse() > 0 || this.motion.length() > 0.00001);
+        return !this.isClosed() && (hasUpdate || this.getFuseTicks() > 0 || this.motion.length() > 0.00001);
     }
 
-    public void explode() {
+    private void detonate() {
         if (!this.level.getGameRules().get(GameRules.TNT_EXPLODES)) {
             return;
         }
@@ -143,23 +136,52 @@ public class EntityPrimedTnt extends CloudEntity implements PrimedTnt, Explosive
         ExplosionBlockInteraction interaction = this.level.getGameRules().get(GameRules.TNT_EXPLOSION_DROP_DECAY)
                 ? ExplosionBlockInteraction.DESTROY_WITH_DECAY : ExplosionBlockInteraction.DESTROY;
         this.getLevel().explode(this.getPosition().add(0, this.getHeight() * 0.0625f, 0),
-                new ExplosionSettings(4, interaction, false, this, null));
+                new ExplosionSettings(this.getYield(), interaction, this.isIncendiary(), this, null));
     }
 
     @Override
-    public int getFuse() {
-        return this.data().getFuse();
+    public int getFuseTicks() {
+        return this.data().getFuseTicks();
     }
 
     @Override
-    public void setFuse(int fuse) {
-        if (fuse < 0) {
+    public void setFuseTicks(int fuseTicks) {
+        if (fuseTicks < 0) {
             throw new IllegalArgumentException("Fuse must be non-negative");
         }
 
-        this.data().setFuse(fuse);
+        this.data().setFuseTicks(fuseTicks);
         if (this.data.getFlag(IGNITED)) {
-            this.data.set(FUSE_TIME, fuse);
+            this.data.set(FUSE_TIME, fuseTicks);
         }
     }
+
+    @Override
+    public float getYield() {
+        Float yield = this.data().getExplosionYield();
+        return yield != null && Float.isFinite(yield) && yield >= 0 ? yield : DEFAULT_YIELD;
+    }
+
+    @Override
+    public void setYield(float yield) {
+        if (!Float.isFinite(yield) || yield < 0) {
+            throw new IllegalArgumentException("Explosion radius must be finite and non-negative");
+        }
+
+        this.data().setExplosionYield(yield);
+        this.markChunkDirty();
+    }
+
+    @Override
+    public boolean isIncendiary() {
+        Boolean incendiary = this.data().getIncendiary();
+        return incendiary == null ? false : incendiary;
+    }
+
+    @Override
+    public void setIsIncendiary(boolean incendiary) {
+        this.data().setIncendiary(incendiary);
+        this.markChunkDirty();
+    }
+
 }

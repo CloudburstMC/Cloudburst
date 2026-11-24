@@ -6,15 +6,16 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.passive.Sheep;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.DyeColor;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -24,7 +25,7 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.SHEARED;
 /**
  * Author: BeYkeRYkt Nukkit Project
  */
-public class EntitySheep extends Animal implements Sheep {
+public class EntitySheep extends EntityBreedableAnimal implements Sheep {
 
     public static final int NETWORK_ID = 13;
 
@@ -49,24 +50,19 @@ public class EntitySheep extends Animal implements Sheep {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Sheep";
     }
 
     @Override
-    public void initEntity() {
+    protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(8);
+        this.setDefaultMaxHealth(8);
         this.data.set(COLOR, (byte) randomColor());
     }
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // Runs before the living-state load below,
-        // matching the historical load order. The raw byte
-        // reaches the client metadata exactly as the old setColor(int) path
-        // wrote it; out-of-range values stay unnormalised there, while the
-        // save still normalises through getColor().getWoolData() as before.
         if (tag.containsKey("Color")) {
             this.data.set(COLOR, getByte(tag, "Color", this.data.require(COLOR)));
         }
@@ -92,35 +88,49 @@ public class EntitySheep extends Animal implements Sheep {
     }
 
     @Override
-    public boolean onInteract(Player player, ItemStack item) {
+    protected boolean interactDefault(Player player, ItemStack item, Vector3f clickedPos) {
         if (item.has(ItemDataComponents.COLOR)) {
             this.setColor(item.get(ItemDataComponents.COLOR));
             return true;
         }
 
-        return item.getType() == ItemTypes.SHEARS && shear();
+        return PlayerShearing.tryShear(this, player, item, this::createShearingDrops, this::applyShearing)
+                || super.interactDefault(player, item, clickedPos);
     }
 
+    @Override
+    public boolean readyForShearing() {
+        return this.isAlive() && !this.isBaby() && !this.isSheared();
+    }
+
+    @Override
     public boolean shear() {
-        if (isSheared()) {
+        if (!this.readyForShearing()) {
             return false;
         }
 
-        this.setSheared(true);
-        this.data.setFlag(SHEARED, true);
-        this.level.playSound(this.getPosition(), SoundTypes.MOB_SHEEP_SHEAR);
-
-        ItemStack itemStack = ItemStack.builder(getWoolState(getColor()))
-                .amount(ThreadLocalRandom.current().nextInt(2) + 1)
-                .build();
-
-        this.level.dropItem(this.getPosition(), itemStack);
+        this.applyShearing(this.createShearingDrops());
         return true;
+    }
+
+    private List<ItemStack> createShearingDrops() {
+        return List.of(ItemStack.builder(getWoolState(this.getColor()))
+                .amount(ThreadLocalRandom.current().nextInt(1, 4))
+                .build());
+    }
+
+    private void applyShearing(List<ItemStack> drops) {
+        this.setSheared(true);
+        this.level.playSound(this.getPosition(), SoundTypes.MOB_SHEEP_SHEAR);
+        for (ItemStack drop : drops) {
+            this.level.dropItem(this.getPosition(), drop);
+        }
     }
 
     @Override
     public ItemStack[] getDrops() {
-        if (this.lastDamageCause != null && this.lastDamageCause.getDamageSource().getCausingEntity() != null) {
+        if (!this.isSheared() && this.lastDamageCause != null
+                && this.lastDamageCause.getDamageSource().getCausingEntity() != null) {
             return new ItemStack[]{ItemStack.builder(getWoolState(getColor()))
                     .amount(1)
                     .build()};
@@ -149,25 +159,41 @@ public class EntitySheep extends Animal implements Sheep {
         };
     }
 
+    @Override
     public boolean isSheared() {
         return this.data.getFlag(SHEARED);
     }
 
+    @Override
     public void setSheared(boolean sheared) {
-        this.data.setFlag(SHEARED, sheared);
+        if (this.isSheared() != sheared) {
+            this.data.setFlag(SHEARED, sheared);
+            if (this.isValid()) {
+                this.markChunkDirty();
+            }
+        }
     }
 
+    @Override
     public DyeColor getColor() {
         return DyeColor.getByWoolData(this.data.require(COLOR));
     }
 
+    @Override
     public void setColor(DyeColor color) {
-        this.data.set(COLOR, (byte) color.getWoolData());
+        byte woolColor = (byte) color.getWoolData();
+        Byte previousColor = this.data.get(COLOR);
+        if (previousColor == null || previousColor != woolColor) {
+            this.data.set(COLOR, woolColor);
+            if (this.isValid()) {
+                this.markChunkDirty();
+            }
+        }
     }
 
     private int randomColor() {
         ThreadLocalRandom random = ThreadLocalRandom.current();
-        double rand = random.nextDouble(1, 100);
+        double rand = random.nextDouble(100);
 
         if (rand <= 0.164) {
             return DyeColor.PINK.getWoolData();

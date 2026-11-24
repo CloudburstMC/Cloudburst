@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface Wolf extends Entity {
+/**
+ * The tameable canine mob.
+ */
+public interface Wolf extends Tameable {
 }

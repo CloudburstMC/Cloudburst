@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface GlowSquid extends Entity {
+/**
+ * The luminous variant of {@link Squid}.
+ */
+public interface GlowSquid extends Squid {
 }

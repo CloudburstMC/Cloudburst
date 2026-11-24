@@ -3,7 +3,7 @@ package org.cloudburstmc.server.block.component;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.component.FallOnBlockHandler;
-import org.cloudburstmc.api.entity.Living;
+import org.cloudburstmc.api.entity.LivingEntity;
 import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.api.event.entity.EntityChangeBlockEvent;
 import org.cloudburstmc.api.event.entity.EntityInteractEvent;
@@ -19,7 +19,7 @@ public class FarmlandBlockHandlers {
     public static final FallOnBlockHandler FALL_ON = (block, entity, fallDistance) -> {
         DefaultBlockHandlers.ON_FALL_ON.execute(block, entity, fallDistance);
         CloudLevel level = (CloudLevel) block.getLevel();
-        if (!(entity instanceof Living)
+        if (!(entity instanceof LivingEntity)
                 || entity.getWidth() * entity.getWidth() * entity.getHeight() <= 0.512f
                 || level.getRandom().nextFloat() >= fallDistance - 0.5f) {
             return;

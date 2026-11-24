@@ -11,7 +11,7 @@ import org.cloudburstmc.api.player.skin.Skin;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-public class CloudHumanData extends CloudCreatureData {
+public class CloudHumanData extends CloudEquipmentData {
 
     @JsonProperty("Skin")
     private Skin skin;

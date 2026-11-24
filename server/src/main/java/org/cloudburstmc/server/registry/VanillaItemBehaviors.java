@@ -157,9 +157,9 @@ public final class VanillaItemBehaviors {
         registry.configure(ItemTypes.ENDER_PEARL).set(ItemBehaviors.USE, EnderPearlItemHandlers.USE);
         configureSpawnEgg(registry, ItemTypes.ENDERMAN_SPAWN_EGG, EntityTypes.ENDERMAN);
         configureSpawnEgg(registry, ItemTypes.ENDERMITE_SPAWN_EGG, EntityTypes.ENDERMITE);
-        configureSpawnEgg(registry, ItemTypes.EVOKER_SPAWN_EGG, EntityTypes.EVOCATION_ILLAGER);
+        configureSpawnEgg(registry, ItemTypes.EVOKER_SPAWN_EGG, EntityTypes.EVOKER);
         registry.configure(ItemTypes.EXPERIENCE_BOTTLE).set(ItemBehaviors.USE,
-                ThrowableItemHandlers.throwProjectile(EntityTypes.XP_BOTTLE, 0.7f, -20));
+                ThrowableItemHandlers.throwProjectile(EntityTypes.THROWN_EXPERIENCE_BOTTLE, 0.7f, -20));
         registry.configure(ItemTypes.FILLED_MAP, new FilledMapItemSerializer());
         registry.configure(ItemTypes.FIRE_CHARGE).set(ItemBehaviors.USE_ON, IgnitionItemHandlers.FIRE_CHARGE_USE_ON);
         registry.configure(ItemTypes.FIREWORK_ROCKET, new FireworkRocketSerializer())
@@ -405,7 +405,7 @@ public final class VanillaItemBehaviors {
         configureSpawnEgg(registry, ItemTypes.ZOGLIN_SPAWN_EGG, EntityTypes.ZOGLIN);
         configureSpawnEgg(registry, ItemTypes.ZOMBIE_HORSE_SPAWN_EGG, EntityTypes.ZOMBIE_HORSE);
         configureSpawnEgg(registry, ItemTypes.ZOMBIE_NAUTILUS_SPAWN_EGG, EntityTypes.ZOMBIE_NAUTILUS);
-        configureSpawnEgg(registry, ItemTypes.ZOMBIE_PIGMAN_SPAWN_EGG, EntityTypes.ZOMBIE_PIGMAN);
+        configureSpawnEgg(registry, ItemTypes.ZOMBIE_PIGMAN_SPAWN_EGG, EntityTypes.ZOMBIFIED_PIGLIN);
         configureSpawnEgg(registry, ItemTypes.ZOMBIE_SPAWN_EGG, EntityTypes.ZOMBIE);
         configureSpawnEgg(registry, ItemTypes.ZOMBIE_VILLAGER_SPAWN_EGG, EntityTypes.ZOMBIE_VILLAGER);
         VanillaFoodBehaviors.configure(registry);

@@ -6,7 +6,7 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.server.entity.EntityLiving;
+import org.cloudburstmc.server.entity.CloudLivingEntity;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.junit.jupiter.api.Test;
 
@@ -73,7 +73,7 @@ class FreezingEffectTest {
         assertEquals(20, target.getFreezeTicks());
     }
 
-    private static class FreezingTarget extends EntityLiving {
+    private static class FreezingTarget extends CloudLivingEntity {
 
         private boolean canFreeze = true;
 

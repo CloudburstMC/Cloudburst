@@ -5,9 +5,8 @@ import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.Server;
-import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.entity.misc.LightningBolt;
-import org.cloudburstmc.api.event.player.PlayerTeleportCause;
+import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.event.entity.TeleportCause;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
@@ -25,9 +24,9 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * An entity in a level, with position, motion and a lifecycle independent of its viewers.
+ * An entity in a level.
  */
-public interface Entity extends Damageable, Emitter, PersistentDataHolder {
+public interface Entity extends Emitter, PersistentDataHolder {
 
     /**
      * @return the registered entity type
@@ -35,21 +34,14 @@ public interface Entity extends Damageable, Emitter, PersistentDataHolder {
     EntityType<?> getType();
 
     /**
-     * Returns the item representing this entity without changing it or an inventory.
-     *
-     * @param includeData whether supported entity-specific data should be included
-     * @return the picked item, or {@link ItemStack#EMPTY} when this entity has no item representation
-     * @see EntityComponents#GET_PICK_ITEM
+     * Returns the identifier of this live entity instance. Do not persist it across sessions.
      */
-    ItemStack getPickItem(boolean includeData);
+    long getUniqueId();
 
     /**
-     * Captures an immutable copy of this entity's persistent state for later recreation.
-     * Players cannot be copied this way. Identity and placement data are not retained.
-     *
-     * @return the snapshot, or an empty optional when copying is unsupported
+     * @return the server that owns this entity
      */
-    Optional<EntitySnapshot> createSnapshot();
+    Server getServer();
 
     /**
      * @return the level containing this entity
@@ -62,131 +54,107 @@ public interface Entity extends Damageable, Emitter, PersistentDataHolder {
     Chunk getChunk();
 
     /**
-     * @return the server that owns this entity
-     */
-    Server getServer();
-
-    /**
-     * @return the entity's unique identifier
-     */
-    long getUniqueId();
-
-    /**
-     * Returns the resolved posture used to determine this entity's dimensions.
-     * A movement state such as sneaking does not guarantee a matching pose.
+     * Attempts to add this entity to its level. Non-player spawns may be canceled.
      *
-     * @return current posture
+     * @return whether the entity was spawned
      */
-    Pose getPose();
+    boolean spawn();
 
     /**
-     * Returns the collision height for the current pose in blocks.
-     * Use {@link #getBoundingBox()} for the scaled world-space bounds.
+     * Returns an unmodifiable snapshot of players currently tracking this entity.
+     */
+    Set<? extends Player> getViewers();
+
+    /**
+     * Returns whether this entity is alive and registered in a world.
+     */
+    boolean isValid();
+
+    /**
+     * Returns whether this entity is alive and has not been removed.
+     */
+    boolean isAlive();
+
+    /**
+     * Returns the last damage event applied to this entity, or {@code null} if none.
+     */
+    @Nullable
+    EntityDamageEvent getLastDamageCause();
+
+    /**
+     * @return whether this entity has been removed and can no longer be updated
+     */
+    boolean isClosed();
+
+    /**
+     * Requests death rather than immediate removal. A living entity's death event
+     * can cancel death and restore its configured revival health.
+     */
+    void kill();
+
+    /**
+     * Removes this entity from its level and viewers without triggering death or death drops.
+     * For non-player entities, this is reported as a plugin removal.
+     * Calling this again has no effect.
+     */
+    void close();
+
+    /**
+     * Captures an immutable copy of this entity's persistent state for later recreation.
+     * Player-type entities, including standalone humans, cannot be copied this way.
+     * Identity and placement data are not retained.
      *
-     * @return current pose's collision height before scaling
+     * @return the snapshot, or an empty optional when copying is unsupported
      */
-    float getHeight();
+    Optional<EntitySnapshot> createSnapshot();
 
     /**
-     * Returns the vertical eye offset from the entity's position in blocks.
+     * Returns the item representing this entity without changing it or an inventory.
      *
-     * @return eye height for the current pose
+     * @param includeData whether supported entity-specific data should be included
+     * @return the picked item, or {@link ItemStack#EMPTY} when this entity has no item representation
+     * @see EntityComponents#GET_PICK_ITEM
      */
-    float getEyeHeight();
+    ItemStack getPickItem(boolean includeData);
 
     /**
-     * @return the vertical display offset from this entity's position, in blocks
-     */
-    default float getBaseOffset() {
-        return 0f;
-    }
-
-    /**
-     * Returns a passenger's offset from this entity's position, in world axes.
-     * Adding this offset to {@link #getPosition()} gives the passenger's position.
+     * Returns the plain name used to identify this entity.
      *
-     * @param passenger the passenger to position
-     * @return the attachment offset, including this entity's rotation
+     * @return the entity name
      */
-    default Vector3f getPassengerAttachmentPoint(Entity passenger) {
-        return Vector3f.from(0f, getHeight(), 0f);
-    }
+    String getName();
 
     /**
-     * @return the base height at which this entity carries passengers, in blocks
-     */
-    default float getMountedHeightOffset() {
-        return getHeight() * 0.75f;
-    }
-
-    /**
-     * @return the additional vertical offset used when this entity rides another entity
-     */
-    default float getPassengerHeightOffset() {
-        return 0f;
-    }
-
-    /**
-     * Returns the collision width along the X axis in blocks.
-     * Use {@link #getBoundingBox()} for the scaled world-space bounds.
+     * Returns the name used when presenting this entity to an audience.
      *
-     * @return current pose's collision width before scaling
+     * @return the entity display name
      */
-    float getWidth();
+    Component displayName();
 
     /**
-     * Returns the collision length along the Z axis in blocks.
-     * Use {@link #getBoundingBox()} for the scaled world-space bounds.
+     * Returns the entity's custom name, or {@code null} when no name is set.
      *
-     * @return current pose's collision length before scaling
+     * @return the custom name
      */
-    float getLength();
+    @Nullable
+    Component customName();
 
     /**
-     * @return whether this entity participates in entity collisions
-     */
-    boolean canCollide();
-
-    /**
-     * Returns how this entity reacts to block-driven displacement.
+     * Sets the entity's custom name without changing its visibility.
      *
-     * @return push reaction
+     * @param name the custom name, or {@code null} to clear it
      */
-    default PushReaction getPushReaction() {
-        return PushReaction.NORMAL;
-    }
+    void customName(@Nullable Component name);
 
     /**
-     * Applies this entity's response to contact with another entity.
-     *
-     * @param entity the entity in contact
+     * @return whether the custom name may be displayed
      */
-    void onEntityCollision(Entity entity);
+    boolean isCustomNameVisible();
 
     /**
-     * @return the downward acceleration used by this entity's movement
+     * @param visible whether to allow the custom name to be displayed
      */
-    float getGravity();
-
-    /**
-     * @return the drag coefficient used by this entity's movement
-     */
-    float getDrag();
-
-    /**
-     * @return whether this entity has a non-empty name tag
-     */
-    boolean hasNameTag();
-
-    /**
-     * @return the name tag, or an empty string when unnamed
-     */
-    String getNameTag();
-
-    /**
-     * @param name the name tag, or an empty string to clear it
-     */
-    void setNameTag(String name);
+    void setCustomNameVisible(boolean visible);
 
     /**
      * Returns the entity's scoreboard tags.
@@ -222,14 +190,142 @@ public interface Entity extends Damageable, Emitter, PersistentDataHolder {
     boolean removeScoreboardTag(String tag);
 
     /**
-     * @return whether this entity's name tag may be displayed
+     * @return the current level, position and rotation
      */
-    boolean isNameTagVisible();
+    Location getLocation();
 
     /**
-     * @param visible whether to allow the name tag to be displayed
+     * @return this entity's world-space position
      */
-    void setNameTagVisible(boolean visible);
+    Vector3f getPosition();
+
+    /**
+     * @return the world-space X coordinate
+     */
+    float getX();
+
+    /**
+     * @return the world-space Y coordinate
+     */
+    float getY();
+
+    /**
+     * @return the world-space Z coordinate
+     */
+    float getZ();
+
+    /**
+     * Changes position within the current level without resolving movement collisions.
+     *
+     * @param position the destination
+     * @return whether the position was applied
+     */
+    boolean setPosition(Vector3f position);
+
+    /**
+     * @return horizontal rotation in degrees
+     */
+    float getYaw();
+
+    /**
+     * @return vertical rotation in degrees
+     */
+    float getPitch();
+
+    /**
+     * @param yaw   horizontal rotation in degrees
+     * @param pitch vertical rotation in degrees
+     */
+    void setRotation(float yaw, float pitch);
+
+    /**
+     * Changes position and rotation within the current level without resolving movement collisions.
+     *
+     * @param position the destination
+     * @param yaw      horizontal rotation in degrees
+     * @param pitch    vertical rotation in degrees
+     * @return whether the transform was applied, or {@code false} if the entity is closed
+     * @throws IllegalArgumentException if any coordinate or angle is not finite
+     */
+    boolean setPositionAndRotation(Vector3f position, float yaw, float pitch);
+
+    /**
+     * @return the horizontal direction determined by this entity's yaw
+     */
+    Direction getDirection();
+
+    /**
+     * @return the unit direction vector determined by yaw and pitch
+     */
+    Vector3f getDirectionVector();
+
+    /**
+     * @return the horizontal direction determined by this entity's yaw
+     */
+    Direction getHorizontalDirection();
+
+    /**
+     * @return the unit horizontal direction vector in the X-Z plane
+     */
+    Vector2f getHorizontalLookVector();
+
+    /**
+     * Teleports this entity to a position in its current level.
+     *
+     * @param position the destination
+     * @return whether the teleport succeeded
+     */
+    default boolean teleport(Vector3f position) {
+        return this.teleport(position, TeleportCause.PLUGIN);
+    }
+
+    /**
+     * Teleports this entity to a position in its current level.
+     *
+     * @param position the destination
+     * @param cause    the cause of the teleport
+     * @return whether the teleport succeeded
+     */
+    boolean teleport(Vector3f position, TeleportCause cause);
+
+    /**
+     * Teleports this entity to a location.
+     *
+     * @param location the destination
+     * @return whether the teleport succeeded
+     */
+    default boolean teleport(Location location) {
+        return this.teleport(location, TeleportCause.PLUGIN);
+    }
+
+    /**
+     * Teleports this entity to a location.
+     *
+     * @param location the destination
+     * @param cause    the cause of the teleport
+     * @return whether the teleport succeeded
+     */
+    boolean teleport(Location location, TeleportCause cause);
+
+    /**
+     * Returns the remaining ticks before this entity can use another portal.
+     */
+    int getPortalCooldown();
+
+    /**
+     * Sets the remaining portal cooldown. Zero clears it.
+     *
+     * @throws IllegalArgumentException if the cooldown is negative
+     */
+    void setPortalCooldown(int cooldownTicks);
+
+    /**
+     * Returns the resolved posture used to determine this entity's dimensions.
+     * A movement state such as sneaking does not guarantee a matching pose.
+     *
+     * @return current posture
+     */
+    Pose getPose();
 
     /**
      * @return size multiplier applied to the entity's collision dimensions
@@ -239,42 +335,177 @@ public interface Entity extends Damageable, Emitter, PersistentDataHolder {
     /**
      * Changes the entity's scale and refreshes its collision bounds.
      *
-     * @param scale size multiplier
+     * @param scale size multiplier from 0.0625 through 16, inclusive
+     * @throws IllegalArgumentException if the scale is outside that range or not finite
      */
     void setScale(float scale);
 
     /**
-     * @return an immutable snapshot of direct passengers in seat order
+     * Returns the collision width along the X axis in blocks.
+     * Use {@link #getBoundingBox()} for the scaled world-space bounds.
+     *
+     * @return current pose's collision width before scaling
      */
-    List<? extends Entity> getPassengers();
+    float getWidth();
 
     /**
-     * @param entity the entity to check
-     * @return whether the entity is a direct passenger
+     * Returns the collision height for the current pose in blocks.
+     * Use {@link #getBoundingBox()} for the scaled world-space bounds.
+     *
+     * @return current pose's collision height before scaling
      */
-    boolean isPassenger(Entity entity);
+    float getHeight();
 
     /**
-     * @param entity the entity to check
-     * @return whether the entity controls this vehicle
+     * Returns the collision length along the Z axis in blocks.
+     * Use {@link #getBoundingBox()} for the scaled world-space bounds.
+     *
+     * @return current pose's collision length before scaling
      */
-    boolean isControlling(Entity entity);
+    float getLength();
 
     /**
-     * @return the direct passenger controlling this entity, or {@code null} when no passenger controls it
+     * Returns the vertical eye offset from the entity's position in blocks.
+     *
+     * @return eye height for the current pose
+     */
+    float getEyeHeight();
+
+    /**
+     * Returns the current world-space collision bounds, including pose and scale.
+     * The returned box is immutable and does not track later changes.
+     *
+     * @return current collision bounds
+     */
+    BoundingBox getBoundingBox();
+
+    /**
+     * @return whether this entity participates in entity collisions
+     */
+    boolean canCollide();
+
+    /**
+     * @param entity the other entity
+     * @return whether this entity can collide with it
+     */
+    boolean canCollideWith(Entity entity);
+
+    /**
+     * @param entity the entity testing collision, or null for a general query
+     * @return whether this entity presents a collision obstacle
+     */
+    boolean canBeCollidedWith(@Nullable Entity entity);
+
+    /**
+     * Tests whether this entity would collide at a location.
+     *
+     * @param location the target location
+     * @return {@code true} if this entity's bounding box would collide at the location
+     */
+    default boolean collidesAt(Location location) {
+        Vector3f movement = location.getPosition().sub(this.getPosition());
+        return location.getLevel().hasCollision(this, this.getBoundingBox().move(movement));
+    }
+
+    /**
+     * Tests whether this entity would collide using a supplied bounding box.
+     *
+     * @param boundingBox the box to test
+     * @return {@code true} if the box collides in this entity's level
+     */
+    default boolean wouldCollideUsing(BoundingBox boundingBox) {
+        return this.getLevel().hasCollision(this, boundingBox);
+    }
+
+    /**
+     * @return the current motion in blocks per tick
+     */
+    Vector3f getMotion();
+
+    /**
+     * Replaces motion unless a motion event cancels the change.
+     *
+     * @param motion the finite motion in blocks per tick
+     * @return whether the motion was applied
+     * @throws IllegalArgumentException if any component is not finite
+     */
+    boolean setMotion(Vector3f motion);
+
+    /**
+     * @return the downward acceleration used by this entity's movement
+     */
+    float getGravity();
+
+    /**
+     * @return the drag coefficient used by this entity's movement
+     */
+    float getDrag();
+
+    /**
+     * Returns how this entity reacts to block-driven displacement.
+     *
+     * @return push reaction
+     */
+    default PushReaction getPushReaction() {
+        return PushReaction.NORMAL;
+    }
+
+    /**
+     * @return whether other entities can push this entity
+     */
+    boolean isPushable();
+
+    /**
+     * @return whether liquid currents can change this entity's motion
+     */
+    boolean canBeMovedByCurrents();
+
+    /**
+     * @return whether this entity is resting on a collision surface
+     */
+    boolean isOnGround();
+
+    /**
+     * @return the supporting block position, or empty when no support is known
+     */
+    Optional<Vector3i> getSupportingBlockPosition();
+
+    /**
+     * @param position the block position to test
+     * @return whether that block is this entity's current support
+     */
+    default boolean isSupportedBy(Vector3i position) {
+        return this.getSupportingBlockPosition().filter(position::equals).isPresent();
+    }
+
+    /**
+     * Returns the distance fallen since the last reset, in blocks.
+     */
+    float getFallDistance();
+
+    /**
+     * Sets the accumulated fall distance.
+     *
+     * @param distance the finite, non-negative distance in blocks
+     * @throws IllegalArgumentException if the distance is negative or not finite
+     */
+    void setFallDistance(float distance);
+
+    /**
+     * Clears accumulated fall distance at the entity's current height.
+     */
+    void resetFallDistance();
+
+    /**
+     * @return the owning entity, or {@code null} when no owner is assigned
      */
     @Nullable
-    Entity getControllingPassenger();
+    Entity getOwner();
 
     /**
-     * @return this entity's seat offset relative to its vehicle
+     * @param entity the owning entity, or {@code null} to clear ownership
      */
-    Vector3f getSeatPosition();
-
-    /**
-     * @param position this entity's seat offset relative to its vehicle
-     */
-    void setSeatPosition(Vector3f position);
+    void setOwner(@Nullable Entity entity);
 
     /**
      * @return the vehicle this entity rides, or {@code null} when not mounted
@@ -302,56 +533,61 @@ public interface Entity extends Damageable, Emitter, PersistentDataHolder {
     boolean dismount(Entity vehicle);
 
     /**
-     * Returns the plain name used to identify this entity.
+     * @return an immutable snapshot of direct passengers in seat order
+     */
+    List<? extends Entity> getPassengers();
+
+    /**
+     * Checks whether this entity carries the given direct passenger.
+     */
+    boolean hasPassenger(Entity passenger);
+
+    /**
+     * @return the direct passenger controlling this entity, or {@code null} when no passenger controls it
+     */
+    @Nullable
+    Entity getControllingPassenger();
+
+    /**
+     * @param entity the entity to check
+     * @return whether the entity controls this vehicle
+     */
+    boolean isControlling(Entity entity);
+
+    /**
+     * Checks whether the entity touches water or is exposed to rain.
+     * Snowfall does not count as rain.
      *
-     * @return the entity name
+     * @return whether water or rain is touching the entity
      */
-    String getName();
+    boolean isInWaterOrRain();
 
     /**
-     * Returns the name used when presenting this entity to an audience.
+     * @return whether any burning duration remains
+     */
+    default boolean isOnFire() {
+        return getFireTicks() > 0;
+    }
+
+    /**
+     * Ignites the entity for the supplied duration, reduced by its fire protection.
+     * Does not shorten an existing longer duration.
      *
-     * @return the entity display name
+     * @param seconds the non-negative duration before protection
+     * @throws IllegalArgumentException if the duration is negative
      */
-    Component displayName();
+    void setOnFire(@NonNegative int seconds);
 
     /**
-     * Adds this configured entity to its level.
-     *
-     * @return whether the entity was spawned
+     * @return the remaining burning duration in ticks
      */
-    boolean spawn();
+    @NonNegative
+    int getFireTicks();
 
     /**
-     * Shows an already spawned entity to a player when its chunk is available.
-     *
-     * @param player the recipient
+     * Removes fire and its visible burning effect.
      */
-    void spawnTo(Player player);
-
-    /**
-     * Spawns this entity if needed and shows it to eligible players viewing its chunk.
-     */
-    void spawnToAll();
-
-    /**
-     * Hides this entity from one player without removing it from the level.
-     *
-     * @param player the viewer
-     */
-    void despawnFrom(Player player);
-
-    /**
-     * Hides this entity from its viewers without removing it from the level.
-     */
-    void despawnFromAll();
-
-    /**
-     * Returns an unmodifiable snapshot of players currently tracking this entity.
-     *
-     * @return the entity viewers
-     */
-    Set<? extends Player> getViewers();
+    void extinguish();
 
     /**
      * Returns the number of ticks this entity has been freezing.
@@ -399,79 +635,11 @@ public interface Entity extends Damageable, Emitter, PersistentDataHolder {
     void lockFreezeTicks(boolean locked);
 
     /**
-     * @param entity the other entity
-     * @return whether this entity can collide with it
+     * @return whether this entity is undead for potion and combat effects
      */
-    boolean canCollideWith(Entity entity);
-
-    /**
-     * @param entity the entity testing collision, or null for a general query
-     * @return whether this entity presents a collision obstacle
-     */
-    boolean canBeCollidedWith(@Nullable Entity entity);
-
-    /**
-     * @return the horizontal direction determined by this entity's yaw
-     */
-    Direction getDirection();
-
-    /**
-     * @return the unit direction vector determined by yaw and pitch
-     */
-    Vector3f getDirectionVector();
-
-    /**
-     * @return the unit horizontal direction vector in the X-Z plane
-     */
-    Vector2f getDirectionPlane();
-
-    /**
-     * @return the horizontal direction determined by this entity's yaw
-     */
-    Direction getHorizontalDirection();
-
-    /**
-     * Advances this entity's update cycle.
-     *
-     * @param currentTick the current server tick
-     * @return whether the entity should remain scheduled for updates
-     */
-    boolean onUpdate(int currentTick);
-
-    /**
-     * Checks whether the entity touches water or is exposed to rain.
-     * Snowfall does not count as rain.
-     *
-     * @return whether water or rain is touching the entity
-     */
-    boolean isInWaterOrRain();
-
-    /**
-     * @return whether any burning duration remains
-     */
-    default boolean isOnFire() {
-        return getFireTicks() > 0;
+    default boolean isUndead() {
+        return false;
     }
-
-    /**
-     * Ignites the entity for the supplied duration, reduced by its fire protection.
-     * Does not shorten an existing longer duration.
-     *
-     * @param seconds the non-negative duration before protection
-     * @throws IllegalArgumentException if the duration is negative
-     */
-    void setOnFire(@NonNegative int seconds);
-
-    /**
-     * @return the remaining burning duration in ticks
-     */
-    @NonNegative
-    int getFireTicks();
-
-    /**
-     * Removes fire and its visible burning effect.
-     */
-    void extinguish();
 
     /**
      * @return remaining ticks of temporary damage immunity
@@ -486,269 +654,4 @@ public interface Entity extends Damageable, Emitter, PersistentDataHolder {
      * @throws IllegalArgumentException if the duration is negative
      */
     void setNoDamageTicks(int noDamageTicks);
-
-    /**
-     * @return the highest Y coordinate tracked for the current fall, in blocks
-     */
-    float getHighestPosition();
-
-    /**
-     * Sets the reference height used to measure the current fall.
-     *
-     * @param highestPosition the reference Y coordinate in blocks
-     */
-    void setHighestPosition(float highestPosition);
-
-    /**
-     * Clears accumulated fall distance at the entity's current height.
-     */
-    void resetFallDistance();
-
-    /**
-     * Returns the current world-space collision bounds, including pose and scale.
-     * The returned box is immutable and does not track later changes.
-     *
-     * @return current collision bounds
-     */
-    BoundingBox getBoundingBox();
-
-    /**
-     * Tests whether this entity would collide at a location.
-     *
-     * @param location the target location
-     * @return {@code true} if this entity's bounding box would collide at the location
-     */
-    default boolean collidesAt(Location location) {
-        Vector3f movement = location.getPosition().sub(this.getPosition());
-        return location.getLevel().hasCollision(this, this.getBoundingBox().move(movement));
-    }
-
-    /**
-     * Tests whether this entity would collide using a supplied bounding box.
-     *
-     * @param boundingBox the box to test
-     * @return {@code true} if the box collides in this entity's level
-     */
-    default boolean wouldCollideUsing(BoundingBox boundingBox) {
-        return this.getLevel().hasCollision(this, boundingBox);
-    }
-
-    /**
-     * Handles landing on the supporting block, including its response to a fall.
-     * The supporting block determines whether fall damage applies.
-     *
-     * @param fallDistance the distance fallen in blocks
-     */
-    void fall(float fallDistance);
-
-    /**
-     * Handles a lightning strike, including damage and entity-specific reactions.
-     *
-     * @param lightningBolt the bolt that struck this entity
-     */
-    void onStruckByLightning(LightningBolt lightningBolt);
-
-    /**
-     * Handles a player's interaction with this entity.
-     *
-     * @param player     the interacting player
-     * @param item       the held item
-     * @param clickedPos the interaction position relative to this entity
-     * @return whether the interaction was handled
-     */
-    boolean onInteract(Player player, ItemStack item, Vector3f clickedPos);
-
-    /**
-     * @return the world-space X coordinate
-     */
-    float getX();
-
-    /**
-     * @return the world-space Y coordinate
-     */
-    float getY();
-
-    /**
-     * @return the world-space Z coordinate
-     */
-    float getZ();
-
-    /**
-     * @return this entity's world-space position
-     */
-    Vector3f getPosition();
-
-    /**
-     * Changes position within the current level without resolving movement collisions.
-     *
-     * @param position the destination
-     * @return whether the position was applied
-     */
-    boolean setPosition(Vector3f position);
-
-    /**
-     * @return the current level, position and rotation
-     */
-    Location getLocation();
-
-    /**
-     * @return the current motion in blocks per tick
-     */
-    Vector3f getMotion();
-
-    /**
-     * Replaces motion unless a motion event cancels the change.
-     *
-     * @param motion the finite motion in blocks per tick
-     * @return whether the motion was applied
-     * @throws IllegalArgumentException if any component is not finite
-     */
-    boolean setMotion(Vector3f motion);
-
-    /**
-     * Resets fall distance and applies a multiplier to subsequent movement.
-     *
-     * @param state           the block causing the slowdown
-     * @param speedMultiplier the movement multiplier for each axis
-     */
-    void makeStuckInBlock(BlockState state, Vector3f speedMultiplier);
-
-    /**
-     * @param yaw   horizontal rotation in degrees
-     * @param pitch vertical rotation in degrees
-     */
-    void setRotation(float yaw, float pitch);
-
-    /**
-     * Changes position and rotation within the current level without resolving movement collisions.
-     *
-     * @param position the destination
-     * @param yaw      horizontal rotation in degrees
-     * @param pitch    vertical rotation in degrees
-     * @return whether the position and rotation were applied
-     */
-    boolean setPositionAndRotation(Vector3f position, float yaw, float pitch);
-
-    /**
-     * @return vertical rotation in degrees
-     */
-    float getPitch();
-
-    /**
-     * @return horizontal rotation in degrees
-     */
-    float getYaw();
-
-    /**
-     * @return whether liquid currents can change this entity's motion
-     */
-    boolean canBeMovedByCurrents();
-
-    /**
-     * Tests whether this entity can activate pressure plates.
-     *
-     * @return {@code true} if this entity can activate pressure plates
-     */
-    boolean canTriggerPressurePlate();
-
-    /**
-     * @return whether other entities can push this entity
-     */
-    boolean isPushable();
-
-    /**
-     * @return whether this entity is resting on a collision surface
-     */
-    boolean isOnGround();
-
-    /**
-     * @param onGround whether this entity is resting on a collision surface
-     */
-    void setOnGround(boolean onGround);
-
-    /**
-     * @return the supporting block position, or empty when no support is known
-     */
-    Optional<Vector3i> getSupportingBlockPosition();
-
-    /**
-     * @param position the block position to test
-     * @return whether that block is this entity's current support
-     */
-    default boolean isSupportedBy(Vector3i position) {
-        return this.getSupportingBlockPosition().filter(position::equals).isPresent();
-    }
-
-    /**
-     * @return whether this entity is undead and has reversed healing and harming potion responses
-     */
-    default boolean isUndead() {
-        return false;
-    }
-
-    /**
-     * Requests death rather than immediate removal. A living entity's death event
-     * can cancel death and restore its configured revival health.
-     */
-    void kill();
-
-    /**
-     * Teleports this entity to a position in its current level.
-     *
-     * @param position the destination
-     * @return whether the teleport succeeded
-     */
-    default boolean teleport(Vector3f position) {
-        return this.teleport(position, PlayerTeleportCause.PLUGIN);
-    }
-
-    /**
-     * Teleports this entity to a position in its current level.
-     *
-     * @param position the destination
-     * @param cause    the cause of the teleport
-     * @return whether the teleport succeeded
-     */
-    boolean teleport(Vector3f position, PlayerTeleportCause cause);
-
-    /**
-     * Teleports this entity to a location.
-     *
-     * @param location the destination
-     * @return whether the teleport succeeded
-     */
-    default boolean teleport(Location location) {
-        return this.teleport(location, PlayerTeleportCause.PLUGIN);
-    }
-
-    /**
-     * Teleports this entity to a location.
-     *
-     * @param location the destination
-     * @param cause    the cause of the teleport
-     * @return whether the teleport succeeded
-     */
-    boolean teleport(Location location, PlayerTeleportCause cause);
-
-    /**
-     * @return the owning entity, or {@code null} when no owner is assigned
-     */
-    @Nullable
-    Entity getOwner();
-
-    /**
-     * @param entity the owning entity, or {@code null} to clear ownership
-     */
-    void setOwner(@Nullable Entity entity);
-
-    /**
-     * @return whether this entity has been removed and can no longer be updated
-     */
-    boolean isClosed();
-
-    /**
-     * Removes this entity from its level and viewers without triggering death or death drops.
-     * Calling this again has no effect.
-     */
-    void close();
 }

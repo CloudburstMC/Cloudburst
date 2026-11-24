@@ -4,7 +4,7 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.entity.Entity;
 
 /**
- * Represents an entity carrying a block state while falling.
+ * A block in motion that can place itself or drop as an item when it lands.
  */
 public interface FallingBlock extends Entity {
 
@@ -78,6 +78,7 @@ public interface FallingBlock extends Entity {
      * A positive value also enables landing damage.
      *
      * @param damagePerBlock damage per block
+     * @throws IllegalArgumentException if damagePerBlock is negative or NaN
      */
     void setDamagePerBlock(float damagePerBlock);
 

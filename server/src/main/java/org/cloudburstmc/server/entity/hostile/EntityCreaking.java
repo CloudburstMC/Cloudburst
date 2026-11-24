@@ -13,7 +13,7 @@ public class EntityCreaking extends EntityHostile implements Creaking {
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(1);
+        this.setDefaultMaxHealth(1);
     }
 
     @Override
@@ -27,7 +27,7 @@ public class EntityCreaking extends EntityHostile implements Creaking {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Creaking";
     }
 }

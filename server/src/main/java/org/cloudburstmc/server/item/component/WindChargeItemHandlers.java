@@ -18,7 +18,7 @@ public class WindChargeItemHandlers {
             return item;
         }
 
-        if (player.launchProjectile(EntityTypes.WIND_CHARGE_PROJECTILE,
+        if (player.launchProjectile(EntityTypes.WIND_CHARGE,
                 ThrowableItemHandlers.launchMotion(player, 1.5f, 0)) == null) {
             return item;
         }

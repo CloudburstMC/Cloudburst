@@ -1,10 +1,7 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Bucketable;
-import org.cloudburstmc.api.entity.Creature;
-
 /**
- * A tadpole that can be collected in a water bucket.
+ * The juvenile form of a frog.
  */
-public interface Tadpole extends Creature, Bucketable {
+public interface Tadpole extends Fish {
 }

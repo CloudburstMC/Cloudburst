@@ -16,7 +16,7 @@ import org.cloudburstmc.api.potion.PotionTypes;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.entity.EntityLiving;
+import org.cloudburstmc.server.entity.CloudLivingEntity;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.junit.jupiter.api.Test;
@@ -96,7 +96,7 @@ class ArrowPotionTest {
         return new EntityArrow(EntityTypes.ARROW, Location.from(Vector3f.ZERO, InterfaceProxy.create(Level.class)));
     }
 
-    private static class RecordingLiving extends EntityLiving {
+    private static class RecordingLiving extends CloudLivingEntity {
         private final List<PotionEffect> receivedEffects = new ArrayList<>();
         private boolean acceptDamage = true;
         private @Nullable Entity effectSource;

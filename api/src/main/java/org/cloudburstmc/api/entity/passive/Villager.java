@@ -1,6 +1,9 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.Mob;
 
-public interface Villager extends Entity {
+/**
+ * The current villager type, distinct from {@link DeprecatedVillager}.
+ */
+public interface Villager extends Mob {
 }

@@ -4,21 +4,16 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.hostile.Bogged;
 import org.cloudburstmc.api.level.Location;
 
-public class EntityBogged extends EntityHostile implements Bogged {
+public class EntityBogged extends EntityAbstractSkeleton implements Bogged {
 
-    public EntityBogged(EntityType<Bogged> type, Location location) {
-        super(type, location);
+    public EntityBogged(EntityType<Bogged> entityType, Location location) {
+        super(entityType, location);
     }
 
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(16);
-    }
-
-    @Override
-    public float getWidth() {
-        return 0.6f;
+        this.setDefaultMaxHealth(16);
     }
 
     @Override
@@ -27,7 +22,7 @@ public class EntityBogged extends EntityHostile implements Bogged {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Bogged";
     }
 }

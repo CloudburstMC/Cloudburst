@@ -7,8 +7,8 @@ import org.cloudburstmc.api.ban.BanEntry;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.command.CommandSender;
-import org.cloudburstmc.api.entity.Creature;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.HumanEntity;
 import org.cloudburstmc.api.entity.projectile.FishingHook;
 import org.cloudburstmc.api.event.player.PlayerSetSpawnEvent;
 import org.cloudburstmc.api.inventory.*;
@@ -19,6 +19,7 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.sound.SoundPlayback;
 import org.cloudburstmc.api.level.sound.SoundType;
 import org.cloudburstmc.api.player.skin.Skin;
+import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.data.CardinalDirection;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -31,10 +32,9 @@ import java.util.OptionalLong;
 import java.util.UUID;
 
 /**
- * Represents a connected player. Extends {@link Creature} with player-specific capabilities including
- * inventory management, game mode control, permissions, ban/whitelist handling, and screen interactions.
+ * A player connected to the server.
  */
-public interface Player extends Creature, CommandSender {
+public interface Player extends HumanEntity, CommandSender {
 
     /**
      * Checks if this player is currently online.
@@ -42,6 +42,21 @@ public interface Player extends Creature, CommandSender {
      * @return true if they are online
      */
     boolean isOnline();
+
+    /**
+     * Hides the target player from this player on behalf of the specified plugin.
+     */
+    void hidePlayer(PluginContainer plugin, Player target);
+
+    /**
+     * Releases the specified plugin's hide. The target remains hidden if another plugin still hides them.
+     */
+    void showPlayer(PluginContainer plugin, Player target);
+
+    /**
+     * Returns whether the target player is not hidden from this player.
+     */
+    boolean canSee(Player target);
 
     /**
      * Returns the remote address of this connection, or null when unavailable.
@@ -52,9 +67,7 @@ public interface Player extends Creature, CommandSender {
     InetSocketAddress getAddress();
 
     /**
-     * Returns the identifier used for this player's current server connection.
-     *
-     * @return the server connection identifier
+     * Returns the player's profile UUID, used to identify the player across sessions.
      */
     UUID getServerId();
 
@@ -97,10 +110,10 @@ public interface Player extends Creature, CommandSender {
     /**
      * Adds or replaces this player's UUID ban and optionally disconnects them.
      *
-     * @param reason the reason, or null for the default
+     * @param reason     the reason, or null for the default
      * @param expiration the expiration, or null for a permanent ban
-     * @param source the issuer, or null for the default
-     * @param kick whether to disconnect the player when the saved ban is active
+     * @param source     the issuer, or null for the default
+     * @param kick       whether to disconnect the player when the saved ban is active
      * @return the saved ban
      */
     BanEntry<UUID> ban(@Nullable String reason, @Nullable Instant expiration, @Nullable String source, boolean kick);
@@ -253,16 +266,22 @@ public interface Player extends Creature, CommandSender {
     FishingHook getFishingHook();
 
     /**
-     * Returns the player's movement-speed attribute.
+     * Returns the player's effective movement speed, including sprint and potion effects.
      */
     float getMovementSpeed();
 
     /**
-     * Sets the player's movement-speed attribute and updates their movement abilities.
-     *
-     * @param speed the new movement speed
+     * Returns the player's movement speed before modifiers.
      */
-    void setMovementSpeed(float speed);
+    float getBaseMovementSpeed();
+
+    /**
+     * Sets the player's movement speed before modifiers.
+     *
+     * @param speed the finite, non-negative base speed
+     * @throws IllegalArgumentException if the speed is negative or not finite
+     */
+    void setBaseMovementSpeed(float speed);
 
     /**
      * Returns the player's current abilities. Call {@link PlayerAbilities#update()} after
@@ -274,11 +293,6 @@ public interface Player extends Creature, CommandSender {
      * Returns the level the player is currently in.
      */
     Level getLevel();
-
-    /**
-     * Resets the elapsed time used to check how long the player has been airborne.
-     */
-    void resetInAirTicks();
 
     /**
      * Returns the player's current game mode.

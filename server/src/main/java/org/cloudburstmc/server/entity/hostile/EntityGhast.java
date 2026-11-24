@@ -18,7 +18,7 @@ public class EntityGhast extends EntityHostile implements Ghast {
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(10);
+        this.setDefaultMaxHealth(10);
 
         this.fireProof = true;
         this.data.setFlag(FIRE_IMMUNE, true);
@@ -35,7 +35,7 @@ public class EntityGhast extends EntityHostile implements Ghast {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Ghast";
     }
 }

@@ -28,12 +28,12 @@ public class EntityMovementController {
         dz = movement.getZ();
 
         if (entity.noPhysics) {
-            moveWithoutPhysics(entity, dx, dy, dz);
+            moveWithoutPhysics(entity, type, dx, dy, dz);
             return;
         }
 
         Vector3f requestedMovement = Vector3f.from(dx, dy, dz);
-        boolean climbsWithServerMotion = type == MovementType.SELF && entity instanceof EntityLiving living && !entity.isPlayer && living.isClimbing();
+        boolean climbsWithServerMotion = type == MovementType.SELF && entity instanceof CloudLivingEntity living && !entity.isPlayer && living.isClimbing();
         if (climbsWithServerMotion) {
             requestedMovement = clampClimbingMotion(requestedMovement);
             entity.motion = requestedMovement;
@@ -54,27 +54,21 @@ public class EntityMovementController {
         applyCollisionState(entity, movementResult);
         stopBlockedMotion(entity, movementResult);
 
-        boolean climbing = entity instanceof EntityLiving living && living.isClimbing();
+        boolean climbing = entity instanceof CloudLivingEntity living && living.isClimbing();
         if (climbing) {
             entity.resetFallDistance();
             if (climbsWithServerMotion && movementResult.collidedHorizontally()) {
                 entity.motion = Vector3f.from(entity.motion.getX(), CLIMB_ASCENT_SPEED, entity.motion.getZ());
             }
         } else {
-            entity.updateFallState(entity.onGround);
+            entity.updateFallState(entity.isOnGround());
         }
 
-        if (type != MovementType.PLAYER && entity instanceof EntityCreature creature) {
-            creature.updateEnchantmentLocationEffects();
+        if (type != MovementType.PLAYER && entity instanceof CloudEquippedLivingEntity equipped) {
+            equipped.updateEnchantmentLocationEffects();
         }
 
         synchronizeForcedMovement(entity, type, previousBox);
-    }
-
-    public static void setOnGroundWithMovement(CloudEntity entity, boolean onGround, boolean horizontalCollision, @Nullable Vector3f movement) {
-        entity.onGround = onGround;
-        entity.isCollidedHorizontally = horizontalCollision;
-        checkSupportingBlock(entity, onGround, movement);
     }
 
     private static Vector3f clampClimbingMotion(Vector3f movement) {
@@ -112,18 +106,15 @@ public class EntityMovementController {
         return result;
     }
 
-    private static void moveWithoutPhysics(CloudEntity entity, float dx, float dy, float dz) {
+    private static void moveWithoutPhysics(CloudEntity entity, MovementType type, float dx, float dy, float dz) {
         BoundingBox previousBox = entity.boundingBox;
         entity.boundingBox = entity.boundingBox.move(dx, dy, dz);
         syncPositionFromBox(entity);
         entity.checkChunks();
 
-        entity.isCollidedHorizontally = false;
-        entity.isCollidedVertically = false;
-        entity.verticalCollisionBelow = false;
-        entity.isCollided = false;
-        setOnGroundWithMovement(entity, false, false, Vector3f.from(dx, dy, dz));
+        entity.updateCollisionContact(false, false, Vector3f.from(dx, dy, dz));
         entity.recordMovement(previousBox, entity.boundingBox);
+        synchronizeForcedMovement(entity, type, previousBox);
     }
 
     private static Vector3f collide(CloudEntity entity, MovementType type, Vector3f movement) {
@@ -138,7 +129,7 @@ public class EntityMovementController {
         boolean yCollision = movement.getY() != clipped.getY();
         boolean zCollision = movement.getZ() != clipped.getZ();
         boolean onGroundAfterCollision = yCollision && movement.getY() < 0;
-        boolean supported = entity.onGround || hasGroundSupport(entity, originalBox, includeEntityCollisions);
+        boolean supported = entity.isOnGround() || hasGroundSupport(entity, originalBox, includeEntityCollisions);
 
         if (entity.getStepHeight() <= 0
                 || (!supported && !onGroundAfterCollision)
@@ -161,11 +152,11 @@ public class EntityMovementController {
 
     private static void applyCollisionState(CloudEntity entity, EntityMovementResult movementResult) {
         boolean supported = movementResult.requestedMovement().getY() <= 0 && hasGroundSupport(entity, entity.boundingBox, entity.hasMovementEntityCollisions());
-        entity.isCollidedVertically = movementResult.collidedVertically();
-        entity.isCollidedHorizontally = movementResult.collidedHorizontally();
-        entity.isCollided = entity.isCollidedHorizontally || entity.isCollidedVertically;
-        entity.verticalCollisionBelow = movementResult.collidedBelow();
-        setOnGroundWithMovement(entity, entity.verticalCollisionBelow || supported, entity.isCollidedHorizontally, movementResult.resolvedMovement());
+        entity.updateCollisionContact(
+                movementResult.collidedHorizontally(),
+                movementResult.collidedBelow() || supported,
+                movementResult.resolvedMovement()
+        );
     }
 
     private static void stopBlockedMotion(CloudEntity entity, EntityMovementResult movementResult) {
@@ -182,10 +173,10 @@ public class EntityMovementController {
         }
     }
 
-    private static void checkSupportingBlock(CloudEntity entity, boolean onGround, @Nullable Vector3f movement) {
+    static void checkSupportingBlock(CloudEntity entity, boolean onGround, @Nullable Vector3f movement) {
         if (!onGround) {
             entity.onGroundNoBlocks = false;
-            entity.supportingBlockPosition = Optional.empty();
+            entity.supportingBlockPosition = null;
             return;
         }
 
@@ -195,14 +186,12 @@ public class EntityMovementController {
                 box.getMaxX(), box.getMinY(), box.getMaxZ()
         );
         Optional<Vector3i> supportingBlock = entity.level.findSupportingBlock(entity, testArea);
-        if (supportingBlock.isPresent() || entity.onGroundNoBlocks) {
-            entity.supportingBlockPosition = supportingBlock;
-        } else if (movement != null) {
+        if (supportingBlock.isEmpty() && !entity.onGroundNoBlocks && movement != null) {
             BoundingBox fallbackArea = testArea.move(-movement.getX(), 0, -movement.getZ());
             supportingBlock = entity.level.findSupportingBlock(entity, fallbackArea);
-            entity.supportingBlockPosition = supportingBlock;
         }
 
+        entity.supportingBlockPosition = supportingBlock.orElse(null);
         entity.onGroundNoBlocks = supportingBlock.isEmpty();
     }
 

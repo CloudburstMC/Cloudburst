@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface Horse extends Entity {
+/**
+ * The standard rideable horse, distinct from pack and undead equines.
+ */
+public interface Horse extends AbstractHorse {
 }

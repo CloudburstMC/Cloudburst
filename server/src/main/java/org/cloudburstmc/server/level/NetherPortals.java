@@ -6,7 +6,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.entity.EntityTypes;
-import org.cloudburstmc.api.entity.hostile.ZombiePigman;
+import org.cloudburstmc.api.entity.hostile.ZombifiedPiglin;
+import org.cloudburstmc.api.event.entity.TeleportCause;
 import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
@@ -375,7 +376,7 @@ public class NetherPortals {
      * @param scaledLoc the pre-scaled destination location
      */
     public static void handlePortalTransfer(CloudEntity entity, Location scaledLoc) {
-        if (!entity.isAlive() || entity.closed || entity.getVehicle() != null) {
+        if (!entity.isAlive() || entity.isClosed() || entity.getVehicle() != null) {
             return;
         }
 
@@ -414,7 +415,7 @@ public class NetherPortals {
             }
 
             entity.getServer().getGlobalScheduler().run(null, scheduledTask -> {
-                if (!entity.isAlive() || entity.closed) {
+                if (!entity.isAlive() || entity.isClosed()) {
                     entity.pendingPortalTransfer = false;
                     return;
                 }
@@ -487,12 +488,12 @@ public class NetherPortals {
                 }
 
                 spawnPos = findCollisionFreeSpawn(targetLevel, entity, spawnPos);
-                targetLevel.playSound(spawnPos, SoundTypes.PORTAL_TRAVEL);
-                entity.teleport(Location.from(spawnPos, exitYaw, entity.getPitch(), targetLevel));
-
-                entity.setMotion(Vector3f.ZERO);
-                entity.setPortalCooldown();
-                entity.inPortalTicks = 0;
+                if (entity.teleport(Location.from(spawnPos, exitYaw, entity.getPitch(), targetLevel),
+                        TeleportCause.NETHER_PORTAL)) {
+                    entity.getLevel().playSound(entity.getPosition(), SoundTypes.PORTAL_TRAVEL);
+                    entity.resetPortalCooldown();
+                    entity.inPortalTicks = 0;
+                }
                 entity.pendingPortalTransfer = false;
             });
         });
@@ -640,11 +641,11 @@ public class NetherPortals {
 
         Vector3f spawnPos = Vector3f.from(bx + 0.5f, by, bz + 0.5f);
         Location loc = Location.from(spawnPos, level);
-        ZombiePigman piglin = level.entityRegistry.newEntity(EntityTypes.ZOMBIE_PIGMAN, loc);
+        ZombifiedPiglin piglin = level.entityRegistry.newEntity(EntityTypes.ZOMBIFIED_PIGLIN, loc);
         if (piglin instanceof CloudEntity cloudEntity) {
-            cloudEntity.setPortalCooldown();
+            cloudEntity.resetPortalCooldown();
         }
-        piglin.spawnToAll();
+        piglin.spawn();
     }
 
     /**

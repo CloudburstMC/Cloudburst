@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.entity.hostile;
 
-import org.cloudburstmc.api.entity.Arthropod;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.hostile.CaveSpider;
 import org.cloudburstmc.api.level.Location;
@@ -8,7 +7,7 @@ import org.cloudburstmc.api.level.Location;
 /**
  * @author PikyCZ
  */
-public class EntityCaveSpider extends EntityHostile implements CaveSpider, Arthropod {
+public class EntityCaveSpider extends EntitySpider implements CaveSpider {
 
     public EntityCaveSpider(EntityType<CaveSpider> type, Location location) {
         super(type, location);
@@ -17,7 +16,7 @@ public class EntityCaveSpider extends EntityHostile implements CaveSpider, Arthr
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(12);
+        this.setDefaultMaxHealth(12);
     }
 
     @Override
@@ -31,7 +30,7 @@ public class EntityCaveSpider extends EntityHostile implements CaveSpider, Arthr
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "CaveSpider";
     }
 }

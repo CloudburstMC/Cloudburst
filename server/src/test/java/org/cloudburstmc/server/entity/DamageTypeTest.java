@@ -35,6 +35,7 @@ class DamageTypeTest {
                 () -> assertTrue(DamageTypes.GENERIC.is(BYPASSES_SHIELD)),
                 () -> assertTrue(DamageTypes.EXPLOSION.is(ALWAYS_HURTS_ENDER_DRAGONS)),
                 () -> assertTrue(DamageTypes.PLAYER_ATTACK.is(CAN_BREAK_ARMOR_STAND)),
+                () -> assertTrue(DamageTypes.MACE_SMASH.is(DamageTypeTag.of(Identifier.parse("minecraft:mace_smash")))),
                 () -> assertTrue(DamageTypes.CAMPFIRE.is(PANIC_CAUSES)),
                 () -> assertFalse(DamageTypes.THORNS.is(NO_KNOCKBACK))
         );
@@ -43,12 +44,12 @@ class DamageTypeTest {
     @Test
     void mapsDamageEffectsToHurtEventData() {
         assertAll(
-                () -> assertEquals(0, EntityLiving.getHurtEventData(DamageEffect.HURT)),
-                () -> assertEquals(18, EntityLiving.getHurtEventData(DamageEffect.THORNS)),
-                () -> assertEquals(7, EntityLiving.getHurtEventData(DamageEffect.BURNING)),
-                () -> assertEquals(9, EntityLiving.getHurtEventData(DamageEffect.DROWNING)),
-                () -> assertEquals(1, EntityLiving.getHurtEventData(DamageEffect.POKING)),
-                () -> assertEquals(27, EntityLiving.getHurtEventData(DamageEffect.FREEZING))
+                () -> assertEquals(0, CloudLivingEntity.getHurtEventData(DamageEffect.HURT)),
+                () -> assertEquals(18, CloudLivingEntity.getHurtEventData(DamageEffect.THORNS)),
+                () -> assertEquals(7, CloudLivingEntity.getHurtEventData(DamageEffect.BURNING)),
+                () -> assertEquals(9, CloudLivingEntity.getHurtEventData(DamageEffect.DROWNING)),
+                () -> assertEquals(1, CloudLivingEntity.getHurtEventData(DamageEffect.POKING)),
+                () -> assertEquals(27, CloudLivingEntity.getHurtEventData(DamageEffect.FREEZING))
         );
     }
 

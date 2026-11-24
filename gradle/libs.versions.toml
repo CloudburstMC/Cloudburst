@@ -18,6 +18,7 @@ spark-api = "0.1-20260912.112908-2"
 adventure-api = { group = "net.kyori", name = "adventure-api", version.ref = "adventure" }
 adventure-text-logger-slf4j = { group = "net.kyori", name = "adventure-text-logger-slf4j", version.ref = "adventure" }
 adventure-text-minimessage = { group = "net.kyori", name = "adventure-text-minimessage", version.ref = "adventure" }
+adventure-text-serializer-gson = { group = "net.kyori", name = "adventure-text-serializer-gson", version.ref = "adventure" }
 adventure-text-serializer-legacy = { group = "net.kyori", name = "adventure-text-serializer-legacy", version.ref = "adventure" }
 adventure-text-serializer-plain = { group = "net.kyori", name = "adventure-text-serializer-plain", version.ref = "adventure" }
 asm = { group = "org.ow2.asm", name = "asm", version.ref = "asm" }

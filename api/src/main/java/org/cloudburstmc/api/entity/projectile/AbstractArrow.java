@@ -1,7 +1,5 @@
 package org.cloudburstmc.api.entity.projectile;
 
-import org.cloudburstmc.api.entity.Projectile;
-
 /**
  * A projectile with arrow-style damage and critical-hit behavior.
  */

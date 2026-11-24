@@ -6,6 +6,7 @@ import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -20,7 +21,7 @@ public final class EnchantmentThorns extends EnchantmentBehavior {
         }
 
         DamageSource source = DamageSource.of(DamageTypes.THORNS, wearer);
-        attacker.damage(getDamage(random, enchantment.level()), source);
+        CloudEntity.applyDamage(attacker, getDamage(random, enchantment.level()), source);
         return CloudItemRegistry.get().requireComponent(item.getType(), ItemBehaviors.ON_DAMAGE).execute(item, 2, wearer);
     }
 

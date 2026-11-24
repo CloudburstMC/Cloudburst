@@ -1,6 +1,9 @@
 package org.cloudburstmc.api.entity.hostile;
 
-import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.AbstractCubeMob;
 
-public interface MagmaCube extends Entity {
+/**
+ * The Nether cube mob, distinct from {@link Slime}.
+ */
+public interface MagmaCube extends AbstractCubeMob, Enemy {
 }

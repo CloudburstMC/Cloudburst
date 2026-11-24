@@ -5,11 +5,14 @@ import org.cloudburstmc.api.entity.passive.SulfurCube;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.server.entity.EntityAbstractCubeMob;
 
-public class EntitySulfurCube extends Animal implements SulfurCube {
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BABY;
 
-    public EntitySulfurCube(EntityType<?> type, Location location) {
-        super(type, location);
+public class EntitySulfurCube extends EntityAbstractCubeMob implements SulfurCube {
+
+    public EntitySulfurCube(EntityType<SulfurCube> type, Location location) {
+        super(type, location, 2);
     }
 
     @Override
@@ -18,23 +21,32 @@ public class EntitySulfurCube extends Animal implements SulfurCube {
     }
 
     @Override
-    protected void initEntity() {
-        super.initEntity();
-        this.setMaxHealth(9);
+    protected int getMaximumSize() {
+        return 2;
     }
 
     @Override
-    public float getWidth() {
-        return this.isBaby() ? 0.49f : 0.98f;
+    protected int getBaseHealthForSize(int size) {
+        return size == 1 ? 4 : 9;
     }
 
     @Override
-    public float getHeight() {
-        return this.isBaby() ? 0.49f : 0.98f;
+    protected float getUnitDimension() {
+        return 0.49f;
     }
 
     @Override
-    public String getName() {
+    protected void onSizeChanged() {
+        this.data.setFlag(BABY, this.getSize() == 1);
+    }
+
+    @Override
+    protected float getNetworkScale() {
+        return this.getScale();
+    }
+
+    @Override
+    protected String getDefaultName() {
         return "Sulfur Cube";
     }
 }

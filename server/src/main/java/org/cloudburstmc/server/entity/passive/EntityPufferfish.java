@@ -9,10 +9,10 @@ import org.cloudburstmc.api.level.Location;
 /**
  * Created by PetteriM1
  */
-public class EntityPufferfish extends Animal implements Pufferfish {
+public class EntityPufferfish extends EntityWaterAnimal implements Pufferfish {
 
-    public EntityPufferfish(EntityType<Pufferfish> type, Location location) {
-        super(type, location);
+    public EntityPufferfish(EntityType<Pufferfish> entityType, Location location) {
+        super(entityType, location);
     }
 
     @Override
@@ -20,7 +20,7 @@ public class EntityPufferfish extends Animal implements Pufferfish {
         return ItemStack.from(ItemTypes.PUFFERFISH_BUCKET);
     }
 
-    public String getName() {
+    protected String getDefaultName() {
         return "Pufferfish";
     }
 
@@ -35,8 +35,8 @@ public class EntityPufferfish extends Animal implements Pufferfish {
     }
 
     @Override
-    public void initEntity() {
+    protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(3);
+        this.setDefaultMaxHealth(3);
     }
 }

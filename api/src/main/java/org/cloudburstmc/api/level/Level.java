@@ -540,14 +540,14 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
     }
 
     /**
-     * Drops an item with complete control over its initial placement and pickup delay.
+     * Attempts to spawn a dropped item with the given motion and pickup delay.
      *
      * @param position   the drop position
      * @param item       the item to drop
      * @param motion     the initial motion, or {@code null} for default motion
      * @param dropAround whether default motion should spread outward
      * @param delay      the pickup delay in ticks
-     * @return the created dropped-item entity
+     * @return the dropped-item entity, even if its spawn was canceled
      */
     DroppedItem dropItem(Vector3f position, ItemStack item, @Nullable Vector3f motion, boolean dropAround, int delay);
 

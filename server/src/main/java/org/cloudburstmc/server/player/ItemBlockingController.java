@@ -13,7 +13,7 @@ import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.server.entity.EntityLiving;
+import org.cloudburstmc.server.entity.CloudLivingEntity;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.Objects;
@@ -107,7 +107,7 @@ public class ItemBlockingController {
         }
 
         Entity attacker = event.getDamageSource().getDirectEntity();
-        if (attacker instanceof EntityLiving && !event.getDamageType().is(DamageTypeTags.IS_PROJECTILE)) {
+        if (attacker instanceof CloudLivingEntity && !event.getDamageType().is(DamageTypeTags.IS_PROJECTILE)) {
             ItemStack weapon = event.getDamageSource().getWeaponItem();
             float seconds = CloudItemRegistry.get().requireComponent(weapon.getType(), ItemBehaviors.GET_BLOCKING_DISABLE_SECONDS).execute(weapon);
             int cooldown = Math.round(seconds * blocking.disableCooldownScale() * 20);

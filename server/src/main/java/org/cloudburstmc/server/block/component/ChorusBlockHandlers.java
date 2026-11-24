@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.component.*;
 import org.cloudburstmc.api.block.trait.BooleanBlockTrait;
-import org.cloudburstmc.api.entity.Projectile;
+import org.cloudburstmc.api.entity.projectile.Projectile;
 import org.cloudburstmc.api.event.block.BlockGrowEvent;
 import org.cloudburstmc.api.event.block.BlockSpreadEvent;
 import org.cloudburstmc.api.event.entity.EntityChangeBlockEvent;

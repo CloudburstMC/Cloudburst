@@ -41,7 +41,7 @@ class TntMinecartPersistenceTest {
                 .build();
         minecart.loadAdditionalData(input);
 
-        assertEquals(40, minecart.getFuse());
+        assertEquals(40, minecart.getFuseTicks());
         assertEquals(9, minecart.getDisplayOffset());
 
         NbtMap saved = save(minecart);
@@ -80,12 +80,12 @@ class TntMinecartPersistenceTest {
     @Test
     void absentKeysLeaveStateUnchanged() {
         EntityTntMinecart minecart = (EntityTntMinecart) PersistenceFixtures.entity(EntityTypes.TNT_MINECART);
-        minecart.setFuse(30);
-        minecart.setDisplayBlockOffset(9);
+        minecart.setFuseTicks(30);
+        minecart.setDisplayOffset(9);
 
         minecart.loadAdditionalData(NbtMap.EMPTY);
 
-        assertEquals(30, minecart.getFuse());
+        assertEquals(30, minecart.getFuseTicks());
         assertEquals(6, minecart.getDisplayOffset());
     }
 

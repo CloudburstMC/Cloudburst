@@ -1,6 +1,9 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.Mob;
 
-public interface Nautilus extends Entity {
+/**
+ * The living aquatic mount, distinct from {@link ZombieNautilus}.
+ */
+public interface Nautilus extends Mob {
 }

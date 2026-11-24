@@ -1,6 +1,6 @@
 package org.cloudburstmc.api.event.entity;
 
-import org.cloudburstmc.api.entity.Living;
+import org.cloudburstmc.api.entity.LivingEntity;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.item.ItemStack;
@@ -27,7 +27,7 @@ public class EntityDeathEvent extends EntityEvent implements Cancellable {
      * @param drops             the proposed item drops, copied into an editable list
      * @param droppedExperience the non-negative experience to drop
      */
-    public EntityDeathEvent(Living entity, DamageSource damageSource, List<ItemStack> drops, int droppedExperience) {
+    public EntityDeathEvent(LivingEntity entity, DamageSource damageSource, List<ItemStack> drops, int droppedExperience) {
         this.entity = requireNonNull(entity, "entity");
         this.damageSource = requireNonNull(damageSource, "damageSource");
         this.drops = new ArrayList<>(List.copyOf(drops));
@@ -39,8 +39,8 @@ public class EntityDeathEvent extends EntityEvent implements Cancellable {
      * @return the dying entity
      */
     @Override
-    public Living getEntity() {
-        return (Living) this.entity;
+    public LivingEntity getEntity() {
+        return (LivingEntity) this.entity;
     }
 
     /**

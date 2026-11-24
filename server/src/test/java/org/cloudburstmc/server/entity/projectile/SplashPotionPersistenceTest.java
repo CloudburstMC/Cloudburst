@@ -7,7 +7,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.CloudSplashPotionData;
+import org.cloudburstmc.server.entity.data.CloudThrownPotionData;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -81,16 +81,16 @@ class SplashPotionPersistenceTest {
     }
 
     @Test
-    void splashPotionKeepsNoDuplicateState() {
+    void thrownPotionKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntitySplashPotion.class, CloudSplashPotionData.class);
+                EntityAbstractThrownPotion.class, CloudThrownPotionData.class);
         Set<String> fields = new HashSet<>();
-        for (Field field : EntitySplashPotion.class.getDeclaredFields()) {
+        for (Field field : EntityAbstractThrownPotion.class.getDeclaredFields()) {
             fields.add(field.getName());
         }
         for (String removed : Set.of("type")) {
             assertFalse(fields.contains(removed),
-                    "EntitySplashPotion keeps " + removed + "; state must live in CloudSplashPotionData only");
+                    "EntityAbstractThrownPotion keeps " + removed + "; state must live in CloudThrownPotionData only");
         }
     }
 }

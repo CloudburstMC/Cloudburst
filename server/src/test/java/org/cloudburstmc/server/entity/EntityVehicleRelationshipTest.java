@@ -16,15 +16,17 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class EntityVehicleRelationshipTest {
 
+    private static final Location LOCATION = Location.from(Vector3f.ZERO, InterfaceProxy.create(Level.class));
+
     @Test
     void comparesTheEntireVehicleChain() {
         CloudEntity vehicle = entity();
         CloudEntity passenger = entity();
         CloudEntity nestedPassenger = entity();
         CloudEntity otherPassenger = entity();
-        passenger.vehicle = vehicle;
-        nestedPassenger.vehicle = passenger;
-        otherPassenger.vehicle = vehicle;
+        assertTrue(passenger.mount(vehicle));
+        assertTrue(nestedPassenger.mount(passenger));
+        assertTrue(otherPassenger.mount(vehicle));
 
         assertTrue(vehicle.sharesRootVehicle(passenger));
         assertTrue(passenger.sharesRootVehicle(vehicle));
@@ -37,7 +39,7 @@ class EntityVehicleRelationshipTest {
     void rejectsSelfMountingAndMountingADescendant() {
         CloudEntity vehicle = entity();
         CloudEntity passenger = entity();
-        passenger.vehicle = vehicle;
+        assertTrue(passenger.mount(vehicle));
 
         assertFalse(vehicle.mount(vehicle));
         assertFalse(vehicle.mount(passenger));
@@ -49,14 +51,14 @@ class EntityVehicleRelationshipTest {
     void passengerSnapshotsCannotChangeVehicleOwnership() {
         CloudEntity vehicle = entity();
         CloudEntity passenger = entity();
-        vehicle.passengers.add(passenger);
+        assertTrue(passenger.mount(vehicle));
         List<Entity> snapshot = vehicle.getPassengers();
 
         assertSame(passenger, vehicle.getControllingPassenger());
         assertTrue(vehicle.isControlling(passenger));
         assertThrows(UnsupportedOperationException.class, snapshot::clear);
 
-        vehicle.passengers.clear();
+        assertTrue(passenger.dismount(vehicle));
 
         assertEquals(List.of(passenger), snapshot);
         assertTrue(vehicle.getPassengers().isEmpty());
@@ -70,19 +72,17 @@ class EntityVehicleRelationshipTest {
         CloudEntity second = entity();
         ArrayList<Entity> moved = new ArrayList<>();
 
-        CloudEntity vehicle = new CloudEntity(EntityTypes.PIG, Location.from(Vector3f.ZERO, InterfaceProxy.create(Level.class))) {
+        CloudEntity vehicle = new TestEntity() {
             @Override
             protected void updatePassengerPosition(Entity passenger) {
                 moved.add(passenger);
-                second.vehicle = null;
-                this.passengers.remove(second);
+                second.dismount(this);
             }
         };
 
-        first.vehicle = vehicle;
-        second.vehicle = vehicle;
-        vehicle.passengers.add(first);
-        vehicle.passengers.add(second);
+        assertTrue(first.mount(vehicle));
+        assertTrue(second.mount(vehicle));
+        moved.clear();
         vehicle.updatePassengers();
 
         assertEquals(java.util.List.of(first), moved);
@@ -92,22 +92,8 @@ class EntityVehicleRelationshipTest {
     @Test
     void ejectionBlocksImmediateGameplayBoardingButNotExplicitMountRequests() {
         CloudEntity vehicle = entity();
-        CloudEntity passenger = new CloudEntity(EntityTypes.PIG, Location.from(Vector3f.ZERO, InterfaceProxy.create(Level.class))) {
-            @Override
-            public boolean mount(Entity target) {
-                return true;
-            }
-
-            @Override
-            protected void broadcastLinkPacket(Entity target, EntityLinkData.Type type, boolean riderInitiated) {
-            }
-
-            @Override
-            public void flushEntityData() {
-            }
-        };
-        passenger.vehicle = vehicle;
-        vehicle.passengers.add(passenger);
+        CloudEntity passenger = entity();
+        assertTrue(passenger.mount(vehicle));
 
         vehicle.ejectPassengers();
         assertNull(passenger.getVehicle());
@@ -117,8 +103,25 @@ class EntityVehicleRelationshipTest {
     }
 
     private static CloudEntity entity() {
-        return new CloudEntity(EntityTypes.PIG,
-                Location.from(Vector3f.ZERO, InterfaceProxy.create(Level.class))) {
-        };
+        return new TestEntity();
+    }
+
+    private static class TestEntity extends CloudEntity {
+
+        private TestEntity() {
+            super(EntityTypes.PIG, LOCATION);
+        }
+
+        @Override
+        protected void onMount(Entity passenger) {
+        }
+
+        @Override
+        protected void broadcastLinkPacket(Entity target, EntityLinkData.Type type, boolean riderInitiated) {
+        }
+
+        @Override
+        public void flushEntityData() {
+        }
     }
 }

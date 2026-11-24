@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Bucketable;
-
-public interface TropicalFish extends Bucketable {
+/**
+ * The fish type with combinations of body shape, pattern, and colors.
+ */
+public interface TropicalFish extends Fish {
 }

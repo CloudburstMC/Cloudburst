@@ -130,11 +130,6 @@ public class DamageTypeTags {
     public static final DamageTypeTag IS_LIGHTNING = tag("is_lightning");
 
     /**
-     * Damage caused by a mace smash attack.
-     */
-    public static final DamageTypeTag IS_MACE_SMASH = tag("is_mace_smash");
-
-    /**
      * Damage attributed to a player attack.
      */
     public static final DamageTypeTag IS_PLAYER_ATTACK = tag("is_player_attack");
@@ -143,6 +138,11 @@ public class DamageTypeTags {
      * Damage delivered by a projectile.
      */
     public static final DamageTypeTag IS_PROJECTILE = tag("is_projectile");
+
+    /**
+     * Damage caused by a mace smash attack.
+     */
+    public static final DamageTypeTag MACE_SMASH = tag("mace_smash");
 
     /**
      * Damage that does not make entities angry at its source.

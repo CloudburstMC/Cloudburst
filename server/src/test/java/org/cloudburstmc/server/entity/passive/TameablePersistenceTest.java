@@ -2,137 +2,91 @@ package org.cloudburstmc.server.entity.passive;
 
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
-import org.cloudburstmc.api.level.Level;
-import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.api.entity.passive.Tameable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.blockentity.DtoStateChecks;
-import org.cloudburstmc.server.entity.data.CloudCreatureData;
-import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Field;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class TameablePersistenceTest {
 
-    private static final class TestTameable extends EntityTameable {
-        TestTameable(EntityType<?> type, Location location) {
-            super(type, location);
+    private static final UUID OWNER_ID = UUID.fromString("12345678-1234-4321-8234-123456789abc");
+
+    @Test
+    void registeredTameablesRoundTripOfflineOwnershipAndSitting() {
+        for (EntityType<? extends Tameable> type : List.of(EntityTypes.CAT, EntityTypes.WOLF, EntityTypes.PARROT)) {
+            EntityTameable original = create(type);
+            original.setOwnerUniqueId(OWNER_ID);
+            original.setSitting(true);
+
+            NbtMap saved = save(original);
+            assertEquals(OWNER_ID.toString(), saved.getString("Cloudburst.OwnerUUID"));
+            assertFalse(saved.containsKey("OwnerID"));
+            assertInstanceOf(Byte.class, saved.get("Sitting"));
+
+            EntityTameable reloaded = create(type);
+            reloaded.loadAdditionalData(saved);
+            assertEquals(OWNER_ID, reloaded.getOwnerUniqueId());
+            assertNull(reloaded.getOwner());
+            assertTrue(reloaded.isTamed());
+            assertTrue(reloaded.isSitting());
+
+            reloaded.setTamed(false);
+            assertNull(reloaded.getOwnerUniqueId());
+            assertFalse(reloaded.isTamed());
+            assertFalse(save(reloaded).containsKey("Cloudburst.OwnerUUID"));
         }
     }
 
-    private static TestTameable tameable() {
-        PersistenceFixtures.ensureInitialized();
-        return new TestTameable(EntityTypes.WOLF,
-                Location.from(Vector3f.ZERO, InterfaceProxy.create(Level.class)));
-    }
-
-    private static NbtMap save(TestTameable tameable) {
-        NbtMapBuilder builder = NbtMap.builder();
-        tameable.saveAdditionalData(builder);
-        return builder.build();
-    }
-
     @Test
-    void dataRoundTripPreservesKeysAndTypes() {
-        TestTameable tameable = tameable();
-
-        tameable.loadAdditionalData(NbtMap.builder()
-                .putLong("OwnerID", 123L)
-                .putBoolean("Sitting", true)
-                .build());
-
-        assertEquals(123L, tameable.getOwnerId());
-        assertTrue(tameable.isTamed());
-        assertTrue(tameable.isSitting());
-
-        NbtMap written = save(tameable);
-
-        assertTrue(written.get("OwnerID") instanceof Long, "OwnerID must be a long");
-        assertEquals(123L, written.getLong("OwnerID"));
-        assertEquals(NbtType.BYTE, NbtType.byClass(written.get("Sitting").getClass()), "Sitting must be a byte");
-        assertTrue(written.getBoolean("Sitting"));
-    }
-
-    @Test
-    void defaultInstanceFillsTodayDefaults() {
-        TestTameable tameable = tameable();
-
-        NbtMap written = save(tameable);
-
-        assertTrue(written.get("OwnerID") instanceof Long, "OwnerID must be a long");
-        assertEquals(-1L, written.getLong("OwnerID"));
-        assertEquals(NbtType.BYTE, NbtType.byClass(written.get("Sitting").getClass()), "Sitting must be a byte");
-        assertFalse(written.getBoolean("Sitting"));
-    }
-
-    @Test
-    void absentKeysLeaveStateUnchanged() {
-        TestTameable tameable = tameable();
-        tameable.setOwnerId(7L);
+    void ownerlessTamedStateRoundTripsInTheNewFormat() {
+        EntityTameable tameable = create(EntityTypes.WOLF);
         tameable.setTamed(true);
+
+        NbtMap saved = save(tameable);
+        assertTrue(saved.getBoolean("Cloudburst.Tamed"));
+        assertFalse(saved.containsKey("Cloudburst.OwnerUUID"));
+        EntityTameable reloaded = create(EntityTypes.WOLF);
+        reloaded.loadAdditionalData(saved);
+        assertNull(reloaded.getOwnerUniqueId());
+        assertTrue(reloaded.isTamed());
+    }
+
+    @Test
+    void loadingUntamedDataClearsThePriorOwner() {
+        EntityTameable tameable = create(EntityTypes.WOLF);
+        tameable.setOwnerUniqueId(OWNER_ID);
         tameable.setSitting(true);
 
         tameable.loadAdditionalData(NbtMap.EMPTY);
 
-        assertEquals(7L, tameable.getOwnerId());
-        assertTrue(tameable.isTamed());
-        assertTrue(tameable.isSitting());
+        assertNull(tameable.getOwnerUniqueId());
+        assertFalse(tameable.isTamed());
+        assertFalse(tameable.isSitting());
     }
 
     @Test
-    void clearedOwnerGivesTodayOutput() {
-        TestTameable tameable = tameable();
-        tameable.loadAdditionalData(NbtMap.builder()
-                .putLong("OwnerID", 123L)
-                .putBoolean("Sitting", true)
-                .build());
+    void invalidOwnerUuidDoesNotTameTheEntity() {
+        EntityTameable tameable = create(EntityTypes.WOLF);
 
-        tameable.setOwner(null);
+        tameable.loadAdditionalData(NbtMap.builder().putString("Cloudburst.OwnerUUID", "invalid").build());
 
-        NbtMap written = save(tameable);
-
-        assertTrue(written.get("OwnerID") instanceof Long, "OwnerID must be a long");
-        assertEquals(-1L, written.getLong("OwnerID"));
-        assertEquals(NbtType.BYTE, NbtType.byClass(written.get("Sitting").getClass()), "Sitting must be a byte");
-        assertTrue(written.getBoolean("Sitting"));
-    }
-
-    @Test
-    void nonNumericOwnerIdLeavesStateUnchanged() {
-        TestTameable tameable = tameable();
-        tameable.setOwnerId(7L);
-
-        tameable.loadAdditionalData(NbtMap.builder()
-                .putString("OwnerID", "not-a-number")
-                .build());
-
-        assertEquals(7L, tameable.getOwnerId());
+        assertNull(tameable.getOwnerUniqueId());
         assertFalse(tameable.isTamed());
     }
 
-    @Test
-    void tameableKeepsNoDuplicateState() {
-        DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntityTameable.class, CloudCreatureData.class,
-                Map.of(
-                        "armor", "an armor view over the live container in data().getArmor()",
-                        "offhand", "an offhand view over the live container in data().getOffhand()"));
-        Set<String> fields = new HashSet<>();
-        for (Field field : EntityTameable.class.getDeclaredFields()) {
-            fields.add(field.getName());
-        }
-        for (String removed : Set.of("ownerId", "sitting")) {
-            assertFalse(fields.contains(removed),
-                    "EntityTameable keeps " + removed + "; state must live in metadata only");
-        }
+    private static EntityTameable create(EntityType<? extends Tameable> type) {
+        return assertInstanceOf(EntityTameable.class, PersistenceFixtures.entity(type));
+    }
+
+    private static NbtMap save(EntityTameable tameable) {
+        NbtMapBuilder tag = NbtMap.builder();
+        tameable.saveAdditionalData(tag);
+        return tag.build();
     }
 }

@@ -1,6 +1,9 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.Mob;
 
-public interface Chicken extends Entity {
+/**
+ * The egg-laying livestock bird.
+ */
+public interface Chicken extends Mob {
 }

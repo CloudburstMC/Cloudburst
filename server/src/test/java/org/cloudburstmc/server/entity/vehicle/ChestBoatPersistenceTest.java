@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -91,8 +90,7 @@ class ChestBoatPersistenceTest {
     @Test
     void chestBoatKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntityChestBoat.class, CloudChestBoatData.class,
-                Map.of("inventory", "a view over the live container in data().getItems()"));
+                EntityChestBoat.class, CloudChestBoatData.class);
         Set<String> fields = new HashSet<>();
         for (Field field : EntityChestBoat.class.getDeclaredFields()) {
             fields.add(field.getName());

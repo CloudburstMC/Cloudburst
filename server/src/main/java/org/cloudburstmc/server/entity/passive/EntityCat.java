@@ -4,7 +4,7 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.passive.Cat;
 import org.cloudburstmc.api.level.Location;
 
-public class EntityCat extends Animal implements Cat {
+public class EntityCat extends EntityTameable implements Cat {
 
     public EntityCat(EntityType<Cat> type, Location location) {
         super(type, location);
@@ -27,8 +27,8 @@ public class EntityCat extends Animal implements Cat {
     }
 
     @Override
-    public void initEntity() {
+    protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(10);
+        this.setDefaultMaxHealth(10);
     }
 }

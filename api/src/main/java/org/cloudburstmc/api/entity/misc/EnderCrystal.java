@@ -5,19 +5,19 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.math.vector.Vector3i;
 
 /**
- * An End Crystal.
+ * An End crystal with a configurable base and optional beam target.
  */
 public interface EnderCrystal extends Entity {
 
     /**
-     * Returns whether the bedrock base is displayed.
+     * Returns whether the crystal's base is displayed.
      *
      * @return whether the base is displayed
      */
     boolean isShowingBase();
 
     /**
-     * Sets whether the bedrock base is displayed.
+     * Sets whether the crystal's base is displayed.
      *
      * @param showingBase whether the base is displayed
      */

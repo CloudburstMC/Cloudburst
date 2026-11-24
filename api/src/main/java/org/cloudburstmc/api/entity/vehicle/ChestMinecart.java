@@ -1,4 +1,7 @@
 package org.cloudburstmc.api.entity.vehicle;
 
-public interface ChestMinecart extends Minecart {
+/**
+ * A rail vehicle with chest storage, distinct from the item-collecting {@link HopperMinecart}.
+ */
+public interface ChestMinecart extends ContainerMinecart {
 }

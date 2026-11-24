@@ -1,7 +1,9 @@
 package org.cloudburstmc.server.entity.misc;
 
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.entity.EntityComponents;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageType;
@@ -9,6 +11,7 @@ import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.ArmorStand;
 import org.cloudburstmc.api.event.entity.EntityDeathEvent;
+import org.cloudburstmc.api.event.entity.EntityRemoveCause;
 import org.cloudburstmc.api.event.player.PlayerArmorStandManipulateEvent;
 import org.cloudburstmc.api.item.*;
 import org.cloudburstmc.api.item.component.DeathProtectionComponent;
@@ -20,6 +23,7 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
@@ -33,17 +37,18 @@ import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.util.RedstoneSignals;
 import org.cloudburstmc.server.entity.CloudDamageResult;
-import org.cloudburstmc.server.entity.EntityLiving;
+import org.cloudburstmc.server.entity.CloudLivingEntity;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.item.ItemStackPacketCodec;
 import org.cloudburstmc.server.network.LevelEffectPacketFactory;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.*;
 
-public class EntityArmorStand extends EntityLiving implements ArmorStand {
+public class EntityArmorStand extends CloudLivingEntity implements ArmorStand {
 
     private static final int POSE_COUNT = 13;
     private static final int BREAK_WINDOW = 5;
@@ -83,7 +88,7 @@ public class EntityArmorStand extends EntityLiving implements ArmorStand {
 
     @Override
     protected void initEntity() {
-        this.setMaxHealth(6);
+        this.setDefaultMaxHealth(6);
         super.initEntity();
         this.setPoseIndex(0);
     }
@@ -165,13 +170,9 @@ public class EntityArmorStand extends EntityLiving implements ArmorStand {
     }
 
     @Override
-    public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
+    protected boolean interactDefault(Player player, ItemStack item, Vector3f clickedPos) {
         if (!this.isAlive() || player.isSpectator() || !player.getInventory().getSelectedItem().equals(item)) {
             return false;
-        }
-
-        if (super.onInteract(player, item, clickedPos)) {
-            return true;
         }
 
         if (item.getType() == ItemTypes.NAME_TAG) {
@@ -180,7 +181,11 @@ public class EntityArmorStand extends EntityLiving implements ArmorStand {
                 return false;
             }
 
-            this.setNameTag(name);
+            if (!CloudEntityRegistry.get().requireComponent(this.getType(), EntityComponents.CAN_BE_NAMED).execute(this)) {
+                return false;
+            }
+
+            this.customName(Component.text(name));
             if (!player.isCreative()) {
                 player.getInventory().setSelectedItem(item.decreaseCount());
             }
@@ -193,7 +198,7 @@ public class EntityArmorStand extends EntityLiving implements ArmorStand {
             return true;
         }
 
-        EquipmentSlot slot = item.isEmpty() ? this.clickedSlot(clickedPos.getY() - this.getY()) : equipmentSlot(item);
+        EquipmentSlot slot = item.isEmpty() ? this.clickedSlot(clickedPos.getY()) : equipmentSlot(item);
         if (slot == null) {
             return false;
         }
@@ -307,7 +312,7 @@ public class EntityArmorStand extends EntityLiving implements ArmorStand {
     }
 
     @Override
-    public void fall(float fallDistance) {
+    protected void fall(float fallDistance) {
         this.playSound(LevelEvent.SOUND_ARMOR_STAND_LAND);
         super.fall(fallDistance);
     }
@@ -393,8 +398,11 @@ public class EntityArmorStand extends EntityLiving implements ArmorStand {
         List<ItemStack> drops = new ArrayList<>(this.equipment.values());
         if (!type.is(DamageTypeTags.IS_EXPLOSION) && (type.is(DamageTypeTags.IS_PLAYER_ATTACK) || type.is(DamageTypeTags.ALWAYS_KILLS_ARMOR_STANDS))) {
             ItemStack stand = ItemStack.from(ItemTypes.ARMOR_STAND);
-            if (this.hasNameTag()) {
-                stand = stand.toBuilder().setData(ItemDataComponents.CUSTOM_NAME, this.getNameTag()).build();
+            Component name = this.customName();
+            if (name != null) {
+                stand = stand.toBuilder()
+                        .setData(ItemDataComponents.CUSTOM_NAME, BedrockLegacyTextSerializer.getInstance().serialize(name))
+                        .build();
             }
             drops.add(stand);
         }
@@ -421,7 +429,7 @@ public class EntityArmorStand extends EntityLiving implements ArmorStand {
         }
 
         this.equipment.clear();
-        this.close();
+        this.remove(EntityRemoveCause.DEATH);
     }
 
     public void playPlacementSound() {

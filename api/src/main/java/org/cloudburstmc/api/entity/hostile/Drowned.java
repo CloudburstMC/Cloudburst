@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.hostile;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface Drowned extends Entity {
+/**
+ * The aquatic zombie variant, which can also result from a zombie conversion.
+ */
+public interface Drowned extends Zombie {
 }

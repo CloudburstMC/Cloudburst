@@ -9,7 +9,7 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
-import org.cloudburstmc.api.entity.projectile.SplashPotion;
+import org.cloudburstmc.api.entity.projectile.ThrownPotion;
 import org.cloudburstmc.api.event.entity.EntityChangeBlockEvent;
 import org.cloudburstmc.api.event.entity.PotionEffectCause;
 import org.cloudburstmc.api.item.ItemDataComponents;
@@ -90,13 +90,13 @@ public class PotionItemHandlers {
         }
     }
 
-    private static ItemStack throwPotion(ItemStack item, Entity entity, EntityType<? extends SplashPotion> type) {
+    private static ItemStack throwPotion(ItemStack item, Entity entity, EntityType<? extends ThrownPotion> type) {
         if (!(entity instanceof CloudPlayer player)) {
             return item;
         }
 
         PotionType potionType = item.getOrDefault(ItemDataComponents.POTION_TYPE, PotionTypes.WATER);
-        SplashPotion projectile = player.launchProjectile(type, ThrowableItemHandlers.launchMotion(player, 0.5f, -20),
+        ThrownPotion projectile = player.launchProjectile(type, ThrowableItemHandlers.launchMotion(player, 0.5f, -20),
                 potion -> potion.setPotionType(potionType));
         if (projectile == null) {
             return item;

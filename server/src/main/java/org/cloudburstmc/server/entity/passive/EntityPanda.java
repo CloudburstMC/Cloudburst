@@ -26,8 +26,8 @@ public class EntityPanda extends Animal implements Panda {
     }
 
     @Override
-    public void initEntity() {
+    protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(20);
+        this.setDefaultMaxHealth(20);
     }
 }

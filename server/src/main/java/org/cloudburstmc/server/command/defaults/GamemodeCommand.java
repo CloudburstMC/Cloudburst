@@ -78,7 +78,7 @@ public class GamemodeCommand extends AdvertisedCommand {
                 continue;
             }
 
-            boolean changed = target.setGamemode(gameMode, PlayerGameModeChangeEvent.Cause.COMMAND);
+            boolean changed = target.setGameMode(gameMode, PlayerGameModeChangeEvent.Cause.COMMAND);
             if (!changed) {
                 sender.sendMessage(Component.text("Game mode update for " + target.getName() + " failed"));
             } else if (target.equals(sender)) {

@@ -41,7 +41,7 @@ public class EndDimension {
         Location location = Location.from(Vector3f.from(spike.x() + 0.5f, spike.height() + 1, spike.z() + 0.5f), level);
         EntityEnderCrystal crystal = (EntityEnderCrystal) CloudEntityRegistry.get().newEntity(EntityTypes.ENDER_CRYSTAL, location);
         crystal.setShowingBase(true);
-        crystal.spawnToAll();
+        crystal.spawn();
         return crystal;
     }
 

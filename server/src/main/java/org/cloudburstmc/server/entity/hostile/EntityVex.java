@@ -16,7 +16,7 @@ public class EntityVex extends EntityHostile implements Vex {
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(14);
+        this.setDefaultMaxHealth(14);
     }
 
     @Override
@@ -30,7 +30,7 @@ public class EntityVex extends EntityHostile implements Vex {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Vex";
     }
 }

@@ -9,16 +9,16 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.ELDER;
 /**
  * @author PikyCZ
  */
-public class EntityElderGuardian extends EntityHostile implements ElderGuardian {
+public class EntityElderGuardian extends EntityGuardian implements ElderGuardian {
 
-    public EntityElderGuardian(EntityType<ElderGuardian> type, Location location) {
-        super(type, location);
+    public EntityElderGuardian(EntityType<ElderGuardian> entityType, Location location) {
+        super(entityType, location);
     }
 
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(80);
+        this.setDefaultMaxHealth(80);
         this.data.setFlag(ELDER, true);
     }
 
@@ -33,7 +33,7 @@ public class EntityElderGuardian extends EntityHostile implements ElderGuardian 
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Elder Guardian";
     }
 }

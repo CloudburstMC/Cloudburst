@@ -16,10 +16,7 @@ import org.cloudburstmc.api.entity.*;
 import org.cloudburstmc.api.entity.component.Buoyancy;
 import org.cloudburstmc.api.entity.component.InteractEntityHandler;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
-import org.cloudburstmc.api.item.ItemBehaviors;
-import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.ItemType;
-import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.item.*;
 import org.cloudburstmc.api.item.component.SpawnEggComponent;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.registry.EntityRegistry;
@@ -32,7 +29,8 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.server.ServerJson;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.EntityHuman;
+import org.cloudburstmc.server.entity.CloudEntitySnapshot;
+import org.cloudburstmc.server.entity.CloudHumanEntity;
 import org.cloudburstmc.server.entity.UnknownEntity;
 import org.cloudburstmc.server.entity.component.BucketableEntityHandlers;
 import org.cloudburstmc.server.entity.component.PickItemEntityHandlers;
@@ -48,6 +46,7 @@ import tools.jackson.core.type.TypeReference;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -102,6 +101,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
     }
 
     private final BiMap<Identifier, EntityType<?>> identifierTypeMap = HashBiMap.create();
+    private final Map<Identifier, EntityType<UnknownEntity>> unknownTypes = new ConcurrentHashMap<>();
     private final AtomicLong entityIdAllocator = new AtomicLong();
     private final Map<EntityType<?>, EntityRegistration<?>> dataMap = new IdentityHashMap<>();
     private final Int2ObjectMap<EntityType<?>> runtimeTypeMap = new Int2ObjectOpenHashMap<>();
@@ -120,6 +120,8 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         this.registerProjectileDamageComponents();
         this.registerBucketableEntities();
         this.registerPowderSnowProperties();
+        this.registerUndeadTypes();
+        this.registerArthropodSensitivity();
         this.registerSnowGolemComponents();
         customEntityStart = runtimeTypeAllocator;
     }
@@ -136,12 +138,12 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
     @Override
     public synchronized <T extends Entity> void register(EntityType<T> type, EntityFactory<T> factory,
                                                          int priority, boolean hasSpawnEgg) {
-        this.registerInternal(null, type, factory, this.runtimeTypeAllocator++, priority, hasSpawnEgg);
+        this.registerInternal(null, type, factory, this.runtimeTypeAllocator, priority, hasSpawnEgg);
     }
 
     public synchronized <T extends Entity> void register(Object plugin, EntityType<T> type, EntityFactory<T> factory,
                                                          int priority, boolean hasSpawnEgg) {
-        this.registerInternal(plugin, type, factory, this.runtimeTypeAllocator++, priority, hasSpawnEgg);
+        this.registerInternal(plugin, type, factory, this.runtimeTypeAllocator, priority, hasSpawnEgg);
     }
 
     private <T extends Entity> void registerVanilla(EntityType<T> type, EntityFactory<T> factory, int legacyId) {
@@ -194,9 +196,15 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         return Optional.ofNullable(this.identifierTypeMap.get(identifier));
     }
 
-    public EntityType<?> getOrCreateUnknownType(Identifier identifier) {
+    public EntityType<?> resolveSavedType(Identifier identifier) {
         checkState(this.closed, "Cannot get entity type during registration");
-        return this.identifierTypeMap.computeIfAbsent(identifier, id -> {
+        checkNotNull(identifier, "identifier");
+        EntityType<?> registered = this.identifierTypeMap.get(identifier);
+        if (registered != null) {
+            return registered;
+        }
+
+        return this.unknownTypes.computeIfAbsent(identifier, id -> {
             log.warn("Creating unknown entity type for {}", id);
             return EntityType.from(id, UnknownEntity.class);
         });
@@ -221,6 +229,19 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
 
     public <T extends Entity> T newEntity(EntityType<T> type, Location location) {
         return this.create(type, location);
+    }
+
+    public CloudEntity createFromItem(ItemStack item, EntityType<?> type, Location location) {
+        EntitySnapshot snapshot = item.get(ItemDataComponents.ENTITY_DATA);
+        if (snapshot == null) {
+            return (CloudEntity) this.create(type, location);
+        }
+
+        if (!(snapshot instanceof CloudEntitySnapshot stored) || stored.getType() != type) {
+            throw new IllegalArgumentException("Item entity data does not match its placement type");
+        }
+
+        return stored.createEntity(location);
     }
 
     /**
@@ -356,9 +377,11 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         this.registerComponent(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.MOB_PROJECTILE);
         this.registerComponent(EntityComponents.GET_PICK_ITEM, (entity, includeData) -> ItemStack.EMPTY);
         this.registerComponent(EntityComponents.ON_INTERACT, (entity, player, item, clickedPos) -> false);
-        this.registerComponent(EntityComponents.ON_TICK, (entity, currentTick) -> true);
+        this.registerComponent(EntityComponents.ON_TICK);
         this.registerComponent(EntityComponents.CAN_BE_NAMED, entity -> true);
         this.registerComponent(EntityComponents.CAN_FREEZE, entity -> true);
+        this.registerComponent(EntityComponents.IS_UNDEAD, entity -> false);
+        this.registerComponent(EntityComponents.SENSITIVE_TO_BANE_OF_ARTHROPODS, entity -> false);
         this.registerComponent(EntityComponents.CAN_WALK_ON_POWDER_SNOW, entity -> false);
         this.registerComponent(EntityComponents.GET_FREEZING_DAMAGE_MULTIPLIER, entity -> 1f);
     }
@@ -380,6 +403,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
 
         this.registerPickItem(ARMOR_STAND, ItemTypes.ARMOR_STAND);
         this.registerPickItem(PAINTING, ItemTypes.PAINTING);
+        this.registerPickItem(LEASH_KNOT, ItemTypes.LEAD);
         this.registerPickItem(ENDER_CRYSTAL, ItemTypes.END_CRYSTAL);
         this.registerPickItem(MINECART, ItemTypes.MINECART);
         this.registerPickItem(CHEST_MINECART, ItemTypes.CHEST_MINECART);
@@ -421,7 +445,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         registerVanilla(CREEPER, EntityCreeper::new, 33);
         registerVanilla(SKELETON, EntitySkeleton::new, 34);
         registerVanilla(SPIDER, EntitySpider::new, 35);
-        registerVanilla(ZOMBIE_PIGMAN, EntityZombiePigman::new, 36);
+        registerVanilla(ZOMBIFIED_PIGLIN, EntityZombifiedPiglin::new, 36);
         registerVanilla(SLIME, EntitySlime::new, 37);
         registerVanilla(ENDERMAN, EntityEnderman::new, 38);
         registerVanilla(SILVERFISH, EntitySilverfish::new, 39);
@@ -447,14 +471,14 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         registerVanilla(RAVAGER, EntityRavager::new, 59);
         registerVanilla(ARMOR_STAND, EntityArmorStand::new, 61);
         registerVanilla(TRIPOD_CAMERA, EntityTripodCamera::new, 62);
-        registerVanilla(ITEM, EntityItem::new, 64);
+        registerVanilla(ITEM, EntityDroppedItem::new, 64);
         registerVanilla(TNT, EntityPrimedTnt::new, 65);
         registerVanilla(FALLING_BLOCK, EntityFallingBlock::new, 66);
-        registerVanilla(XP_BOTTLE, EntityXpBottle::new, 68);
-        registerVanilla(XP_ORB, EntityXpOrb::new, 69);
+        registerVanilla(THROWN_EXPERIENCE_BOTTLE, EntityThrownExperienceBottle::new, 68);
+        registerVanilla(XP_ORB, EntityExperienceOrb::new, 69);
         registerVanilla(EYE_OF_ENDER_SIGNAL, EntityEyeOfEnderSignal::new, 70);
         registerVanilla(ENDER_CRYSTAL, EntityEnderCrystal::new, 71);
-        registerVanilla(FIREWORKS_ROCKET, EntityFireworksRocket::new, 72);
+        registerVanilla(FIREWORK_ROCKET, EntityFireworkRocket::new, 72);
         registerVanilla(THROWN_TRIDENT, EntityThrownTrident::new, 73);
         registerVanilla(TURTLE, EntityTurtle::new, 74);
         registerVanilla(CAT, EntityCat::new, 75);
@@ -466,7 +490,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         registerVanilla(EGG, EntityEgg::new, 82);
         registerVanilla(PAINTING, EntityPainting::new, 83);
         registerVanilla(MINECART, EntityMinecart::new, 84);
-        registerVanilla(FIREBALL, EntityFireball::new, 85);
+        registerVanilla(LARGE_FIREBALL, EntityLargeFireball::new, 85);
         registerVanilla(SPLASH_POTION, EntitySplashPotion::new, 86);
         registerVanilla(ENDER_PEARL, EntityEnderPearl::new, 87);
         registerVanilla(LEASH_KNOT, EntityLeashKnot::new, 88);
@@ -482,8 +506,8 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         registerVanilla(COMMAND_BLOCK_MINECART, EntityCommandBlockMinecart::new, 100);
         registerVanilla(LINGERING_POTION, EntityLingeringPotion::new, 101);
         registerVanilla(LLAMA_SPIT, EntityLlamaSpit::new, 102);
-        registerVanilla(EVOCATION_FANG, EntityEvocationFang::new, 103);
-        registerVanilla(EVOCATION_ILLAGER, EntityEvocationIllager::new, 104);
+        registerVanilla(EVOKER_FANGS, EntityEvokerFangs::new, 103);
+        registerVanilla(EVOKER, EntityEvoker::new, 104);
         registerVanilla(VEX, EntityVex::new, 105);
         registerVanilla(ICE_BOMB, EntityIceBomb::new, 106);
         registerVanilla(BALLOON, EntityBalloon::new, 107);
@@ -515,9 +539,9 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         registerVanilla(CAMEL, EntityCamel::new, 138);
         registerVanilla(SNIFFER, EntitySniffer::new, 139);
         registerVanilla(BREEZE, EntityBreeze::new, 140);
-        registerVanilla(BREEZE_WIND_CHARGE_PROJECTILE, EntityBreezeWindChargeProjectile::new, 141);
+        registerVanilla(BREEZE_WIND_CHARGE, EntityBreezeWindCharge::new, 141);
         registerVanilla(ARMADILLO, EntityArmadillo::new, 142);
-        registerVanilla(WIND_CHARGE_PROJECTILE, EntityWindChargeProjectile::new, 143);
+        registerVanilla(WIND_CHARGE, EntityWindCharge::new, 143);
         registerVanilla(BOGGED, EntityBogged::new, 144);
         registerVanilla(OMINOUS_ITEM_SPAWNER, EntityOminousItemSpawner::new, 145);
         registerVanilla(CREAKING, EntityCreaking::new, 146);
@@ -530,22 +554,22 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         registerVanilla(SULFUR_CUBE, EntitySulfurCube::new, 153);
         registerVanilla(TRADER_LLAMA, EntityTraderLlama::new, 157);
         registerVanilla(CHEST_BOAT, EntityChestBoat::new, 218);
-        registerVanilla(PLAYER, EntityHuman::new, 257);
+        registerVanilla(PLAYER, CloudHumanEntity::new, 257);
     }
 
     private void registerProjectileDamageComponents() {
         getComponentMap(ARROW).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.ARROW);
-        getComponentMap(BREEZE_WIND_CHARGE_PROJECTILE).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.WIND_CHARGE);
+        getComponentMap(BREEZE_WIND_CHARGE).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.WIND_CHARGE);
         getComponentMap(DRAGON_FIREBALL).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.DRAGON_BREATH);
         getComponentMap(EGG).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.THROWN);
-        getComponentMap(FIREBALL).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> entity.getOwner() == null ? DamageTypes.UNATTRIBUTED_FIREBALL : DamageTypes.FIREBALL);
+        getComponentMap(LARGE_FIREBALL).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> entity.getOwner() == null ? DamageTypes.UNATTRIBUTED_FIREBALL : DamageTypes.FIREBALL);
         getComponentMap(LINGERING_POTION).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.INDIRECT_MAGIC);
         getComponentMap(LLAMA_SPIT).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.SPIT);
         getComponentMap(SMALL_FIREBALL).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> entity.getOwner() == null ? DamageTypes.UNATTRIBUTED_FIREBALL : DamageTypes.FIREBALL);
         getComponentMap(SNOWBALL).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.THROWN);
         getComponentMap(SPLASH_POTION).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.INDIRECT_MAGIC);
         getComponentMap(THROWN_TRIDENT).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.TRIDENT);
-        getComponentMap(WIND_CHARGE_PROJECTILE).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.WIND_CHARGE);
+        getComponentMap(WIND_CHARGE).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.WIND_CHARGE);
         getComponentMap(WITHER_SKULL).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.WITHER_SKULL);
         getComponentMap(WITHER_SKULL_DANGEROUS).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.WITHER_SKULL);
     }
@@ -573,6 +597,20 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
 
         for (EntityType<?> type : List.of(STRIDER, BLAZE, MAGMA_CUBE)) {
             getComponentMap(type).set(EntityComponents.GET_FREEZING_DAMAGE_MULTIPLIER, entity -> 5f);
+        }
+    }
+
+    private void registerUndeadTypes() {
+        for (EntityType<?> type : List.of(BOGGED, CAMEL_HUSK, DEPRECATED_ZOMBIE_VILLAGER, DROWNED,
+                HUSK, PARCHED, PHANTOM, SKELETON, SKELETON_HORSE, STRAY, WITHER, WITHER_SKELETON,
+                ZOGLIN, ZOMBIE, ZOMBIE_HORSE, ZOMBIE_NAUTILUS, ZOMBIE_VILLAGER, ZOMBIFIED_PIGLIN)) {
+            getComponentMap(type).set(EntityComponents.IS_UNDEAD, entity -> true);
+        }
+    }
+
+    private void registerArthropodSensitivity() {
+        for (EntityType<?> type : List.of(BEE, CAVE_SPIDER, ENDERMITE, SILVERFISH, SPIDER)) {
+            getComponentMap(type).set(EntityComponents.SENSITIVE_TO_BANE_OF_ARTHROPODS, entity -> true);
         }
     }
 

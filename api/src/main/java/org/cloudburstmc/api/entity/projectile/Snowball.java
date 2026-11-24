@@ -1,9 +1,7 @@
 package org.cloudburstmc.api.entity.projectile;
 
-import org.cloudburstmc.api.entity.Projectile;
-
 /**
- * A thrown snowball.
+ * A thrown snowball that can damage a blaze on impact.
  */
 public interface Snowball extends Projectile {
 }

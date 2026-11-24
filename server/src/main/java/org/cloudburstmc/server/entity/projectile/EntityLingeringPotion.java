@@ -11,7 +11,7 @@ import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.LINGERING;
 
-public class EntityLingeringPotion extends EntitySplashPotion implements LingeringPotion {
+public class EntityLingeringPotion extends EntityAbstractThrownPotion implements LingeringPotion {
 
     public EntityLingeringPotion(EntityType<LingeringPotion> type, Location location) {
         super(type, location);
@@ -40,7 +40,7 @@ public class EntityLingeringPotion extends EntitySplashPotion implements Lingeri
         LingeringPotionSplashEvent event = new LingeringPotionSplashEvent(this, entity);
         this.server.getEventManager().fire(event);
         if (!event.isCancelled()) {
-            entity.spawnToAll();
+            entity.spawn();
         }
     }
 }

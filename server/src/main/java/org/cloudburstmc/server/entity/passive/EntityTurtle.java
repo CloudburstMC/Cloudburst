@@ -15,20 +15,15 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BABY;
 
-public class EntityTurtle extends Animal implements Turtle {
-
-    private final CloudTurtleData persistenceState;
+public class EntityTurtle extends EntityAgeableAnimal implements Turtle {
 
     public EntityTurtle(EntityType<Turtle> type, Location location) {
-        CloudTurtleData state = new CloudTurtleData();
-        super(type, location, state);
-        this.persistenceState = state;
+        super(type, location, new CloudTurtleData(), true);
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Turtle";
     }
 
@@ -43,27 +38,20 @@ public class EntityTurtle extends Animal implements Turtle {
     }
 
     @Override
-    public void initEntity() {
+    protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(30);
+        this.setDefaultMaxHealth(30);
         this.data().setHomePosition(this.position.toInt());
     }
 
     @Override
     protected CloudTurtleData data() {
-        return this.persistenceState;
+        return (CloudTurtleData) super.data();
     }
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // Age is a DTO int, but setting it syncs the baby metadata and the
-        // collision box, as the previous load did: it runs before the
-        // living-state load below, matching the historical load order. An absent key resets to today's default of 0.
-        this.setAge(getInt(tag, "Age", 0));
         super.loadCustom(tag);
-        // Home spans three keys with a per-axis fallback to the loaded
-        // position, as the previous transition hook did after the base load.
-        // The DTO holds it once and starts at ZERO, so it is never null here.
         Vector3i loaded = this.position.toInt();
         this.data().setHomePosition(Vector3i.from(
                 tag.containsKey("HomePosX") ? getInt(tag, "HomePosX", loaded.getX()) : loaded.getX(),
@@ -90,21 +78,6 @@ public class EntityTurtle extends Animal implements Turtle {
     }
 
     @Override
-    public int getAge() {
-        return this.data().getAge();
-    }
-
-    @Override
-    public void setAge(int age) {
-        boolean baby = this.isBaby();
-        this.data().setAge(age);
-        this.data.setFlag(BABY, age < 0);
-        if (baby != this.isBaby()) {
-            this.recalculateBoundingBox();
-        }
-    }
-
-    @Override
     public Location getHome() {
         return Location.from(this.data().getHomePosition().toFloat(), 0, 0, this.level);
     }
@@ -116,18 +89,9 @@ public class EntityTurtle extends Animal implements Turtle {
     }
 
     @Override
-    public boolean entityBaseTick(int tickDiff) {
-        boolean updated = super.entityBaseTick(tickDiff);
-        if (!this.isAlive() || tickDiff <= 0 || this.getAge() == 0) {
-            return updated;
-        }
-
-        boolean baby = this.getAge() < 0;
-        this.setAge(baby ? (int) Math.min(0L, (long) this.getAge() + tickDiff) : (int) Math.max(0L, (long) this.getAge() - tickDiff));
-        if (baby && this.getAge() == 0 && this.level.getGameRules().get(GameRules.DO_MOB_LOOT)) {
+    protected void onMature() {
+        if (this.level.getGameRules().get(GameRules.DO_MOB_LOOT)) {
             this.level.dropItem(this.position, ItemStack.from(ItemTypes.TURTLE_SCUTE));
         }
-
-        return true;
     }
 }

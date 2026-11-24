@@ -2,13 +2,13 @@ package org.cloudburstmc.api.blockentity;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.entity.Living;
+import org.cloudburstmc.api.entity.LivingEntity;
 import org.cloudburstmc.api.util.BoundingBox;
 
 import java.util.Collection;
 
 /**
- * A conduit that grants conduit power and attacks nearby creatures when fully framed.
+ * A conduit that grants conduit power and can attack nearby enemies.
  */
 public interface Conduit extends BlockEntity {
 
@@ -46,7 +46,7 @@ public interface Conduit extends BlockEntity {
     int getRange();
 
     /**
-     * @return the world-space area searched for creatures to attack
+     * @return the world-space area searched for enemies to attack
      */
     BoundingBox getHuntingArea();
 
@@ -54,7 +54,7 @@ public interface Conduit extends BlockEntity {
      * @return the current living target, or {@code null} when none is valid
      */
     @Nullable
-    Living getTarget();
+    LivingEntity getTarget();
 
     /**
      * @return whether this conduit currently has a valid living target
@@ -64,10 +64,10 @@ public interface Conduit extends BlockEntity {
     /**
      * Changes the hunting target without immediately attacking it. Non-null targets must
      * be alive, in this level and within eight blocks of an active hunting conduit.
-     * Clearing the target allows the conduit to select another creature.
+     * Clearing the target allows the conduit to select an enemy.
      *
      * @param target the target, or {@code null} to clear it
      * @return whether the target changed
      */
-    boolean setTarget(@Nullable Living target);
+    boolean setTarget(@Nullable LivingEntity target);
 }

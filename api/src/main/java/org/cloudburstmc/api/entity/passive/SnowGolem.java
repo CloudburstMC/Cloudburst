@@ -1,23 +1,20 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Creature;
+import org.cloudburstmc.api.entity.Mob;
+import org.cloudburstmc.api.entity.Shearable;
 
 /**
- * A snow golem.
+ * A snow construct whose pumpkin can be removed by shearing.
  */
-public interface SnowGolem extends Creature {
+public interface SnowGolem extends Mob, Shearable {
 
     /**
-     * Returns whether this snow golem has had its pumpkin removed.
-     *
-     * @return {@code true} if the pumpkin has been removed
+     * Returns whether this snow golem is wearing a pumpkin.
      */
-    boolean isDerp();
+    boolean hasPumpkin();
 
     /**
-     * Sets whether this snow golem has had its pumpkin removed.
-     *
-     * @param derp whether the pumpkin is removed
+     * Sets whether this snow golem is wearing a pumpkin.
      */
-    void setDerp(boolean derp);
+    void setPumpkin(boolean hasPumpkin);
 }

@@ -32,7 +32,7 @@ public class EntityRabbit extends Animal implements Rabbit {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Rabbit";
     }
 
@@ -44,6 +44,6 @@ public class EntityRabbit extends Animal implements Rabbit {
     @Override
     protected void initEntity() {
         super.initEntity();
-        setMaxHealth(10);
+        this.setDefaultMaxHealth(3);
     }
 }

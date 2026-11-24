@@ -69,11 +69,11 @@ class BoatDefinitionTest {
     @Test
     void raftSeatsTrackTheHullWithoutChangingPassengerCapacity() {
         EntityBoat boat = new EntityBoat(EntityTypes.BOAT, Location.from(Vector3f.ZERO, InterfaceProxy.create(Level.class)));
-        Entity passenger = InterfaceProxy.create(Player.class, java.util.Map.of("getBaseOffset", 1.62001f));
+        Entity passenger = InterfaceProxy.create(Player.class);
         float ordinarySeat = boat.getMountedOffset(passenger).getY();
 
         assertEquals(0.375f, boat.getBaseOffset());
-        assertEquals(1.02001f, ordinarySeat, 0.00001f);
+        assertEquals(-0.6f, ordinarySeat, 0.00001f);
         assertEquals(-0.225f, boat.getPassengerAttachmentPoint(passenger).getY(), 0.00001f);
 
         boat.setBoatType(BoatType.BAMBOO);
@@ -90,7 +90,7 @@ class BoatDefinitionTest {
     @Test
     void hullOriginAndPassengerPositionUseTheSameCollisionFloor() {
         EntityBoat boat = new HullGeometryBoat(Vector3f.from(4, 63, 8));
-        Entity passenger = InterfaceProxy.create(Player.class, java.util.Map.of("getBaseOffset", 1.62001f));
+        Entity passenger = InterfaceProxy.create(Player.class);
 
         assertEquals(63, boat.getBoundingBox().getMinY());
         float hullOrigin = boat.getY() + boat.getBaseOffset();
@@ -98,7 +98,7 @@ class BoatDefinitionTest {
 
         for (BoatType type : BoatType.values()) {
             boat.setBoatType(type);
-            float passengerOrigin = boat.getY() + boat.getPassengerAttachmentPoint(passenger).getY() + passenger.getBaseOffset();
+            float passengerOrigin = boat.getY() + boat.getPassengerAttachmentPoint(passenger).getY();
             assertEquals(hullOrigin + boat.getMountedOffset(passenger).getY(), passengerOrigin, 0.00001f);
         }
     }

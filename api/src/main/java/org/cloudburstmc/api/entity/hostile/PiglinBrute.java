@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.hostile;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface PiglinBrute extends Entity {
+/**
+ * The melee-focused piglin variant found in bastion remnants.
+ */
+public interface PiglinBrute extends Monster {
 }

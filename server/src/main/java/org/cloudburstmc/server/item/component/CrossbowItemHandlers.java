@@ -4,9 +4,9 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.EntityTypes;
-import org.cloudburstmc.api.entity.misc.FireworksRocket;
 import org.cloudburstmc.api.entity.projectile.Arrow;
 import org.cloudburstmc.api.entity.projectile.ArrowPickupStatus;
+import org.cloudburstmc.api.entity.projectile.FireworkRocket;
 import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
@@ -22,7 +22,6 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemUseType;
 import org.cloudburstmc.protocol.bedrock.packet.CompletedUsingItemPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
-import org.cloudburstmc.server.entity.misc.EntityFireworksRocket;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -161,9 +160,8 @@ public class CrossbowItemHandlers {
     private static boolean shoot(CloudPlayer player, ItemStack ammunition, float yawOffset, boolean sideShot, int piercing) {
         Vector3f direction = shotDirection(player, yawOffset);
         if (ammunition.getType() == ItemTypes.FIREWORK_ROCKET) {
-            FireworksRocket entity = CloudEntityRegistry.get().newEntity(EntityTypes.FIREWORKS_ROCKET,
+            FireworkRocket rocket = CloudEntityRegistry.get().newEntity(EntityTypes.FIREWORK_ROCKET,
                     Location.from(player.getPosition().add(0, player.getEyeHeight() - 0.15f, 0), player.getLevel()));
-            EntityFireworksRocket rocket = (EntityFireworksRocket) entity;
             rocket.setFireworkData(ammunition.get(ItemDataComponents.FIREWORK_DATA));
             rocket.setOwner(player);
             rocket.setShotAtAngle(true);

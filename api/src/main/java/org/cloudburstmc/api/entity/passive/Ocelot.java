@@ -1,6 +1,9 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.Mob;
 
-public interface Ocelot extends Entity {
+/**
+ * The wild jungle feline, distinct from the tameable {@link Cat}.
+ */
+public interface Ocelot extends Mob {
 }

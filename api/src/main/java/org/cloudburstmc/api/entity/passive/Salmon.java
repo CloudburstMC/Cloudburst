@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Bucketable;
-
-public interface Salmon extends Bucketable {
+/**
+ * The fish type associated with rivers and cold oceans.
+ */
+public interface Salmon extends Fish {
 }

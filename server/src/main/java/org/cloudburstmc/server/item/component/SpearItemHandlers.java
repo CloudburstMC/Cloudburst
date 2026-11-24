@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.KnockbackCause;
-import org.cloudburstmc.api.entity.Living;
+import org.cloudburstmc.api.entity.LivingEntity;
 import org.cloudburstmc.api.entity.misc.EnderCrystal;
 import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
@@ -20,7 +20,7 @@ import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.entity.EntityLiving;
+import org.cloudburstmc.server.entity.CloudLivingEntity;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
@@ -104,7 +104,7 @@ public class SpearItemHandlers {
                 target.dismount(target.getVehicle());
             }
 
-            if (knockback && target instanceof EntityLiving living) {
+            if (knockback && target instanceof CloudLivingEntity living) {
                 living.knockBack(0.4f, look.getX(), look.getZ(), KnockbackCause.ENTITY_ATTACK, player);
             }
 
@@ -146,7 +146,7 @@ public class SpearItemHandlers {
         for (Entity target : targets(player)) {
             if (player.attack(target)) {
                 damaged = true;
-                if (target instanceof EntityLiving living) {
+                if (target instanceof CloudLivingEntity living) {
                     living.knockBack(0.4f, look.getX(), look.getZ(), KnockbackCause.ENTITY_ATTACK, player);
                 }
             }
@@ -210,7 +210,7 @@ public class SpearItemHandlers {
         List<Entity> targets = new ArrayList<>();
         for (Entity target : player.getLevel().getNearbyEntities(new BoundingBox(start, end).inflate(1.25f, 1.25f, 1.25f))) {
             if (target == player || !target.isAlive()
-                    || !(target instanceof Living || target instanceof EnderCrystal)
+                    || !(target instanceof LivingEntity || target instanceof EnderCrystal)
                     || (target instanceof CloudPlayer other && other.isSpectator())) {
                 continue;
             }

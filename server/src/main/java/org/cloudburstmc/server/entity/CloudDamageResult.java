@@ -24,7 +24,7 @@ public enum CloudDamageResult {
     /**
      * Returns whether the target accepted the hit.
      */
-    public boolean applied() {
+    public boolean accepted() {
         return this == APPLIED || this == HANDLED;
     }
 

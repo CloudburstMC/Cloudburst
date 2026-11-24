@@ -1,6 +1,9 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.Mob;
 
-public interface IronGolem extends Entity {
+/**
+ * The iron construct associated with village defense.
+ */
+public interface IronGolem extends Mob {
 }

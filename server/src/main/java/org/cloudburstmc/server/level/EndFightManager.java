@@ -7,6 +7,7 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.hostile.EnderDragon;
 import org.cloudburstmc.api.entity.misc.EnderCrystal;
+import org.cloudburstmc.api.event.entity.EntityRemoveCause;
 import org.cloudburstmc.api.level.ExplosionBlockInteraction;
 import org.cloudburstmc.api.level.ExplosionSettings;
 import org.cloudburstmc.api.level.Location;
@@ -307,7 +308,7 @@ public class EndFightManager implements DragonBattle {
 
     private EnderDragon spawnDragon() {
         EnderDragon dragon = CloudEntityRegistry.get().newEntity(EntityTypes.ENDER_DRAGON, Location.from(Vector3f.from(0, 128, 0), this.level));
-        dragon.spawnToAll();
+        dragon.spawn();
         return dragon;
     }
 
@@ -489,12 +490,12 @@ public class EndFightManager implements DragonBattle {
     }
 
     private void removeDragon(EntityEnderDragon dragon) {
-        dragon.close();
+        dragon.remove(EntityRemoveCause.DISCARD);
     }
 
     private void destroyRespawnCrystal(EntityEnderCrystal crystal) {
         Vector3f position = crystal.getPosition();
-        crystal.close();
+        crystal.remove(EntityRemoveCause.EXPLODE);
         this.level.explode(position, new ExplosionSettings(6, ExplosionBlockInteraction.KEEP, false, crystal, null));
     }
 
@@ -504,7 +505,7 @@ public class EndFightManager implements DragonBattle {
                     && Math.abs(crystal.getPosition().getX() - spike.x()) <= 10
                     && Math.abs(crystal.getPosition().getY() - spike.height()) <= 10
                     && Math.abs(crystal.getPosition().getZ() - spike.z()) <= 10) {
-                crystal.close();
+                crystal.remove(EntityRemoveCause.DISCARD);
             }
         }
 

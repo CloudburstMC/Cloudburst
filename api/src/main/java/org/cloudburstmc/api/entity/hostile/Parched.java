@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.hostile;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface Parched extends Entity {
+/**
+ * The desert skeleton variant associated with weakness arrows.
+ */
+public interface Parched extends AbstractSkeleton {
 }

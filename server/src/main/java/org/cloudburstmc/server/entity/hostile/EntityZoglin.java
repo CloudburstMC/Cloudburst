@@ -4,6 +4,8 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.hostile.Zoglin;
 import org.cloudburstmc.api.level.Location;
 
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMUNE;
+
 public class EntityZoglin extends EntityHostile implements Zoglin {
 
     public EntityZoglin(EntityType<Zoglin> type, Location location) {
@@ -13,7 +15,9 @@ public class EntityZoglin extends EntityHostile implements Zoglin {
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(40);
+        this.setDefaultMaxHealth(40);
+        this.fireProof = true;
+        this.data.setFlag(FIRE_IMMUNE, true);
     }
 
     @Override
@@ -27,7 +31,7 @@ public class EntityZoglin extends EntityHostile implements Zoglin {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Zoglin";
     }
 }

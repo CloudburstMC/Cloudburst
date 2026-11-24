@@ -3,6 +3,7 @@ package org.cloudburstmc.server.entity.passive;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.passive.Ocelot;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 
@@ -32,18 +33,19 @@ public class EntityOcelot extends Animal implements Ocelot {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Ocelot";
     }
 
     @Override
-    public void initEntity() {
+    protected void initEntity() {
         super.initEntity();
-        setMaxHealth(10);
+        this.setDefaultMaxHealth(10);
     }
 
     @Override
     public boolean isBreedingItem(ItemStack item) {
-        return item.getType() == ItemTypes.COD;
+        ItemType itemType = item.getType();
+        return itemType == ItemTypes.COD || itemType == ItemTypes.SALMON;
     }
 }

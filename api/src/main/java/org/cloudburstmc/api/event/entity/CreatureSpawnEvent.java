@@ -1,43 +1,37 @@
 package org.cloudburstmc.api.event.entity;
 
-import org.cloudburstmc.api.entity.Creature;
+import org.cloudburstmc.api.entity.LivingEntity;
 
 import java.util.Objects;
 
 /**
- * Fired before a creature is added to a level.
+ * Fired before a living entity other than a player is added to a level.
  */
 public class CreatureSpawnEvent extends EntitySpawnEvent {
 
-    private final CreatureSpawnReason reason;
+    private final CreatureSpawnReason spawnReason;
 
     /**
-     * Creates a creature spawn event.
-     *
-     * @param entity the creature being spawned
-     * @param reason the reason for the spawn
+     * @param entity      the living entity being spawned
+     * @param spawnReason the reason for the spawn
      */
-    public CreatureSpawnEvent(Creature entity, CreatureSpawnReason reason) {
+    public CreatureSpawnEvent(LivingEntity entity, CreatureSpawnReason spawnReason) {
         super(entity);
-        this.reason = Objects.requireNonNull(reason, "reason");
+        this.spawnReason = Objects.requireNonNull(spawnReason, "spawnReason");
     }
 
     /**
-     * Returns why the creature is spawning.
-     *
-     * @return the spawn reason
+     * Returns why the entity is spawning.
      */
-    public CreatureSpawnReason getReason() {
-        return this.reason;
+    public CreatureSpawnReason getSpawnReason() {
+        return this.spawnReason;
     }
 
     /**
-     * Returns the creature being spawned.
-     *
-     * @return the creature
+     * Returns the living entity being spawned.
      */
     @Override
-    public Creature getEntity() {
-        return (Creature) this.entity;
+    public LivingEntity getEntity() {
+        return (LivingEntity) this.entity;
     }
 }

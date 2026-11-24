@@ -33,6 +33,7 @@ public class DefaultItemSerializer implements ItemSerializer {
     private static final String TAG_ENCHANTMENTS = "ench";
     private static final String TAG_ENCHANTMENT_ID = "id";
     private static final String TAG_ENCHANTMENT_LEVEL = "lvl";
+    private static final String TAG_ENTITY_BABY = "IsBaby";
     private static final String TAG_ENTITY_HEALTH = "Health";
     private static final String TAG_ENTITY_IMMOBILE = "NoAI";
     private static final String TAG_ENTITY_INVULNERABLE = "Invulnerable";
@@ -108,11 +109,14 @@ public class DefaultItemSerializer implements ItemSerializer {
             return;
         }
 
-        tag.putCompound(TAG_BUCKET_ENTITY_DATA, NbtMap.builder()
+        NbtMapBuilder entityTag = NbtMap.builder()
                 .putFloat(TAG_ENTITY_HEALTH, bucketEntityData.health())
                 .putBoolean(TAG_ENTITY_INVULNERABLE, bucketEntityData.invulnerable())
-                .putBoolean(TAG_ENTITY_IMMOBILE, bucketEntityData.immobile())
-                .build());
+                .putBoolean(TAG_ENTITY_IMMOBILE, bucketEntityData.immobile());
+        if (bucketEntityData.baby()) {
+            entityTag.putBoolean(TAG_ENTITY_BABY, true);
+        }
+        tag.putCompound(TAG_BUCKET_ENTITY_DATA, entityTag.build());
     }
 
     @Override
@@ -209,6 +213,7 @@ public class DefaultItemSerializer implements ItemSerializer {
         builder.setData(ItemDataComponents.BUCKET_ENTITY_DATA, new BucketEntityData(
                 bucketEntityData.getFloat(TAG_ENTITY_HEALTH),
                 bucketEntityData.getBoolean(TAG_ENTITY_INVULNERABLE, false),
-                bucketEntityData.getBoolean(TAG_ENTITY_IMMOBILE, false)));
+                bucketEntityData.getBoolean(TAG_ENTITY_IMMOBILE, false),
+                bucketEntityData.getBoolean(TAG_ENTITY_BABY)));
     }
 }

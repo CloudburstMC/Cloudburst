@@ -4,22 +4,18 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.passive.HappyGhast;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.server.entity.data.CloudHappyGhastData;
+import org.cloudburstmc.server.entity.data.CloudAgeableMobData;
 
-import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BABY;
+public class EntityHappyGhast extends EntityAgeableAnimal implements HappyGhast {
 
-public class EntityHappyGhast extends Animal implements HappyGhast {
-
-    private final CloudHappyGhastData persistenceState;
+    private static final float JUVENILE_SCALE = 0.2375f;
 
     public EntityHappyGhast(EntityType<HappyGhast> type, Location location) {
-        CloudHappyGhastData state = new CloudHappyGhastData();
-        super(type, location, state);
-        this.persistenceState = state;
+        super(type, location, new CloudAgeableMobData(), true);
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Happy Ghast";
     }
 
@@ -41,56 +37,24 @@ public class EntityHappyGhast extends Animal implements HappyGhast {
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(20);
-    }
-
-    @Override
-    protected CloudHappyGhastData data() {
-        return this.persistenceState;
+        this.setDefaultMaxHealth(20);
     }
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // Age is a DTO int, but setting it syncs the baby metadata and the
-        // baby scale, as the previous load did: it runs before the
-        // living-state load below, matching the historical load order. An absent key resets to today's default of 0. The base Scale
-        // hook already ran in loadBaseCustom, so a baby's derived scale still
-        // wins over an explicit tag scale.
-        this.setAge(getInt(tag, "Age", 0));
         super.loadCustom(tag);
-    }
-
-    @Override
-    public int getAge() {
-        return this.data().getAge();
-    }
-
-    @Override
-    public void setAge(int age) {
-        boolean wasBaby = this.isBaby();
-        this.data().setAge(age);
-        this.data.setFlag(BABY, age < 0);
-
-        if (wasBaby != this.isBaby()) {
-            this.setScale(this.isBaby() ? 0.2375f : 1.0f);
+        if (this.isBaby() && this.getScale() != JUVENILE_SCALE) {
+            this.setScale(JUVENILE_SCALE);
         }
+    }
+
+    @Override
+    protected void onBabyStatusChanged(boolean baby) {
+        this.setScale(baby ? JUVENILE_SCALE : 1f);
     }
 
     @Override
     protected boolean canBreatheUnderwater() {
         return this.isBaby();
-    }
-
-    @Override
-    public boolean entityBaseTick(int tickDiff) {
-        boolean updated = super.entityBaseTick(tickDiff);
-        if (!this.isAlive() || tickDiff <= 0 || this.getAge() == 0) {
-            return updated;
-        }
-
-        this.setAge(this.getAge() < 0
-                ? (int) Math.min(0L, (long) this.getAge() + tickDiff)
-                : (int) Math.max(0L, (long) this.getAge() - tickDiff));
-        return true;
     }
 }

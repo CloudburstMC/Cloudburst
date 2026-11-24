@@ -41,10 +41,10 @@ class AreaEffectCloudPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-
         EntityAreaEffectCloud cloud = (EntityAreaEffectCloud) PersistenceFixtures.entity(EntityTypes.AREA_EFFECT_CLOUD);
         PotionEffect effect = new PotionEffect(EffectTypes.POISON, 200, 1, true, true);
         NbtMap input = NbtMap.builder()
+                .putInt("Age", 45)
                 .putList("mobEffects", NbtType.COMPOUND, List.of(PotionEffectDataSerializer.serialize(effect)))
                 .putShort("PotionId", NetworkUtils.potionToNetwork(PotionTypes.POISON))
                 .putInt("ParticleColor", 0xff112233)

@@ -2,7 +2,7 @@ package org.cloudburstmc.api.event.entity;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.entity.Living;
+import org.cloudburstmc.api.entity.LivingEntity;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.PotionEffect;
@@ -32,7 +32,7 @@ public class EntityPotionEffectEvent extends EntityEvent implements Cancellable 
      * @param action    change being performed
      * @param override  whether the new effect should replace the active effect
      */
-    public EntityPotionEffectEvent(Living entity, @Nullable PotionEffect oldEffect,
+    public EntityPotionEffectEvent(LivingEntity entity, @Nullable PotionEffect oldEffect,
                                    @Nullable PotionEffect newEffect, @Nullable Entity source,
                                    PotionEffectCause cause, PotionEffectAction action, boolean override) {
         this.entity = requireNonNull(entity, "entity");
@@ -54,8 +54,8 @@ public class EntityPotionEffectEvent extends EntityEvent implements Cancellable 
     }
 
     @Override
-    public Living getEntity() {
-        return (Living) this.entity;
+    public LivingEntity getEntity() {
+        return (LivingEntity) this.entity;
     }
 
     /**

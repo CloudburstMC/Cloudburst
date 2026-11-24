@@ -16,8 +16,8 @@ import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.data.Bucket;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.entity.CloudLivingEntity;
 import org.cloudburstmc.server.entity.EntityInsideBlockScanner;
-import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.testutil.BlockTestRegistry;
 import org.cloudburstmc.server.testutil.BlockTestWorld;
@@ -182,7 +182,7 @@ class CauldronEntityInteractionTest {
                 .withTrait(BlockTraits.FILL_LEVEL, level);
     }
 
-    private static class ContactEntity extends EntityLiving {
+    private static class ContactEntity extends CloudLivingEntity {
 
         private BoundingBox bounds = new BoundingBox(0.25f, 64.3f, 0.25f, 0.75f, 65.6f, 0.75f);
         private float damageTaken;

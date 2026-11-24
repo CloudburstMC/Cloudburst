@@ -20,7 +20,7 @@ public class EntityTadpole extends EntityWaterAnimal implements Tadpole {
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(6);
+        this.setDefaultMaxHealth(6);
     }
 
     @Override
@@ -34,7 +34,7 @@ public class EntityTadpole extends EntityWaterAnimal implements Tadpole {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Tadpole";
     }
 }

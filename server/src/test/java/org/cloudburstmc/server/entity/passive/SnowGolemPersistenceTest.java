@@ -6,7 +6,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.CloudCreatureData;
+import org.cloudburstmc.server.entity.data.CloudMobData;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -15,7 +15,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class SnowGolemPersistenceTest {
 
@@ -34,7 +35,7 @@ class SnowGolemPersistenceTest {
                 .putInt("Mystery", 7)
                 .build());
 
-        assertTrue(golem.isDerp());
+        assertFalse(golem.hasPumpkin());
 
         NbtMap saved = save(golem);
 
@@ -56,17 +57,17 @@ class SnowGolemPersistenceTest {
     @Test
     void absentKeyLeavesStateUnchanged() {
         EntitySnowGolem golem = (EntitySnowGolem) PersistenceFixtures.entity(EntityTypes.SNOW_GOLEM);
-        golem.setDerp(true);
+        golem.setPumpkin(false);
 
         golem.loadAdditionalData(NbtMap.EMPTY);
 
-        assertTrue(golem.isDerp());
+        assertFalse(golem.hasPumpkin());
     }
 
     @Test
     void snowGolemKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntitySnowGolem.class, CloudCreatureData.class,
+                EntitySnowGolem.class, CloudMobData.class,
                 Map.of(
                         "armor", "an armor view over the live container in data().getArmor()",
                         "offhand", "an offhand view over the live container in data().getOffhand()"));

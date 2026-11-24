@@ -3,6 +3,8 @@ package org.cloudburstmc.server.entity.vehicle;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.vehicle.CommandBlockMinecart;
+import org.cloudburstmc.api.item.ItemType;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.data.MinecartType;
 
@@ -15,6 +17,11 @@ public class EntityCommandBlockMinecart extends EntityAbstractMinecart implement
     @Override
     public MinecartType getMinecartType() {
         return MinecartType.MINECART_COMMAND_BLOCK;
+    }
+
+    @Override
+    protected ItemType getDropItemType() {
+        return ItemTypes.COMMAND_BLOCK_MINECART;
     }
 
     @Override

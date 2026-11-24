@@ -13,7 +13,7 @@ public class EntityArmadillo extends Animal implements Armadillo {
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(12);
+        this.setDefaultMaxHealth(12);
     }
 
     @Override
@@ -27,7 +27,7 @@ public class EntityArmadillo extends Animal implements Armadillo {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Armadillo";
     }
 }

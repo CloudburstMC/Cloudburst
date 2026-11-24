@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface SkeletonHorse extends Entity {
+/**
+ * The skeletal horse associated with skeleton traps.
+ */
+public interface SkeletonHorse extends AbstractHorse {
 }

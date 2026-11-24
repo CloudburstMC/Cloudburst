@@ -13,7 +13,7 @@ public class EntityWarden extends EntityHostile implements Warden {
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(500);
+        this.setDefaultMaxHealth(500);
     }
 
     @Override
@@ -27,7 +27,7 @@ public class EntityWarden extends EntityHostile implements Warden {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Warden";
     }
 }

@@ -11,6 +11,7 @@ import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.entity.misc.Painting;
 import org.cloudburstmc.api.entity.misc.PaintingVariant;
+import org.cloudburstmc.api.event.entity.EntityRemoveCause;
 import org.cloudburstmc.api.event.entity.EntitySpawnEvent;
 import org.cloudburstmc.api.event.entity.HangingBreakCause;
 import org.cloudburstmc.api.event.entity.HangingBreakEvent;
@@ -62,7 +63,7 @@ public class EntityPainting extends CloudEntity implements Painting {
 
     @Override
     protected void initEntity() {
-        this.setMaxHealth(1);
+        this.setDefaultMaxHealth(1);
         super.initEntity();
     }
 
@@ -115,7 +116,7 @@ public class EntityPainting extends CloudEntity implements Painting {
     private void refreshAppearance() {
         if (!this.getViewers().isEmpty()) {
             this.despawnFromAll();
-            this.spawnToAll();
+            this.refreshViewers();
         }
     }
 
@@ -126,11 +127,6 @@ public class EntityPainting extends CloudEntity implements Painting {
 
     @Override
     public boolean canCollide() {
-        return false;
-    }
-
-    @Override
-    public boolean canTriggerPressurePlate() {
         return false;
     }
 
@@ -279,7 +275,7 @@ public class EntityPainting extends CloudEntity implements Painting {
                 this.getLevel().dropItem(center, ItemStack.from(ItemTypes.PAINTING));
             }
             this.enterDeathState();
-            this.close();
+            this.remove(EntityRemoveCause.DROP);
             return true;
         } finally {
             this.breaking = false;

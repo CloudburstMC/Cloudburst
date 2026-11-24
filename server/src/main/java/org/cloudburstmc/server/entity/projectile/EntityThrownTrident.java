@@ -7,6 +7,7 @@ import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.projectile.ThrownTrident;
+import org.cloudburstmc.api.event.entity.EntityRemoveCause;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
@@ -14,6 +15,7 @@ import org.cloudburstmc.api.util.BlockHitResult;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.data.CloudThrownTridentData;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudEnchantmentRegistry;
@@ -98,22 +100,22 @@ public class EntityThrownTrident extends EntityAbstractArrow implements ThrownTr
     }
 
     @Override
-    public boolean onUpdate(int currentTick) {
-        if (this.closed) {
+    protected boolean tickEntity(int currentTick, int elapsedTicks) {
+        if (this.isClosed()) {
             return false;
         }
 
         boolean hasUpdate = (this.isEmbedded() || this.data().isDealtDamage())
                 && this.loyaltyLevel() > 0 && this.getOwner() instanceof CloudPlayer player
                 && player.isOnline() && player.isAlive() && !player.isSpectator()
-                ? this.returnTo(player, currentTick) : super.onUpdate(currentTick);
+                ? this.returnTo(player, elapsedTicks) : super.tickEntity(currentTick, elapsedTicks);
 
-        if (this.onGround || this.hadCollision) {
+        if (this.isOnGround() || this.hadCollision) {
             this.setCritical(false);
         }
 
         if (this.age > 1200) {
-            this.close();
+            this.remove(EntityRemoveCause.DESPAWN);
             hasUpdate = true;
         }
 
@@ -130,14 +132,8 @@ public class EntityThrownTrident extends EntityAbstractArrow implements ThrownTr
         return enchantment == null ? 0 : enchantment.level();
     }
 
-    private boolean returnTo(CloudPlayer owner, int currentTick) {
-        int tickDiff = currentTick - this.lastUpdate;
-        if (tickDiff <= 0) {
-            return false;
-        }
-
-        this.lastUpdate = currentTick;
-        this.entityBaseTick(tickDiff);
+    private boolean returnTo(CloudPlayer owner, int elapsedTicks) {
+        this.entityBaseTick(elapsedTicks);
         if (!this.data.getFlag(EntityFlag.RETURN_TRIDENT)) {
             this.data.setFlag(EntityFlag.RETURN_TRIDENT, true);
             this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.ITEM_TRIDENT_RETURN);
@@ -171,7 +167,7 @@ public class EntityThrownTrident extends EntityAbstractArrow implements ThrownTr
     @Override
     protected void onCollideWithEntity(Entity entity) {
         float damage = CloudEnchantmentRegistry.get().modifyDamage(this.getTrident(), entity, this.getResultDamage());
-        if (entity.damage(damage, this.createProjectileDamageSource())) {
+        if (CloudEntity.applyDamage(entity, damage, this.createProjectileDamageSource())) {
             if (this.getOwner() != null) {
                 CloudEnchantmentRegistry.get().applyPostAttackEffects(this.getTrident(), this.getOwner(), entity);
             }

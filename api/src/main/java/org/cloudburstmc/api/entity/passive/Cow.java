@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface Cow extends Entity {
+/**
+ * The standard dairy cow, distinct from {@link Mooshroom}.
+ */
+public interface Cow extends AbstractCow {
 }

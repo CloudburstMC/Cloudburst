@@ -68,6 +68,7 @@ import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.blockentity.UnknownBlockEntity;
 import org.cloudburstmc.server.configuration.LevelConfiguration;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.entity.misc.EntityExperienceOrb;
 import org.cloudburstmc.server.entity.misc.EntityFallingBlock;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.item.ToolUtils;
@@ -546,7 +547,7 @@ public class CloudLevel implements Level, BlockStateRegion {
 
         if (!this.updateEntities.isEmpty()) {
             this.updateEntities.forEach(entity -> {
-                if (entity.isClosed() || !entity.onUpdate(currentTick)) {
+                if (!(entity instanceof CloudEntity tickingEntity) || !tickingEntity.tick(currentTick)) {
                     this.updateEntities.remove(entity);
                 }
             });
@@ -1701,7 +1702,7 @@ public class CloudLevel implements Level, BlockStateRegion {
     @Override
     public DroppedItem dropItem(Vector3f source, ItemStack item, @Nullable Vector3f motion, boolean dropAround, int delay) {
         DroppedItem droppedItem = this.createDroppedItem(source, item, motion, dropAround, delay);
-        droppedItem.spawnToAll();
+        droppedItem.spawn();
         return droppedItem;
     }
 
@@ -1728,7 +1729,6 @@ public class CloudLevel implements Level, BlockStateRegion {
         DroppedItem droppedItem = this.entityRegistry.newEntity(EntityTypes.ITEM, Location.from(source, this));
         droppedItem.setPosition(source);
         droppedItem.setMotion(motion);
-        droppedItem.setHealth(5);
         droppedItem.setItem(item);
         droppedItem.setPickupDelay(delay);
         return droppedItem;
@@ -1776,18 +1776,22 @@ public class CloudLevel implements Level, BlockStateRegion {
 
     @Override
     public boolean explode(Vector3f position, ExplosionSettings settings) {
-        if (settings.sourceEntity() != null) {
-            ExplosionPrimeEvent prime = new ExplosionPrimeEvent(settings.sourceEntity(), settings.radius(), settings.blockInteraction());
-            prime.setCausesFire(settings.causesFire());
-            this.server.getEventManager().fire(prime);
-            if (prime.isCancelled()) {
-                return false;
-            }
+        ExplosionSettings primed = this.primeExplosion(settings);
+        return primed != null && new Explosion(this, position, primed).explode();
+    }
 
-            settings = new ExplosionSettings(prime.getRadius(), prime.getBlockInteraction(), prime.causesFire(), settings.sourceEntity(), null);
+    /**
+     * Returns the approved explosion settings, or null if priming was canceled.
+     */
+    public @Nullable ExplosionSettings primeExplosion(ExplosionSettings settings) {
+        if (settings.sourceEntity() == null) {
+            return settings;
         }
 
-        return new Explosion(this, position, settings).explode();
+        ExplosionPrimeEvent event = new ExplosionPrimeEvent(settings.sourceEntity(), settings.radius(), settings.blockInteraction());
+        event.setCausesFire(settings.causesFire());
+        this.server.getEventManager().fire(event);
+        return event.isCancelled() ? null : new ExplosionSettings(event.getRadius(), event.getBlockInteraction(), event.causesFire(), settings.sourceEntity(), null);
     }
 
     public ItemStack breakBlockPredicted(Vector3i pos, ItemStack item, Player player, boolean createParticles, @Nullable Boolean fastBreakOverride, Consumer<Block> beforeDestruction) {
@@ -1940,7 +1944,7 @@ public class CloudLevel implements Level, BlockStateRegion {
             if (!dropEvent.isCancelled()) {
                 for (DroppedItem drop : capturedDrops) {
                     if (drop != null && !drop.getItem().isEmpty() && drop.getItem().getCount() > 0) {
-                        drop.spawnToAll();
+                        drop.spawn();
                     }
                 }
             } else {
@@ -2000,9 +2004,7 @@ public class CloudLevel implements Level, BlockStateRegion {
     }
 
     public void dropExpOrb(Vector3f source, int exp, @Nullable Vector3f motion, int delay) {
-        for (int split : ExperienceOrb.splitIntoOrbSizes(exp)) {
-            this.spawnExperienceOrb(source, split, motion, delay);
-        }
+        EntityExperienceOrb.forEachOrbValue(exp, value -> this.spawnExperienceOrb(source, value, motion, delay));
     }
 
     public void spawnExperienceOrb(Vector3f source, int experience, @Nullable Vector3f motion, int pickupDelay) {
@@ -2018,7 +2020,7 @@ public class CloudLevel implements Level, BlockStateRegion {
                 (random.nextDouble() * 0.2 - 0.1) * 2,
                 random.nextDouble() * 0.4,
                 (random.nextDouble() * 0.2 - 0.1) * 2) : motion);
-        orb.spawnToAll();
+        orb.spawn();
     }
 
     /**

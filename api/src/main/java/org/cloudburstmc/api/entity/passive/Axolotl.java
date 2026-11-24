@@ -1,6 +1,10 @@
 package org.cloudburstmc.api.entity.passive;
 
 import org.cloudburstmc.api.entity.Bucketable;
+import org.cloudburstmc.api.entity.Mob;
 
-public interface Axolotl extends Bucketable {
+/**
+ * A bucketable aquatic amphibian.
+ */
+public interface Axolotl extends Mob, Bucketable {
 }

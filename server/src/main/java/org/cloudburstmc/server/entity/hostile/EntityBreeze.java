@@ -13,7 +13,7 @@ public class EntityBreeze extends EntityHostile implements Breeze {
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(30);
+        this.setDefaultMaxHealth(30);
     }
 
     @Override
@@ -27,7 +27,7 @@ public class EntityBreeze extends EntityHostile implements Breeze {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Breeze";
     }
 }

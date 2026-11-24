@@ -1,23 +1,22 @@
 package org.cloudburstmc.server.entity.hostile;
 
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.Smiteable;
 import org.cloudburstmc.api.entity.hostile.Zombie;
 import org.cloudburstmc.api.level.Location;
 
 /**
  * Created by Dr. Nick Doran on 4/23/2017.
  */
-public class EntityZombie extends EntityHostile implements Zombie, Smiteable {
+public class EntityZombie extends EntityHostile implements Zombie {
 
-    public EntityZombie(EntityType<Zombie> type, Location location) {
-        super(type, location);
+    public EntityZombie(EntityType<? extends Zombie> entityType, Location location) {
+        super(entityType, location);
     }
 
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(20);
+        this.setDefaultMaxHealth(20);
     }
 
     @Override
@@ -31,13 +30,7 @@ public class EntityZombie extends EntityHostile implements Zombie, Smiteable {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Zombie";
     }
-
-    @Override
-    public boolean isUndead() {
-        return true;
-    }
-
 }

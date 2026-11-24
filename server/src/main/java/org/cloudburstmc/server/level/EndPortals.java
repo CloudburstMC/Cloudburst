@@ -2,10 +2,10 @@ package org.cloudburstmc.server.level;
 
 import lombok.experimental.UtilityClass;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.event.entity.TeleportCause;
 import org.cloudburstmc.api.event.player.PlayerRespawnEvent;
 import org.cloudburstmc.api.event.player.PlayerRespawnFlag;
 import org.cloudburstmc.api.event.player.PlayerRespawnReason;
-import org.cloudburstmc.api.event.player.PlayerTeleportCause;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -47,7 +47,7 @@ public class EndPortals {
     }
 
     private static boolean teleport(CloudEntity entity, Location destination) {
-        if (!entity.teleport(destination, PlayerTeleportCause.END_PORTAL)) {
+        if (!entity.teleport(destination, TeleportCause.END_PORTAL)) {
             return false;
         }
 

@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.entity.hostile;
 
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.Smiteable;
 import org.cloudburstmc.api.entity.hostile.Phantom;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -10,7 +9,7 @@ import org.cloudburstmc.api.level.Location;
 /**
  * Created by PetteriM1
  */
-public class EntityPhantom extends EntityHostile implements Phantom, Smiteable {
+public class EntityPhantom extends EntityHostile implements Phantom {
 
     public EntityPhantom(EntityType<Phantom> type, Location location) {
         super(type, location);
@@ -19,7 +18,7 @@ public class EntityPhantom extends EntityHostile implements Phantom, Smiteable {
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(20);
+        this.setDefaultMaxHealth(20);
     }
 
     @Override
@@ -33,7 +32,7 @@ public class EntityPhantom extends EntityHostile implements Phantom, Smiteable {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Phantom";
     }
 
@@ -42,9 +41,5 @@ public class EntityPhantom extends EntityHostile implements Phantom, Smiteable {
         return new ItemStack[]{ItemStack.builder().itemType(ItemTypes.PHANTOM_MEMBRANE).build()};
     }
 
-    @Override
-    public boolean isUndead() {
-        return true;
-    }
 
 }

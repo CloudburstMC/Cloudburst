@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface TraderLlama extends Entity {
+/**
+ * The llama variant associated with a {@link WanderingTrader}.
+ */
+public interface TraderLlama extends Llama {
 }

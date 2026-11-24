@@ -13,7 +13,7 @@ public class EntityElderGuardianGhost extends EntityHostile implements ElderGuar
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(20);
+        this.setDefaultMaxHealth(20);
     }
 
     @Override
@@ -27,7 +27,7 @@ public class EntityElderGuardianGhost extends EntityHostile implements ElderGuar
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Elder Guardian Ghost";
     }
 }

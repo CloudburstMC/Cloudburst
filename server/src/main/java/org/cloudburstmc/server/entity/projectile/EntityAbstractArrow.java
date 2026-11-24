@@ -5,6 +5,7 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.projectile.AbstractArrow;
 import org.cloudburstmc.api.entity.projectile.ArrowPickupStatus;
+import org.cloudburstmc.api.event.entity.EntityRemoveCause;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.BlockHitResult;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -80,33 +81,35 @@ public abstract class EntityAbstractArrow extends EntityProjectile implements Ab
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // The pierce level, pickup rule and embedded position run
-        // before the projectile load below, matching the historical load order. The setters
-        // re-run to keep their validation, as the previous load did. The pickup rule has no presence bit, so it always falls back to open pickup.
-        // The embedded position only changes when all three keys are present.
+        this.setCritical(getBoolean(tag, "crit", false));
         if (tag.containsKey("PierceLevel")) {
             this.setPierceLevel(this.data().getPierceLevel());
         }
+
         if (tag.containsKey("pickup")) {
             this.setPickupStatus(this.getPickupStatus());
         } else {
             this.setPickupStatus(ArrowPickupStatus.ALLOWED);
         }
+
         if (tag.containsKey("inBlockX") && tag.containsKey("inBlockY") && tag.containsKey("inBlockZ")) {
             Vector3i embedded = this.data().getEmbeddedPosition();
             int x = embedded == null ? 0 : embedded.getX();
             int y = embedded == null ? 0 : embedded.getY();
             int z = embedded == null ? 0 : embedded.getZ();
-            this.data().setEmbeddedPosition(Vector3i.from(
-                    getInt(tag, "inBlockX", x), getInt(tag, "inBlockY", y), getInt(tag, "inBlockZ", z)));
+            this.data().setEmbeddedPosition(Vector3i.from(getInt(tag, "inBlockX", x), getInt(tag, "inBlockY", y), getInt(tag, "inBlockZ", z)));
         }
+
         super.loadCustom(tag);
     }
 
     @Override
     protected void saveCustom(NbtMapBuilder tag) {
         super.saveCustom(tag);
-        // The embedded position is conditional: it is only written while stuck in a block.
+        if (this.isCritical()) {
+            tag.putBoolean("crit", true);
+        }
+
         Vector3i embeddedPosition = this.data().getEmbeddedPosition();
         if (this.data().isInGround() && embeddedPosition != null) {
             tag.putInt("inBlockX", embeddedPosition.getX());
@@ -121,6 +124,7 @@ public abstract class EntityAbstractArrow extends EntityProjectile implements Ab
         keys.add("inBlockX");
         keys.add("inBlockY");
         keys.add("inBlockZ");
+        keys.add("crit");
         return Set.copyOf(keys);
     }
 
@@ -134,7 +138,7 @@ public abstract class EntityAbstractArrow extends EntityProjectile implements Ab
         if (this.damageEntity(entity)) {
             this.piercedEntities.add(entity);
             if (this.piercedEntities.size() > this.getPierceLevel()) {
-                this.close();
+                this.remove(EntityRemoveCause.HIT);
             } else {
                 this.updateMovement();
             }
@@ -170,7 +174,7 @@ public abstract class EntityAbstractArrow extends EntityProjectile implements Ab
 
     protected final void embed() {
         this.data().setInGround(true);
-        this.onGround = true;
+        this.setOnGround(true);
         this.setCritical(false);
         this.motion = Vector3f.ZERO;
     }
@@ -185,7 +189,7 @@ public abstract class EntityAbstractArrow extends EntityProjectile implements Ab
     }
 
     @Override
-    public boolean onUpdate(int currentTick) {
+    protected boolean tickEntity(int currentTick, int elapsedTicks) {
         Vector3i embeddedPosition = this.data().getEmbeddedPosition();
         if (this.data().isInGround() && embeddedPosition != null) {
             BlockState currentState = this.level.getBlock(embeddedPosition).getState();
@@ -194,8 +198,8 @@ public abstract class EntityAbstractArrow extends EntityProjectile implements Ab
                     this.data().setInGround(false);
                     this.data().setEmbeddedPosition(null);
                     this.embeddedState = null;
-                    this.isCollided = false;
-                    this.onGround = false;
+                    this.clearBlockImpact();
+                    this.setOnGround(false);
                 } else {
                     this.embeddedState = currentState;
                 }
@@ -203,16 +207,10 @@ public abstract class EntityAbstractArrow extends EntityProjectile implements Ab
         }
 
         if (!this.data().isInGround()) {
-            return super.onUpdate(currentTick);
+            return super.tickEntity(currentTick, elapsedTicks);
         }
 
-        int tickDiff = currentTick - this.lastUpdate;
-        if (tickDiff <= 0) {
-            return false;
-        }
-
-        this.lastUpdate = currentTick;
-        boolean hasUpdate = this.entityBaseTick(tickDiff);
+        boolean hasUpdate = this.entityBaseTick(elapsedTicks);
         this.motion = Vector3f.ZERO;
         this.flushEntityData();
         return hasUpdate;

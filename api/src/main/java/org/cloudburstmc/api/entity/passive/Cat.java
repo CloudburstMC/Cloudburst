@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface Cat extends Entity {
+/**
+ * The tameable domestic feline, distinct from {@link Ocelot}.
+ */
+public interface Cat extends Tameable {
 }

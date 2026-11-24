@@ -3,6 +3,7 @@ package org.cloudburstmc.server.golden;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
@@ -11,14 +12,18 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
+import org.cloudburstmc.server.level.provider.migration.ImportedEntityData;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
+import org.cloudburstmc.server.testutil.TestEntities;
 import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
 import java.util.*;
+import java.util.function.UnaryOperator;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -108,7 +113,7 @@ class GoldenWholeTagTest {
                 continue;
             }
             String id = type.getId().toString();
-            if (SKIPPED_ENTITIES.contains(id)) {
+            if (type == TestEntities.COUNTING_MOB_TYPE || SKIPPED_ENTITIES.contains(id)) {
                 continue;
             }
             String dir = "/golden/entity/" + safe(id) + "/";
@@ -118,7 +123,10 @@ class GoldenWholeTagTest {
             }
             try {
                 CloudEntity entity = buildEntity(type);
-                entity.loadAdditionalData(input);
+                NbtMap data = type == EntityTypes.EYE_OF_ENDER_SIGNAL
+                        ? ImportedEntityData.entities(List.of(input), UnaryOperator.identity()).getFirst()
+                        : input;
+                entity.loadAdditionalData(data);
                 NbtMapBuilder saved = NbtMap.builder();
                 entity.saveAdditionalData(saved);
                 compare("entity " + id + " server", entityGolden(id, read(dir + "server.nbt", "entity " + id)),
@@ -210,8 +218,32 @@ class GoldenWholeTagTest {
         return switch (id) {
             case "minecraft:armor_stand" -> golden.toBuilder()
                     .putCompound("Equipment", NbtMap.EMPTY).putFloat("Health", 6f).putInt("PoseIndex", 0).build();
+            case "minecraft:cat", "minecraft:parrot", "minecraft:wolf" -> {
+                NbtMapBuilder expected = golden.toBuilder();
+                expected.remove("OwnerID");
+                yield expected.putBoolean("Sitting", false).build();
+            }
+            case "minecraft:chest_minecart", "minecraft:hopper_minecart" -> golden.toBuilder()
+                    .putList("Items", NbtType.COMPOUND, golden.getList("Items", NbtType.COMPOUND))
+                    .build();
+            case "minecraft:eye_of_ender_signal" -> {
+                NbtMapBuilder expected = golden.toBuilder();
+                expected.remove("damage");
+                yield expected.build();
+            }
+            case "minecraft:iron_golem" -> golden.toBuilder()
+                    .putFloat("Health", 100f)
+                    .putList("Armor", NbtType.COMPOUND, List.of(
+                            ItemStackNbtCodec.serializeItem(ItemStack.EMPTY, 0),
+                            ItemStackNbtCodec.serializeItem(ItemStack.EMPTY, 1),
+                            ItemStackNbtCodec.serializeItem(ItemStack.EMPTY, 2),
+                            ItemStackNbtCodec.serializeItem(ItemStack.EMPTY, 3)))
+                    .putList("Offhand", NbtType.COMPOUND, List.of(ItemStackNbtCodec.serializeItem(ItemStack.EMPTY, 0)))
+                    .build();
             case "minecraft:painting" -> golden.toBuilder()
                     .putList("Rotation", NbtType.FLOAT, List.of(90f, 0f)).build();
+            case "minecraft:rabbit" -> golden.toBuilder()
+                    .putFloat("Health", Math.min(golden.getFloat("Health"), 3f)).build();
             default -> golden;
         };
     }

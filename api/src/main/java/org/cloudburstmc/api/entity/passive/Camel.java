@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface Camel extends Entity {
+/**
+ * The desert equine mount associated with two riders.
+ */
+public interface Camel extends AbstractHorse {
 }

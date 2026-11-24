@@ -9,18 +9,18 @@ import org.cloudburstmc.api.level.Location;
  */
 public class EntityGuardian extends EntityHostile implements Guardian {
 
-    public EntityGuardian(EntityType<Guardian> type, Location location) {
-        super(type, location);
+    public EntityGuardian(EntityType<? extends Guardian> entityType, Location location) {
+        super(entityType, location);
     }
 
     @Override
-    public void initEntity() {
+    protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(30);
+        this.setDefaultMaxHealth(30);
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Guardian";
     }
 

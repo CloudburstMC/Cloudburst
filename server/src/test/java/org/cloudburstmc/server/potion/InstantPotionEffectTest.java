@@ -13,7 +13,7 @@ import org.cloudburstmc.api.potion.PotionType;
 import org.cloudburstmc.api.potion.PotionTypes;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.server.entity.EntityLiving;
+import org.cloudburstmc.server.entity.CloudLivingEntity;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.junit.jupiter.api.Test;
 
@@ -57,7 +57,7 @@ class InstantPotionEffectTest {
         return target;
     }
 
-    private static class RecordingTarget extends EntityLiving {
+    private static class RecordingTarget extends CloudLivingEntity {
         private final boolean undead;
         private float healed;
         private float damaged;

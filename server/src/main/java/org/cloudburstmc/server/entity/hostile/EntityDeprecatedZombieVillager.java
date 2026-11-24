@@ -1,11 +1,10 @@
 package org.cloudburstmc.server.entity.hostile;
 
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.Smiteable;
 import org.cloudburstmc.api.entity.hostile.DeprecatedZombieVillager;
 import org.cloudburstmc.api.level.Location;
 
-public class EntityDeprecatedZombieVillager extends EntityHostile implements DeprecatedZombieVillager, Smiteable {
+public class EntityDeprecatedZombieVillager extends EntityHostile implements DeprecatedZombieVillager {
 
     public EntityDeprecatedZombieVillager(EntityType<DeprecatedZombieVillager> type, Location location) {
         super(type, location);
@@ -14,7 +13,7 @@ public class EntityDeprecatedZombieVillager extends EntityHostile implements Dep
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(20);
+        this.setDefaultMaxHealth(20);
     }
 
     @Override
@@ -28,7 +27,7 @@ public class EntityDeprecatedZombieVillager extends EntityHostile implements Dep
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Zombie Villager";
     }
 }

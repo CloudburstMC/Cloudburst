@@ -12,7 +12,7 @@ import org.cloudburstmc.api.command.Commands;
 import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
 import org.cloudburstmc.api.command.argument.CommandArguments;
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.entity.Living;
+import org.cloudburstmc.api.entity.LivingEntity;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.server.command.AdvertisedCommand;
@@ -90,8 +90,8 @@ public class KillCommand extends AdvertisedCommand {
     }
 
     private static boolean kill(Entity target) {
-        if (target instanceof Living) {
-            target.damage(Float.MAX_VALUE, DamageSource.of(DamageTypes.GENERIC_KILL));
+        if (target instanceof LivingEntity living) {
+            living.damage(Float.MAX_VALUE, DamageSource.of(DamageTypes.GENERIC_KILL));
         } else {
             target.kill();
         }

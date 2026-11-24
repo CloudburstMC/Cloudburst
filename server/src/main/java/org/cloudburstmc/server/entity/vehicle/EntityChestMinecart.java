@@ -1,63 +1,34 @@
 package org.cloudburstmc.server.entity.vehicle;
 
 import org.cloudburstmc.api.block.BlockTypes;
-import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.vehicle.ChestMinecart;
-import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.MinecartType;
-import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 
-/**
- * Created by Snake1999 on 2016/1/30.
- * Package cn.nukkit.entity.item in project Nukkit.
- */
-public class EntityChestMinecart extends EntityAbstractMinecart implements ChestMinecart {
+public class EntityChestMinecart extends EntityContainerMinecart implements ChestMinecart {
 
     public EntityChestMinecart(EntityType<ChestMinecart> type, Location location) {
-        super(type, location);
+        super(type, location, 27, ContainerType.MINECART_CHEST, ContainerType.CONTAINER);
     }
 
     @Override
-    public void initEntity() {
+    protected void initEntity() {
         super.initEntity();
-
         this.setDisplayBlock(BlockTypes.CHEST.getDefaultState());
         this.setDisplay(true);
     }
 
-    // TODO: 2016/1/30 inventory
-
     @Override
     public MinecartType getMinecartType() {
-        return MinecartType.valueOf(1);
+        return MinecartType.MINECART_CHEST;
     }
 
     @Override
-    public boolean isRideable() {
-        return false;
-    }
-
-    @Override
-    public void dropItem() {
-        this.getLevel().dropItem(this.getPosition(), ItemStack.builder().itemType(ItemTypes.CHEST_MINECART).build());
-    }
-
-    @Override
-    protected void activate(int x, int y, int z, boolean flag) {
-
-    }
-
-    @Override
-    public boolean mount(Entity entity) {
-        return false;
-    }
-
-    @Override
-    public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
-        return false;
+    protected ItemType getDropItemType() {
+        return ItemTypes.CHEST_MINECART;
     }
 }

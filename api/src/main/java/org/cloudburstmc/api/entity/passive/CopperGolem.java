@@ -1,6 +1,9 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.Mob;
 
-public interface CopperGolem extends Entity {
+/**
+ * The copper construct associated with item sorting.
+ */
+public interface CopperGolem extends Mob {
 }

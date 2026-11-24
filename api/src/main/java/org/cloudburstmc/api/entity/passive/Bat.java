@@ -1,6 +1,9 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.Mob;
 
-public interface Bat extends Entity {
+/**
+ * The small ambient mob associated with caves.
+ */
+public interface Bat extends Mob {
 }

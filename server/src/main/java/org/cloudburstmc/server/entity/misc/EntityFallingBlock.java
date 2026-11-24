@@ -7,15 +7,18 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.component.FallingBlockDropHandler;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.LivingEntity;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.FallingBlock;
 import org.cloudburstmc.api.event.entity.EntityChangeBlockEvent;
+import org.cloudburstmc.api.event.entity.EntityRemoveCause;
 import org.cloudburstmc.api.event.entity.EntitySpawnEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.level.sound.SoundType;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -59,6 +62,7 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
     private static final int SETTLED_REMOVAL_DELAY = 3;
 
     private boolean landingPending;
+    private float landingDistance;
     private int settledRemovalDelay;
 
     private final CloudFallingBlockData persistenceState;
@@ -132,8 +136,8 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
     }
 
     @Override
-    protected boolean applyDamage(CloudEntityDamageEvent source) {
-        return source.getDamageType() == DamageTypes.OUT_OF_WORLD && super.applyDamage(source);
+    protected boolean applyDamage(CloudEntityDamageEvent event) {
+        return event.getDamageType() == DamageTypes.OUT_OF_WORLD && super.applyDamage(event);
     }
 
     @Override
@@ -141,7 +145,7 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
         super.loadCustom(tag);
 
         if (!tag.containsKey("BlockState")) {
-            this.close();
+            this.remove(EntityRemoveCause.DISCARD);
             return;
         }
 
@@ -211,8 +215,8 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
 
     @Override
     public void setDamagePerBlock(float damagePerBlock) {
-        if (damagePerBlock < 0) {
-            throw new IllegalArgumentException("damagePerBlock must not be negative");
+        if (!(damagePerBlock >= 0)) {
+            throw new IllegalArgumentException("damagePerBlock must be non-negative");
         }
 
         this.data().setDamagePerBlock(damagePerBlock);
@@ -271,44 +275,38 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
     }
 
     @Override
-    public boolean onUpdate(int currentTick) {
-        if (this.closed) {
+    protected boolean tickEntity(int currentTick, int elapsedTicks) {
+        if (this.isClosed()) {
             return false;
         }
 
-        int tickDiff = currentTick - this.lastUpdate;
-        if (tickDiff <= 0) {
-            return true;
-        }
-
-        this.lastUpdate = currentTick;
-        return this.tickFallingBlock(tickDiff);
+        return this.tickFallingBlock(elapsedTicks);
     }
 
-    private boolean tickFallingBlock(int tickDiff) {
+    private boolean tickFallingBlock(int elapsedTicks) {
         if (this.settledRemovalDelay > 0) {
-            this.settledRemovalDelay -= tickDiff;
+            this.settledRemovalDelay -= elapsedTicks;
             if (this.settledRemovalDelay <= 0) {
-                this.close();
+                this.remove(EntityRemoveCause.ENTER_BLOCK);
             }
             return true;
         }
 
         if (this.landingPending) {
-            this.land(this.getPosition().toInt());
+            this.land(this.getPosition().toInt(), this.landingDistance);
             return true;
         }
 
-        boolean updated = this.entityBaseTick(tickDiff);
+        boolean updated = this.entityBaseTick(elapsedTicks);
         if (!this.isAlive()) {
             return updated;
         }
 
-        this.data().setTime(this.data().getTime() + tickDiff);
+        this.data().setTime(this.data().getTime() + elapsedTicks);
         this.applyGravityAndMove();
 
         Vector3i position = this.getPosition().toInt();
-        if (this.onGround) {
+        if (this.isOnGround()) {
             this.motion = Vector3f.ZERO;
             this.updateMovement();
             this.landingPending = true;
@@ -317,7 +315,7 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
 
         if (this.hasExpired(position)) {
             this.dropBlockItem(FallingBlockHandlers.BLOCK_ITEM_DROP);
-            this.close();
+            this.remove(EntityRemoveCause.DESPAWN);
             return true;
         }
 
@@ -341,23 +339,27 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
         return this.data().getTime() > MAX_LIFETIME || this.data().getTime() > OUTSIDE_LEVEL_TIMEOUT && outsideLevel;
     }
 
-    private void land(Vector3i position) {
-        Block target = this.level.getBlock(position);
-        this.damageEntities();
+    @Override
+    protected void onLanding(float fallDistance) {
+        this.landingDistance = fallDistance;
+    }
 
-        float distance = Math.max(this.fallDistance, this.getHighestPosition() - this.getY());
+    private void land(Vector3i position, float fallDistance) {
+        Block target = this.level.getBlock(position);
+        this.damageEntities(fallDistance);
+
         this.level.getServer().getBlockRegistry()
                 .requireComponent(this.data().getBlockState().getType(), BlockComponents.ON_FALLING_LAND)
-                .execute(this, target, distance);
+                .execute(this, target, fallDistance);
 
         if (this.data().isCancelDrop()) {
-            this.close();
+            this.remove(EntityRemoveCause.DROP);
             return;
         }
 
         if (this.level.getServer().getBlockRegistry()
                 .requireComponent(this.data().getBlockState().getType(), BlockComponents.BREAKS_ON_LANDING)) {
-            this.close();
+            this.remove(EntityRemoveCause.DROP);
             this.breakBlock();
             return;
         }
@@ -366,7 +368,7 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
                 .requireComponent(this.data().getBlockState().getType(), BlockComponents.RESOLVE_FALLING_PLACEMENT)
                 .execute(this.data().getBlockState(), target));
         if (changes.isEmpty()) {
-            this.close();
+            this.remove(EntityRemoveCause.DROP);
             this.breakBlock();
             return;
         }
@@ -375,13 +377,13 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
             EntityChangeBlockEvent event = new EntityChangeBlockEvent(this, change.block(), change.newState());
             this.server.getEventManager().fire(event);
             if (event.isCancelled()) {
-                this.close();
+                this.remove(EntityRemoveCause.DISCARD);
                 return;
             }
         }
 
         if (!this.level.placeBlocksFromFallingEntity(changes, this)) {
-            this.close();
+            this.remove(EntityRemoveCause.DROP);
             this.breakBlock();
             return;
         }
@@ -391,13 +393,12 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
         this.playLandingSound(position);
     }
 
-    private void damageEntities() {
+    private void damageEntities(float fallDistance) {
         if (!this.data().isHurtEntities() || this.data().getDamagePerBlock() <= 0) {
             return;
         }
 
-        float distance = Math.max(this.fallDistance, this.getHighestPosition() - this.getY());
-        int effectiveDistance = (int) Math.ceil(distance - 1);
+        int effectiveDistance = (int) Math.ceil(fallDistance - 1);
         float damage = Math.min((float) Math.floor(effectiveDistance * this.data().getDamagePerBlock()), this.data().getMaximumDamage());
         if (damage <= 0) {
             return;
@@ -407,9 +408,10 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
                 .requireComponent(this.data().getBlockState().getType(), BlockComponents.GET_FALLING_DAMAGE_SOURCE)
                 .execute(this);
 
-        for (Entity entity : this.level.getCollidingEntities(this.getBoundingBox())) {
-            if (entity != this) {
-                entity.damage(damage, source);
+        for (Entity entity : this.level.getNearbyEntities(this, this.getBoundingBox())) {
+            if (entity instanceof LivingEntity living && living.isAlive()
+                    && !(living instanceof Player player && (player.isCreative() || player.isSpectator()))) {
+                living.damage(damage, source);
             }
         }
     }

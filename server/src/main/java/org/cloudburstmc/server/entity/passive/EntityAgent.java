@@ -13,7 +13,7 @@ public class EntityAgent extends Animal implements Agent {
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(5);
+        this.setDefaultMaxHealth(5);
     }
 
     @Override
@@ -27,7 +27,7 @@ public class EntityAgent extends Animal implements Agent {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Agent";
     }
 }

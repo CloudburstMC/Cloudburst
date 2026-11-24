@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.entity;
 
-import org.cloudburstmc.api.entity.Living;
+import org.cloudburstmc.api.entity.LivingEntity;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.event.entity.EntityDeathEvent;
@@ -23,7 +23,7 @@ class DeathEventTest {
         ItemStack drop = ItemStack.builder().itemType(ItemTypes.DIAMOND).build();
         List<ItemStack> inventoryDrops = new ArrayList<>(List.of(drop));
         EntityDeathEvent event = new EntityDeathEvent(
-                InterfaceProxy.create(Living.class, Map.of("getMaxHealth", 20)),
+                InterfaceProxy.create(LivingEntity.class, Map.of("getMaxHealth", 20)),
                 DamageSource.of(DamageTypes.GENERIC_KILL), inventoryDrops, 7
         );
 
@@ -38,7 +38,7 @@ class DeathEventTest {
     @Test
     void revivalHealthMustKeepTheEntityAliveWithinItsMaximum() {
         EntityDeathEvent event = new EntityDeathEvent(
-                InterfaceProxy.create(Living.class, Map.of("getMaxHealth", 20)),
+                InterfaceProxy.create(LivingEntity.class, Map.of("getMaxHealth", 20)),
                 DamageSource.of(DamageTypes.GENERIC_KILL), List.of(), 0
         );
 

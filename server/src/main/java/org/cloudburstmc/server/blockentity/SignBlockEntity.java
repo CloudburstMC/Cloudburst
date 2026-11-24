@@ -99,7 +99,7 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
             event.setCancelled();
         }
 
-        if (player.getRemoveFormat()) {
+        if (player.isRemoveFormat()) {
             for (int i = 0; i < 4; i++) {
                 text[i] = PlainTextComponentSerializer.plainText().serialize(
                         BedrockLegacyTextSerializer.getInstance().deserialize(text[i]));

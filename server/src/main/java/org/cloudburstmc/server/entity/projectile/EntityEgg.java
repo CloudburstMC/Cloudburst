@@ -6,6 +6,7 @@ import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.projectile.Egg;
 import org.cloudburstmc.api.event.entity.CreatureSpawnEvent;
 import org.cloudburstmc.api.event.entity.CreatureSpawnReason;
+import org.cloudburstmc.api.event.entity.EntityRemoveCause;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
@@ -59,15 +60,15 @@ public class EntityEgg extends EntityProjectile implements Egg {
     }
 
     @Override
-    public boolean onUpdate(int currentTick) {
-        if (this.closed) {
+    protected boolean tickEntity(int currentTick, int elapsedTicks) {
+        if (this.isClosed()) {
             return false;
         }
 
-        boolean hasUpdate = super.onUpdate(currentTick);
+        boolean hasUpdate = super.tickEntity(currentTick, elapsedTicks);
 
         if (this.age > 1200) {
-            this.kill();
+            this.remove(EntityRemoveCause.DESPAWN);
             hasUpdate = true;
         }
 
@@ -91,6 +92,6 @@ public class EntityEgg extends EntityProjectile implements Egg {
             }
         }
 
-        this.close();
+        this.remove(EntityRemoveCause.HIT);
     }
 }

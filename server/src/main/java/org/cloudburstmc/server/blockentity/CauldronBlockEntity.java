@@ -35,12 +35,8 @@ public class CauldronBlockEntity extends BaseBlockEntity implements Cauldron {
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // The potion and form ids plus the custom color are hook-owned: they are
-        // NBT-shaped network ids, not the runtime contents this DTO holds. Absent
-        // keys default as the DTO fields did (potion and form -1, no color): a
-        // potion always carries the color of its effects, dye is stored masked.
-        short potionId = numberOr(tag, "PotionId", (short) -1).shortValue();
-        short potionType = numberOr(tag, "PotionType", (short) -1).shortValue();
+        short potionId = readPotionId(tag, "PotionId");
+        short potionType = readPotionId(tag, "PotionType");
         Integer customColor = tag.get("CustomColor") instanceof Number number ? number.intValue() : null;
         PotionType potion = potionId < 0 ? null : NetworkUtils.potionFromNetwork(potionId);
         PotionForm form = potion == null ? PotionForm.DRINKABLE : switch (potionType) {
@@ -48,6 +44,7 @@ public class CauldronBlockEntity extends BaseBlockEntity implements Cauldron {
             case 2 -> PotionForm.LINGERING;
             default -> PotionForm.DRINKABLE;
         };
+
         Integer color;
         if (potion != null) {
             color = null;
@@ -56,6 +53,7 @@ public class CauldronBlockEntity extends BaseBlockEntity implements Cauldron {
         } else {
             color = null;
         }
+
         data().setContents(new CauldronContents(potion, form, color));
     }
 
@@ -97,13 +95,14 @@ public class CauldronBlockEntity extends BaseBlockEntity implements Cauldron {
         } else {
             color = contents.color();
         }
+
         if (color != null) {
             tag.putInt("CustomColor", 0xFF000000 | color);
         }
     }
 
-    private static Number numberOr(NbtMap tag, String key, Number fallback) {
-        return tag.get(key) instanceof Number number ? number : fallback;
+    private static short readPotionId(NbtMap tag, String key) {
+        return tag.get(key) instanceof Number number ? number.shortValue() : -1;
     }
 
     private void writeItems(NbtMapBuilder tag) {

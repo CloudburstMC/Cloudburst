@@ -1,23 +1,25 @@
 package org.cloudburstmc.server.entity.misc;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.LiquidTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.damage.DamageTypeTags;
-import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.ExperienceOrb;
+import org.cloudburstmc.api.event.entity.EntityRemoveCause;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.data.CloudExperienceOrbData;
-import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.IntConsumer;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.VALUE;
 
@@ -25,16 +27,26 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
 
     private static final int MERGE_INTERVAL = 20;
     private static final float MERGE_DISTANCE = 0.5f;
+    private static final int[] DENOMINATIONS = {2477, 1237, 617, 307, 149, 73, 37, 17, 7, 3, 1};
 
     private @Nullable CloudPlayer closestPlayer;
 
     private final CloudExperienceOrbData persistenceState;
 
-    public EntityExperienceOrb(EntityType<ExperienceOrb> type, Location location) {
+    public EntityExperienceOrb(EntityType<ExperienceOrb> entityType, Location location) {
         CloudExperienceOrbData state = new CloudExperienceOrbData();
-        super(type, location, state);
+        super(entityType, location, state);
         this.persistenceState = state;
         this.data.set(VALUE, 1);
+    }
+
+    public static void forEachOrbValue(int experience, IntConsumer action) {
+        for (int value : DENOMINATIONS) {
+            while (experience >= value) {
+                action.accept(value);
+                experience -= value;
+            }
+        }
     }
 
     @Override
@@ -68,10 +80,15 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
     }
 
     @Override
+    public boolean canCollideWith(Entity entity) {
+        return false;
+    }
+
+    @Override
     protected void initEntity() {
         super.initEntity();
 
-        setMaxHealth(5);
+        this.setDefaultMaxHealth(5);
         setHealth(5);
 
         //call event item spawn event
@@ -84,23 +101,22 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // Age and the metadata-backed value run before the
-        // base load below, matching the historical load order, and keep
-        // their current values when absent. The count and pickup delay already sit in
-        // the data instance; the setters re-run here to keep their validation, exactly
-        // as the previous load did.
         if (tag.containsKey("Age")) {
             this.age = getShort(tag, "Age", (short) this.age);
         }
+
         if (tag.containsKey("experience value")) {
             this.setExperience(getInt(tag, "experience value", this.getExperience()));
         }
+
         if (tag.containsKey("Count")) {
             this.setCount(this.data().getCount());
         }
+
         if (tag.containsKey("PickupDelay")) {
             this.setPickupDelay(this.data().getPickupDelay());
         }
+
         super.loadCustom(tag);
     }
 
@@ -120,33 +136,17 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
     }
 
     @Override
-    protected boolean applyDamage(CloudEntityDamageEvent source) {
-        return (source.getDamageType() == DamageTypes.OUT_OF_WORLD ||
-                source.getDamageType() == DamageTypes.ON_FIRE ||
-                source.getDamageType().is(DamageTypeTags.IS_EXPLOSION) &&
-                        !this.isInsideOfWater()) && super.applyDamage(source);
-    }
-
-    @Override
-    public boolean onUpdate(int currentTick) {
-        if (this.closed) {
+    protected boolean tickEntity(int currentTick, int elapsedTicks) {
+        if (this.isClosed()) {
             return false;
         }
 
-        int tickDiff = currentTick - this.lastUpdate;
-        if (tickDiff <= 0 && !this.justCreated) {
-            return true;
-        }
-        this.lastUpdate = currentTick;
-
-        boolean hasUpdate = entityBaseTick(tickDiff);
+        boolean hasUpdate = this.entityBaseTick(elapsedTicks);
         if (this.isAlive()) {
-            if (this.getPickupDelay() > 0 && this.getPickupDelay() < 32767) { //Infinite delay
-                this.setPickupDelay(this.getPickupDelay() - tickDiff);
-                if (this.getPickupDelay() < 0) {
-                    this.setPickupDelay(0);
-                }
-            } else {
+            int pickupDelay = this.getPickupDelay();
+            if (pickupDelay > 0 && pickupDelay < Short.MAX_VALUE) {
+                this.setPickupDelay(pickupDelay - elapsedTicks);
+            } else if (pickupDelay <= 0) {
                 for (Entity entity : this.level.getNearbyEntities(this, this.boundingBox)) {
                     if (entity instanceof CloudPlayer) {
                         if (((CloudPlayer) entity).pickupEntity(this, false)) {
@@ -166,18 +166,24 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
                 this.motion = this.motion.sub(0, this.getGravity(), 0);
             }
 
+            Vector3f position = this.getPosition();
+            Block block = this.level.getLoadedBlock(position.getFloorX(), position.getFloorY(), position.getFloorZ());
+            if (block != null && block.getLiquid().getType().isSameFamily(LiquidTypes.LAVA)) {
+                ThreadLocalRandom random = ThreadLocalRandom.current();
+                this.motion = Vector3f.from((random.nextFloat() - random.nextFloat()) * 0.2f, 0.2f,
+                        (random.nextFloat() - random.nextFloat()) * 0.2f);
+            }
+
             boolean colliding = this.level.hasCollision(this.getBoundingBox());
 
             if (this.age % MERGE_INTERVAL == 1) {
                 mergeNearbyOrbs();
             }
 
-            if (this.closestPlayer == null || this.closestPlayer.getPosition().distanceSquared(this.getPosition()) > 64.0D) {
+            if (this.closestPlayer == null || !this.closestPlayer.isAlive() || this.closestPlayer.isSpectator()
+                    || this.closestPlayer.getLevel() != this.level
+                    || this.closestPlayer.getPosition().distanceSquared(this.getPosition()) > 64.0D) {
                 this.closestPlayer = findClosestPlayer();
-            }
-
-            if (this.closestPlayer != null && (!this.closestPlayer.isAlive() || this.closestPlayer.isSpectator())) {
-                this.closestPlayer = null;
             }
 
             if (this.closestPlayer != null) {
@@ -204,27 +210,27 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
 
             double friction = 1d - this.getDrag();
 
-            if (this.onGround && (Math.abs(this.motion.getX()) > 0.00001 || Math.abs(this.motion.getZ()) > 0.00001)) {
+            if (this.isOnGround() && (Math.abs(this.motion.getX()) > 0.00001 || Math.abs(this.motion.getZ()) > 0.00001)) {
                 BlockState state = this.getLevel().getBlockState(this.getPosition().add(0, -1, 0).toInt());
                 friction = state.getFriction() * friction;
             }
 
             this.motion = this.motion.mul(friction, 1 - this.getDrag(), friction);
 
-            if (this.onGround) {
+            if (this.isOnGround()) {
                 this.motion = this.motion.mul(1, -0.4, 1);
             }
 
             this.updateMovement();
 
             if (this.age >= 6000) {
-                this.close();
+                this.remove(EntityRemoveCause.DESPAWN);
                 hasUpdate = true;
             }
 
         }
 
-        return hasUpdate || !this.onGround || this.motion.abs().length() > 0.00001;
+        return hasUpdate || !this.isOnGround() || this.motion.abs().length() > 0.00001;
     }
 
     private @Nullable CloudPlayer findClosestPlayer() {
@@ -249,48 +255,63 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
         for (Entity entity : this.level.getNearbyEntities(this,
                 this.boundingBox.inflate(MERGE_DISTANCE, MERGE_DISTANCE, MERGE_DISTANCE))) {
             if (entity instanceof EntityExperienceOrb orb && canMerge(orb)) {
-                this.data().setCount(this.data().getCount() + orb.data().getCount());
+                this.setCount(this.getCount() + orb.getCount());
                 this.age = Math.min(this.age, orb.age);
-                orb.close();
+                orb.remove(EntityRemoveCause.MERGE);
             }
         }
     }
 
     private boolean canMerge(EntityExperienceOrb orb) {
-        return !orb.isClosed()
+        return orb != this && !orb.isClosed()
+                && orb.getCount() <= Integer.MAX_VALUE - this.getCount()
+                && orb.getPickupDelay() == this.getPickupDelay()
                 && (orb.getRuntimeId() - this.getRuntimeId()) % 40 == 0
                 && orb.getExperience() == this.getExperience();
     }
 
-    private void setCount(int count) {
-        if (count < 1) {
-            throw new IllegalArgumentException("XP orb count must be greater than 0, got " + count);
-        }
-
-        this.data().setCount(count);
-    }
-
     public void consumeOne() {
-        this.data().setCount(this.data().getCount() - 1);
-        if (this.data().getCount() == 0) {
-            this.close();
+        if (this.isClosed()) {
+            return;
+        }
+
+        int remaining = this.getCount() - 1;
+        if (remaining == 0) {
+            this.data().setCount(0);
+            this.remove(EntityRemoveCause.PICKUP);
+        } else {
+            this.setCount(remaining);
         }
     }
 
+    @Override
     public int getExperience() {
         return this.data.require(VALUE);
     }
 
+    @Override
     public void setExperience(int experience) {
-        if (experience <= 0) {
-            throw new IllegalArgumentException("XP amount must be greater than 0, got " + experience);
+        if (experience < 0) {
+            throw new IllegalArgumentException("XP amount must be non-negative, got " + experience);
         }
         this.data.set(VALUE, experience);
     }
 
     @Override
-    public boolean canCollideWith(Entity entity) {
-        return false;
+    public int getCount() {
+        return this.data().getCount();
+    }
+
+    @Override
+    public void setCount(int count) {
+        if (count < 1) {
+            throw new IllegalArgumentException("XP orb count must be greater than 0, got " + count);
+        }
+
+        if (this.getCount() != count) {
+            this.data().setCount(count);
+            this.markChunkDirty();
+        }
     }
 
     @Override
@@ -300,6 +321,6 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
 
     @Override
     public void setPickupDelay(int pickupDelay) {
-        this.data().setPickupDelay(pickupDelay);
+        this.data().setPickupDelay(Math.clamp(pickupDelay, 0, Short.MAX_VALUE));
     }
 }

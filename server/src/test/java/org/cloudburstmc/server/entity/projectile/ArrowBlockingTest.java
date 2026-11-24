@@ -55,9 +55,5 @@ class ArrowBlockingTest {
         public void updateMovement() {
         }
 
-        @Override
-        public void close() {
-            this.closed = true;
-        }
     }
 }

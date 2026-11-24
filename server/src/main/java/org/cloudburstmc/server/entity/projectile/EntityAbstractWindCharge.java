@@ -4,6 +4,7 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.KnockbackCause;
 import org.cloudburstmc.api.entity.projectile.AbstractWindCharge;
+import org.cloudburstmc.api.event.entity.EntityRemoveCause;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Ability;
 import org.cloudburstmc.api.util.BlockHitResult;
@@ -12,7 +13,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.EntityLiving;
+import org.cloudburstmc.server.entity.CloudLivingEntity;
 import org.cloudburstmc.server.level.Explosion;
 import org.cloudburstmc.server.network.LevelEffectPacketFactory;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -57,7 +58,7 @@ public abstract class EntityAbstractWindCharge extends EntityProjectile implemen
 
     @Override
     protected void onCollideWithEntity(Entity entity) {
-        entity.damage(1, this.createProjectileDamageSource());
+        CloudEntity.applyDamage(entity, 1, this.createProjectileDamageSource());
         this.burst(this.getPosition());
     }
 
@@ -71,14 +72,14 @@ public abstract class EntityAbstractWindCharge extends EntityProjectile implemen
     }
 
     @Override
-    public boolean onUpdate(int currentTick) {
-        if (this.closed) {
+    protected boolean tickEntity(int currentTick, int elapsedTicks) {
+        if (this.isClosed()) {
             return false;
         }
 
-        boolean updated = super.onUpdate(currentTick);
+        boolean updated = super.tickEntity(currentTick, elapsedTicks);
         if (this.age > 1200) {
-            this.close();
+            this.remove(EntityRemoveCause.DESPAWN);
         }
 
         return updated;
@@ -96,7 +97,7 @@ public abstract class EntityAbstractWindCharge extends EntityProjectile implemen
 
     @Override
     public void explode() {
-        if (!this.closed) {
+        if (!this.isClosed()) {
             this.burst(this.getPosition());
         }
     }
@@ -120,7 +121,7 @@ public abstract class EntityAbstractWindCharge extends EntityProjectile implemen
             }
 
             float strength = (float) ((1 - distance / reach) * Explosion.getSeenPercent(position, entity) * this.burstKnockbackMultiplier());
-            if (entity instanceof EntityLiving living) {
+            if (entity instanceof CloudLivingEntity living) {
                 strength *= 1 - living.getExplosionKnockbackResistance();
             }
 
@@ -133,6 +134,6 @@ public abstract class EntityAbstractWindCharge extends EntityProjectile implemen
 
         this.getLevel().addChunkPacket(position, LevelEffectPacketFactory.event(position, this.burstParticle(), 0));
         this.getLevel().addLevelSoundEvent(position, this.burstSound());
-        this.close();
+        this.remove(EntityRemoveCause.HIT);
     }
 }

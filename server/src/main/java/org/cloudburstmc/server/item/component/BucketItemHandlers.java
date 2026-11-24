@@ -2,11 +2,13 @@ package org.cloudburstmc.server.item.component;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.entity.Bucketable;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.passive.SulfurCube;
 import org.cloudburstmc.api.event.player.PlayerBucketEmptyEvent;
 import org.cloudburstmc.api.event.player.PlayerBucketFillEvent;
 import org.cloudburstmc.api.item.ItemDataComponents;
@@ -232,8 +234,12 @@ public class BucketItemHandlers {
 
         BucketEntityData data = bucket.get(ItemDataComponents.BUCKET_ENTITY_DATA);
         if (data != null) {
-            spawned.setHealth(data.health());
+            if (spawned instanceof SulfurCube sulfurCube) {
+                sulfurCube.setSize(data.baby() ? 1 : 2);
+            }
+
             if (spawned instanceof CloudEntity cloudEntity) {
+                cloudEntity.setHealth(data.health());
                 cloudEntity.setInvulnerable(data.invulnerable());
                 cloudEntity.setImmobile(data.immobile());
             }
@@ -241,9 +247,10 @@ public class BucketItemHandlers {
 
         String customName = bucket.get(ItemDataComponents.CUSTOM_NAME);
         if (customName != null) {
-            spawned.setNameTag(customName);
+            spawned.customName(Component.text(customName));
         }
-        spawned.spawnToAll();
+
+        spawned.spawn();
     }
 
     private static void addCreativeFilledBucket(CloudPlayer player, ItemStack filledBucket) {

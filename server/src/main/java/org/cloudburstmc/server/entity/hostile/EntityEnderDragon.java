@@ -4,10 +4,10 @@ import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.boss.BossBar;
 import org.cloudburstmc.api.boss.BossBarColor;
 import org.cloudburstmc.api.boss.BossBarStyle;
-import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.hostile.EnderDragon;
 import org.cloudburstmc.api.event.entity.EntityDeathEvent;
+import org.cloudburstmc.api.event.entity.EntityRemoveCause;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.level.particle.ParticleEmitter;
@@ -25,7 +25,7 @@ import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.boss.CloudStandaloneBossBar;
 import org.cloudburstmc.server.entity.data.CloudEnderDragonData;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.network.NetworkUtils;
+import org.cloudburstmc.server.network.NetworkEntityAttribute;
 
 import java.util.Arrays;
 import java.util.List;
@@ -46,6 +46,7 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
     private static final int AMBIENT_SOUND_DELAY_RANGE = 200;
 
     private BossBar bossBar;
+    private boolean ownsBossBar;
     private boolean dying;
     private int ambientSoundDelay;
 
@@ -73,24 +74,29 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
     }
 
     @Override
-    public void initEntity() {
+    protected void initEntity() {
         super.initEntity();
         this.noPhysics = true;
-        this.setImmobile();
-        this.setMaxHealth(200);
+        this.setImmobile(true);
+        this.setDefaultMaxHealth(200);
         this.setHealth(this.getMaxHealth());
-        this.bossBar = this.getLevel().getDimension() == CloudLevel.DIMENSION_THE_END
-                ? this.getLevel().getEndFight().getBossBar()
-                : new CloudStandaloneBossBar(
+        this.ownsBossBar = this.getLevel().getDimension() != CloudLevel.DIMENSION_THE_END;
+        this.bossBar = this.ownsBossBar
+                ? new CloudStandaloneBossBar(
                         Component.translatable("entity.ender_dragon.name"),
                         BossBarColor.PURPLE,
-                        BossBarStyle.SOLID);
+                        BossBarStyle.SOLID)
+                : this.getLevel().getEndFight().getBossBar();
         this.bossBar.setProgress(1);
         this.ambientSoundDelay = INITIAL_AMBIENT_SOUND_DELAY;
     }
 
     @Override
     public void setHealth(float health) {
+        if (this.dying && health > 0 && Float.isFinite(health)) {
+            return;
+        }
+
         if (health == 0 && this.isAlive() && !this.dying) {
             this.beginDeath();
             return;
@@ -110,7 +116,7 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "EnderDragon";
     }
 
@@ -126,31 +132,33 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // Death progress lives in the DTO; the dying flag derives from it,
-        // Exactly as the previous load derived it. It runs before the
-        // living-state load below, matching the historical load order: a dying dragon saved with Health 0 reloads with dying already
-        // true, so setHealth(0) cannot begin death a second time. An absent
-        // death-time key leaves the current progress alone; an absent
-        // experience key falls back to today's reward lookup.
         if (tag.containsKey("DragonDeathTime")) {
             this.data().setDragonDeathTime(getInt(tag, "DragonDeathTime", this.data().getDragonDeathTime()));
-            this.dying = this.data().getDragonDeathTime() > 0;
         }
+
+        this.dying = this.data().getDragonDeathTime() > 0 || getFloat(tag, "Health", this.getHealth()) == 0f;
         if (tag.containsKey("DragonDeathExperience")) {
             this.data().setDragonDeathExperience(getInt(tag, "DragonDeathExperience", this.data().getDragonDeathExperience()));
         } else {
             this.data().setDragonDeathExperience(this.getExperienceReward());
         }
+
         super.loadCustom(tag);
+
+        if (this.dying) {
+            this.health = 0f;
+            this.data.set(STRUCTURAL_INTEGRITY, 1);
+            this.setHealth(0f);
+        }
     }
 
     @Override
-    public boolean onUpdate(int currentTick) {
+    protected boolean tickEntity(int currentTick, int elapsedTicks) {
         if (this.dying) {
             return tickDeath();
         }
 
-        if (!super.onUpdate(currentTick)) {
+        if (!super.tickEntity(currentTick, elapsedTicks)) {
             return false;
         }
 
@@ -201,13 +209,14 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
     }
 
     private int getExperienceReward() {
-        return this.getLevel().getDimension() == CloudLevel.DIMENSION_THE_END
-                ? this.getLevel().getEndFight().getDragonExperienceReward() : 500;
+        CloudLevel level = this.getLevel();
+        return level != null && level.getDimension() == CloudLevel.DIMENSION_THE_END
+                ? level.getEndFight().getDragonExperienceReward() : 500;
     }
 
     private void beginDeath() {
         EntityDeathEvent event = this.createDeathEvent();
-        if (!this.prepareDeath(event)) {
+        if (this.shouldAbortDeath(event)) {
             return;
         }
 
@@ -243,15 +252,33 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
         }
 
         this.bossBar.setProgress(0);
-        this.bossBar.removeAll();
+
+        if (!this.ownsBossBar) {
+            this.bossBar.removeAll();
+        }
 
         if (this.getLevel().getDimension() == CloudLevel.DIMENSION_THE_END) {
             this.getLevel().getEndFight().onDragonKilled(this);
         }
 
         this.despawnFromAll();
-        this.close();
+        this.remove(EntityRemoveCause.DEATH);
         return false;
+    }
+
+    @Override
+    public void remove(EntityRemoveCause cause) {
+        if (this.isClosed()) {
+            return;
+        }
+
+        try {
+            super.remove(cause);
+        } finally {
+            if (this.ownsBossBar) {
+                this.bossBar.removeAll();
+            }
+        }
     }
 
     private void tickAmbientSound() {
@@ -281,11 +308,7 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
     }
 
     private AttributeData createHealthAttribute() {
-        Attribute health = Attribute.getAttribute(Attribute.MAX_HEALTH)
-                .setMaxValue(this.getMaxHealth())
-                .setDefaultValue(this.getMaxHealth())
-                .setValue(this.getHealth());
-        return NetworkUtils.attributeToNetwork(health);
+        return NetworkEntityAttribute.encodeHealth(this.getHealth(), this.getMaxHealth());
     }
 
     private void broadcastHealth() {

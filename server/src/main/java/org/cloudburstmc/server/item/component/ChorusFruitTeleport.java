@@ -2,7 +2,7 @@ package org.cloudburstmc.server.item.component;
 
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.event.player.PlayerTeleportCause;
+import org.cloudburstmc.api.event.entity.TeleportCause;
 import org.cloudburstmc.api.level.particle.ParticleTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.BoundingBox;
@@ -37,7 +37,7 @@ public class ChorusFruitTeleport {
             }
 
             Vector3f source = player.getPosition();
-            if (!player.teleport(destination, PlayerTeleportCause.CHORUS_FRUIT)) {
+            if (!player.teleport(destination, TeleportCause.CHORUS_FRUIT)) {
                 continue;
             }
 

@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.hostile;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface Vex extends Entity {
+/**
+ * A flying monster summoned by evokers.
+ */
+public interface Vex extends Monster {
 }

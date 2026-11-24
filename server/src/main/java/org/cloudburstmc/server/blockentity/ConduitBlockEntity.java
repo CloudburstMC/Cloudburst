@@ -5,9 +5,10 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Conduit;
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.entity.Living;
+import org.cloudburstmc.api.entity.LivingEntity;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
+import org.cloudburstmc.api.entity.hostile.Enemy;
 import org.cloudburstmc.api.event.entity.PotionEffectCause;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.sound.SoundTypes;
@@ -16,7 +17,6 @@ import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.entity.hostile.EntityHostile;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.*;
@@ -31,7 +31,7 @@ public class ConduitBlockEntity extends BaseBlockEntity implements Conduit {
     private static final float ATTACK_DAMAGE = 4;
 
     private ConduitStructure structure = new ConduitStructure(List.of());
-    private @Nullable Living target;
+    private @Nullable LivingEntity target;
     private boolean initialized;
     private long nextShortSound;
 
@@ -88,7 +88,7 @@ public class ConduitBlockEntity extends BaseBlockEntity implements Conduit {
 
     @Override
     protected void saveCustomClient(NbtMapBuilder tag) {
-        Living current = this.getTarget();
+        LivingEntity current = this.getTarget();
         tag.putBoolean("Active", this.isActive());
         tag.putLong("Target", current == null ? -1 : current.getUniqueId());
     }
@@ -134,8 +134,8 @@ public class ConduitBlockEntity extends BaseBlockEntity implements Conduit {
     }
 
     @Override
-    public @Nullable Living getTarget() {
-        Living current = this.target;
+    public @Nullable LivingEntity getTarget() {
+        LivingEntity current = this.target;
         return this.isHunting() && current != null && this.isValidTarget(current) ? current : null;
     }
 
@@ -145,7 +145,7 @@ public class ConduitBlockEntity extends BaseBlockEntity implements Conduit {
     }
 
     @Override
-    public boolean setTarget(@Nullable Living target) {
+    public boolean setTarget(@Nullable LivingEntity target) {
         if (target == this.target || target != null && (!this.isHunting() || !this.isValidTarget(target))) {
             return false;
         }
@@ -157,7 +157,7 @@ public class ConduitBlockEntity extends BaseBlockEntity implements Conduit {
 
     private void refreshStructure() {
         boolean wasActive = this.isActive();
-        Living previousTarget = this.target;
+        LivingEntity previousTarget = this.target;
         this.structure = ConduitStructure.scan(this.getLevel(), this.getPosition());
         if (wasActive != this.isActive()) {
             this.getLevel().playSound(this.getPosition(), this.isActive() ? SoundTypes.CONDUIT_ACTIVATE : SoundTypes.CONDUIT_DEACTIVATE);
@@ -179,7 +179,7 @@ public class ConduitBlockEntity extends BaseBlockEntity implements Conduit {
             this.target = null;
         }
 
-        Living current = this.target;
+        LivingEntity current = this.target;
         if (current != null && current.damage(ATTACK_DAMAGE, DamageSource.builder(DamageTypes.MAGIC).block(this.getBlock()).build())) {
             this.getLevel().playSound(current.getPosition(), SoundTypes.CONDUIT_ATTACK);
         }
@@ -199,18 +199,18 @@ public class ConduitBlockEntity extends BaseBlockEntity implements Conduit {
         }
     }
 
-    private @Nullable Living selectTarget() {
-        List<Living> candidates = new ArrayList<>();
+    private @Nullable LivingEntity selectTarget() {
+        List<LivingEntity> candidates = new ArrayList<>();
         for (Entity entity : this.getLevel().getNearbyEntities(this.getHuntingArea())) {
-            if (entity instanceof EntityHostile hostile && this.isValidTarget(hostile) && hostile.isInWaterOrRain()) {
-                candidates.add(hostile);
+            if (entity instanceof Enemy enemy && this.isValidTarget(enemy) && enemy.isInWaterOrRain()) {
+                candidates.add(enemy);
             }
         }
 
         return candidates.isEmpty() ? null : candidates.get(ThreadLocalRandom.current().nextInt(candidates.size()));
     }
 
-    private boolean isValidTarget(Living target) {
+    private boolean isValidTarget(LivingEntity target) {
         return target.isAlive() && !target.isClosed() && target.getLevel() == this.getLevel() && withinRange(this.getPosition(), target, HUNTING_RANGE);
     }
 

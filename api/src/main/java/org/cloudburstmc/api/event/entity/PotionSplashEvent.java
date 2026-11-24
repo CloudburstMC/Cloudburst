@@ -1,6 +1,6 @@
 package org.cloudburstmc.api.event.entity;
 
-import org.cloudburstmc.api.entity.Living;
+import org.cloudburstmc.api.entity.LivingEntity;
 import org.cloudburstmc.api.entity.projectile.SplashPotion;
 import org.cloudburstmc.api.event.Cancellable;
 
@@ -16,7 +16,8 @@ import static java.util.Objects.requireNonNull;
  * Called before a splash potion applies its effects to nearby entities.
  */
 public class PotionSplashEvent extends EntityEvent implements Cancellable {
-    private final Map<Living, Double> affectedEntities;
+
+    private final Map<LivingEntity, Double> affectedEntities;
 
     /**
      * Creates a splash potion application event.
@@ -24,7 +25,7 @@ public class PotionSplashEvent extends EntityEvent implements Cancellable {
      * @param potion           the thrown potion
      * @param affectedEntities entities and their initial effect intensities
      */
-    public PotionSplashEvent(SplashPotion potion, Map<? extends Living, Double> affectedEntities) {
+    public PotionSplashEvent(SplashPotion potion, Map<? extends LivingEntity, Double> affectedEntities) {
         this.entity = requireNonNull(potion, "potion");
         this.affectedEntities = new LinkedHashMap<>();
         requireNonNull(affectedEntities, "affectedEntities").forEach(this::setIntensity);
@@ -49,7 +50,7 @@ public class PotionSplashEvent extends EntityEvent implements Cancellable {
      *
      * @return affected entities
      */
-    public Collection<Living> getAffectedEntities() {
+    public Collection<LivingEntity> getAffectedEntities() {
         return List.copyOf(this.affectedEntities.keySet());
     }
 
@@ -59,7 +60,7 @@ public class PotionSplashEvent extends EntityEvent implements Cancellable {
      * @param entity the entity to query
      * @return a value from {@code 0.0} to {@code 1.0}, or {@code 0.0} when unaffected
      */
-    public double getIntensity(Living entity) {
+    public double getIntensity(LivingEntity entity) {
         return this.affectedEntities.getOrDefault(requireNonNull(entity, "entity"), 0.0);
     }
 
@@ -70,7 +71,7 @@ public class PotionSplashEvent extends EntityEvent implements Cancellable {
      * @param entity    the entity to update
      * @param intensity the new finite intensity
      */
-    public void setIntensity(Living entity, double intensity) {
+    public void setIntensity(LivingEntity entity, double intensity) {
         requireNonNull(entity, "entity");
         checkArgument(Double.isFinite(intensity), "intensity must be finite");
 

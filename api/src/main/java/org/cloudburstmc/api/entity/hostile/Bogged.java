@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.hostile;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface Bogged extends Entity {
+/**
+ * A skeleton variant associated with poison arrows.
+ */
+public interface Bogged extends AbstractSkeleton {
 }

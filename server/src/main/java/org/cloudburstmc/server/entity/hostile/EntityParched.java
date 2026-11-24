@@ -4,21 +4,16 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.hostile.Parched;
 import org.cloudburstmc.api.level.Location;
 
-public class EntityParched extends EntityHostile implements Parched {
+public class EntityParched extends EntityAbstractSkeleton implements Parched {
 
-    public EntityParched(EntityType<Parched> type, Location location) {
-        super(type, location);
+    public EntityParched(EntityType<Parched> entityType, Location location) {
+        super(entityType, location);
     }
 
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(16);
-    }
-
-    @Override
-    public float getWidth() {
-        return 0.6f;
+        this.setDefaultMaxHealth(16);
     }
 
     @Override
@@ -27,7 +22,7 @@ public class EntityParched extends EntityHostile implements Parched {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Parched";
     }
 }

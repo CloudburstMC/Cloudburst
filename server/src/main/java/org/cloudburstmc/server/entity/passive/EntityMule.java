@@ -9,7 +9,7 @@ import org.cloudburstmc.api.level.Location;
 /**
  * @author PikyCZ
  */
-public class EntityMule extends Animal implements Mule {
+public class EntityMule extends EntityAbstractHorse implements Mule {
 
     public EntityMule(EntityType<Mule> type, Location location) {
         super(type, location);
@@ -18,27 +18,5 @@ public class EntityMule extends Animal implements Mule {
     @Override
     public ItemStack[] getDrops() {
         return new ItemStack[]{ItemStack.builder().itemType(ItemTypes.LEATHER).build()};
-    }
-
-    @Override
-    public float getWidth() {
-        if (this.isBaby()) {
-            return 0.6982f;
-        }
-        return 1.3965f;
-    }
-
-    @Override
-    public float getHeight() {
-        if (this.isBaby()) {
-            return 0.8f;
-        }
-        return 1.6f;
-    }
-
-    @Override
-    public void initEntity() {
-        super.initEntity();
-        this.setMaxHealth(15);
     }
 }

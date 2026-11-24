@@ -20,7 +20,6 @@ import org.cloudburstmc.api.boss.BossBarStyle;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.command.Commands;
 import org.cloudburstmc.api.crafting.Recipe;
-import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.event.server.*;
 import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.Level;
@@ -561,7 +560,7 @@ public class CloudServer implements Server {
         }
 
         for (CloudPlayer player : List.copyOf(this.players.values())) {
-            player.onUpdate(this.tickCounter);
+            player.tick(this.tickCounter);
         }
 
         this.levelManager.tick(this.tickCounter);
@@ -649,6 +648,11 @@ public class CloudServer implements Server {
     }
 
     public void updatePlayerListData(UUID uuid, long entityId, String name, SerializedSkin skin, String xboxUserId, CloudPlayer[] players) {
+        CloudPlayer listedPlayer = this.playerList.get(uuid);
+        if (listedPlayer != null) {
+            players = Arrays.stream(players).filter(viewer -> viewer.canSee(listedPlayer)).toArray(CloudPlayer[]::new);
+        }
+
         PlayerListPacket packet = new PlayerListPacket();
         PlayerListPacket.Entry entry = new PlayerListPacket.Entry(uuid);
         entry.setAction(PlayerListPacket.Action.ADD);
@@ -688,6 +692,7 @@ public class CloudServer implements Server {
     public void sendFullPlayerListData(CloudPlayer player) {
         PlayerListPacket packet = new PlayerListPacket();
         packet.getEntries().addAll(this.playerList.values().stream()
+                .filter(player::canSee)
                 .map(p -> {
                     PlayerListPacket.Entry entry = new PlayerListPacket.Entry(p.getServerId());
                     entry.setAction(PlayerListPacket.Action.ADD);
@@ -965,10 +970,10 @@ public class CloudServer implements Server {
             return new CloudOfflinePlayer(this, player.getServerId(), player.getName());
         }
 
-        return this.lookupName(name)
+        UUID uuid = this.lookupName(name)
                 .or(() -> this.findListedIdentity(name))
-                .<OfflinePlayer>map(uuid -> new CloudOfflinePlayer(this, uuid, name))
-                .orElseGet(() -> new CloudOfflinePlayer(this, name));
+                .orElse(null);
+        return new CloudOfflinePlayer(this, uuid, name);
     }
 
     private Optional<UUID> findListedIdentity(String name) {
@@ -1284,7 +1289,6 @@ public class CloudServer implements Server {
     }
 
     private void registerVanillaComponents() {
-        Attribute.init();
         this.levelDefaults.setDifficulty(this.getDifficulty());
         this.levelDefaults.getGameRules().loadFrom(this.gameRuleRegistry.getDefaultRules());
     }

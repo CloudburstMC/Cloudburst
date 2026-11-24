@@ -1,7 +1,5 @@
 package org.cloudburstmc.api.entity.projectile;
 
-import org.cloudburstmc.api.entity.Projectile;
-
 /**
  * A wind charge that releases a burst of knockback on impact.
  */

@@ -2,7 +2,6 @@ package org.cloudburstmc.server.player;
 
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.entity.RegainReason;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
@@ -12,6 +11,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.player.ExhaustionReason;
+import org.cloudburstmc.server.network.NetworkEntityAttribute;
 
 import static java.util.Objects.requireNonNull;
 
@@ -47,7 +47,7 @@ public class CloudPlayerFood {
         this.exhaustion = Float.isFinite(exhaustion) ? Math.clamp(exhaustion, 0.0f, 40.0f) : 0.0f;
         float current = Math.min(this.exhaustion, 5.0f);
         if (this.player.spawned && current != previous) {
-            this.player.setAttribute(Attribute.getAttribute(Attribute.EXHAUSTION).setValue(current));
+            this.player.sendAttributeUpdate(NetworkEntityAttribute.EXHAUSTION.encode(current));
         }
     }
 

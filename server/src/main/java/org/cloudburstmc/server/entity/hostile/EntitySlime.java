@@ -5,34 +5,19 @@ import org.cloudburstmc.api.entity.hostile.Slime;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.server.entity.EntityAbstractCubeMob;
 
 /**
  * @author PikyCZ
  */
-public class EntitySlime extends EntityHostile implements Slime {
+public class EntitySlime extends EntityAbstractCubeMob implements Slime {
 
     public EntitySlime(EntityType<Slime> type, Location location) {
-        super(type, location);
+        super(type, location, 4);
     }
 
     @Override
-    protected void initEntity() {
-        super.initEntity();
-        this.setMaxHealth(16);
-    }
-
-    @Override
-    public float getWidth() {
-        return 2.04f;
-    }
-
-    @Override
-    public float getHeight() {
-        return 2.04f;
-    }
-
-    @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Slime";
     }
 

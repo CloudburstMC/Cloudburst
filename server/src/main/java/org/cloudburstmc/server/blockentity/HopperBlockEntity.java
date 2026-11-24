@@ -8,6 +8,7 @@ import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Hopper;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
+import org.cloudburstmc.api.event.entity.EntityRemoveCause;
 import org.cloudburstmc.api.event.inventory.InventoryMoveItemEvent;
 import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.inventory.view.BlockHopperView;
@@ -24,6 +25,7 @@ import org.cloudburstmc.server.block.component.ComposterBlockHandlers;
 import org.cloudburstmc.server.block.util.RedstoneSignals;
 import org.cloudburstmc.server.blockentity.data.CloudHopperData;
 import org.cloudburstmc.server.container.ContainerListener;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
@@ -213,7 +215,7 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
             ItemStack[] items = this.getContainer().addItem(item);
 
             if (items.length == 0) {
-                entity.close();
+                CloudEntity.remove(entity, EntityRemoveCause.PICKUP);
                 pickedUpItem = true;
                 continue;
             }

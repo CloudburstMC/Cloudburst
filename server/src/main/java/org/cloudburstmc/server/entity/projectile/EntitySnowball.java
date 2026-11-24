@@ -4,11 +4,13 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.projectile.Snowball;
+import org.cloudburstmc.api.event.entity.EntityRemoveCause;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.particle.ItemParticleOptions;
 import org.cloudburstmc.api.util.BlockHitResult;
+import org.cloudburstmc.server.entity.CloudEntity;
 
 public class EntitySnowball extends EntityProjectile implements Snowball {
 
@@ -43,7 +45,7 @@ public class EntitySnowball extends EntityProjectile implements Snowball {
 
     @Override
     protected void onCollideWithEntity(Entity entity) {
-        entity.damage(entity.getType() == EntityTypes.BLAZE ? 3 : 0, this.createProjectileDamageSource());
+        CloudEntity.applyDamage(entity, entity.getType() == EntityTypes.BLAZE ? 3 : 0, this.createProjectileDamageSource());
         this.breakApart();
     }
 
@@ -53,15 +55,15 @@ public class EntitySnowball extends EntityProjectile implements Snowball {
     }
 
     @Override
-    public boolean onUpdate(int currentTick) {
-        if (this.closed) {
+    protected boolean tickEntity(int currentTick, int elapsedTicks) {
+        if (this.isClosed()) {
             return false;
         }
 
-        boolean hasUpdate = super.onUpdate(currentTick);
+        boolean hasUpdate = super.tickEntity(currentTick, elapsedTicks);
 
         if (this.age > 1200) {
-            this.kill();
+            this.remove(EntityRemoveCause.DESPAWN);
             hasUpdate = true;
         }
 
@@ -74,6 +76,6 @@ public class EntitySnowball extends EntityProjectile implements Snowball {
             this.getLevel().spawnParticle(new ItemParticleOptions(item), this.getPosition());
         }
 
-        this.close();
+        this.remove(EntityRemoveCause.HIT);
     }
 }

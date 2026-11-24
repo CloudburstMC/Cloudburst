@@ -90,6 +90,27 @@ class LivingDamageEventTest {
     }
 
     @Test
+    void acceptedHitCannotSpendAbsorptionThatIsNoLongerAvailable() {
+        DamageTarget target = new DamageTarget();
+        target.absorption = 3;
+        CloudEntityDamageEvent event = target.createDamageEvent(DamageSource.of(DamageTypes.GENERIC), 4);
+
+        assertEquals(1, event.getFinalDamage());
+        assertEquals(new CloudEntityDamageEvent.DamageSplit(3, 1), event.resolveDamage(1));
+        assertEquals(new CloudEntityDamageEvent.DamageSplit(1, 3), event.resolveDamage(5));
+    }
+
+    @Test
+    void fullyAbsorbedPreviewCanResolveToHealthDamage() {
+        DamageTarget target = new DamageTarget();
+        target.absorption = 4;
+        CloudEntityDamageEvent event = target.createDamageEvent(DamageSource.of(DamageTypes.GENERIC), 4);
+
+        assertEquals(0, event.getFinalDamage());
+        assertEquals(new CloudEntityDamageEvent.DamageSplit(4, 0), event.resolveDamage(0));
+    }
+
+    @Test
     void cooldownIsSubtractedAfterBlockingAndBeforeOtherReductions() {
         CloudEntityDamageEvent event = new CloudEntityDamageEvent(
                 new DamageTarget(), DamageSource.of(DamageTypes.GENERIC), 10,
@@ -119,7 +140,7 @@ class LivingDamageEventTest {
         DamageTarget defender = new DamageTarget();
         DamageTarget attacker = new DamageTarget();
         attacker.position = Vector3f.from(1, 0, 0);
-        attacker.onGround = true;
+        attacker.setOnGround(true);
         defender.blockingFraction = 1;
 
         defender.onDamageBlocked(defender.createDamageEvent(DamageSource.of(DamageTypes.PLAYER_ATTACK, attacker), 8));
@@ -148,7 +169,7 @@ class LivingDamageEventTest {
     @Test
     void knockbackNormalizesLargeFiniteDirectionsWithoutOverflow() {
         DamageTarget target = new DamageTarget();
-        target.onGround = true;
+        target.setOnGround(true);
 
         target.knockBack(0.4f, Float.MAX_VALUE, Float.MAX_VALUE, KnockbackCause.ENTITY_ATTACK, null);
 
@@ -233,7 +254,7 @@ class LivingDamageEventTest {
         };
 
         CloudDamageResult result = target.damageWithResult(4, DamageSource.of(DamageTypes.EXPLOSION));
-        assertTrue(result.applied());
+        assertTrue(result.accepted());
         assertFalse(result.cancelled());
     }
 
@@ -247,7 +268,7 @@ class LivingDamageEventTest {
         };
 
         CloudDamageResult result = target.damageWithResult(4, DamageSource.of(DamageTypes.EXPLOSION));
-        assertFalse(result.applied());
+        assertFalse(result.accepted());
         assertFalse(result.cancelled());
     }
 
@@ -276,7 +297,7 @@ class LivingDamageEventTest {
         assertEquals(Vector3f.ZERO, attacker.getMotion());
     }
 
-    private static class DamageTarget extends EntityLiving {
+    private static class DamageTarget extends CloudLivingEntity {
 
         private float blockingFraction;
         private float reductionFactor = 1;

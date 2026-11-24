@@ -9,10 +9,10 @@ import org.cloudburstmc.api.level.Location;
 /**
  * Created by PetteriM1
  */
-public class EntitySalmon extends Animal implements Salmon {
+public class EntitySalmon extends EntityWaterAnimal implements Salmon {
 
-    public EntitySalmon(EntityType<Salmon> type, Location location) {
-        super(type, location);
+    public EntitySalmon(EntityType<Salmon> entityType, Location location) {
+        super(entityType, location);
     }
 
     @Override
@@ -20,7 +20,7 @@ public class EntitySalmon extends Animal implements Salmon {
         return ItemStack.from(ItemTypes.SALMON_BUCKET);
     }
 
-    public String getName() {
+    protected String getDefaultName() {
         return "Salmon";
     }
 
@@ -35,8 +35,8 @@ public class EntitySalmon extends Animal implements Salmon {
     }
 
     @Override
-    public void initEntity() {
+    protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(3);
+        this.setDefaultMaxHealth(3);
     }
 }

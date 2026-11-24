@@ -5,7 +5,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.data.CloudCreatureData;
+import org.cloudburstmc.server.entity.data.CloudMobData;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -65,7 +65,7 @@ class VillagerPersistenceTest {
     @Test
     void villagerKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
-                EntityVillager.class, CloudCreatureData.class,
+                EntityVillager.class, CloudMobData.class,
                 Map.of(
                         "armor", "an armor view over the live container in data().getArmor()",
                         "offhand", "an offhand view over the live container in data().getOffhand()"));

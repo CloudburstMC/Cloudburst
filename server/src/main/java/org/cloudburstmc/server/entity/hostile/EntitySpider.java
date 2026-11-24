@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.entity.hostile;
 
-import org.cloudburstmc.api.entity.Arthropod;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.hostile.Spider;
 import org.cloudburstmc.api.item.ItemStack;
@@ -10,16 +9,16 @@ import org.cloudburstmc.api.level.Location;
 /**
  * @author PikyCZ
  */
-public class EntitySpider extends EntityHostile implements Spider, Arthropod {
+public class EntitySpider extends EntityHostile implements Spider {
 
-    public EntitySpider(EntityType<Spider> type, Location location) {
+    public EntitySpider(EntityType<? extends Spider> type, Location location) {
         super(type, location);
     }
 
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(16);
+        this.setDefaultMaxHealth(16);
     }
 
     @Override
@@ -33,7 +32,7 @@ public class EntitySpider extends EntityHostile implements Spider, Arthropod {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Spider";
     }
 

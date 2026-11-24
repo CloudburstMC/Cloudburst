@@ -1,6 +1,9 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.Mob;
 
-public interface Goat extends Entity {
+/**
+ * The mountain animal associated with jumping and ramming.
+ */
+public interface Goat extends Mob {
 }

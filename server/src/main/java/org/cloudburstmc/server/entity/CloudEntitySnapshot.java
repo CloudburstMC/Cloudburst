@@ -1,10 +1,9 @@
 package org.cloudburstmc.server.entity;
 
+import lombok.EqualsAndHashCode;
 import org.cloudburstmc.api.entity.EntitySnapshot;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
-import org.cloudburstmc.api.item.ItemDataComponents;
-import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.nbt.NbtList;
@@ -16,27 +15,36 @@ import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import java.util.Objects;
 import java.util.Set;
 
-public record CloudEntitySnapshot(EntityType<?> type, NbtMap data) implements EntitySnapshot {
+@EqualsAndHashCode(doNotUseGetters = true)
+public class CloudEntitySnapshot implements EntitySnapshot {
 
-    private static final Set<String> PLACEMENT_DATA = Set.of(
+    private static final Set<String> NON_TRANSFERABLE_KEYS = Set.of(
             "identifier", "id", "UniqueID", "RuntimeID", "UUID", "UUIDMost", "UUIDLeast",
-            "Pos", "Motion", "Rotation", "FallDistance", "OnGround", "Dimension",
+            "Pos", "Motion", "Rotation", "FallDistance", "OnGround", "Dimension", "PortalCooldown",
             "TileX", "TileY", "TileZ", "Direction", "BeamTarget",
-            "OwnerID", "OwnerNew", "Owner", "TargetID", "LeasherID",
-            "LinksTag", "Passengers", "Riding", "RootVehicle", "PortalCooldown"
+            "OwnerID", "OwnerNew", "Owner", "Cloudburst.OwnerUUID", "Cloudburst.Tamed",
+            "TargetID", "LeasherID", "LinksTag", "Passengers", "Riding", "RootVehicle"
     );
 
-    public CloudEntitySnapshot {
-        Objects.requireNonNull(type, "type");
+    private final EntityType<?> type;
+    private final NbtMap data;
+
+    public CloudEntitySnapshot(EntityType<?> type, NbtMap data) {
+        this.type = Objects.requireNonNull(type, "type");
         Objects.requireNonNull(data, "data");
 
         if (type == EntityTypes.PLAYER || Player.class.isAssignableFrom(type.getEntityClass())) {
             throw new IllegalArgumentException("Player state cannot be stored in an entity snapshot");
         }
 
-        NbtMapBuilder persistentData = copyCompound(data).toBuilder();
-        PLACEMENT_DATA.forEach(persistentData::remove);
-        data = persistentData.build();
+        NbtMapBuilder persistentData = NbtMap.builder();
+        data.forEach((key, value) -> {
+            if (!NON_TRANSFERABLE_KEYS.contains(key)) {
+                persistentData.put(key, copyValue(value));
+            }
+        });
+
+        this.data = persistentData.build();
     }
 
     public static CloudEntitySnapshot capture(CloudEntity entity) {
@@ -45,26 +53,12 @@ public record CloudEntitySnapshot(EntityType<?> type, NbtMap data) implements En
         return new CloudEntitySnapshot(entity.getType(), data.build());
     }
 
-    public static CloudEntity createFromItem(ItemStack item, EntityType<?> type, Location location) {
-        EntitySnapshot snapshot = item.get(ItemDataComponents.ENTITY_DATA);
-        if (snapshot == null) {
-            return (CloudEntity) CloudEntityRegistry.get().create(type, location);
-        }
-
-        if (snapshot.getType() != type || !(snapshot instanceof CloudEntitySnapshot stored)) {
-            throw new IllegalArgumentException("Item entity data does not match its placement type");
-        }
-
-        return stored.createEntity(location);
-    }
-
     @Override
     public EntityType<?> getType() {
         return this.type;
     }
 
-    @Override
-    public NbtMap data() {
+    public NbtMap copyData() {
         return copyCompound(this.data);
     }
 
@@ -77,7 +71,7 @@ public record CloudEntitySnapshot(EntityType<?> type, NbtMap data) implements En
 
         NbtMapBuilder restored = NbtMap.builder();
         entity.saveAdditionalData(restored);
-        restored.putAll(this.data());
+        restored.putAll(this.copyData());
         entity.loadAdditionalData(restored.build());
         return entity;
     }

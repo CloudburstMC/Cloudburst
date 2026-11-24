@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.hostile;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface Spider extends Entity {
+/**
+ * The base type for spiders, including {@link CaveSpider}.
+ */
+public interface Spider extends Monster {
 }

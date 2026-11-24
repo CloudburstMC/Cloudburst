@@ -6,7 +6,7 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.server.entity.EntityLiving;
+import org.cloudburstmc.server.entity.CloudLivingEntity;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.junit.jupiter.api.Test;
 
@@ -52,7 +52,7 @@ class AbsorptionEffectTest {
         assertEquals(1, target.absorptionUpdates);
     }
 
-    private static class AbsorptionTarget extends EntityLiving {
+    private static class AbsorptionTarget extends CloudLivingEntity {
         private int absorptionUpdates;
 
         private AbsorptionTarget() {

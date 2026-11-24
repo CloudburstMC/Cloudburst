@@ -18,7 +18,7 @@ public class EntityVindicator extends EntityHostile implements Vindicator {
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(24);
+        this.setDefaultMaxHealth(24);
     }
 
     @Override
@@ -32,7 +32,7 @@ public class EntityVindicator extends EntityHostile implements Vindicator {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Vindicator";
     }
 

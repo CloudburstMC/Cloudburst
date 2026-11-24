@@ -13,7 +13,7 @@ public class EntityPiglinBrute extends EntityHostile implements PiglinBrute {
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(50);
+        this.setDefaultMaxHealth(50);
     }
 
     @Override
@@ -27,7 +27,7 @@ public class EntityPiglinBrute extends EntityHostile implements PiglinBrute {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Piglin Brute";
     }
 }

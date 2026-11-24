@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.entity.vehicle;
 
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTypes;
@@ -10,9 +11,11 @@ import org.cloudburstmc.api.entity.EntityComponents;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Pose;
 import org.cloudburstmc.api.entity.component.Buoyancy;
+import org.cloudburstmc.api.entity.passive.SulfurCube;
 import org.cloudburstmc.api.entity.vehicle.Boat;
 import org.cloudburstmc.api.entity.vehicle.BoatStatus;
 import org.cloudburstmc.api.entity.vehicle.BoatType;
+import org.cloudburstmc.api.event.entity.EntityRemoveCause;
 import org.cloudburstmc.api.event.vehicle.*;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
@@ -25,6 +28,7 @@ import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
 import org.cloudburstmc.protocol.bedrock.data.PredictionType;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataMap;
@@ -32,11 +36,11 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.configuration.GlobalConfiguration;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.EntityHuman;
-import org.cloudburstmc.server.entity.EntityLiving;
+import org.cloudburstmc.server.entity.CloudHumanEntity;
+import org.cloudburstmc.server.entity.CloudLivingEntity;
 import org.cloudburstmc.server.entity.HumanPoses;
 import org.cloudburstmc.server.entity.data.CloudBoatData;
-import org.cloudburstmc.server.entity.data.SyncedEntityData;
+import org.cloudburstmc.server.entity.metadata.SyncedEntityData;
 import org.cloudburstmc.server.entity.passive.Animal;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
@@ -108,10 +112,6 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // The hull runs before the vehicle load below, matching the
-        // historical load order. The wood type has no presence bit, so it
-        // always falls back to oak, exactly as the old getInt-with-default load did. The
-        // setter re-runs to keep the metadata sync.
         BoatType boatType = this.data().getWoodType();
         this.setBoatType(tag.containsKey("WoodType") && boatType != null ? boatType : BoatType.OAK);
         super.loadCustom(tag);
@@ -185,28 +185,17 @@ public class EntityBoat extends EntityVehicle implements Boat {
     }
 
     @Override
-    public boolean onUpdate(int currentTick) {
-        if (this.closed) {
+    protected boolean tickEntity(int currentTick, int elapsedTicks) {
+        if (this.isClosed()) {
             return false;
         }
 
-        int elapsed = currentTick - this.lastUpdate;
-        if (elapsed <= 0) {
-            return true;
-        }
-
-        this.lastUpdate = currentTick;
         Location from = this.lastEventLocation == null ? this.getLocation() : this.lastEventLocation;
-        for (int tick = 0; tick < elapsed && !this.closed; tick++) {
+        for (int tick = 0; tick < elapsedTicks && !this.isClosed(); tick++) {
             this.tickBoat();
         }
 
-        if (this.closed) {
-            return false;
-        }
-
-        CloudEntityRegistry.get().requireComponent(this.getType(), EntityComponents.ON_TICK).execute(this, currentTick);
-        if (this.closed) {
+        if (this.isClosed()) {
             return false;
         }
 
@@ -226,7 +215,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
     private void tickBoat() {
         this.entityBaseTick(1);
-        if (this.closed) {
+        if (this.isClosed()) {
             return;
         }
 
@@ -237,7 +226,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
             this.simulateUnoccupiedMovement();
         }
 
-        if (this.closed) {
+        if (this.isClosed()) {
             return;
         }
 
@@ -264,7 +253,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
     }
 
     public void handleInput(CloudPlayer driver, Input input) {
-        if (this.closed || !this.isControlling(driver) || !driver.isAlive() || driver.getTeleportPosition() != null
+        if (this.isClosed() || !this.isControlling(driver) || !driver.isAlive() || driver.getTeleportPosition() != null
                 || driver.getLevel() != this.level
                 || !Float.isFinite(input.position().getX()) || !Float.isFinite(input.position().getY())
                 || !Float.isFinite(input.position().getZ()) || !Float.isFinite(input.yaw())) {
@@ -319,7 +308,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
         this.setPaddling(input.right() && !input.left() || input.forward(), input.left() && !input.right() || input.forward());
         this.notifyBlockCollisions(before, requested, this.position.sub(previousPosition));
 
-        if (this.closed || !this.isControlling(driver)) {
+        if (this.isClosed() || !this.isControlling(driver)) {
             return;
         }
 
@@ -533,7 +522,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
             if (this.getControllingPassenger() == null && this.canAddPassenger(entity) && entity.getVehicle() == null
                     && entity.getWidth() * entity.getScale() < this.getWidth() * this.getScale()
-                    && entity instanceof EntityLiving && !(entity instanceof Player) && !(entity instanceof EntityWaterAnimal)) {
+                    && entity instanceof CloudLivingEntity && !(entity instanceof Player) && !(entity instanceof EntityWaterAnimal)) {
                 ((CloudEntity) entity).tryMount(this);
             } else {
                 this.onEntityCollision(entity);
@@ -551,7 +540,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
         BlockBoxTraversal.forEach(before.expandTowards(requested).inflate(0.001f, 0, 0.001f), (x, y, z) -> {
             Block block = this.level.getBlock(x, y, z);
             VoxelShape shape = block.getCollisionShape(CollisionContext.of(this));
-            if (shape.isEmpty() || this.closed) {
+            if (shape.isEmpty() || this.isClosed()) {
                 return;
             }
 
@@ -563,7 +552,6 @@ public class EntityBoat extends EntityVehicle implements Boat {
         });
     }
 
-    @Override
     public void onEntityCollision(Entity entity) {
         if (this.sharesRootVehicle(entity) || !entity.isPushable()
                 || (entity instanceof EntityBoat ? entity.getBoundingBox().getMinY() >= this.boundingBox.getMaxY()
@@ -573,7 +561,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
         VehicleEntityCollisionEvent event = new VehicleEntityCollisionEvent(this, entity);
         this.server.getEventManager().fire(event);
-        if (event.isCancelled() || this.closed || entity.isClosed() || this.sharesRootVehicle(entity)) {
+        if (event.isCancelled() || this.isClosed() || entity.isClosed() || this.sharesRootVehicle(entity)) {
             return;
         }
 
@@ -603,13 +591,13 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
     @Override
     protected boolean canAddPassenger(Entity passenger) {
-        return super.canAddPassenger(passenger) && this.passengers.size() < this.getMaxPassengers()
+        return super.canAddPassenger(passenger) && this.getPassengers().size() < this.getMaxPassengers()
                 && this.status != BoatStatus.UNDER_WATER && this.status != BoatStatus.UNDER_FLOWING_WATER;
     }
 
     @Override
     public @Nullable Player getControllingPassenger() {
-        return !this.passengers.isEmpty() && this.passengers.getFirst() instanceof Player player ? player : null;
+        return this.getFirstPassenger() instanceof Player player ? player : null;
     }
 
     @Override
@@ -630,16 +618,13 @@ public class EntityBoat extends EntityVehicle implements Boat {
     }
 
     @Override
-    protected void onDismount(Entity passenger, @Nullable Vector3f preferredPosition) {
-        boolean controlling = this.isControlling(passenger);
-        super.onDismount(passenger, preferredPosition);
-
+    protected void onDismount(Entity passenger, @Nullable Vector3f preferredPosition, boolean wasControlling) {
         SyncedEntityData data = ((CloudEntity) passenger).getData();
         data.set(SEAT_LOCK_RIDER_ROTATION, false);
         data.set(SEAT_HAS_ROTATION, false);
         data.set(SEAT_ROTATION_OFFSET_DEGREES, 0f);
 
-        if (controlling) {
+        if (wasControlling) {
             this.resetInput();
         }
 
@@ -653,27 +638,40 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
     @Override
     public Vector3f getMountedOffset(Entity passenger) {
-        float longitudinal = this.passengers.size() > 1 ? this.passengers.indexOf(passenger) == 0 ? 0.2f : -0.6f : this.getSinglePassengerOffset();
-        if (this.passengers.size() > 1 && passenger instanceof Animal) {
-            longitudinal += 0.2f;
+        float longitudinal = this.getSinglePassengerOffset();
+        if (this.getPassengers().size() > 1) {
+            longitudinal = this.getFirstPassenger() == passenger ? 0.2f : -0.6f;
+            if (usesAnimalSeatOffset(passenger)) {
+                longitudinal += 0.2f;
+            }
         }
 
-        float vertical = this.getPassengerVerticalOffset(passenger) + passenger.getBaseOffset() - this.getBaseOffset();
+        float riderOffset = passenger instanceof CloudEntity rider ? rider.getBaseOffset() : 0;
+        float vertical = this.getPassengerVerticalOffset(passenger) + riderOffset - this.getBaseOffset();
         return Vector3f.from(longitudinal, vertical, 0);
     }
 
     @Override
-    public float getMountedHeightOffset() {
+    protected float getMountedHeightOffset() {
         return this.getBoatType() == BoatType.BAMBOO ? 0.1f : -0.2f;
     }
 
     private float getPassengerVerticalOffset(Entity passenger) {
-        float offset = passenger instanceof Player ? -0.4f : passenger instanceof Animal ? 0.14f : passenger.getPassengerHeightOffset();
+        float offset = switch (passenger) {
+            case Player ignored -> -0.4f;
+            case Entity animal when usesAnimalSeatOffset(animal) -> 0.14f;
+            default -> passengerHeightOffset(passenger);
+        };
+
         return this.getBaseOffset() + this.getMountedHeightOffset() + offset;
     }
 
+    private static boolean usesAnimalSeatOffset(Entity passenger) {
+        return passenger instanceof Animal || passenger instanceof SulfurCube;
+    }
+
     @Override
-    public Vector3f getPassengerAttachmentPoint(Entity passenger) {
+    protected Vector3f getPassengerAttachmentPoint(Entity passenger) {
         Vector3f seat = this.getMountedOffset(passenger);
         float longitudinal = seat.getX();
         double angle = Math.toRadians(this.yaw);
@@ -683,7 +681,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
     @Override
     protected void updatePassengerPosition(Entity passenger) {
-        passenger.setSeatPosition(this.getMountedOffset(passenger));
+        ((CloudEntity) passenger).setSeatOffset(this.getMountedOffset(passenger));
         super.updatePassengerPosition(passenger);
     }
 
@@ -694,7 +692,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
         if (preferredPosition != null && this.isReachableDismountPosition(passenger, preferredPosition)
                 && (this.canDismountAt(passenger, preferredPosition, false)
-                || passenger instanceof EntityHuman && this.canDismountAt(passenger, preferredPosition, true))) {
+                || passenger instanceof CloudHumanEntity && this.canDismountAt(passenger, preferredPosition, true))) {
             passenger.setPosition(preferredPosition);
             ((CloudEntity) passenger).sendAuthoritativeDisplacement();
             return;
@@ -714,7 +712,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
         Block belowTarget = targetBlock == null ? null : this.level.getLoadedBlock(targetBlock.getPosition().add(0, -1, 0));
 
         if (targetBlock != null && belowTarget != null && !belowTarget.getLiquid().getType().isSameFamily(LiquidTypes.WATER)) {
-            ArrayList<Vector3f> candidates = new ArrayList<Vector3f>(2);
+            ArrayList<Vector3f> candidates = new ArrayList<>(2);
             for (int offset = 0; offset >= -1; offset--) {
                 Block candidate = offset == 0 ? targetBlock : belowTarget;
                 float floor = this.getDismountFloor(candidate, passenger);
@@ -723,7 +721,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
                 }
             }
 
-            int poses = passenger instanceof EntityHuman ? 2 : 1;
+            int poses = passenger instanceof CloudHumanEntity ? 2 : 1;
             for (int pose = 0; pose < poses && target == null; pose++) {
                 for (Vector3f location : candidates) {
                     if (this.canDismountAt(passenger, location, pose == 1)) {
@@ -750,7 +748,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
     }
 
     private boolean canDismountAt(Entity passenger, Vector3f position, boolean crouching) {
-        BoundingBox bounds = passenger instanceof EntityHuman
+        BoundingBox bounds = passenger instanceof CloudHumanEntity
                 ? HumanPoses.dimensions(crouching ? Pose.CROUCHING : Pose.STANDING).boundingBox(position, passenger.getScale())
                 : passenger.getBoundingBox().move(position.sub(passenger.getPosition()));
         if (bounds.getMinY() < this.level.getMinHeight() || bounds.getMaxY() > this.level.getMaxHeight()) {
@@ -787,50 +785,45 @@ public class EntityBoat extends EntityVehicle implements Boat {
     }
 
     @Override
-    public String getInteractButtonText() {
-        return "action.interact.ride.boat";
+    public String getInteractionPrompt() {
+        return this.getPassengers().size() < this.getMaxPassengers() ? "action.interact.ride.boat" : "";
     }
 
     @Override
-    public boolean canDoInteraction() {
-        return this.passengers.size() < this.getMaxPassengers();
-    }
-
-    @Override
-    public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
+    protected boolean interactDefault(Player player, ItemStack item, Vector3f clickedPos) {
         return !player.isSpectator() && ((CloudEntity) player).tryMount(this);
     }
 
     @Override
-    protected boolean applyDamage(CloudEntityDamageEvent source) {
-        if (this.isDamageImmune(source.getDamageSource())) {
+    protected boolean applyDamage(CloudEntityDamageEvent event) {
+        if (this.isDamageImmune(event.getDamageSource())) {
             return false;
         }
 
-        this.server.getEventManager().fire(source);
-        if (source.isCancelled() || source.getDamage() <= 0 || this.closed || !this.isAlive()) {
-            return false;
-        }
-
-        VehicleDamageEvent event = new VehicleDamageEvent(this, source.getDamageSource(), source.getDamage());
         this.server.getEventManager().fire(event);
-        if (event.isCancelled()) {
-            source.setCancelled(true);
+        if (event.isCancelled() || event.getDamage() <= 0 || this.isClosed() || !this.isAlive()) {
             return false;
         }
 
-        if (event.getDamage() <= 0 || this.closed || !this.isAlive()) {
+        VehicleDamageEvent vehicleDamage = new VehicleDamageEvent(this, event.getDamageSource(), event.getDamage());
+        this.server.getEventManager().fire(vehicleDamage);
+        if (vehicleDamage.isCancelled()) {
+            event.setCancelled(true);
             return false;
         }
 
-        source.setDamage(event.getDamage());
-        float damage = (float) Math.min(Float.MAX_VALUE, this.damageTaken + (double) source.getFinalDamage() * 10);
-        boolean creative = source.getDamageSource().getCausingEntity() instanceof CloudPlayer player && player.isCreative();
+        if (vehicleDamage.getDamage() <= 0 || this.isClosed() || !this.isAlive()) {
+            return false;
+        }
+
+        event.setDamage(vehicleDamage.getDamage());
+        float damage = (float) Math.min(Float.MAX_VALUE, this.damageTaken + (double) event.getFinalDamage() * 10);
+        boolean creative = event.getDamageSource().getCausingEntity() instanceof CloudPlayer player && player.isCreative();
         boolean destroys = creative || damage > 40;
         if (destroys) {
-            VehicleDestroyEvent destroy = new VehicleDestroyEvent(this, source.getDamageSource());
+            VehicleDestroyEvent destroy = new VehicleDestroyEvent(this, event.getDamageSource());
             this.server.getEventManager().fire(destroy);
-            if (this.closed || !this.isAlive()) {
+            if (this.isClosed() || !this.isAlive()) {
                 return false;
             }
 
@@ -840,7 +833,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
             }
         }
 
-        this.setLastDamageCause(source);
+        this.setLastDamageCause(event);
         this.damageTaken = damage;
         this.setDamage((int) damage);
         this.performHurtAnimation();
@@ -854,23 +847,27 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
     @Override
     public void kill() {
-        if (this.closed || !this.isAlive()) {
+        if (this.isClosed() || !this.isAlive()) {
             return;
         }
 
         if (this.level.getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
             if (this.dropsBoat) {
                 ItemStack drop = ItemStack.from(this.getBoatItem());
-                if (this.hasNameTag()) {
-                    drop = drop.toBuilder().setData(ItemDataComponents.CUSTOM_NAME, this.getNameTag()).build();
+                Component name = this.customName();
+                if (name != null) {
+                    drop = drop.toBuilder()
+                            .setData(ItemDataComponents.CUSTOM_NAME, BedrockLegacyTextSerializer.getInstance().serialize(name))
+                            .build();
                 }
                 this.level.dropItem(this.position, drop);
             }
+
+            this.dropContents();
         }
 
-        this.dropContents();
         this.health = 0;
-        this.close();
+        this.remove(EntityRemoveCause.DEATH);
     }
 
     protected void dropContents() {
@@ -901,7 +898,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
         packet.setRuntimeEntityId(this.getRuntimeId());
         packet.setPosition(Vector3f.from(x, y, z));
         packet.setRotation(Vector3f.from(0, yaw + 90, headYaw + 90));
-        packet.setOnGround(this.onGround);
+        packet.setOnGround(this.isOnGround());
         for (CloudPlayer viewer : this.getViewers()) {
             if (viewer != this.predictingDriver) {
                 viewer.sendPacket(packet);
@@ -978,7 +975,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
         correction.setDelta(this.motion);
         correction.setVehicleRotation(Vector2f.from(0, this.yaw + 90));
         correction.setVehicleAngularVelocity(this.deltaRotation);
-        correction.setOnGround(this.onGround);
+        correction.setOnGround(this.isOnGround());
         correction.setTick(tick);
         driver.sendPacket(correction);
     }

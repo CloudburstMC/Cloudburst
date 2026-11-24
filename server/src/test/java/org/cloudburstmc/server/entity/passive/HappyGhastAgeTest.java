@@ -38,6 +38,17 @@ class HappyGhastAgeTest {
     }
 
     @Test
+    void reloadingAnExistingJuvenileReappliesItsScale() {
+        EntityHappyGhast ghast = ghast();
+        ghast.setAge(-24000);
+
+        ghast.loadAdditionalData(NbtMap.builder().putInt("Age", -12345).putFloat("Scale", 1f).build());
+
+        assertTrue(ghast.isBaby());
+        assertEquals(0.2375f, ghast.getScale());
+    }
+
+    @Test
     void ageAndBabyStateSurviveSavingAndLoading() {
         EntityHappyGhast original = ghast();
         original.setAge(-12345);

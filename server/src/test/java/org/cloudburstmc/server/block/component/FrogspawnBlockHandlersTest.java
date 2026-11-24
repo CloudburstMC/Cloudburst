@@ -133,8 +133,8 @@ class FrogspawnBlockHandlersTest {
     @Test
     void onlyFallingBlocksDestroyFrogspawnAndInsideEffectsCanBeCancelled() {
         BlockTestWorld world = world();
-        Entity other = InterfaceProxy.create(Entity.class, Map.of());
-        FallingBlock falling = InterfaceProxy.create(FallingBlock.class, Map.of());
+        Entity other = InterfaceProxy.create(Entity.class, Map.of("isAlive", true));
+        FallingBlock falling = InterfaceProxy.create(FallingBlock.class, Map.of("isAlive", true));
 
         EntityInsideBlockScanner.applyEffects(world.block(POSITION), other, true);
         assertSame(FROGSPAWN, world.state(POSITION));

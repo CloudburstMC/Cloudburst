@@ -126,7 +126,7 @@ public class DefaultBlockHandlers {
     };
 
     public static final EntityInsideBlockHandler CACTUS_ENTITY_INSIDE = (block, entity, precise) ->
-            entity.damage(1, blockDamageSource(DamageTypes.CACTUS, block));
+            CloudEntity.applyDamage(entity, 1, blockDamageSource(DamageTypes.CACTUS, block));
 
     public static final EntityInsideBlockHandler FIRE_ENTITY_INSIDE = (block, entity, precise) -> {
         if (entity instanceof CloudEntity cloudEntity && cloudEntity.fireProof) {
@@ -134,7 +134,7 @@ public class DefaultBlockHandlers {
         }
 
         entity.setOnFire(8);
-        entity.damage(1, blockDamageSource(DamageTypes.IN_FIRE, block));
+        CloudEntity.applyDamage(entity, 1, blockDamageSource(DamageTypes.IN_FIRE, block));
     };
 
     public static final EntityInsideBlockHandler LAVA_ENTITY_INSIDE = (block, entity, precise) -> {
@@ -144,11 +144,14 @@ public class DefaultBlockHandlers {
         }
 
         entity.setOnFire(15);
-        entity.damage(4, blockDamageSource(DamageTypes.LAVA, block));
+        CloudEntity.applyDamage(entity, 4, blockDamageSource(DamageTypes.LAVA, block));
     };
 
-    public static final EntityInsideBlockHandler WEB_ENTITY_INSIDE = (block, entity, precise) ->
-            entity.makeStuckInBlock(block.getState(), Vector3f.from(0.25f, 0.05f, 0.25f));
+    public static final EntityInsideBlockHandler WEB_ENTITY_INSIDE = (block, entity, precise) -> {
+        if (entity instanceof CloudEntity target) {
+            target.makeStuckInBlock(Vector3f.from(0.25f, 0.05f, 0.25f));
+        }
+    };
 
     public static final FallOnBlockHandler ON_FALL_ON = (block, entity, fallDistance) ->
             ((CloudEntity) entity).applyFallDamage(fallDistance);

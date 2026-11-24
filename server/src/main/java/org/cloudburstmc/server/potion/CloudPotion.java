@@ -8,8 +8,7 @@ import org.cloudburstmc.api.event.entity.PotionEffectCause;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.api.potion.PotionType;
-import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.EntityLiving;
+import org.cloudburstmc.server.entity.CloudLivingEntity;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import static java.util.Objects.requireNonNull;
@@ -30,16 +29,17 @@ public class CloudPotion {
             throw new IllegalArgumentException("Potion intensity and duration scale must be finite and non-negative");
         }
 
-        if (!(entity instanceof EntityLiving) || intensity == 0) {
+        if (!(entity instanceof CloudLivingEntity living) || intensity == 0) {
             return;
         }
 
         for (PotionEffect effect : this.type.getEffects()) {
-            this.applyEffect(entity, effect, intensity, durationScale, damageSource, source, cause);
+            this.applyEffect(living, effect, intensity, durationScale, damageSource, source, cause);
         }
     }
 
-    private void applyEffect(Entity entity, PotionEffect effect, double intensity, float durationScale, DamageSource damageSource, @Nullable Entity source, PotionEffectCause cause) {
+    private void applyEffect(CloudLivingEntity entity, PotionEffect effect, double intensity, float durationScale,
+                             DamageSource damageSource, @Nullable Entity source, PotionEffectCause cause) {
         if (entity instanceof CloudPlayer player && !player.isSurvival() && !player.isAdventure() && effect.isHarmful()) {
             return;
         }
@@ -55,12 +55,12 @@ public class CloudPotion {
             int baseDuration = effect.isInfinite() ? PotionEffect.INFINITE_DURATION : effect.getDuration() == 0 ? 0 : Math.max(1, (int) Math.floor(effect.getDuration() * durationScale));
             int duration = effect.isInfinite() ? PotionEffect.INFINITE_DURATION : (int) (intensity * baseDuration + 0.5);
             if (effect.isInfinite() || duration > (cause == PotionEffectCause.ARROW ? 0 : 20)) {
-                ((CloudEntity) entity).addPotionEffect(effect.withDuration(duration), source, cause);
+                entity.addPotionEffect(effect.withDuration(duration), source, cause);
             }
         }
     }
 
-    private void applyInstantEffect(Entity entity, PotionEffect effect, double intensity, DamageSource damageSource) {
+    private void applyInstantEffect(CloudLivingEntity entity, PotionEffect effect, double intensity, DamageSource damageSource) {
         boolean heals = (effect.getType() == EffectTypes.INSTANT_HEALTH) != entity.isUndead();
         int amount = (int) (Math.scalb(intensity * (heals ? 4 : 6), effect.getAmplifier()) + 0.5);
         if (amount == 0) {

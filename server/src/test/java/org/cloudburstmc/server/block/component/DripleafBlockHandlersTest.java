@@ -352,7 +352,7 @@ class DripleafBlockHandlersTest {
     }
 
     private static Player standingPlayer() {
-        return InterfaceProxy.create(Player.class, Map.of("isOnGround", true, "isSneaking", true,
+        return InterfaceProxy.create(Player.class, Map.of("isAlive", true, "isOnGround", true, "isSneaking", true,
                 "getPosition", POSITION.toFloat().add(0.5f, 15f / 16, 0.5f)));
     }
 

@@ -1,6 +1,9 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.Mob;
 
-public interface ZombieNautilus extends Entity {
+/**
+ * The undead variant of the nautilus.
+ */
+public interface ZombieNautilus extends Mob {
 }

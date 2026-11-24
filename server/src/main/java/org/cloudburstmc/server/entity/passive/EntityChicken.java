@@ -19,7 +19,10 @@ public class EntityChicken extends Animal implements Chicken {
     }
 
     public void setBaby(boolean baby) {
-        this.data.setFlag(BABY, baby);
+        if (this.isBaby() != baby) {
+            this.data.setFlag(BABY, baby);
+            this.recalculateBoundingBox();
+        }
     }
 
     @Override
@@ -39,26 +42,30 @@ public class EntityChicken extends Animal implements Chicken {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Chicken";
     }
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{ItemStack.builder().itemType(ItemTypes.CHICKEN).build(), ItemStack.builder().itemType(ItemTypes.FEATHER).build()};
+        if (this.isBaby()) {
+            return new ItemStack[0];
+        }
+        return new ItemStack[]{ItemStack.from(ItemTypes.CHICKEN), ItemStack.from(ItemTypes.FEATHER)};
     }
 
     @Override
     protected void initEntity() {
         super.initEntity();
-        setMaxHealth(4);
+        this.setDefaultMaxHealth(4);
     }
 
     @Override
     public boolean isBreedingItem(ItemStack item) {
-        ItemType id = item.getType();
+        ItemType itemType = item.getType();
 
-        return id == ItemTypes.WHEAT_SEEDS || id == ItemTypes.MELON_SEEDS || id == ItemTypes.PUMPKIN_SEEDS ||
-                id == ItemTypes.BEETROOT_SEEDS;
+        return itemType == ItemTypes.WHEAT_SEEDS || itemType == ItemTypes.MELON_SEEDS
+                || itemType == ItemTypes.PUMPKIN_SEEDS || itemType == ItemTypes.BEETROOT_SEEDS
+                || itemType == ItemTypes.TORCHFLOWER_SEEDS || itemType == ItemTypes.PITCHER_POD;
     }
 }

@@ -1,24 +1,32 @@
 package org.cloudburstmc.server.entity;
 
-import com.google.common.collect.Iterables;
+import com.google.gson.JsonParseException;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockComponents;
+import org.cloudburstmc.api.block.LiquidState;
+import org.cloudburstmc.api.block.LiquidTypes;
 import org.cloudburstmc.api.entity.*;
 import org.cloudburstmc.api.entity.component.Buoyancy;
+import org.cloudburstmc.api.entity.component.InteractEntityHandler;
 import org.cloudburstmc.api.entity.component.PickItemEntityHandler;
+import org.cloudburstmc.api.entity.component.TickEntityHandler;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
+import org.cloudburstmc.api.entity.projectile.Projectile;
 import org.cloudburstmc.api.entity.vehicle.Vehicle;
 import org.cloudburstmc.api.event.entity.*;
-import org.cloudburstmc.api.event.player.PlayerTeleportCause;
 import org.cloudburstmc.api.event.vehicle.VehicleEnterEvent;
 import org.cloudburstmc.api.event.vehicle.VehicleExitEvent;
 import org.cloudburstmc.api.item.ItemDataComponents;
@@ -42,14 +50,14 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataMap;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.entity.data.BuoyancyDataSerializer;
 import org.cloudburstmc.server.entity.data.CloudEntityData;
-import org.cloudburstmc.server.entity.data.SyncedEntityData;
+import org.cloudburstmc.server.entity.metadata.BuoyancyMetadata;
+import org.cloudburstmc.server.entity.metadata.SyncedEntityData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.level.*;
 import org.cloudburstmc.server.level.biome.CloudBiome;
@@ -79,85 +87,10 @@ public abstract class CloudEntity implements Entity {
     protected static final int PORTAL_COOLDOWN_TICKS = 300;
     private static final int DEFAULT_MAX_FREEZE_TICKS = 140;
     private static final int MAX_SCOREBOARD_TAGS = 1024;
-
-    private final Set<CloudPlayer> viewers = ConcurrentHashMap.newKeySet();
-
-    protected final Reference2ObjectOpenHashMap<EffectType, ActivePotionEffect> effects = new Reference2ObjectOpenHashMap<>();
-    protected final List<Entity> passengers = new ArrayList<>();
-    @Getter
-    private final long runtimeId = CloudEntityRegistry.get().newEntityId();
-    @Getter
-    protected final SyncedEntityData data = new SyncedEntityData();
-    private final EntityPersistence persistence;
-    @Getter
-    private final EntityType<?> type;
-    @Getter
-    public CloudChunk chunk;
-    private float highestPosition;
-    @Getter
-    protected Vector3f position = Vector3f.ZERO;
-    protected Vector3f lastPosition = Vector3f.ZERO;
-    @Getter
-    protected Vector3f motion = Vector3f.ZERO;
-    protected Vector3f lastMotion = Vector3f.ZERO;
-    protected Vector3f stuckSpeedMultiplier = Vector3f.ZERO;
-    protected float yaw;
-    protected float pitch;
-    protected float lastYaw;
-    protected float lastPitch;
-    protected float pitchDelta;
-    protected float yawDelta;
-    protected float entityCollisionReduction = 0; // Higher than 0.9 will result a fast collisions
-    @Getter
-    public boolean onGround;
-    public boolean inBlock = false;
-    public boolean positionChanged;
-    public boolean motionChanged;
-    public int deadTicks = 0;
-    public float fallDistance = 0;
-    public int ticksLived = 0;
-    public int lastUpdate;
-    public int maxFireTicks;
-    public int fireTicks = 0;
-    public int inPortalTicks = 0;
-    private int portalCooldown;
-    public boolean pendingPortalTransfer = false;
-    public Vector3i portalEntryBlock = null;
-    @Getter
-    protected BoundingBox boundingBox;
-    public boolean isCollided = false;
-    public boolean isCollidedHorizontally = false;
-    public boolean isCollidedVertically = false;
-    public boolean verticalCollisionBelow = false;
-    protected Optional<Vector3i> supportingBlockPosition = Optional.empty();
-    boolean onGroundNoBlocks = false;
-    public int noDamageTicks;
-    public boolean justCreated = true;
-    public boolean fireProof;
-    protected boolean noPhysics;
-    protected CloudLevel level;
-    @Getter
-    public boolean closed = false;
-    private boolean mounting;
-    private boolean dismounting;
-    private int boardingCooldown;
-    @Getter
-    protected @Nullable Entity vehicle;
-    private @Nullable Entity owner;
-    @Setter
-    protected EntityDamageEvent lastDamageCause = null;
-    protected int age = 0;
-    protected float health = 20;
-    protected float absorption = 0;
-    protected boolean isStatic = false;
-    protected CloudServer server;
-    protected boolean isPlayer = false;
-    private int maxHealth = 20;
-    private boolean freezeTickingLocked;
-    private volatile boolean spawned;
-    private volatile boolean initialized;
     private static final int MAX_MOVEMENT_SEGMENTS = 100;
-    private final Deque<EntityMovementSegment> movementSegments = new ArrayDeque<>(MAX_MOVEMENT_SEGMENTS);
+    private static final float MIN_SCALE = 0.0625f;
+    private static final float MAX_SCALE = 16f;
+
     private static final Direction[] COLLISION_ESCAPE_DIRECTIONS = {
             Direction.NORTH,
             Direction.SOUTH,
@@ -165,6 +98,93 @@ public abstract class CloudEntity implements Entity {
             Direction.EAST,
             Direction.UP
     };
+
+    @Getter
+    private final long runtimeId = CloudEntityRegistry.get().newEntityId();
+    @Getter
+    private final EntityType<?> type;
+    private final EntityPersistence persistence;
+    private @Nullable Entity owner;
+    private @Nullable Component customName;
+
+    // Lifecycle and level membership
+    protected CloudServer server;
+    protected CloudLevel level;
+    @Getter
+    protected CloudChunk chunk;
+    private volatile boolean initialized;
+    private boolean spawning;
+    private volatile boolean spawned;
+    @Getter
+    private volatile boolean closed;
+    private boolean hasTicked;
+    protected boolean isPlayer;
+    private int lastUpdate;
+    public int ticksLived;
+    protected int age;
+    public int deadTicks;
+
+    // Transform and movement
+    @Getter
+    protected Vector3f position = Vector3f.ZERO;
+    protected float yaw;
+    protected float pitch;
+    @Getter
+    protected Vector3f motion = Vector3f.ZERO;
+    protected Vector3f lastPosition = Vector3f.ZERO;
+    protected float lastYaw;
+    protected float lastPitch;
+    private final EntityMovementTracker movementTracker = new EntityMovementTracker();
+    private final Deque<EntityMovementSegment> movementSegments = new ArrayDeque<>(MAX_MOVEMENT_SEGMENTS);
+    private float baseScale = 1f;
+    @Getter
+    protected BoundingBox boundingBox;
+
+    protected boolean noPhysics;
+    protected Vector3f stuckSpeedMultiplier = Vector3f.ZERO;
+    protected float entityCollisionReduction;
+    @Getter
+    private boolean onGround;
+    private boolean horizontalCollision;
+    @Nullable Vector3i supportingBlockPosition;
+    boolean onGroundNoBlocks;
+    @Getter
+    private float highestPosition;
+    private float fallDistance;
+
+    // Riding
+    @Getter
+    private @Nullable Entity vehicle;
+    private List<Entity> passengers = List.of();
+    private boolean mounting;
+    private boolean dismounting;
+    private int boardingCooldown;
+
+    // Teleport and portals
+    private boolean dispatchingTeleport;
+    private @Nullable CloudLevel teleportDestinationLevel;
+    public int inPortalTicks;
+    private int portalCooldownTicks;
+    public boolean pendingPortalTransfer;
+    public Vector3i portalEntryBlock;
+
+    // Viewer tracking and metadata
+    @Getter
+    protected final SyncedEntityData data = new SyncedEntityData();
+    private final Set<CloudPlayer> viewers = ConcurrentHashMap.newKeySet();
+
+    // Health and effects
+    @Getter
+    protected float health = 20;
+    private int defaultMaxHealth = 20;
+    @Getter
+    protected float absorption;
+    private int noDamageTicks;
+    @Setter
+    protected EntityDamageEvent lastDamageCause;
+    public int fireTicks;
+    public boolean fireProof;
+    protected final Reference2ObjectOpenHashMap<EffectType, ActivePotionEffect> effects = new Reference2ObjectOpenHashMap<>();
 
     public CloudEntity(EntityType<?> type, Location location) {
         this(type, location, new CloudEntityData());
@@ -192,34 +212,35 @@ public abstract class CloudEntity implements Entity {
      */
     public final void initialize(Location location) {
         Objects.requireNonNull(location, "location");
-        if (this.initialized) {
+        if (this.initialized || this.closed) {
             return;
         }
+        checkArgument(hasFiniteTransform(location), "Entity transform must be finite");
 
         this.initialized = true;
 
         this.isPlayer = this instanceof CloudPlayer;
 
-        this.chunk = (CloudChunk) location.getLevel().getLoadedChunk(location.getPosition());
         this.level = (CloudLevel) location.getLevel();
-        this.server = (CloudServer) location.getLevel().getServer();
+        this.server = this.level.getServer();
+        this.chunk = this.level.getLoadedChunk(location.getPosition());
 
         this.position = location.getPosition();
-        this.lastPosition = this.position;
+        this.highestPosition = this.position.getY();
         this.yaw = location.getYaw();
         this.pitch = location.getPitch();
-        this.lastYaw = this.yaw;
-        this.lastPitch = this.pitch;
+        this.resetMovementBaseline();
 
         this.boundingBox = new BoundingBox(0, 0, 0, 0, 0, 0);
 
         this.initEntity();
+        this.initializeHealth();
         this.recalculateBoundingBox();
 
         this.lastUpdate = this.server.getTick();
 
-        if (this.isPlayer) {
-            this.registerInLevel(location);
+        if (this.isPlayer && !this.closed) {
+            this.registerInLevel();
         }
     }
 
@@ -230,8 +251,167 @@ public abstract class CloudEntity implements Entity {
         Buoyancy buoyancy = CloudEntityRegistry.get().getComponent(this.type, EntityComponents.BUOYANCY);
         if (buoyancy != null) {
             this.data.set(IS_BUOYANT, true);
-            this.data.set(BUOYANCY_DATA, BuoyancyDataSerializer.serialize(buoyancy));
+            this.data.set(BUOYANCY_DATA, BuoyancyMetadata.encode(buoyancy));
         }
+    }
+
+    protected void initializeHealth() {
+        int maxHealth = this.getMaxHealth();
+        if (this.isAlive() && this.getHealth() != maxHealth) {
+            this.setHealth(maxHealth);
+        }
+    }
+
+    @Override
+    public boolean spawn() {
+        return switch (this) {
+            case Player _ -> this.spawnInternal(null, () -> true);
+            case LivingEntity living -> this.spawn(new CreatureSpawnEvent(living, CreatureSpawnReason.DEFAULT));
+            case DroppedItem droppedItem -> this.spawn(new ItemSpawnEvent(droppedItem));
+            case Projectile projectile -> this.spawn(new ProjectileLaunchEvent(projectile));
+            default -> this.spawn(new EntitySpawnEvent(this));
+        };
+    }
+
+    public boolean spawn(EntitySpawnEvent event) {
+        return this.spawn(event, () -> true);
+    }
+
+    protected boolean spawn(EntitySpawnEvent event, BooleanSupplier prepareSpawn) {
+        return this.spawnInternal(Objects.requireNonNull(event, "event"), prepareSpawn);
+    }
+
+    private boolean spawnInternal(@Nullable EntitySpawnEvent event, BooleanSupplier prepareSpawn) {
+        if (!this.initialized || this.closed || this.spawned || this.spawning) {
+            return false;
+        }
+
+        if (event != null && event.getEntity() != this) {
+            throw new IllegalArgumentException("Spawn event does not belong to this entity");
+        }
+
+        this.spawning = true;
+        try {
+            if (event != null) {
+                this.server.getEventManager().fire(event);
+                if (event.isCancelled()) {
+                    this.remove(EntityRemoveCause.DISCARD);
+                    return false;
+                }
+            }
+
+            if (this.closed || !prepareSpawn.getAsBoolean()) {
+                return false;
+            }
+
+            if (this.closed) {
+                return false;
+            }
+
+            this.registerInLevel();
+            return true;
+        } finally {
+            this.spawning = false;
+        }
+    }
+
+    public void restoreFromStorage() {
+        if (!this.initialized || this.closed || this.spawned || this.spawning) {
+            throw new IllegalStateException("Entity is not ready for restoration");
+        }
+
+        this.registerInLevel();
+    }
+
+    private void registerInLevel() {
+        if (this.spawned) {
+            return;
+        }
+
+        CloudLevel spawnLevel = this.level;
+        Vector3f spawnPosition = this.position;
+        int chunkX = spawnPosition.getFloorX() >> 4;
+        int chunkZ = spawnPosition.getFloorZ() >> 4;
+        CloudChunk loadedChunk = spawnLevel.getLoadedChunk(spawnPosition);
+        this.chunk = loadedChunk;
+        if (loadedChunk != null) {
+            loadedChunk.registerEntity(this);
+        }
+
+        this.spawned = true;
+        spawnLevel.registerEntity(this);
+        this.scheduleUpdate();
+
+        if (loadedChunk != null) {
+            this.refreshViewers();
+            return;
+        }
+
+        spawnLevel.getChunkFuture(chunkX, chunkZ).thenAccept(chunk -> {
+            Vector3f position = this.position;
+            if (this.closed || !this.spawned || this.level != spawnLevel || this.chunk != null
+                    || (position.getFloorX() >> 4) != chunkX || (position.getFloorZ() >> 4) != chunkZ) {
+                return;
+            }
+
+            this.chunk = chunk;
+            chunk.registerEntity(this);
+            this.refreshViewers();
+        });
+    }
+
+    @Override
+    public void close() {
+        this.remove(EntityRemoveCause.PLUGIN);
+    }
+
+    public static void remove(Entity entity, EntityRemoveCause cause) {
+        if (entity instanceof CloudEntity cloudEntity) {
+            cloudEntity.remove(cause);
+        } else {
+            entity.close();
+        }
+    }
+
+    public void remove(EntityRemoveCause cause) {
+        Objects.requireNonNull(cause, "cause");
+        if (this.closed) {
+            return;
+        }
+
+        this.closed = true;
+        if (this.vehicle != null) {
+            this.dismount(this.vehicle, false);
+        }
+        this.ejectPassengers();
+
+        boolean wasSpawned = this.spawned;
+        try {
+            if (wasSpawned && !(this instanceof Player)) {
+                this.server.getEventManager().fire(new EntityRemoveEvent(this, cause));
+            }
+        } finally {
+            this.spawned = false;
+            this.despawnFromAll();
+            if (this.chunk != null) {
+                this.chunk.unregisterEntity(this);
+                this.chunk = null;
+            }
+
+            if (wasSpawned) {
+                this.level.unregisterEntity(this);
+            }
+        }
+    }
+
+    @Override
+    public boolean isValid() {
+        return this.spawned && this.isAlive();
+    }
+
+    @Override
+    public boolean isAlive() {
+        return !this.isClosed() && this.getHealth() > 0;
     }
 
     public final void loadAdditionalData(NbtMap tag) {
@@ -257,12 +437,7 @@ public abstract class CloudEntity implements Entity {
         return this.persistence.pluginData();
     }
 
-    /**
-     * Marks the chunk holding this entity dirty so plugin data changes are
-     * saved with the next chunk save. Tolerates entities without a chunk,
-     * such as test fixtures that never ran {@code initialize}.
-     */
-    private void markChunkDirty() {
+    protected final void markChunkDirty() {
         if (this.chunk != null) {
             this.chunk.markDirty();
         }
@@ -272,20 +447,20 @@ public abstract class CloudEntity implements Entity {
         return this.persistence.state();
     }
 
-    /**
-     * Re-applies the setter normalization the previous load path ran while
-     * copying data onto the entity, which a plain in-place read bypasses:
-     * frozen ticks are clamped and a zero result is omitted, a non-bucketable
-     * never keeps a bucket value, and tags skip blanks and stop at the cap.
-     */
     private void normalizeData() {
         CloudEntityData data = this.data();
+
+        Integer maxHealthOverride = data.getBaseMaxHealthOverride();
+        if (maxHealthOverride != null && maxHealthOverride <= 0) {
+            data.setBaseMaxHealthOverride(null);
+        }
 
         Integer frozen = data.getTicksFrozen();
         if (frozen != null) {
             int clamped = Math.clamp(frozen, 0, this.getMaxFreezeTicks());
             data.setTicksFrozen(clamped == 0 ? null : clamped);
         }
+        data.setFreezeTickingLocked(Boolean.TRUE.equals(data.getFreezeTickingLocked()) ? Boolean.TRUE : null);
 
         if (!(this instanceof Bucketable)) {
             data.setFromBucket(null);
@@ -306,52 +481,46 @@ public abstract class CloudEntity implements Entity {
     }
 
     /**
-     * Reads the base exception keys: the movement and physics state, the fire
-     * countdown, the air supply, the scale, the name tag and the active
-     * effects, with today's keys, types and presence semantics. It runs once
-     * before the subclass load chain, so subclass state derived from it
-     * (a baby ghast's scale, a turtle's home) still wins. A key the tag does
-     * not hold leaves the current value alone, except for the keys today's
-     * load always wrote. Every read is lenient like the mapper: any number
-     * binds to a numeric property, any number binds to a boolean, and any
-     * numeric list binds to a position list.
+     * Restores shared runtime state and derived metadata before subclass load hooks.
+     * Invalid transform values are ignored.
      *
      * @param tag the stored tag
      */
     protected void loadBaseCustom(NbtMap tag) {
         List<Float> pos = getFloatList(tag, "Pos");
         if (pos != null && pos.size() == 3) {
-            this.setPosition(Vector3f.from(pos.get(0), pos.get(1), pos.get(2)));
+            Vector3f position = Vector3f.from(pos.get(0), pos.get(1), pos.get(2));
+            if (isFinite(position)) {
+                this.setPosition(position);
+            }
         }
+
         List<Float> rotation = getFloatList(tag, "Rotation");
-        if (rotation != null && rotation.size() == 2) {
+        if (rotation != null && rotation.size() == 2 && isFiniteRotation(rotation.get(0), rotation.get(1))) {
             this.setRotation(rotation.get(0), rotation.get(1));
         }
+
         List<Float> motion = getFloatList(tag, "Motion");
         if (motion != null && motion.size() == 3) {
-            this.setMotion(Vector3f.from(motion.get(0), motion.get(1), motion.get(2)));
+            Vector3f velocity = Vector3f.from(motion.get(0), motion.get(1), motion.get(2));
+            if (isFinite(velocity)) {
+                this.setMotion(velocity);
+            }
         }
 
         this.highestPosition = this.getY();
 
-        this.setFallDistance(getFloat(tag, "FallDistance", 0f));
-        // Fire loads as it long has: the tagged seconds ran through the fire
-        // countdown before the creature's armor was loaded, so no
-        // Fire Protection reduction applied. Assign the countdown directly
-        // instead of going through the armor-aware setter.
-        short fireSeconds = getShort(tag, "Fire", (short) 0);
-        int fireTicks = fireSeconds * 20;
-        if (fireTicks > this.fireTicks) {
-            this.fireTicks = fireTicks;
-        }
+        float fallDistance = getFloat(tag, "FallDistance", 0f);
+        this.setFallDistance(Float.isFinite(fallDistance) ? Math.max(0, fallDistance) : 0);
+        this.fireTicks = Math.max(0, getShort(tag, "Fire", (short) 0));
+        this.portalCooldownTicks = Math.max(0, tag.getInt("PortalCooldown"));
         this.setAirTicks(getShort(tag, "Air", (short) 400));
         this.setOnGround(getBoolean(tag, "OnGround", false));
-        if (tag.containsKey("Scale")) {
-            this.setScale(getFloat(tag, "Scale", 1f));
+        float scale = getFloat(tag, "Scale", Float.NaN);
+        if (isValidScale(scale)) {
+            this.setScale(scale);
         }
 
-        // The DTO now holds the frozen ticks; refresh the derived freeze-strength
-        // metadata the setter would have synced on a fresh read.
         this.data.set(FREEZING_EFFECT_STRENGTH, this.getFreezeTicks() / (float) this.getMaxFreezeTicks());
 
         this.effects.clear();
@@ -366,20 +535,35 @@ public abstract class CloudEntity implements Entity {
             }
         });
 
-        tag.listenForString("CustomName", this::setNameTag);
+        this.clampHealthToMax();
+
+        this.loadCustomName(tag);
         if (tag.containsKey("CustomNameVisible")) {
-            this.setNameTagVisible(getBoolean(tag, "CustomNameVisible", false));
+            this.setCustomNameVisible(getBoolean(tag, "CustomNameVisible", false));
         }
+
         if (tag.containsKey("CustomNameAlwaysVisible")) {
-            this.setNameTagAlwaysVisible(getBoolean(tag, "CustomNameAlwaysVisible", false));
+            this.setCustomNameAlwaysVisible(getBoolean(tag, "CustomNameAlwaysVisible", false));
+        }
+    }
+
+    private void loadCustomName(NbtMap tag) {
+        switch (tag.get("CustomName")) {
+            case String text -> this.customName(text.isEmpty() ? null : Component.text(text));
+            case NbtMap compound when compound.containsKey("json", NbtType.STRING) -> {
+                try {
+                    this.customName(GsonComponentSerializer.gson().deserialize(compound.getString("json")));
+                } catch (JsonParseException ignored) {
+                    // Leave the current name unchanged if the saved component is malformed.
+                }
+            }
+            case null, default -> {
+            }
         }
     }
 
     /**
-     * Reads data that subclasses handle outside their data class. The base
-     * exception keys load exactly once, in {@link #loadBaseCustom} before the
-     * subclass load chain, so this stays a no-op for the base: every
-     * subclass {@code super.loadCustom} call in the chain still resolves here.
+     * Restores subclass state after shared runtime state has been loaded.
      *
      * @param tag the stored tag
      */
@@ -450,6 +634,7 @@ public abstract class CloudEntity implements Entity {
         if (!(value instanceof List<?> list)) {
             return null;
         }
+
         List<Float> result = new ArrayList<>(list.size());
         for (Object element : list) {
             if (!(element instanceof Number number)) {
@@ -457,6 +642,7 @@ public abstract class CloudEntity implements Entity {
             }
             result.add(number.floatValue());
         }
+
         return result;
     }
 
@@ -469,18 +655,39 @@ public abstract class CloudEntity implements Entity {
         Vector3f position = this.getPosition();
         tag.putList("Pos", NbtType.FLOAT, List.of(position.getX(), position.getY(), position.getZ()));
         tag.putList("Rotation", NbtType.FLOAT, List.of(this.yaw, this.pitch));
+
         Vector3f motion = this.getMotion();
         tag.putList("Motion", NbtType.FLOAT, List.of(motion.getX(), motion.getY(), motion.getZ()));
         tag.putFloat("FallDistance", this.fallDistance);
-        tag.putShort("Fire", (short) this.getFireTicks());
+        tag.putShort("Fire", (short) Math.min(this.getFireTicks(), Short.MAX_VALUE));
+
+        if (this.portalCooldownTicks > 0) {
+            tag.putInt("PortalCooldown", this.portalCooldownTicks);
+        }
+
         tag.putShort("Air", this.data.require(AIR_SUPPLY));
         tag.putBoolean("OnGround", this.onGround);
         tag.putFloat("Scale", this.getScale());
-        if (this.hasNameTag()) {
-            tag.putString("CustomName", this.getNameTag());
-            tag.putBoolean("CustomNameVisible", this.isNameTagVisible());
-            tag.putBoolean("CustomNameAlwaysVisible", this.isNameTagAlwaysVisible());
+
+        Component name = this.customName();
+        if (name != null) {
+            if (name instanceof TextComponent text && !text.content().isEmpty() && !text.hasStyling() && text.children().isEmpty()) {
+                tag.putString("CustomName", text.content());
+            } else {
+                tag.putCompound("CustomName", NbtMap.builder()
+                        .putString("json", GsonComponentSerializer.gson().serialize(name))
+                        .build());
+            }
         }
+
+        if (name != null || this.isCustomNameVisible()) {
+            tag.putBoolean("CustomNameVisible", this.isCustomNameVisible());
+        }
+
+        if (name != null || this.isCustomNameAlwaysVisible()) {
+            tag.putBoolean("CustomNameAlwaysVisible", this.isCustomNameAlwaysVisible());
+        }
+
         if (!this.effects.isEmpty()) {
             List<NbtMap> effects = new ArrayList<>();
             for (ActivePotionEffect effect : this.effects.values()) {
@@ -493,6 +700,7 @@ public abstract class CloudEntity implements Entity {
                         .putBoolean("ShowParticles", snapshot.hasParticles())
                         .build());
             }
+
             tag.putList("ActiveEffects", NbtType.COMPOUND, effects);
         }
     }
@@ -504,7 +712,7 @@ public abstract class CloudEntity implements Entity {
      * @return the custom keys
      */
     protected Set<String> customKeys() {
-        return Set.of("Pos", "Motion", "Rotation", "FallDistance", "Fire", "OnGround", "Air",
+        return Set.of("Pos", "Motion", "Rotation", "FallDistance", "Fire", "PortalCooldown", "OnGround", "Air",
                 "Scale", "CustomName", "CustomNameVisible", "CustomNameAlwaysVisible", "ActiveEffects");
     }
 
@@ -537,8 +745,11 @@ public abstract class CloudEntity implements Entity {
         long ownerId = this.data.require(OWNER_EID);
         if (ownerId == -1) {
             this.owner = null;
-        } else if (this.owner == null || this.owner.getUniqueId() != ownerId) {
-            this.owner = this.level.getEntityByRuntimeId(ownerId);
+        } else if (this.owner == null || this.owner.getUniqueId() != ownerId || this.owner.isClosed()) {
+            this.owner = this.level == null ? null : this.level.getEntityByRuntimeId(ownerId);
+            if (this.owner != null && this.owner.isClosed()) {
+                this.owner = null;
+            }
         }
 
         return this.owner;
@@ -550,19 +761,22 @@ public abstract class CloudEntity implements Entity {
         this.data.set(OWNER_EID, entity == null ? -1 : entity.getUniqueId());
     }
 
+    @Override
     public String getName() {
-        if (this.hasNameTag()) {
-            return this.getNameTag();
-        }
+        Component name = this.customName();
+        return name == null ? this.getDefaultName() : PlainTextComponentSerializer.plainText().serialize(name);
+    }
 
+    protected String getDefaultName() {
         String name = CloudEntityRegistry.get().getLegacyName(this.type.getId());
         return name != null ? name : this.type.getId().toString();
     }
 
     @Override
     public Component displayName() {
-        if (this.hasNameTag()) {
-            return Component.text(this.getNameTag());
+        Component name = this.customName();
+        if (name != null) {
+            return name;
         }
 
         if ("minecraft".equals(this.type.getId().getNamespace())) {
@@ -572,50 +786,47 @@ public abstract class CloudEntity implements Entity {
         return Component.text(this.type.getId().toString());
     }
 
-    public boolean hasNameTag() {
-        return !this.getNameTag().isEmpty();
+    @Override
+    public @Nullable Component customName() {
+        return this.customName;
     }
 
-    public String getNameTag() {
-        CharSequence value = this.data.get(NAME);
-        return value != null ? value.toString() : "";
+    @Override
+    public void customName(@Nullable Component name) {
+        if (!Objects.equals(this.customName, name)) {
+            CharSequence nameplate = name == null ? this.defaultNameplate() : BedrockLegacyTextSerializer.getInstance().serialize(name);
+            this.customName = name;
+            this.data.set(NAME, nameplate);
+            this.markChunkDirty();
+        }
     }
 
-    public void setNameTag(String name) {
-        this.data.set(NAME, name);
+    protected CharSequence defaultNameplate() {
+        return "";
     }
 
-    public boolean isNameTagVisible() {
+    @Override
+    public boolean isCustomNameVisible() {
         return this.data.getFlag(CAN_SHOW_NAME);
     }
 
-    public void setNameTagVisible(boolean value) {
+    @Override
+    public void setCustomNameVisible(boolean value) {
+        if (this.isCustomNameVisible() != value) {
+            this.markChunkDirty();
+        }
         this.data.setFlag(CAN_SHOW_NAME, value);
     }
 
-    public void setNameTagVisible() {
-        this.setNameTagVisible(true);
-    }
-
-    public boolean isNameTagAlwaysVisible() {
+    public boolean isCustomNameAlwaysVisible() {
         return this.data.require(NAMETAG_ALWAYS_SHOW) == 1;
     }
 
-    public void setNameTagAlwaysVisible(boolean value) {
+    public void setCustomNameAlwaysVisible(boolean value) {
+        if (this.isCustomNameAlwaysVisible() != value) {
+            this.markChunkDirty();
+        }
         this.data.set(NAMETAG_ALWAYS_SHOW, (byte) (value ? 1 : 0));
-    }
-
-    public void setNameTagAlwaysVisible() {
-        this.setNameTagAlwaysVisible(true);
-    }
-
-    public String getScoreTag() {
-        CharSequence value = this.data.get(SCORE);
-        return value != null ? value.toString() : "";
-    }
-
-    public void setScoreTag(String score) {
-        this.data.set(SCORE, score);
     }
 
     @Override
@@ -634,12 +845,24 @@ public abstract class CloudEntity implements Entity {
         if (value.isBlank()) {
             throw new IllegalArgumentException("tag cannot be blank");
         }
-        return this.data().getTags().size() < MAX_SCOREBOARD_TAGS && this.data().getTags().add(value);
+
+        Set<String> tags = this.data().getTags();
+        if (tags.size() >= MAX_SCOREBOARD_TAGS || !tags.add(value)) {
+            return false;
+        }
+
+        this.markChunkDirty();
+        return true;
     }
 
     @Override
     public boolean removeScoreboardTag(String tag) {
-        return this.data().getTags().remove(Objects.requireNonNull(tag, "tag"));
+        if (!this.data().getTags().remove(Objects.requireNonNull(tag, "tag"))) {
+            return false;
+        }
+
+        this.markChunkDirty();
+        return true;
     }
 
     @Override
@@ -667,21 +890,36 @@ public abstract class CloudEntity implements Entity {
         return 0;
     }
 
-
     public float getScale() {
-        return this.data.require(SCALE);
+        return this.baseScale;
     }
 
     public void setScale(float scale) {
-        this.data.set(SCALE, scale);
+        checkArgument(isValidScale(scale), "Scale must be between %s and %s", MIN_SCALE, MAX_SCALE);
+        this.baseScale = scale;
+        this.refreshNetworkScale();
         this.recalculateBoundingBox();
+    }
+
+    protected final void refreshNetworkScale() {
+        this.data.set(SCALE, this.getNetworkScale());
+    }
+
+    protected float getNetworkScale() {
+        return this.getScale();
+    }
+
+    private static boolean isValidScale(float scale) {
+        return scale >= MIN_SCALE && scale <= MAX_SCALE;
     }
 
     public void recalculateBoundingBox() {
         float height = this.getHeight() * this.getScale();
         float radius = (this.getWidth() * this.getScale()) / 2;
-        this.boundingBox = new BoundingBox(this.position.getX() - radius, this.position.getY(), this.position.getZ() - radius,
-                this.position.getX() + radius, this.position.getY() + height, this.position.getZ() + radius);
+        this.boundingBox = new BoundingBox(
+                this.position.getX() - radius, this.position.getY(), this.position.getZ() - radius,
+                this.position.getX() + radius, this.position.getY() + height, this.position.getZ() + radius
+        );
 
         this.updateNetworkBounds();
     }
@@ -717,6 +955,7 @@ public abstract class CloudEntity implements Entity {
 
     public boolean setPosition(Vector3f pos) {
         checkNotNull(pos, "position");
+        checkArgument(isFinite(pos), "Position must be finite");
         if (this.closed) {
             return false;
         }
@@ -731,18 +970,32 @@ public abstract class CloudEntity implements Entity {
     }
 
     public void setRotation(float yaw, float pitch) {
+        checkArgument(isFiniteRotation(yaw, pitch), "Rotation must be finite");
         this.yaw = yaw;
         this.pitch = pitch;
         this.scheduleUpdate();
     }
 
     public boolean setPositionAndRotation(Vector3f pos, float yaw, float pitch) {
+        checkArgument(isFiniteRotation(yaw, pitch), "Rotation must be finite");
         if (this.setPosition(pos)) {
             this.setRotation(yaw, pitch);
             return true;
         }
 
         return false;
+    }
+
+    private static boolean hasFiniteTransform(Location location) {
+        return isFinite(location.getPosition()) && isFiniteRotation(location.getYaw(), location.getPitch());
+    }
+
+    private static boolean isFiniteRotation(float yaw, float pitch) {
+        return Float.isFinite(yaw) && Float.isFinite(pitch);
+    }
+
+    private static boolean isFinite(Vector3f vector) {
+        return Float.isFinite(vector.getX()) && Float.isFinite(vector.getY()) && Float.isFinite(vector.getZ());
     }
 
     public Direction getDirection() {
@@ -769,7 +1022,7 @@ public abstract class CloudEntity implements Entity {
     }
 
     public CardinalDirection getCardinalDirection() {
-        return CardinalDirection.values()[GenericMath.floor((((this.yaw + 180) % 360) / 22.5))];
+        return CardinalDirection.values()[GenericMath.floor(this.yaw / 22.5 + 0.5) & 15];
     }
 
     public Vector3f getDirectionVector() {
@@ -780,8 +1033,9 @@ public abstract class CloudEntity implements Entity {
         return GenericMath.normalizeSafe(Vector3f.from(x, y, z));
     }
 
-    public Vector2f getDirectionPlane() {
-        return Vector2f.from(-Math.cos(Math.toRadians(this.yaw) - Math.PI / 2), -Math.sin(Math.toRadians(this.yaw) - Math.PI / 2)).normalize();
+    public Vector2f getHorizontalLookVector() {
+        double angle = Math.toRadians(this.yaw) - Math.PI / 2;
+        return Vector2f.from(-Math.cos(angle), -Math.sin(angle)).normalize();
     }
 
     public float getGravity() {
@@ -804,44 +1058,21 @@ public abstract class CloudEntity implements Entity {
         this.data.setFlag(NO_AI, value);
     }
 
-    public void setImmobile() {
-        this.setImmobile(true);
-    }
-
-    public boolean canClimb() {
-        return this.data.getFlag(CAN_CLIMB);
-    }
-
-    public void setCanClimb() {
-        this.setCanClimb(true);
-    }
-
     public void setCanClimb(boolean value) {
         this.data.setFlag(CAN_CLIMB, value);
     }
 
-    public boolean canClimbWalls() {
-        return this.data.getFlag(WALL_CLIMBING);
-    }
-
-    public void setCanClimbWalls() {
-        this.setCanClimbWalls(true);
-    }
-
-    public void setCanClimbWalls(boolean value) {
-        this.data.setFlag(WALL_CLIMBING, value);
-    }
-
     public boolean setMotion(Vector3f motion) {
         checkNotNull(motion, "motion");
-        if (!Float.isFinite(motion.getX()) || !Float.isFinite(motion.getY()) || !Float.isFinite(motion.getZ())) {
-            throw new IllegalArgumentException("Motion must be finite");
+        checkArgument(isFinite(motion), "Motion must be finite");
+        if (this.closed) {
+            return false;
         }
 
-        if (!this.justCreated) {
-            EntityMotionEvent ev = new EntityMotionEvent(this, motion);
-            this.server.getEventManager().fire(ev);
-            if (ev.isCancelled()) {
+        if (this.hasTicked) {
+            EntityMotionEvent event = new EntityMotionEvent(this, motion);
+            this.server.getEventManager().fire(event);
+            if (event.isCancelled() || this.closed) {
                 return false;
             }
         }
@@ -849,7 +1080,7 @@ public abstract class CloudEntity implements Entity {
         this.motion = motion;
         this.onMotionChanged();
 
-        if (!this.justCreated) {
+        if (this.hasTicked && !this.closed) {
             this.updateMovement();
         }
 
@@ -871,7 +1102,7 @@ public abstract class CloudEntity implements Entity {
             return;
         }
 
-        if (!this.justCreated) {
+        if (this.hasTicked) {
             this.server.getEventManager().fire(event);
         }
 
@@ -880,14 +1111,27 @@ public abstract class CloudEntity implements Entity {
         }
     }
 
-    @Override
-    public void setOnGround(boolean onGround) {
-        EntityMovementController.setOnGroundWithMovement(this, onGround, this.isCollidedHorizontally, null);
+    protected final void setOnGround(boolean onGround) {
+        this.updateGroundContact(onGround, null);
+    }
+
+    public final void updateCollisionContact(boolean horizontal, boolean onGround, @Nullable Vector3f movement) {
+        this.horizontalCollision = horizontal;
+        this.updateGroundContact(onGround, movement);
+    }
+
+    private void updateGroundContact(boolean onGround, @Nullable Vector3f movement) {
+        this.onGround = onGround;
+        EntityMovementController.checkSupportingBlock(this, onGround && this.level != null, movement);
+    }
+
+    protected final boolean hasHorizontalCollision() {
+        return this.horizontalCollision;
     }
 
     @Override
     public Optional<Vector3i> getSupportingBlockPosition() {
-        return this.supportingBlockPosition;
+        return Optional.ofNullable(this.supportingBlockPosition);
     }
 
     public void move(Vector3f movement) {
@@ -941,33 +1185,13 @@ public abstract class CloudEntity implements Entity {
         return movements;
     }
 
-    @Override
-    public void makeStuckInBlock(BlockState state, Vector3f speedMultiplier) {
+    public void makeStuckInBlock(Vector3f speedMultiplier) {
         this.resetFallDistance();
         this.stuckSpeedMultiplier = speedMultiplier;
     }
 
     public void updateMovement() {
-        float diffPosition = this.position.distanceSquared(this.lastPosition);
-        double diffRotation = (this.yaw - this.lastYaw) * (this.yaw - this.lastYaw) + (this.pitch - this.lastPitch) * (this.pitch - this.lastPitch);
-
-        float diffMotion = this.motion.distanceSquared(this.lastMotion);
-
-        if (diffPosition > 0.0001 || diffRotation > 1.0) { //0.2 ** 2, 1.5 ** 2
-            this.lastPosition = this.position;
-
-            this.lastYaw = this.yaw;
-            this.lastPitch = this.pitch;
-
-            this.addMovement(this.position.getX(), this.position.getY() + this.getBaseOffset(), this.position.getZ(),
-                    this.yaw, this.pitch, this.yaw);
-        }
-
-        if (diffMotion > 0.0025 || (diffMotion > 0.0001 && this.getMotion().lengthSquared() <= 0.0001)) { //0.05 ** 2
-            this.lastMotion = this.motion;
-
-            this.addMotion(this.motion);
-        }
+        this.movementTracker.publishChanges(this);
     }
 
     public void addMovement(double x, double y, double z, double yaw, double pitch, double headYaw) {
@@ -986,10 +1210,19 @@ public abstract class CloudEntity implements Entity {
     }
 
     public void sendAuthoritativeDisplacement() {
+        this.publishAuthoritativeDisplacement();
+    }
+
+    private void publishAuthoritativeDisplacement() {
+        this.resetMovementBaseline();
+        this.broadcastToViewers(this.createAuthoritativeDisplacementPacket());
+    }
+
+    private void resetMovementBaseline() {
+        this.movementTracker.resetTransform(this.position, this.yaw, this.pitch);
         this.lastPosition = this.position;
         this.lastYaw = this.yaw;
         this.lastPitch = this.pitch;
-        this.broadcastToViewers(this.createAuthoritativeDisplacementPacket());
     }
 
     protected MoveEntityAbsolutePacket createAuthoritativeDisplacementPacket() {
@@ -1007,11 +1240,7 @@ public abstract class CloudEntity implements Entity {
     }
 
     public boolean canCollideWith(Entity entity) {
-        if (entity == null || this.sharesRootVehicle(entity)) {
-            return false;
-        }
-        return !this.justCreated
-                && entity.canBeCollidedWith(this);
+        return this.hasTicked && entity != null && !this.sharesRootVehicle(entity) && entity.canBeCollidedWith(this);
     }
 
     public boolean canBeCollidedWith(@Nullable Entity entity) {
@@ -1034,7 +1263,7 @@ public abstract class CloudEntity implements Entity {
         return rootVehicle(this) == rootVehicle(entity);
     }
 
-    private static Entity rootVehicle(Entity entity) {
+    protected static Entity rootVehicle(Entity entity) {
         Entity vehicle = entity.getVehicle();
         while (vehicle != null) {
             entity = vehicle;
@@ -1043,7 +1272,6 @@ public abstract class CloudEntity implements Entity {
         return entity;
     }
 
-    @Override
     public void onEntityCollision(Entity entity) {
         if (this.sharesRootVehicle(entity)) {
             return;
@@ -1077,15 +1305,13 @@ public abstract class CloudEntity implements Entity {
         }
     }
 
-    public void onCollideWithPlayer(EntityHuman entityPlayer) {
-    }
-
     protected void checkBlockCollision() {
         EntityInsideBlockScanner.scan(this);
     }
 
     protected boolean moveTowardsClosestSpace(Vector3f pos) {
-        return this.moveTowardsClosestSpace(pos.getX(), (this.boundingBox.getMinY() + this.boundingBox.getMaxY()) / 2f, pos.getZ());
+        float centerY = (this.boundingBox.getMinY() + this.boundingBox.getMaxY()) / 2f;
+        return this.moveTowardsClosestSpace(pos.getX(), centerY, pos.getZ());
     }
 
     protected boolean moveTowardsClosestSpace(float x, float y, float z) {
@@ -1109,6 +1335,7 @@ public abstract class CloudEntity implements Entity {
                     case Y -> diffY;
                     case Z -> diffZ;
                 };
+
                 float orientedDelta = direction.getAxisDirection() == Direction.AxisDirection.POSITIVE ? 1f - axisDelta : axisDelta;
                 if (orientedDelta < closestDistance) {
                     closestDistance = orientedDelta;
@@ -1133,60 +1360,75 @@ public abstract class CloudEntity implements Entity {
         return true;
     }
 
-    public boolean canTriggerWalking() {
-        return true;
-    }
-
-    public boolean canTriggerPressurePlate() {
-        return true;
-    }
-
     public final void scheduleUpdate() {
-        if (this.initialized && !this.closed) {
+        if (this.spawned && !this.closed) {
             this.level.scheduleEntityUpdate(this);
         }
     }
 
-    public boolean onUpdate(int currentTick) {
+    public final boolean tick(int currentTick) {
         if (this.closed) {
             return false;
         }
 
+        int elapsedTicks = currentTick - this.lastUpdate;
+        if (elapsedTicks <= 0) {
+            return true;
+        }
+
+        this.lastUpdate = currentTick;
+        this.hasTicked = true;
+        boolean needsNextTick = this.tickEntity(currentTick, elapsedTicks);
+        if (this.closed) {
+            return false;
+        }
+
+        if (this.isAlive()) {
+            TickEntityHandler handler = CloudEntityRegistry.get().getComponent(this.type, EntityComponents.ON_TICK);
+            if (handler != null) {
+                boolean componentNeedsNextTick = handler.execute(this, currentTick);
+                if (this.closed) {
+                    return false;
+                }
+                this.updateMovement();
+                needsNextTick = needsNextTick || componentNeedsNextTick || !this.isAlive();
+            }
+        }
+
+        if (this.closed) {
+            return false;
+        }
+
+        this.flushEntityData();
+        return !this.closed && needsNextTick;
+    }
+
+    protected boolean tickEntity(int currentTick, int elapsedTicks) {
         if (!this.isAlive()) {
             ++this.deadTicks;
             if (this.deadTicks >= 10) {
                 this.despawnFromAll();
                 if (!this.isPlayer) {
-                    this.close();
+                    this.remove(EntityRemoveCause.DEATH);
                 }
             }
 
             return this.deadTicks < 10;
         }
 
-        int tickDiff = currentTick - this.lastUpdate;
-        if (tickDiff <= 0) {
-            return true;
+        this.entityBaseTick(elapsedTicks);
+        if (this.closed) {
+            return false;
         }
-
-        this.lastUpdate = currentTick;
-
-        boolean hasUpdate = this.entityBaseTick(tickDiff);
-        hasUpdate |= CloudEntityRegistry.get().requireComponent(this.type, EntityComponents.ON_TICK).execute(this, currentTick);
-
         this.updateMovement();
-        this.flushEntityData();
-
-        return hasUpdate;
+        return true;
     }
-
 
     public boolean entityBaseTick() {
         return this.entityBaseTick(1);
     }
 
     public boolean entityBaseTick(int tickDiff) {
-        this.justCreated = false;
         this.boardingCooldown = Math.max(0, this.boardingCooldown - tickDiff);
 
         if (!this.isAlive()) {
@@ -1194,7 +1436,7 @@ public abstract class CloudEntity implements Entity {
             this.despawnFromAll();
 
             if (!this.isPlayer) {
-                this.close();
+                this.remove(EntityRemoveCause.DEATH);
             }
 
             return false;
@@ -1290,53 +1532,28 @@ public abstract class CloudEntity implements Entity {
         }
     }
 
-    private void tickPortalTransition() {
-        if (this.isOnPortalCooldown()) {
-            tickPortalCooldown();
-        } else {
-            int portalThreshold = getPortalTransitionTicks();
-            if (this.inPortalTicks > 0 && (portalThreshold == 0 || this.inPortalTicks >= portalThreshold)) {
-                this.setPortalCooldown();
-                this.inPortalTicks = 0;
-
-                Location newLoc = EnumLevel.moveToNether(
-                        this.getX(),
-                        this.getY(),
-                        this.getZ(),
-                        this.getYaw(),
-                        this.getPitch(),
-                        this.getLevel()
-                );
-
-                if (newLoc != null) {
-                    NetherPortals.handlePortalTransfer(this, newLoc);
-                }
-            }
-        }
-    }
-
     protected void onBelowLevel() {
-        this.close();
+        this.remove(EntityRemoveCause.OUT_OF_WORLD);
     }
 
     @Override
-    public float getHighestPosition() {
-        return highestPosition;
+    public float getFallDistance() {
+        return this.fallDistance;
     }
 
     @Override
-    public void setHighestPosition(float highestPosition) {
-        this.highestPosition = highestPosition;
-    }
-
     public void setFallDistance(float fallDistance) {
+        if (!Float.isFinite(fallDistance) || fallDistance < 0) {
+            throw new IllegalArgumentException("Fall distance must be finite and non-negative");
+        }
+
         this.fallDistance = fallDistance;
         this.highestPosition = this.position.getY() + fallDistance;
     }
 
+    @Override
     public void resetFallDistance() {
-        this.fallDistance = 0;
-        this.highestPosition = this.getY();
+        this.setFallDistance(0);
     }
 
     protected void updateFallState(boolean onGround) {
@@ -1348,18 +1565,23 @@ public abstract class CloudEntity implements Entity {
 
         float distance = Math.max(0, this.highestPosition - this.getY());
         this.resetFallDistance();
-        if (distance > 0 && this instanceof EntityLiving && !this.level.getLiquidState(this.position.toInt()).getType().isSameFamily(LiquidTypes.WATER)) {
-            this.fall(distance);
+        this.onLanding(distance);
+    }
+
+    protected void onLanding(float fallDistance) {
+        if (fallDistance > 0 && this instanceof CloudLivingEntity && !this.level.getLiquidState(this.position.toInt()).getType().isSameFamily(LiquidTypes.WATER)) {
+            this.fall(fallDistance);
         }
     }
 
-    public void fall(float fallDistance) {
+    protected void fall(float fallDistance) {
         Block down = this.level.getBlock(this.getLandingBlockPosition());
         down.requireComponent(BlockComponents.ON_FALL_ON).execute(down, this, fallDistance);
     }
 
     protected Vector3i getLandingBlockPosition() {
-        return this.supportingBlockPosition.orElseGet(() -> this.position.sub(0, 0.2f, 0).toInt());
+        Vector3i support = this.supportingBlockPosition;
+        return support != null ? support : this.position.sub(0, 0.2f, 0).toInt();
     }
 
     public void applyFallDamage(float fallDistance) {
@@ -1524,10 +1746,6 @@ public abstract class CloudEntity implements Entity {
         return new LiquidContact(touchingWater, total);
     }
 
-    public void handleLavaMovement() {
-        //todo
-    }
-
     public int getAirTicks() {
         return this.data.require(AIR_SUPPLY);
     }
@@ -1599,12 +1817,12 @@ public abstract class CloudEntity implements Entity {
 
     @Override
     public boolean isFreezeTickingLocked() {
-        return this.freezeTickingLocked;
+        return Boolean.TRUE.equals(this.data().getFreezeTickingLocked());
     }
 
     @Override
     public void lockFreezeTicks(boolean locked) {
-        this.freezeTickingLocked = locked;
+        this.data().setFreezeTickingLocked(locked ? Boolean.TRUE : null);
     }
 
     public boolean isInvulnerable() {
@@ -1624,110 +1842,218 @@ public abstract class CloudEntity implements Entity {
     }
 
     public boolean teleport(Vector3f pos) {
-        return this.teleport(pos, PlayerTeleportCause.PLUGIN);
+        return this.teleport(pos, TeleportCause.PLUGIN);
     }
 
-    public boolean teleport(Vector3f pos, PlayerTeleportCause cause) {
+    public boolean teleport(Vector3f pos, TeleportCause cause) {
         return this.teleport(Location.from(pos, this.yaw, this.pitch, this.level), cause);
     }
 
     public boolean teleport(Location location) {
-        return this.teleport(location, PlayerTeleportCause.PLUGIN);
+        return this.teleport(location, TeleportCause.PLUGIN);
     }
 
-    public boolean teleport(Location location, PlayerTeleportCause cause) {
+    public final boolean teleport(Location location, TeleportCause cause) {
         Objects.requireNonNull(cause, "cause");
-        Location from = this.getLocation();
-        EntityTeleportEvent event = new EntityTeleportEvent(this, from, location);
-        this.server.getEventManager().fire(event);
-        if (event.isCancelled()) {
+        Objects.requireNonNull(location, "location");
+        if (this.isTeleportBlocked(location)) {
             return false;
         }
 
-        return this.teleportWithoutEvent(event.getTo());
+        Location destination;
+        this.dispatchingTeleport = true;
+        try {
+            destination = this.requestTeleportDestination(this.getLocation(), location, cause);
+        } finally {
+            this.dispatchingTeleport = false;
+        }
+
+        return destination != null && this.teleportWithoutEvent(destination);
+    }
+
+    protected final boolean isTeleportBlocked(Location location) {
+        return this.dispatchingTeleport || this.teleportDestinationLevel != null || this.isTeleportUnavailable(location);
+    }
+
+    protected boolean isTeleportUnavailable(Location location) {
+        return !this.initialized || this.closed || !hasFiniteTransform(location) || !(location.getLevel() instanceof CloudLevel);
+    }
+
+    protected @Nullable Location requestTeleportDestination(Location from, Location to, TeleportCause cause) {
+        EntityTeleportEvent event = new EntityTeleportEvent(this, from, to, cause);
+        this.server.getEventManager().fire(event);
+        return event.isCancelled() ? null : event.getTo();
     }
 
     public boolean teleportWithoutEvent(Location location) {
         Objects.requireNonNull(location, "location");
-        Location from = this.getLocation();
-        if (from.getLevel() == location.getLevel() || this.switchLevel((CloudLevel) location.getLevel())) {
-            this.setMotion(Vector3f.ZERO);
-
-            if (this.setPositionAndRotation(location.getPosition(), location.getYaw(), location.getPitch())) {
-                this.resetFallDistance();
-                this.onGround = true;
-
-                this.updateMovement();
-
-                return true;
-            }
+        if (this.isTeleportBlocked(location)) {
+            return false;
         }
 
-        return false;
+        CloudLevel destination = (CloudLevel) location.getLevel();
+        CloudLevel previousLevel = this.level;
+        boolean changesLevel = previousLevel != destination;
+        this.teleportDestinationLevel = destination;
+        try {
+            if (changesLevel && !this.detachForLevelTransfer(previousLevel, destination)) {
+                return false;
+            }
+
+            if (!changesLevel && this.vehicle != null) {
+                this.dismountForTeleport();
+                if (this.closed || this.vehicle != null) {
+                    return false;
+                }
+            }
+
+            this.level = destination;
+            this.position = location.getPosition();
+            this.motion = Vector3f.ZERO;
+            this.movementSegments.clear();
+            this.resetFallDistance();
+            this.updateCollisionContact(false, false, null);
+
+            if (changesLevel && this.spawned) {
+                destination.registerEntity(this);
+                this.scheduleUpdate();
+            }
+
+            this.setRotation(location.getYaw(), location.getPitch());
+            this.recalculateBoundingBox();
+
+            if (changesLevel) {
+                CloudChunk destinationChunk = this.spawned ? destination.getLoadedChunk(this.position) : null;
+                this.chunk = destinationChunk;
+                if (destinationChunk != null) {
+                    destinationChunk.registerEntity(this);
+                }
+
+                this.onLevelChanged(previousLevel, destination);
+                if (!this.closed && destinationChunk != null && this.chunk == destinationChunk) {
+                    this.publishChunkChange(destinationChunk);
+                }
+            } else {
+                this.checkChunks();
+            }
+
+            if (!this.closed) {
+                this.publishAuthoritativeDisplacement();
+            }
+
+            return true;
+        } finally {
+            this.teleportDestinationLevel = null;
+        }
     }
 
-    protected boolean switchLevel(CloudLevel targetLevel) {
-        checkNotNull(targetLevel, "targetLevel");
+    private boolean detachForLevelTransfer(CloudLevel previousLevel, CloudLevel targetLevel) {
+        EntityLevelChangeEvent event = new EntityLevelChangeEvent(this, previousLevel, targetLevel);
+        this.server.getEventManager().fire(event);
+        if (event.isCancelled() || this.closed) {
+            return false;
+        }
+
+        this.dismountForTeleport();
+        if (this.closed || this.vehicle != null) {
+            return false;
+        }
+
+        this.ejectPassengers();
+        if (this.closed || !this.passengers.isEmpty()) {
+            return false;
+        }
+
+        this.despawnFromAll();
         if (this.closed) {
             return false;
         }
 
-        EntityLevelChangeEvent ev = new EntityLevelChangeEvent(this, this.level, targetLevel);
-        this.server.getEventManager().fire(ev);
-        if (ev.isCancelled() || this.closed) {
-            return false;
+        if (this.spawned) {
+            previousLevel.unregisterEntity(this);
         }
 
-        this.level.unregisterEntity(this);
         if (this.chunk != null) {
             this.chunk.unregisterEntity(this);
         }
-        this.despawnFromAll();
 
-        this.level = targetLevel;
-        this.level.registerEntity(this);
-        this.scheduleUpdate();
         this.chunk = null;
-
         return true;
     }
 
-    /**
-     * Returns the number of ticks this entity must wait after a portal transfer
-     * before it can use another portal.
-     */
-    public int getPortalCooldownTicks() {
+    private void dismountForTeleport() {
+        if (this.vehicle != null) {
+            this.dismount(this.vehicle, false);
+        }
+    }
+
+    private boolean isLeavingLevel() {
+        return this.teleportDestinationLevel != null && this.teleportDestinationLevel != this.level;
+    }
+
+    protected void onLevelChanged(CloudLevel previousLevel, CloudLevel targetLevel) {
+    }
+
+    @Override
+    public int getPortalCooldown() {
+        return this.portalCooldownTicks;
+    }
+
+    @Override
+    public void setPortalCooldown(int cooldownTicks) {
+        checkArgument(cooldownTicks >= 0, "Portal cooldown cannot be negative");
+        this.portalCooldownTicks = cooldownTicks;
+    }
+
+    public boolean isOnPortalCooldown() {
+        return this.portalCooldownTicks > 0;
+    }
+
+    public void resetPortalCooldown() {
+        this.setPortalCooldown(this.getPortalCooldownDuration());
+    }
+
+    protected int getPortalCooldownDuration() {
         return PORTAL_COOLDOWN_TICKS;
     }
 
-    public final boolean isOnPortalCooldown() {
-        return this.portalCooldown > 0;
-    }
-
-    public final void setPortalCooldown() {
-        this.portalCooldown = this.getPortalCooldownTicks();
-    }
-
-    protected final void clearPortalCooldown() {
-        this.portalCooldown = 0;
-    }
-
     protected void tickPortalCooldown() {
-        this.portalCooldown--;
+        this.portalCooldownTicks--;
     }
 
-    /**
-     * Returns the number of ticks the entity must spend inside a portal before
-     * being transferred.
-     */
     protected int getPortalTransitionTicks() {
         return PORTAL_TRANSFER_TICKS;
+    }
+
+    private void tickPortalTransition() {
+        if (this.isOnPortalCooldown()) {
+            this.tickPortalCooldown();
+        } else {
+            int portalThreshold = getPortalTransitionTicks();
+            if (this.inPortalTicks > 0 && (portalThreshold == 0 || this.inPortalTicks >= portalThreshold)) {
+                this.resetPortalCooldown();
+                this.inPortalTicks = 0;
+
+                Location newLoc = EnumLevel.moveToNether(
+                        this.getX(),
+                        this.getY(),
+                        this.getZ(),
+                        this.getYaw(),
+                        this.getPitch(),
+                        this.getLevel()
+                );
+
+                if (newLoc != null) {
+                    NetherPortals.handlePortalTransfer(this, newLoc);
+                }
+            }
+        }
     }
 
     protected void onInsidePortal() {
         if (this.getVehicle() == null) {
             if (this.isOnPortalCooldown()) {
-                this.setPortalCooldown();
+                this.resetPortalCooldown();
             } else {
                 this.inPortalTicks = PORTAL_TRANSFER_TICKS;
             }
@@ -1755,9 +2081,9 @@ public abstract class CloudEntity implements Entity {
             return;
         }
 
-        this.setPortalCooldown();
+        this.resetPortalCooldown();
         if (!EndPortals.transfer(this)) {
-            this.clearPortalCooldown();
+            this.setPortalCooldown(0);
         }
     }
 
@@ -1772,23 +2098,24 @@ public abstract class CloudEntity implements Entity {
             return;
         }
 
-        this.setPortalCooldown();
+        this.resetPortalCooldown();
         if (!EndGateways.transfer(this, position)) {
-            this.clearPortalCooldown();
+            this.setPortalCooldown(0);
         }
     }
 
-    public Entity getPassenger() {
-        return Iterables.getFirst(this.passengers, null);
+    protected @Nullable Entity getFirstPassenger() {
+        return this.passengers.isEmpty() ? null : this.passengers.getFirst();
     }
 
     @Override
     public List<Entity> getPassengers() {
-        return List.copyOf(this.passengers);
+        return this.passengers;
     }
 
-    public boolean isPassenger(Entity entity) {
-        return this.passengers.contains(entity);
+    @Override
+    public boolean hasPassenger(Entity passenger) {
+        return this.passengers.contains(passenger);
     }
 
     @Override
@@ -1798,70 +2125,114 @@ public abstract class CloudEntity implements Entity {
 
     @Override
     public @Nullable Entity getControllingPassenger() {
-        return this.passengers.isEmpty() ? null : this.passengers.getFirst();
+        return this.getFirstPassenger();
     }
 
-    public Vector3f getSeatPosition() {
-        return this.data.require(SEAT_OFFSET);
-    }
-
-    public void setSeatPosition(Vector3f pos) {
-        this.data.set(SEAT_OFFSET, pos);
+    public final void setSeatOffset(Vector3f offset) {
+        this.data.set(SEAT_OFFSET, offset);
     }
 
     public Vector3f getMountedOffset(Entity passenger) {
-        float yOffset = getMountedHeightOffset() + passenger.getPassengerHeightOffset();
+        float yOffset = this.getMountedHeightOffset() + passengerHeightOffset(passenger);
         return Vector3f.from(0f, yOffset, 0f);
+    }
+
+    protected float getMountedHeightOffset() {
+        return this.getHeight() * 0.75f;
+    }
+
+    protected float getPassengerHeightOffset() {
+        return 0f;
+    }
+
+    protected static float passengerHeightOffset(Entity passenger) {
+        return passenger instanceof CloudEntity rider ? rider.getPassengerHeightOffset() : 0f;
+    }
+
+    protected Vector3f getPassengerAttachmentPoint(Entity passenger) {
+        return Vector3f.from(0f, this.getHeight(), 0f);
     }
 
     @Override
     public boolean mount(Entity vehicle) {
-        checkNotNull(vehicle, "The target of the mounting entity can't be null");
-        if (this.mounting || this.closed || !this.isAlive() || vehicle.isClosed() || !vehicle.isAlive() || this.level != vehicle.getLevel()
-                || this.wouldCreateVehicleCycle(vehicle) || !((CloudEntity) vehicle).canAddPassenger(this)) {
+        if (this.mounting || this.dismounting || !(vehicle instanceof CloudEntity target) || this.vehicle == target || this.cannotBoard(target)) {
             return false;
         }
 
-        if (this.vehicle != null && !this.dismount(this.vehicle)) {
-            return false;
-        }
-
-        if (vehicle instanceof Vehicle target) {
-            VehicleEnterEvent event = new VehicleEnterEvent(target, this);
-            this.mounting = true;
-
-            try {
+        Entity previous = this.vehicle;
+        this.mounting = true;
+        try {
+            if (target instanceof Vehicle apiVehicle) {
+                VehicleEnterEvent event = new VehicleEnterEvent(apiVehicle, this);
                 this.server.getEventManager().fire(event);
-            } finally {
-                this.mounting = false;
+                if (event.isCancelled()) {
+                    return false;
+                }
             }
 
-            if (event.isCancelled()) {
+            if (this.vehicle != previous || this.cannotBoard(target)) {
                 return false;
             }
+
+            if (previous != null && !this.dismount(previous)) {
+                return false;
+            }
+
+            if (this.vehicle != null || this.cannotBoard(target)) {
+                return false;
+            }
+
+            Entity previousFirstPassenger = target.getFirstPassenger();
+            this.vehicle = target;
+            target.passengers = withPassenger(target.passengers, this);
+            this.setOnGround(false);
+            this.resetFallDistance();
+            this.data.setFlag(RIDING, true);
+
+            target.onMount(this);
+            if (this.vehicle != target) {
+                return false;
+            }
+
+            this.flushEntityData();
+            boolean firstPassenger = target.getFirstPassenger() == this;
+            if (firstPassenger && previousFirstPassenger instanceof CloudEntity displaced && displaced.vehicle == target) {
+                displaced.flushEntityData();
+                displaced.broadcastLinkPacket(target, EntityLinkData.Type.PASSENGER, false);
+            }
+
+            EntityLinkData.Type link = firstPassenger ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER;
+            this.broadcastLinkPacket(target, link, this instanceof Player);
+            this.onMountComplete(target);
+            return true;
+        } finally {
+            this.mounting = false;
         }
-
-        if (this.vehicle != null || this.closed || !this.isAlive() || vehicle.isClosed() || !vehicle.isAlive() || this.level != vehicle.getLevel()
-                || this.wouldCreateVehicleCycle(vehicle) || !((CloudEntity) vehicle).canAddPassenger(this)) {
-            return false;
-        }
-
-        this.vehicle = vehicle;
-        this.onGround = false;
-        this.resetFallDistance();
-
-        ((CloudEntity) vehicle).onMount(this);
-        this.data.setFlag(RIDING, true);
-        this.flushEntityData();
-        broadcastLinkPacket(vehicle, vehicle.getPassengers().indexOf(this) == 0 ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER, this instanceof Player);
-        onMountComplete(vehicle);
-
-        return true;
     }
 
-    /**
-     * Attempts gameplay boarding, respecting sneaking and the delay after dismounting.
-     */
+    private static List<Entity> withPassenger(List<Entity> passengers, Entity passenger) {
+        if (passengers.isEmpty()) {
+            return List.of(passenger);
+        }
+
+        List<Entity> updated = new ArrayList<>(passengers.size() + 1);
+        if (passenger instanceof Player && !(passengers.getFirst() instanceof Player)) {
+            updated.add(passenger);
+            updated.addAll(passengers);
+        } else {
+            updated.addAll(passengers);
+            updated.add(passenger);
+        }
+        return List.copyOf(updated);
+    }
+
+    private boolean cannotBoard(CloudEntity target) {
+        return !this.isAlive() || !target.isAlive() || this.level != target.level
+                || this.isLeavingLevel() || target.isLeavingLevel()
+                || this.wouldCreateVehicleCycle(target)
+                || !target.canAddPassenger(this);
+    }
+
     public boolean tryMount(Entity vehicle) {
         return !this.data.getFlag(SNEAKING) && this.boardingCooldown == 0 && this.mount(vehicle);
     }
@@ -1881,17 +2252,14 @@ public abstract class CloudEntity implements Entity {
     }
 
     protected void onMount(Entity passenger) {
-        checkArgument(passenger.getVehicle() == this, "passenger is not in this vehicle");
-        checkArgument(!this.passengers.contains(passenger), "passenger is already mounted to this vehicle");
-        this.passengers.add(passenger);
-
         if (passenger instanceof CloudPlayer ridingPlayer) {
             this.spawnTo(ridingPlayer);
         }
 
         Vector3f seatOffset = this.getMountedOffset(passenger);
-        passenger.setSeatPosition(seatOffset);
-        ((CloudEntity) passenger).data.set(SEAT_LOCK_RIDER_ROTATION_DEGREES, 181.0f);
+        CloudEntity rider = (CloudEntity) passenger;
+        rider.setSeatOffset(seatOffset);
+        rider.data.set(SEAT_LOCK_RIDER_ROTATION_DEGREES, 181.0f);
         this.updatePassengerPosition(passenger);
     }
 
@@ -1906,10 +2274,6 @@ public abstract class CloudEntity implements Entity {
         return this.dismount(vehicle, cancellable, null);
     }
 
-    /**
-     * Attempts dismounting with an optional preferred feet position. The vehicle validates
-     * the position before using it. A canceled exit leaves the passenger mounted.
-     */
     public boolean dismount(Entity vehicle, boolean cancellable, @Nullable Vector3f preferredPosition) {
         if (this.vehicle != vehicle || vehicle == null) {
             return false;
@@ -1947,12 +2311,21 @@ public abstract class CloudEntity implements Entity {
     }
 
     private void detachFromVehicle(Entity vehicle, boolean riderInitiated, @Nullable Vector3f preferredPosition) {
-        broadcastLinkPacket(vehicle, EntityLinkData.Type.REMOVE, riderInitiated);
+        CloudEntity target = (CloudEntity) vehicle;
+        boolean wasControlling = target.isControlling(this);
         this.vehicle = null;
+
+        List<Entity> remaining = new ArrayList<>(target.passengers);
+        remaining.remove(this);
+        target.passengers = List.copyOf(remaining);
         this.boardingCooldown = 60;
         this.data.setFlag(RIDING, false);
-        ((CloudEntity) vehicle).onDismount(this, preferredPosition);
-        this.setSeatPosition(Vector3f.ZERO);
+        this.setSeatOffset(Vector3f.ZERO);
+        this.data.set(SEAT_LOCK_RIDER_ROTATION_DEGREES, 0.0f);
+
+        this.broadcastLinkPacket(target, EntityLinkData.Type.REMOVE, riderInitiated);
+        target.onDismount(this, preferredPosition, wasControlling);
+        target.refreshPassengerLinks();
         this.data.setFlag(MOVING, true);
         this.flushEntityData();
     }
@@ -1963,24 +2336,19 @@ public abstract class CloudEntity implements Entity {
         }
     }
 
-    protected void onDismount(Entity passenger, @Nullable Vector3f preferredPosition) {
-        checkArgument(passenger.getVehicle() != this, "passenger is still mounted");
-        checkArgument(this.passengers.remove(passenger), "passenger is not in this vehicle");
+    protected void onDismount(Entity passenger, @Nullable Vector3f preferredPosition, boolean wasControlling) {
+    }
 
-        passenger.setSeatPosition(Vector3f.ZERO);
-        ((CloudEntity) passenger).data.set(SEAT_LOCK_RIDER_ROTATION_DEGREES, 0.0f);
-        for (int index = 0; index < this.passengers.size(); index++) {
-            ((CloudEntity) this.passengers.get(index)).broadcastLinkPacket(this,
+    private void refreshPassengerLinks() {
+        List<Entity> passengers = this.passengers;
+        for (int index = 0; index < passengers.size(); index++) {
+            ((CloudEntity) passengers.get(index)).broadcastLinkPacket(this,
                     index == 0 ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER, false);
         }
     }
 
     public void updatePassengers() {
-        if (this.passengers.isEmpty()) {
-            return;
-        }
-
-        for (Entity passenger : new ArrayList<>(this.passengers)) {
+        for (Entity passenger : this.passengers) {
             if (passenger.getVehicle() != this) {
                 continue;
             }
@@ -1990,7 +2358,7 @@ public abstract class CloudEntity implements Entity {
                 continue;
             }
 
-            updatePassengerPosition(passenger);
+            this.updatePassengerPosition(passenger);
         }
     }
 
@@ -2001,16 +2369,10 @@ public abstract class CloudEntity implements Entity {
     protected void broadcastLinkPacket(Entity vehicle, EntityLinkData.Type type, boolean riderInitiated) {
         SetEntityLinkPacket packet = new SetEntityLinkPacket();
         boolean immediate = type == EntityLinkData.Type.REMOVE && (this.closed || !this.isAlive() || vehicle.isClosed() || !vehicle.isAlive());
-        packet.setEntityLink(new EntityLinkData(vehicle.getUniqueId(), getUniqueId(), type, immediate, riderInitiated, 0));
+        packet.setEntityLink(new EntityLinkData(vehicle.getUniqueId(), this.getUniqueId(), type, immediate, riderInitiated, 0));
         CloudServer.broadcastPacket(((CloudEntity) vehicle).getViewers(), packet);
     }
 
-    @Override
-    public float getHealth() {
-        return health;
-    }
-
-    @Override
     public void setHealth(float health) {
         if (!Float.isFinite(health) || health < 0) {
             throw new IllegalArgumentException("Health must be finite and non-negative");
@@ -2033,37 +2395,39 @@ public abstract class CloudEntity implements Entity {
         this.data.set(STRUCTURAL_INTEGRITY, (int) this.health);
     }
 
-    @Override
     public int getMaxHealth() {
+        Integer maxHealthOverride = this.persistence.state().getBaseMaxHealthOverride();
+        int baseMaxHealth = maxHealthOverride != null ? maxHealthOverride : this.defaultMaxHealth;
         ActivePotionEffect healthBoost = this.effects.get(EffectTypes.HEALTH_BOOST);
         long bonus = healthBoost == null ? 0 : 4L * (healthBoost.getAmplifier() + 1L);
-        return (int) Math.min(Integer.MAX_VALUE, this.maxHealth + bonus);
+        return (int) Math.min(Integer.MAX_VALUE, baseMaxHealth + bonus);
     }
 
-    @Override
-    public void setMaxHealth(int maxHealth) {
-        if (maxHealth <= 0) {
-            throw new IllegalArgumentException("Maximum health must be positive");
+    public void setMaxHealth(int baseMaxHealth) {
+        checkArgument(baseMaxHealth > 0, "Maximum health must be positive");
+        this.persistence.state().setBaseMaxHealthOverride(baseMaxHealth);
+        this.clampHealthToMax();
+        this.markChunkDirty();
+    }
+
+    protected void setDefaultMaxHealth(int defaultMaxHealth) {
+        checkArgument(defaultMaxHealth > 0, "Maximum health must be positive");
+        this.defaultMaxHealth = defaultMaxHealth;
+        this.clampHealthToMax();
+    }
+
+    private void clampHealthToMax() {
+        int maxHealth = this.getMaxHealth();
+        if (this.health > maxHealth) {
+            this.setHealth(maxHealth);
         }
-
-        this.maxHealth = maxHealth;
-
-        if (this.health > this.getMaxHealth()) {
-            this.setHealth(this.getMaxHealth());
-        }
     }
 
     @Override
-    public boolean isAlive() {
-        return this.health > 0;
+    public boolean isUndead() {
+        return CloudEntityRegistry.get().requireComponent(this.getType(), EntityComponents.IS_UNDEAD).execute(this);
     }
 
-    @Override
-    public float getAbsorption() {
-        return absorption;
-    }
-
-    @Override
     public void setAbsorption(float absorption) {
         if (!Float.isFinite(absorption) || absorption < 0) {
             throw new IllegalArgumentException("Absorption must be finite and non-negative");
@@ -2090,9 +2454,16 @@ public abstract class CloudEntity implements Entity {
         return lastDamageCause;
     }
 
-    @Override
+    public static boolean applyDamage(Entity target, float amount, DamageSource source) {
+        if (target instanceof CloudEntity cloudEntity) {
+            return cloudEntity.damage(amount, source);
+        }
+
+        return target instanceof Damageable damageable && damageable.damage(amount, source);
+    }
+
     public boolean damage(float amount, DamageSource source) {
-        return this.damageWithResult(amount, source).applied();
+        return this.damageWithResult(amount, source).accepted();
     }
 
     /**
@@ -2125,53 +2496,67 @@ public abstract class CloudEntity implements Entity {
         return this.isClosed() || !this.isAlive()
                 || ((this.isInvulnerable() || this.noDamageTicks > 0)
                 && !source.getDamageType().is(DamageTypeTags.BYPASSES_INVULNERABILITY))
-                || (this.hasPotionEffect(EffectTypes.FIRE_RESISTANCE) && source.getDamageType().is(DamageTypeTags.IS_FIRE));
+                || (this.hasPotionEffect(EffectTypes.FIRE_RESISTANCE)
+                && source.getDamageType().is(DamageTypeTags.IS_FIRE));
     }
 
     /**
      * Applies a damage event after entity-specific preprocessing.
      *
-     * @param source the damage event
+     * @param event the damage event
      * @return whether damage was applied
      */
-    protected boolean applyDamage(CloudEntityDamageEvent source) {
-        if (this.isDamageImmune(source.getDamageSource())) {
+    protected boolean applyDamage(CloudEntityDamageEvent event) {
+        if (this.isDamageImmune(event.getDamageSource())) {
             return false;
         }
 
-        getServer().getEventManager().fire(source);
-        if (source.isCancelled() || source.getDamage() <= 0 || this.isClosed() || !this.isAlive()) {
+        this.getServer().getEventManager().fire(event);
+        if (this.rejectDamage(event)) {
             return false;
         }
 
-        if (!this.prepareDamage(source) || source.getDamage() <= 0 || this.isClosed() || !this.isAlive()) {
+        if (!this.prepareDamage(event) || this.rejectDamage(event)) {
             return false;
         }
 
-        float damage = source.getFinalDamage();
-        float absorbed = source.getAbsorbedDamage();
-        this.onDamageAccepted(source);
+        this.onDamageAccepted(event);
         if (this.isClosed() || !this.isAlive()) {
             return false;
         }
 
-        if (damage <= 0 && absorbed <= 0) {
-            return true;
+        this.commitDamage(event);
+        return true;
+    }
+
+    private boolean rejectDamage(CloudEntityDamageEvent event) {
+        return event.isCancelled() || event.getDamage() <= 0 || this.isClosed() || !this.isAlive();
+    }
+
+    private void commitDamage(CloudEntityDamageEvent event) {
+        float absorption = this.getAbsorption();
+        CloudEntityDamageEvent.DamageSplit damage = event.resolveDamage(absorption);
+        if (damage.healthDamage() == 0 && damage.absorbedDamage() == 0) {
+            return;
         }
 
-        setLastDamageCause(source);
-        if (absorbed > 0) {
-            this.setAbsorption(Math.max(0, this.getAbsorption() - absorbed));
+        this.setLastDamageCause(event);
+        if (damage.absorbedDamage() > 0) {
+            this.setAbsorption(absorption - damage.absorbedDamage());
         }
 
-        float remainingHealth = Math.max(0, getHealth() - damage);
+        if (damage.healthDamage() == 0) {
+            return;
+        }
+
+        float remainingHealth = this.getHealth() - damage.healthDamage();
         if (remainingHealth > 0) {
             this.setHealth(remainingHealth);
-        } else if (!this.tryPreventDeath(source.getDamageSource()) && !this.isClosed() && this.isAlive()) {
+        } else if (!this.tryPreventDeath(event.getDamageSource()) && !this.isClosed() && this.isAlive()) {
             this.setHealth(0);
         }
 
-        return true;
+        this.onHealthDamageApplied(event.getDamageSource());
     }
 
     /**
@@ -2187,11 +2572,16 @@ public abstract class CloudEntity implements Entity {
     protected void onDamageAccepted(CloudEntityDamageEvent event) {
     }
 
+    /**
+     * Handles a resolved hit that dealt damage beyond absorption.
+     */
+    protected void onHealthDamageApplied(DamageSource source) {
+    }
+
     protected boolean tryPreventDeath(DamageSource source) {
         return false;
     }
 
-    @Override
     public void heal(float amount, RegainReason reason) {
         EntityRegainHealthEvent source = new EntityRegainHealthEvent(this, amount, reason);
         if (this.isClosed() || !this.isAlive()) {
@@ -2228,6 +2618,11 @@ public abstract class CloudEntity implements Entity {
         return effect == null ? null : effect.snapshot();
     }
 
+    protected int getPotionAmplifier(EffectType type) {
+        ActivePotionEffect effect = this.effects.get(type);
+        return effect == null ? -1 : effect.getAmplifier();
+    }
+
     public boolean hasPotionEffect(EffectType type) {
         return this.effects.containsKey(checkNotNull(type, "type"));
     }
@@ -2239,9 +2634,10 @@ public abstract class CloudEntity implements Entity {
     public boolean addPotionEffect(PotionEffect effect, @Nullable Entity source, PotionEffectCause cause) {
         checkNotNull(effect, "effect");
         checkNotNull(cause, "cause");
-        checkState(this instanceof Living, "Potion effects can only be applied to living entities");
+        checkState(this instanceof LivingEntity, "Potion effects can only be applied to living entities");
 
-        if (effect.getType() == EffectTypes.FREEZING && !CloudEntityRegistry.get().requireComponent(this.getType(), EntityComponents.CAN_FREEZE).execute(this)) {
+        if (effect.getType() == EffectTypes.FREEZING && !CloudEntityRegistry.get()
+                .requireComponent(this.getType(), EntityComponents.CAN_FREEZE).execute(this)) {
             return false;
         }
 
@@ -2250,7 +2646,7 @@ public abstract class CloudEntity implements Entity {
         PotionEffectAction action = oldEffect == null ? PotionEffectAction.ADDED : PotionEffectAction.CHANGED;
         boolean override = oldEffectSnapshot == null || shouldOverrideEffect(oldEffectSnapshot, effect);
 
-        EntityPotionEffectEvent event = new EntityPotionEffectEvent((Living) this, oldEffectSnapshot, effect, source, cause, action, override);
+        EntityPotionEffectEvent event = new EntityPotionEffectEvent((LivingEntity) this, oldEffectSnapshot, effect, source, cause, action, override);
         this.server.getEventManager().fire(event);
         if (event.isCancelled() || action == PotionEffectAction.CHANGED && !event.isOverride()) {
             return false;
@@ -2259,6 +2655,7 @@ public abstract class CloudEntity implements Entity {
         ActivePotionEffect newEffect = ActivePotionEffect.from(effect);
         newEffect.onApplied(this, oldEffect);
         this.effects.put(newEffect.getType(), newEffect);
+        this.onPotionEffectChanged(newEffect.getType());
 
         this.recalculateEffectColor();
 
@@ -2282,7 +2679,7 @@ public abstract class CloudEntity implements Entity {
     }
 
     public boolean removePotionEffect(EffectType type, PotionEffectCause cause) {
-        checkState(this instanceof Living, "Potion effects can only be removed from living entities");
+        checkState(this instanceof LivingEntity, "Potion effects can only be removed from living entities");
         checkNotNull(cause, "cause");
         ActivePotionEffect effect = this.effects.get(checkNotNull(type, "type"));
         if (effect == null) {
@@ -2290,7 +2687,7 @@ public abstract class CloudEntity implements Entity {
         }
 
         PotionEffect oldEffect = effect.snapshot();
-        EntityPotionEffectEvent event = new EntityPotionEffectEvent((Living) this, oldEffect, null, null, cause, PotionEffectAction.REMOVED, false);
+        EntityPotionEffectEvent event = new EntityPotionEffectEvent((LivingEntity) this, oldEffect, null, null, cause, PotionEffectAction.REMOVED, false);
         this.server.getEventManager().fire(event);
         if (event.isCancelled()) {
             return false;
@@ -2298,6 +2695,7 @@ public abstract class CloudEntity implements Entity {
 
         this.effects.remove(type);
         effect.onRemoved(this);
+        this.onPotionEffectChanged(type);
         if (type == EffectTypes.HEALTH_BOOST) {
             this.setHealth(Math.min(this.getHealth(), this.getMaxHealth()));
         }
@@ -2317,6 +2715,9 @@ public abstract class CloudEntity implements Entity {
             changed |= this.removePotionEffect(effect.getType(), cause);
         }
         return changed;
+    }
+
+    protected void onPotionEffectChanged(EffectType type) {
     }
 
     private void restorePotionEffect(PotionEffect effect) {
@@ -2352,8 +2753,7 @@ public abstract class CloudEntity implements Entity {
 
     public void sendPotionEffects(CloudPlayer player) {
         for (ActivePotionEffect effect : this.effects.values()) {
-            player.sendPacket(NetworkUtils.effectToNetwork(effect.snapshot(), this.getRuntimeId(), MobEffectPacket.Event.ADD,
-                    this.server.getTick()));
+            player.sendPacket(NetworkUtils.effectToNetwork(effect.snapshot(), this.getRuntimeId(), MobEffectPacket.Event.ADD, this.server.getTick()));
         }
     }
 
@@ -2371,207 +2771,22 @@ public abstract class CloudEntity implements Entity {
                 .orElse(item);
     }
 
-    public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
-        if (CloudEntityRegistry.get().requireComponent(this.type, EntityComponents.ON_INTERACT)
-                .execute(this, player, item, clickedPos)) {
-            return true;
+    public final void handleInteraction(Player player, ItemStack item, Vector3f clickedPos) {
+        InteractEntityHandler handler = CloudEntityRegistry.get().getComponent(this.type, EntityComponents.ON_INTERACT);
+        if (handler == null || !handler.execute(this, player, item, clickedPos)) {
+            this.interactDefault(player, item, clickedPos);
         }
-        return onInteract(player, item);
     }
 
-    public boolean onInteract(Player player, ItemStack item) {
+    protected boolean interactDefault(Player player, ItemStack item, Vector3f clickedPos) {
         return false;
     }
 
-    @Override
-    public boolean spawn() {
-        EntitySpawnEvent event;
-        if (this instanceof DroppedItem droppedItem) {
-            event = new ItemSpawnEvent(droppedItem);
-        } else if (this instanceof Projectile projectile) {
-            event = new ProjectileLaunchEvent(projectile);
-        } else {
-            event = new EntitySpawnEvent(this);
-        }
-
-        return this.spawn(event);
-    }
-
-    public boolean spawn(EntitySpawnEvent event) {
-        return this.spawn(event, () -> true);
-    }
-
-    protected boolean spawn(EntitySpawnEvent event, BooleanSupplier prepareSpawn) {
-        if (this.closed || this.spawned) {
-            return false;
-        }
-
-        if (event.getEntity() != this) {
-            throw new IllegalArgumentException("Spawn event does not belong to this entity");
-        }
-
-        this.server.getEventManager().fire(event);
-        if (event.isCancelled()) {
-            this.closed = true;
-            return false;
-        }
-
-        if (this.closed || this.spawned || !prepareSpawn.getAsBoolean()) {
-            return false;
-        }
-
-        this.registerInLevel(this.getLocation());
-        return true;
-    }
-
-    public void restoreFromStorage() {
-        if (this.closed || this.spawned) {
-            throw new IllegalStateException("Cannot restore an entity that is closed or already spawned");
-        }
-
-        this.registerInLevel(this.getLocation());
-    }
-
-    private void registerInLevel(Location location) {
-        if (this.spawned) {
-            return;
-        }
-
-        CloudChunk loadedChunk = this.level.getLoadedChunk(location.getPosition());
-        if (loadedChunk != null) {
-            this.chunk = loadedChunk;
-            loadedChunk.registerEntity(this);
-        }
-
-        this.spawned = true;
-        this.level.registerEntity(this);
-        this.scheduleUpdate();
-
-        if (loadedChunk != null) {
-            this.spawnToAll();
-            return;
-        }
-
-        this.level.getChunkFuture(location.getChunkX(), location.getChunkZ()).whenComplete((chunk, throwable) -> {
-            if (throwable != null || this.closed || !this.spawned) {
-                return;
-            }
-
-            this.chunk = chunk;
-            chunk.registerEntity(this);
-            this.spawnToAll();
-        });
-    }
-
-    @Override
-    public void spawnTo(Player player) {
-        this.spawnTo(((CloudPlayer) player));
-    }
-
-    public void spawnTo(CloudPlayer player) {
-        if (!this.spawned || this.chunk == null || this.closed) {
-            return;
-        }
-
-        if (!player.isChunkSent(this.chunk.getX(), this.chunk.getZ()) || !this.addViewer(player)) {
-            return;
-        }
-
-        player.sendPacket(createAddEntityPacket());
-
-        if (this.vehicle != null) {
-            this.vehicle.spawnTo(player);
-
-            SetEntityLinkPacket packet = new SetEntityLinkPacket();
-            packet.setEntityLink(new EntityLinkData(this.vehicle.getUniqueId(),
-                    this.getUniqueId(), this.vehicle.getPassengers().indexOf(this) == 0
-                    ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER, true, false, 0));
-
-            player.sendPacket(packet);
-        }
-    }
-
-    public void spawnToAll() {
-        if (!this.spawned && !this.spawn()) {
-            return;
-        }
-
-        if (this.chunk == null || this.closed) {
-            return;
-        }
-
-        for (Player player : this.level.getChunkPlayers(this.chunk.getX(), this.chunk.getZ())) {
-            if (player.isOnline()) {
-                this.spawnTo(player);
-            }
-        }
-    }
-
-    protected BedrockPacket createAddEntityPacket() {
-        Vector3f pos = this.getPosition();
-        AddEntityPacket addEntity = new AddEntityPacket();
-        addEntity.setIdentifier(this.getType().getId().toString());
-        addEntity.setUniqueEntityId(this.getUniqueId());
-        addEntity.setRuntimeEntityId(this.getRuntimeId());
-        addEntity.setPosition(Vector3f.from(pos.getX(), pos.getY() + this.getBaseOffset(), pos.getZ()));
-        addEntity.setRotation(Vector2f.from(this.pitch, this.yaw));
-        addEntity.setHeadRotation(this.yaw);
-        addEntity.setMotion(this.getMotion());
-        addEntity.setBodyRotation(this.getYaw());
-        addEntity.getMetadata().putAll(this.data.snapshot());
-
-        for (int i = 0; i < this.passengers.size(); i++) {
-            addEntity.getEntityLinks().add(new EntityLinkData(this.getUniqueId(),
-                    this.passengers.get(i).getUniqueId(), i == 0 ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER, false, false, 0));
-        }
-
-        this.addAdditionalSpawnData(addEntity);
-        return addEntity;
-    }
-
-    protected void addAdditionalSpawnData(AddEntityPacket packet) {
-    }
-
-    @Override
-    public void despawnFrom(Player player) {
-        this.despawnFrom((CloudPlayer) player);
-    }
-
-    public void despawnFrom(CloudPlayer player) {
-        if (this.viewers.remove(player)) {
-            RemoveEntityPacket packet = new RemoveEntityPacket();
-            packet.setUniqueEntityId(this.getUniqueId());
-            player.sendPacket(packet);
-        }
-    }
-
-    public void despawnFromAll() {
-        for (CloudPlayer player : this.viewers) {
-            this.despawnFrom(player);
-        }
-    }
-
-    public Set<CloudPlayer> getViewers() {
-        return Set.copyOf(this.viewers);
-    }
-
-    protected final boolean hasViewer(CloudPlayer player) {
-        return this.viewers.contains(player);
-    }
-
-    protected final boolean addViewer(CloudPlayer player) {
-        return this.viewers.add(player);
-    }
-
-    protected final void clearViewers() {
-        this.viewers.clear();
-    }
-
-    protected final void broadcastToViewers(BedrockPacket packet) {
-        CloudServer.broadcastPacket(this.viewers, packet);
-    }
-
     protected void checkChunks() {
+        if (!this.spawned || this.closed) {
+            return;
+        }
+
         Vector3f position = this.getPosition();
         CloudChunk previous = this.chunk;
         int chunkX = position.getFloorX() >> 4;
@@ -2592,19 +2807,182 @@ public abstract class CloudEntity implements Entity {
         }
 
         destination.registerEntity(this);
-        if (!this.justCreated) {
+        this.publishChunkChange(destination);
+    }
+
+    private void publishChunkChange(CloudChunk destination) {
+        if (this.hasTicked) {
             this.updateViewers(destination.getViewers());
+        }
+        if (!this.closed && this.chunk == destination) {
+            this.onChunkChanged(destination);
+        }
+    }
+
+    protected void onChunkChanged(CloudChunk destination) {
+    }
+
+    public void spawnTo(CloudPlayer player) {
+        if (this.canSpawnTo(player) && this.beginTracking(player)) {
+            this.sendPairingData(player);
+        }
+    }
+
+    private void sendPairingData(CloudPlayer player) {
+        boolean added = false;
+        try {
+            added = this.sendTrackedAddPacket(player);
+            if (!added) {
+                return;
+            }
+        } finally {
+            if (!added) {
+                this.stopTracking(player);
+            }
+        }
+
+        if (this.vehicle instanceof CloudEntity mount) {
+            mount.spawnTo(player);
+            if (!this.hasViewer(player) || this.vehicle != mount || (mount != player && !mount.hasViewer(player))) {
+                return;
+            }
+
+            int seatIndex = mount.getPassengers().indexOf(this);
+            if (seatIndex < 0) {
+                return;
+            }
+
+            EntityLinkData.Type link = seatIndex == 0 ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER;
+            SetEntityLinkPacket packet = new SetEntityLinkPacket();
+            packet.setEntityLink(new EntityLinkData(mount.getUniqueId(), this.getUniqueId(), link, true, false, 0));
+            player.sendPacket(packet);
+        }
+    }
+
+    protected final boolean canSpawnTo(CloudPlayer player) {
+        CloudChunk chunk = this.chunk;
+        return this.spawned && !this.closed && chunk != null
+                && player.getLevel() == this.level && player.isChunkSent(chunk.getX(), chunk.getZ());
+    }
+
+    public void refreshViewers() {
+        CloudChunk currentChunk = this.chunk;
+        if (!this.spawned || currentChunk == null || this.closed) {
+            return;
+        }
+
+        for (Player player : this.level.getChunkPlayers(currentChunk.getX(), currentChunk.getZ())) {
+            if (this.closed || this.chunk != currentChunk) {
+                break;
+            }
+
+            if (player instanceof CloudPlayer viewer && viewer.isOnline()) {
+                this.spawnTo(viewer);
+            }
+        }
+    }
+
+    protected BedrockPacket createAddEntityPacket() {
+        Vector3f pos = this.getPosition();
+        AddEntityPacket addEntity = new AddEntityPacket();
+        addEntity.setIdentifier(this.getType().getId().toString());
+        addEntity.setUniqueEntityId(this.getUniqueId());
+        addEntity.setRuntimeEntityId(this.getRuntimeId());
+        addEntity.setPosition(Vector3f.from(pos.getX(), pos.getY() + this.getBaseOffset(), pos.getZ()));
+        addEntity.setRotation(Vector2f.from(this.pitch, this.yaw));
+        addEntity.setHeadRotation(this.yaw);
+        addEntity.setMotion(this.getMotion());
+        addEntity.setBodyRotation(this.getYaw());
+        addEntity.getMetadata().putAll(this.data.snapshot());
+
+        List<Entity> passengers = this.passengers;
+        for (int i = 0; i < passengers.size(); i++) {
+            EntityLinkData.Type link = i == 0 ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER;
+            addEntity.getEntityLinks().add(new EntityLinkData(
+                    this.getUniqueId(), passengers.get(i).getUniqueId(), link, false, false, 0));
+        }
+
+        this.addAdditionalSpawnData(addEntity);
+        return addEntity;
+    }
+
+    protected void addAdditionalSpawnData(AddEntityPacket packet) {
+    }
+
+    public void despawnFrom(CloudPlayer player) {
+        if (this.stopTracking(player)) {
+            this.sendRemoval(player);
+        }
+    }
+
+    private void sendRemoval(CloudPlayer player) {
+        RemoveEntityPacket packet = new RemoveEntityPacket();
+        packet.setUniqueEntityId(this.getUniqueId());
+        player.sendPacket(packet);
+    }
+
+    protected void despawnFromAll() {
+        for (CloudPlayer player : this.viewers) {
+            this.despawnFrom(player);
+        }
+    }
+
+    public Set<CloudPlayer> getViewers() {
+        return Set.copyOf(this.viewers);
+    }
+
+    protected final boolean hasViewer(CloudPlayer player) {
+        return this.viewers.contains(player);
+    }
+
+    protected final boolean beginTracking(CloudPlayer player) {
+        return this.viewers.add(player);
+    }
+
+    protected final boolean stopTracking(CloudPlayer player) {
+        return this.viewers.remove(player);
+    }
+
+    protected final boolean sendTrackedAddPacket(CloudPlayer player) {
+        if (!this.hasViewer(player) || !player.sendPacket(this.createAddEntityPacket())) {
+            return false;
+        }
+
+        if (!this.hasViewer(player)) {
+            this.sendRemoval(player);
+            return false;
+        }
+
+        return true;
+    }
+
+    protected final void clearViewers() {
+        this.viewers.clear();
+    }
+
+    protected final void broadcastToViewers(BedrockPacket packet) {
+        if (!this.viewers.isEmpty()) {
+            CloudServer.broadcastPacket(this.viewers, packet);
         }
     }
 
     protected final void updateViewers(Set<CloudPlayer> viewers) {
+        CloudChunk currentChunk = this.chunk;
         for (CloudPlayer viewer : this.viewers) {
+            if (this.closed || this.chunk != currentChunk) {
+                return;
+            }
+
             if (!viewers.contains(viewer)) {
                 this.despawnFrom(viewer);
             }
         }
 
         for (CloudPlayer viewer : viewers) {
+            if (this.closed || this.chunk != currentChunk) {
+                return;
+            }
+
             this.spawnTo(viewer);
         }
     }
@@ -2673,14 +3051,6 @@ public abstract class CloudEntity implements Entity {
         player.sendPacket(packet);
     }
 
-    public void sendData(CloudPlayer player, EntityDataType<?>... data) {
-        SetEntityDataPacket packet = new SetEntityDataPacket();
-        packet.setRuntimeEntityId(this.getRuntimeId());
-        packet.getMetadata().putAll(this.data.snapshot(data));
-
-        player.sendPacket(packet);
-    }
-
     public void sendFlags(CloudPlayer player) {
         SetEntityDataPacket packet = new SetEntityDataPacket();
         packet.setRuntimeEntityId(this.getRuntimeId());
@@ -2698,30 +3068,6 @@ public abstract class CloudEntity implements Entity {
         packet.getMetadata().putAll(map);
 
         this.broadcastToViewers(packet);
-    }
-
-    public void close() {
-        if (!this.closed) {
-            this.closed = true;
-            if (this.vehicle != null) {
-                this.dismount(this.vehicle, false);
-            }
-
-            this.ejectPassengers();
-
-            if (this.spawned) {
-                this.server.getEventManager().fire(new EntityDespawnEvent(this));
-            }
-
-            this.despawnFromAll();
-            if (this.chunk != null) {
-                this.chunk.unregisterEntity(this);
-            }
-
-            if (this.level != null) {
-                this.level.unregisterEntity(this);
-            }
-        }
     }
 
     @Override

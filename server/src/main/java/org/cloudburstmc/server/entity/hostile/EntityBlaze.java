@@ -18,7 +18,7 @@ public class EntityBlaze extends EntityHostile implements Blaze {
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(20);
+        this.setDefaultMaxHealth(20);
 
         this.fireProof = true;
         this.data.setFlag(FIRE_IMMUNE, true);
@@ -35,7 +35,7 @@ public class EntityBlaze extends EntityHostile implements Blaze {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Blaze";
     }
 }

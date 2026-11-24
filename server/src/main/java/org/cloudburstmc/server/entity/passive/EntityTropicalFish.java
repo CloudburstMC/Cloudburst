@@ -9,10 +9,10 @@ import org.cloudburstmc.api.level.Location;
 /**
  * Created by PetteriM1
  */
-public class EntityTropicalFish extends Animal implements TropicalFish {
+public class EntityTropicalFish extends EntityWaterAnimal implements TropicalFish {
 
-    public EntityTropicalFish(EntityType<TropicalFish> type, Location location) {
-        super(type, location);
+    public EntityTropicalFish(EntityType<TropicalFish> entityType, Location location) {
+        super(entityType, location);
     }
 
     @Override
@@ -20,7 +20,7 @@ public class EntityTropicalFish extends Animal implements TropicalFish {
         return ItemStack.from(ItemTypes.TROPICAL_FISH_BUCKET);
     }
 
-    public String getName() {
+    protected String getDefaultName() {
         return "Tropical Fish";
     }
 
@@ -35,8 +35,8 @@ public class EntityTropicalFish extends Animal implements TropicalFish {
     }
 
     @Override
-    public void initEntity() {
+    protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(3);
+        this.setDefaultMaxHealth(3);
     }
 }

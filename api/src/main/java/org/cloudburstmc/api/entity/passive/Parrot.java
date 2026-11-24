@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface Parrot extends Entity {
+/**
+ * The tameable bird associated with shoulder riding.
+ */
+public interface Parrot extends Tameable {
 }

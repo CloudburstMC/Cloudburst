@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.event.player;
 
 import org.cloudburstmc.api.blockentity.EndGateway;
+import org.cloudburstmc.api.event.entity.TeleportCause;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 
@@ -20,7 +21,7 @@ public class PlayerTeleportEndGatewayEvent extends PlayerTeleportEvent {
      * @param gateway the gateway causing the teleport
      */
     public PlayerTeleportEndGatewayEvent(Player player, Location from, Location to, EndGateway gateway) {
-        super(player, from, to, PlayerTeleportCause.END_GATEWAY);
+        super(player, from, to, TeleportCause.END_GATEWAY);
         this.gateway = gateway;
     }
 

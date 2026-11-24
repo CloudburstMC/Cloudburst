@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.hostile;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface Zombie extends Entity {
+/**
+ * The base type for zombies and their variants.
+ */
+public interface Zombie extends Monster {
 }

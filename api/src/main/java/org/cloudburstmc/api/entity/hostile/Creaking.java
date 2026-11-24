@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.hostile;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface Creaking extends Entity {
+/**
+ * The Pale Garden monster associated with a creaking heart.
+ */
+public interface Creaking extends Monster {
 }

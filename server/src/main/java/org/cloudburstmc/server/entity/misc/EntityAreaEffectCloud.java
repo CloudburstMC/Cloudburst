@@ -2,21 +2,24 @@ package org.cloudburstmc.server.entity.misc;
 
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.Living;
+import org.cloudburstmc.api.entity.LivingEntity;
 import org.cloudburstmc.api.entity.RegainReason;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.AreaEffectCloud;
+import org.cloudburstmc.api.entity.misc.ArmorStand;
 import org.cloudburstmc.api.event.entity.AreaEffectCloudApplyEvent;
+import org.cloudburstmc.api.event.entity.EntityRemoveCause;
 import org.cloudburstmc.api.event.entity.PotionEffectCause;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.particle.ParticleType;
 import org.cloudburstmc.api.level.particle.ParticleTypes;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.potion.*;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.EntityLiving;
+import org.cloudburstmc.server.entity.CloudLivingEntity;
 import org.cloudburstmc.server.entity.data.CloudAreaEffectCloudData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.network.NetworkUtils;
@@ -31,6 +34,7 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMU
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.NO_AI;
 
 public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectCloud {
+
     private final Map<Long, Integer> victims = new HashMap<>();
     private int nextApply;
     private boolean particleColorSet;
@@ -268,7 +272,7 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
         this.setDurationOnUse(0);
         this.setRadiusOnUse(-0.5F);
         this.setRadiusPerTick(-0.005F);
-        this.setMaxHealth(1);
+        this.setDefaultMaxHealth(1);
         this.setHealth(1);
     }
 
@@ -279,54 +283,66 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // Every key runs before the base load below, matching the
-        // historical load order. Radius, wait time and particle color are
-        // metadata-backed, so they are read leniently from the tag and keep their current
-        // values when absent, exactly as the old null checks did. The color is applied
-        // after the potion so the potion's recalculation does not clobber it.
+        this.age = Math.max(0, tag.getInt("Age"));
+        this.lastAge = this.age;
+        this.nextApply = this.age;
+        this.victims.clear();
+
         if (tag.containsKey("PotionId")) {
             PotionType potionId = this.data().getPotionId();
             if (potionId != null) {
                 this.setPotionType(potionId);
             }
         }
+
         if (tag.containsKey("Duration")) {
             this.setDuration(this.data().getDuration());
         }
+
         if (tag.containsKey("DurationOnUse")) {
             this.setDurationOnUse(this.data().getDurationOnUse());
         }
+
         if (tag.containsKey("ReapplicationDelay")) {
             this.setReapplicationDelay(this.data().getReapplicationDelay());
         }
+
         if (tag.containsKey("Radius")) {
             this.setRadius(getFloat(tag, "Radius", this.getRadius()));
         }
+
         if (tag.containsKey("RadiusOnUse")) {
             this.setRadiusOnUse(this.data().getRadiusOnUse());
         }
+
         if (tag.containsKey("RadiusPerTick")) {
             this.setRadiusPerTick(this.data().getRadiusPerTick());
         }
+
         if (tag.containsKey("WaitTime")) {
             this.setWaitTime(getInt(tag, "WaitTime", this.getWaitTime()));
         }
+
         if (tag.containsKey("ParticleColor")) {
             this.setPotionColor(getInt(tag, "ParticleColor", this.getPotionColor()));
         }
+
         if (tag.containsKey("PotionDurationScale")) {
             this.setPotionDurationScale(getFloat(tag, "PotionDurationScale", 1.0F));
         }
+
         super.loadCustom(tag);
     }
 
     @Override
     protected void saveCustom(NbtMapBuilder tag) {
         super.saveCustom(tag);
+        if (this.age > 0) {
+            tag.putInt("Age", this.age);
+        }
         tag.putFloat("Radius", this.getRadius());
         tag.putInt("WaitTime", this.getWaitTime());
         tag.putInt("ParticleColor", this.getPotionColor());
-        // The duration scale is conditional: a scale of one is not written, as before.
         float potionDurationScale = this.potionDurationScale();
         if (potionDurationScale != 1.0F) {
             tag.putFloat("PotionDurationScale", potionDurationScale);
@@ -336,6 +352,7 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
     @Override
     protected Set<String> customKeys() {
         Set<String> keys = new HashSet<>(super.customKeys());
+        keys.add("Age");
         keys.add("Radius");
         keys.add("WaitTime");
         keys.add("ParticleColor");
@@ -344,30 +361,46 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
     }
 
     @Override
-    protected boolean applyDamage(CloudEntityDamageEvent source) {
+    protected boolean applyDamage(CloudEntityDamageEvent event) {
         return false;
     }
 
     @Override
-    public boolean onUpdate(int currentTick) {
-        if (this.closed) {
+    protected boolean tickEntity(int currentTick, int elapsedTicks) {
+        if (this.isClosed()) {
             return false;
         }
 
-        super.onUpdate(currentTick);
+        boolean needsNextTick = super.tickEntity(currentTick, elapsedTicks);
+        if (this.isClosed() || !this.isAlive()) {
+            return needsNextTick && !this.isClosed();
+        }
 
         int age = this.age;
-        float radius = getRadius();
         int waitTime = getWaitTime();
         if (age < waitTime) {
             this.lastAge = age;
+            return true;
         } else if (getDuration() != PotionEffect.INFINITE_DURATION && age - waitTime >= getDuration()) {
-            kill();
+            this.remove(EntityRemoveCause.DESPAWN);
             this.lastAge = age;
             return true;
         } else {
             int tickDiff = age - lastAge;
-            radius += getRadiusPerTick() * tickDiff;
+            this.lastAge = age;
+            float radius = this.getRadius();
+            float radiusPerTick = this.getRadiusPerTick();
+
+            if (radiusPerTick != 0) {
+                radius += radiusPerTick * tickDiff;
+                if (radius < 0.5F) {
+                    this.remove(EntityRemoveCause.DESPAWN);
+                    return true;
+                }
+                this.setRadius(radius);
+                radius = this.getRadius();
+            }
+
             if (age >= this.nextApply) {
                 this.nextApply = age + 5;
                 this.victims.entrySet().removeIf(entry -> age >= entry.getValue());
@@ -376,65 +409,57 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
                 if (applicationEffects.isEmpty()) {
                     this.victims.clear();
                 }
-                Set<Entity> collidingEntities = applicationEffects.isEmpty()
-                        ? Set.of()
-                        : level.getCollidingEntities(this, getBoundingBox());
-                if (!collidingEntities.isEmpty()) {
-                    List<Living> affectedEntities = new ArrayList<>();
-                    for (Entity collidingEntity : collidingEntities) {
-                        if (collidingEntity instanceof Living living
-                                && !this.victims.containsKey(collidingEntity.getUniqueId())
-                                && isWithinRadius(collidingEntity, radius)) {
+
+                Set<Entity> nearbyEntities = applicationEffects.isEmpty() ? Set.of() : this.level.getNearbyEntities(this, this.getBoundingBox());
+                if (!nearbyEntities.isEmpty()) {
+                    List<LivingEntity> affectedEntities = new ArrayList<>();
+                    for (Entity candidate : nearbyEntities) {
+                        if (candidate instanceof LivingEntity living
+                                && living.isAlive()
+                                && !(living instanceof ArmorStand)
+                                && !(living instanceof Player player && player.isSpectator())
+                                && !this.victims.containsKey(living.getUniqueId())
+                                && this.isWithinRadius(living, radius)) {
                             affectedEntities.add(living);
                         }
                     }
 
                     AreaEffectCloudApplyEvent event = new AreaEffectCloudApplyEvent(this, affectedEntities);
                     this.server.getEventManager().fire(event);
+                    if (!this.isAlive()) {
+                        return !this.isClosed();
+                    }
+
                     if (!event.isCancelled() && !event.getAffectedEntities().isEmpty()) {
-                        for (Living affectedEntity : event.getAffectedEntities()) {
+                        for (LivingEntity affectedEntity : new ArrayList<>(event.getAffectedEntities())) {
+                            if (!(affectedEntity instanceof CloudEntity target) || !target.isAlive() || target.getLevel() != this.getLevel()) {
+                                continue;
+                            }
+
                             this.victims.put(affectedEntity.getUniqueId(), age + this.getReapplicationDelay());
                             for (PotionEffect effect : applicationEffects) {
-                                if (effect.getType() == EffectTypes.INSTANT_HEALTH
-                                        || effect.getType() == EffectTypes.INSTANT_DAMAGE) {
-                                    boolean damage = effect.getType() == EffectTypes.INSTANT_DAMAGE;
-                                    if (affectedEntity.isUndead()) {
-                                        damage = !damage;
-                                    }
-
-                                    if (damage) {
-                                        DamageSource.Builder sourceBuilder = DamageSource.builder(DamageTypes.INDIRECT_MAGIC)
-                                                .directEntity(this);
-                                        Entity owner = this.getOwner();
-                                        if (owner != null) {
-                                            sourceBuilder.causingEntity(owner);
-                                        }
-
-                                        DamageSource source = sourceBuilder.build();
-                                        affectedEntity.damage((float) (0.5 * (double) (6 << effect.getAmplifier())), source);
-                                    } else {
-                                        affectedEntity.heal((float) (0.5 * (double) (4 << effect.getAmplifier())), RegainReason.MAGIC);
-                                    }
-
+                                if (effect.getType() == EffectTypes.INSTANT_HEALTH || effect.getType() == EffectTypes.INSTANT_DAMAGE) {
+                                    this.applyInstantEffect(affectedEntity, effect);
                                     continue;
                                 }
 
-                                ((CloudEntity) affectedEntity).addPotionEffect(effect, this, PotionEffectCause.AREA_EFFECT_CLOUD);
+                                target.addPotionEffect(effect, this, PotionEffectCause.AREA_EFFECT_CLOUD);
                             }
 
-                            if (this.getRadiusOnUse() != 0) {
-                                radius += this.getRadiusOnUse();
-                                if (radius < 0.5F) {
-                                    this.setRadius(radius);
-                                    this.kill();
+                            float radiusOnUse = this.getRadiusOnUse();
+                            if (radiusOnUse != 0) {
+                                float newRadius = this.getRadius() + radiusOnUse;
+                                if (newRadius < 0.5F) {
+                                    this.remove(EntityRemoveCause.DESPAWN);
                                     return true;
                                 }
+                                this.setRadius(newRadius);
                             }
 
                             if (this.getDurationOnUse() != 0 && this.getDuration() != PotionEffect.INFINITE_DURATION) {
                                 int duration = this.getDuration() + this.getDurationOnUse();
                                 if (duration <= 0) {
-                                    this.kill();
+                                    this.remove(EntityRemoveCause.DESPAWN);
                                     return true;
                                 }
                                 this.setDuration(duration);
@@ -445,16 +470,23 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
             }
         }
 
-        this.lastAge = age;
-
-        if (radius < 0.5F && age >= waitTime) {
-            setRadius(radius);
-            kill();
-        } else {
-            setRadius(radius);
-        }
-
         return true;
+    }
+
+    private void applyInstantEffect(LivingEntity affectedEntity, PotionEffect effect) {
+        boolean damage = (effect.getType() == EffectTypes.INSTANT_DAMAGE) != affectedEntity.isUndead();
+        int amount = (int) (Math.scalb(damage ? 3.0 : 2.0, effect.getAmplifier()) + 0.5);
+        if (damage) {
+            DamageSource.Builder sourceBuilder = DamageSource.builder(DamageTypes.INDIRECT_MAGIC).directEntity(this);
+            Entity owner = this.getOwner();
+            if (owner != null) {
+                sourceBuilder.causingEntity(owner);
+            }
+
+            affectedEntity.damage(amount, sourceBuilder.build());
+        } else {
+            affectedEntity.heal(amount, RegainReason.MAGIC);
+        }
     }
 
     private List<PotionEffect> getApplicationEffects() {
@@ -484,7 +516,7 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
 
     @Override
     public boolean canCollideWith(Entity entity) {
-        return entity instanceof EntityLiving;
+        return entity instanceof CloudLivingEntity;
     }
 
     @Override
@@ -511,5 +543,4 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
     public float getDrag() {
         return 0;
     }
-
 }

@@ -8,7 +8,7 @@ import org.cloudburstmc.api.level.Location;
 /**
  * Author: BeYkeRYkt Nukkit Project
  */
-public class EntityWolf extends Animal implements Wolf {
+public class EntityWolf extends EntityTameable implements Wolf {
 
     public EntityWolf(EntityType<Wolf> type, Location location) {
         super(type, location);
@@ -25,14 +25,14 @@ public class EntityWolf extends Animal implements Wolf {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Wolf";
     }
 
     @Override
-    public void initEntity() {
+    protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(8);
+        this.setDefaultMaxHealth(8);
     }
 
     @Override

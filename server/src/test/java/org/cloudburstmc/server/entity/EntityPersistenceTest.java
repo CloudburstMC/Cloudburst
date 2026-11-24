@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.entity;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.EntityType;
@@ -19,9 +21,9 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
-import org.cloudburstmc.server.entity.data.CloudCreatureData;
 import org.cloudburstmc.server.entity.data.CloudEntityData;
 import org.cloudburstmc.server.entity.data.CloudLivingData;
+import org.cloudburstmc.server.entity.data.CloudMobData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.nbt.ServerNbt;
@@ -33,14 +35,111 @@ import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.cloudburstmc.server.testutil.TestEntities;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class EntityPersistenceTest {
 
     private static final Identifier PLUGIN_KEY = Identifier.parse("myplugin:a");
+
+    @Test
+    void customMaximumHealthRoundTripsBeforeHealthAndDoesNotSaveHealthBoostTwice() {
+        CloudEntity pig = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        NbtMapBuilder defaults = NbtMap.builder();
+        pig.saveAdditionalData(defaults);
+        assertFalse(defaults.build().containsKey("Cloudburst.BaseMaxHealth"));
+
+        pig.loadAdditionalData(NbtMap.builder()
+                .putList("ActiveEffects", NbtType.COMPOUND, List.of(NbtMap.builder()
+                        .putByte("Id", NetworkUtils.effectToNetwork(EffectTypes.HEALTH_BOOST))
+                        .putInt("Duration", 100)
+                        .build()))
+                .build());
+        pig.setMaxHealth(40);
+        pig.setHealth(43f);
+        NbtMapBuilder saved = NbtMap.builder();
+        pig.saveAdditionalData(saved);
+        NbtMap tag = saved.build();
+        assertEquals(40, tag.getInt("Cloudburst.BaseMaxHealth"));
+
+        CloudEntity restored = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        restored.loadAdditionalData(tag);
+        assertEquals(44, restored.getMaxHealth());
+        assertEquals(43f, restored.getHealth());
+
+        restored.loadAdditionalData(NbtMap.builder().putInt("Cloudburst.BaseMaxHealth", -2).build());
+        assertEquals(10, restored.getMaxHealth());
+    }
+
+    @Test
+    void portalCooldownPersistsRemainingTicksAndOmitsZero() {
+        CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        entity.setPortalCooldown(40);
+        entity.tickPortalCooldown();
+        NbtMapBuilder saved = NbtMap.builder();
+        entity.saveAdditionalData(saved);
+
+        CloudEntity restored = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        restored.loadAdditionalData(saved.build());
+        assertEquals(39, restored.getPortalCooldown());
+        assertTrue(restored.isOnPortalCooldown());
+        assertThrows(IllegalArgumentException.class, () -> restored.setPortalCooldown(-1));
+
+        restored.loadAdditionalData(NbtMap.builder().putInt("PortalCooldown", -1).build());
+        assertEquals(0, restored.getPortalCooldown());
+        NbtMapBuilder cleared = NbtMap.builder();
+        restored.saveAdditionalData(cleared);
+        assertFalse(cleared.build().containsKey("PortalCooldown"));
+    }
+
+    @Test
+    void malformedSavedHealthDoesNotReplaceCurrentHealth() {
+        CloudLivingEntity entity = (CloudLivingEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        entity.setHealth(5f);
+
+        for (float invalidHealth : new float[]{-1f, Float.NaN, Float.POSITIVE_INFINITY}) {
+            entity.loadAdditionalData(NbtMap.builder().putFloat("Health", invalidHealth).build());
+            assertEquals(5f, entity.getHealth());
+        }
+    }
+
+    @Test
+    void persistedCustomNameTakesPrecedenceOverEntityTypeName() {
+        CloudEntity creeper = (CloudEntity) PersistenceFixtures.entity(EntityTypes.CREEPER);
+        assertEquals("Creeper", creeper.getName());
+
+        creeper.customName(Component.text("Sparky"));
+        NbtMapBuilder saved = NbtMap.builder();
+        creeper.saveAdditionalData(saved);
+
+        CloudEntity restored = (CloudEntity) PersistenceFixtures.entity(EntityTypes.CREEPER);
+        restored.loadAdditionalData(saved.build());
+        assertEquals("Sparky", restored.getName());
+    }
+
+    @Test
+    void styledCustomNameSurvivesSaveAndLoad() {
+        CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.CREEPER);
+        Component name = Component.text("Sparky", NamedTextColor.GOLD)
+                .append(Component.text(" II", NamedTextColor.AQUA));
+        entity.customName(name);
+
+        NbtMapBuilder saved = NbtMap.builder();
+        entity.saveAdditionalData(saved);
+        NbtMap tag = saved.build();
+        assertTrue(tag.containsKey("CustomName", NbtType.COMPOUND));
+
+        CloudEntity restored = (CloudEntity) PersistenceFixtures.entity(EntityTypes.CREEPER);
+        restored.loadAdditionalData(tag);
+
+        assertEquals(name, restored.customName());
+        assertEquals(name, restored.displayName());
+        assertEquals("Sparky II", restored.getName());
+    }
 
     @Test
     void entityUnknownKeysSurvive() {
@@ -60,7 +159,7 @@ class EntityPersistenceTest {
     }
 
     @Test
-    void clearedNameTagStaysCleared() {
+    void clearingCustomNameDoesNotChangeVisibility() {
         CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
         entity.loadAdditionalData(NbtMap.builder()
                 .putString("CustomName", "A")
@@ -68,31 +167,31 @@ class EntityPersistenceTest {
                 .putBoolean("CustomNameAlwaysVisible", true)
                 .build());
 
-        assertEquals("A", entity.getNameTag());
+        assertEquals(Component.text("A"), entity.customName());
 
-        entity.setNameTag("");
+        entity.customName(null);
 
         NbtMapBuilder builder = NbtMap.builder();
         entity.saveAdditionalData(builder);
         NbtMap saved = builder.build();
 
         assertFalse(saved.containsKey("CustomName"));
-        assertFalse(saved.containsKey("CustomNameVisible"));
-        assertFalse(saved.containsKey("CustomNameAlwaysVisible"));
+        assertTrue(saved.getBoolean("CustomNameVisible"));
+        assertTrue(saved.getBoolean("CustomNameAlwaysVisible"));
     }
 
     @Test
-    void absentCustomNameKeepsExistingNameTag() {
+    void absentCustomNameKeepsExistingName() {
         CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
-        entity.setNameTag("Steve");
-        entity.setNameTagVisible(true);
-        entity.setNameTagAlwaysVisible(true);
+        entity.customName(Component.text("Steve"));
+        entity.setCustomNameVisible(true);
+        entity.setCustomNameAlwaysVisible(true);
 
         entity.loadAdditionalData(NbtMap.EMPTY);
 
-        assertEquals("Steve", entity.getNameTag());
-        assertTrue(entity.isNameTagVisible());
-        assertTrue(entity.isNameTagAlwaysVisible());
+        assertEquals(Component.text("Steve"), entity.customName());
+        assertTrue(entity.isCustomNameVisible());
+        assertTrue(entity.isCustomNameAlwaysVisible());
     }
 
     @Test
@@ -170,7 +269,7 @@ class EntityPersistenceTest {
     void livingHealthRoundTripsAsFloat() {
         CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
         entity.loadAdditionalData(NbtMap.EMPTY);
-        ((EntityLiving) entity).setHealth(5f);
+        ((CloudLivingEntity) entity).setHealth(5f);
 
         NbtMapBuilder builder = NbtMap.builder();
         entity.saveAdditionalData(builder);
@@ -182,14 +281,14 @@ class EntityPersistenceTest {
 
         CloudEntity reloaded = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
         reloaded.loadAdditionalData(saved);
-        assertEquals(5f, ((EntityLiving) reloaded).getHealth());
+        assertEquals(5f, ((CloudLivingEntity) reloaded).getHealth());
     }
 
     @Test
     void legacyCreatureRegistrationRoundTripsWithCreatureData() {
         CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(TestEntities.LEGACY_CREATURE_TYPE);
 
-        assertEquals(org.cloudburstmc.server.entity.data.CloudCreatureData.class, entity.data().getClass());
+        assertEquals(org.cloudburstmc.server.entity.data.CloudMobData.class, entity.data().getClass());
 
         entity.loadAdditionalData(NbtMap.builder()
                 .putList("Pos", NbtType.FLOAT, List.of(1f, 2f, 3f))
@@ -270,12 +369,27 @@ class EntityPersistenceTest {
 
 
     @Test
+    void loadingInvalidScalePreservesCurrentValue() {
+        CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        entity.setScale(2f);
+
+        entity.loadAdditionalData(NbtMap.builder().putFloat("Scale", Float.NaN).build());
+        assertEquals(2f, entity.getScale());
+
+        entity.loadAdditionalData(NbtMap.builder().putFloat("Scale", 0f).build());
+        assertEquals(2f, entity.getScale());
+
+        entity.loadAdditionalData(NbtMap.builder().putFloat("Scale", 0.5f).build());
+        assertEquals(0.5f, entity.getScale());
+    }
+
+    @Test
     void entityDataInstanceIsStable() {
         CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
         CloudEntityData before = entity.data();
 
         entity.loadAdditionalData(NbtMap.builder()
-                .putShort("Fire", (short) 5)
+                .putShort("Fire", (short) 100)
                 .putList("Tags", NbtType.STRING, List.of("one"))
                 .build());
 
@@ -346,28 +460,65 @@ class EntityPersistenceTest {
     void fireRoundTripsAsLiveCountdown() {
         CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
         entity.loadAdditionalData(NbtMap.builder().putShort("Fire", (short) 5).build());
-        assertEquals(100, entity.getFireTicks());
+        assertEquals(5, entity.getFireTicks());
 
         NbtMapBuilder builder = NbtMap.builder();
         entity.saveAdditionalData(builder);
         NbtMap saved = builder.build();
 
         assertTrue(saved.get("Fire") instanceof Short, "Fire must stay a short");
-        assertEquals((short) 100, saved.getShort("Fire"));
+        assertEquals((short) 5, saved.getShort("Fire"));
+
+        CloudEntity restored = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        restored.loadAdditionalData(saved);
+        assertEquals(5, restored.getFireTicks());
     }
 
     @Test
-    void creatureArmorLivesInData() {
-        EntityCreature creature = (EntityCreature) PersistenceFixtures.entity(EntityTypes.PIG);
-        CloudCreatureData data = creature.data();
+    void remainingAbsorptionSurvivesReload() {
+        CloudLivingEntity entity = (CloudLivingEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        entity.setAbsorption(2.5f);
 
-        assertSame(data.getArmor(), creature.armor.getContainer(),
+        NbtMap saved = save(entity);
+        assertEquals(2.5f, saved.getFloat("AbsorptionAmount"));
+
+        CloudLivingEntity restored = (CloudLivingEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        restored.loadAdditionalData(saved);
+        assertEquals(2.5f, restored.getAbsorption());
+    }
+
+    @Test
+    void freezeLockSurvivesReloadAndUnlockIsOmitted() {
+        CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        entity.setFreezeTicks(40);
+        entity.lockFreezeTicks(true);
+
+        CloudEntity restored = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        restored.loadAdditionalData(save(entity));
+        assertTrue(restored.isFreezeTickingLocked());
+        assertEquals(40, restored.getFreezeTicks());
+
+        restored.lockFreezeTicks(false);
+        NbtMap unlocked = save(restored);
+        assertFalse(unlocked.containsKey("Cloudburst.FreezeLock"));
+
+        CloudEntity reloaded = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        reloaded.loadAdditionalData(unlocked);
+        assertFalse(reloaded.isFreezeTickingLocked());
+    }
+
+    @Test
+    void mobArmorLivesInData() {
+        CloudMob mob = (CloudMob) PersistenceFixtures.entity(EntityTypes.PIG);
+        CloudMobData data = mob.data();
+
+        assertSame(data.getArmor(), mob.armor.getContainer(),
                 "the armor DTO must be the live armor container");
-        assertSame(data.getOffhand(), creature.offhand.getContainer(),
+        assertSame(data.getOffhand(), mob.offhand.getContainer(),
                 "the offhand DTO must be the live offhand container");
 
         ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 2);
-        creature.loadAdditionalData(NbtMap.builder()
+        mob.loadAdditionalData(NbtMap.builder()
                 .putList("Armor", NbtType.COMPOUND, List.of(
                         ItemStackNbtCodec.serializeItem(diamond, 0),
                         ItemStackNbtCodec.serializeItem(ItemStack.EMPTY, 1),
@@ -377,14 +528,14 @@ class EntityPersistenceTest {
                         ItemStackNbtCodec.serializeItem(ItemStack.EMPTY, 0)))
                 .build());
 
-        assertEquals(diamond, creature.getArmor().getHelmet());
-        assertSame(data.getArmor(), creature.armor.getContainer(),
+        assertEquals(diamond, mob.getArmor().getHelmet());
+        assertSame(data.getArmor(), mob.armor.getContainer(),
                 "load must fill the live container in place");
 
-        creature.getArmor().setBoots(diamond);
+        mob.getArmor().setBoots(diamond);
 
         NbtMapBuilder builder = NbtMap.builder();
-        creature.saveAdditionalData(builder);
+        mob.saveAdditionalData(builder);
         NbtMap saved = builder.build();
 
         List<NbtMap> armor = saved.getList("Armor", NbtType.COMPOUND);
@@ -501,17 +652,17 @@ class EntityPersistenceTest {
                 .putInt("CustomNameVisible", 1)
                 .putDouble("Scale", 2.0)
                 .putDouble("FallDistance", 3.0)
-                .putInt("Fire", 5)
+                .putInt("Fire", 100)
                 .putList("Pos", NbtType.DOUBLE, List.of(1.0, 2.0, 3.0))
                 .putList("Motion", NbtType.DOUBLE, List.of(0.0, 1.0, 0.0))
                 .putList("Rotation", NbtType.DOUBLE, List.of(90.0, 0.0))
                 .build());
 
-        assertEquals(7f, ((EntityLiving) entity).getHealth());
+        assertEquals(7f, ((CloudLivingEntity) entity).getHealth());
         assertEquals(300, entity.getAirTicks());
-        assertTrue(entity.isNameTagVisible());
+        assertTrue(entity.isCustomNameVisible());
         assertEquals(2f, entity.getScale());
-        assertEquals(3f, entity.fallDistance);
+        assertEquals(3f, entity.getFallDistance());
         assertEquals(100, entity.getFireTicks());
         assertEquals(Vector3f.from(1f, 2f, 3f), entity.getPosition());
         assertEquals(Vector3f.from(0f, 1f, 0f), entity.getMotion());
@@ -570,10 +721,10 @@ class EntityPersistenceTest {
     @Test
     void activeEffectsAppliedOncePerLoad() {
         byte absorptionId = NetworkUtils.effectToNetwork(EffectTypes.ABSORPTION);
-        TestEntities.CountingCreatureEntity creature =
-                PersistenceFixtures.entity(TestEntities.COUNTING_CREATURE_TYPE);
-        creature.absorptionApplications = 0;
-        creature.loadAdditionalData(NbtMap.builder()
+        TestEntities.CountingMob mob =
+                PersistenceFixtures.entity(TestEntities.COUNTING_MOB_TYPE);
+        mob.absorptionApplications = 0;
+        mob.loadAdditionalData(NbtMap.builder()
                 .putList("ActiveEffects", NbtType.COMPOUND, List.of(NbtMap.builder()
                         .putByte("Id", absorptionId)
                         .putByte("Amplifier", (byte) 0)
@@ -583,21 +734,21 @@ class EntityPersistenceTest {
                         .build()))
                 .build());
 
-        assertEquals(1, creature.absorptionApplications,
+        assertEquals(1, mob.absorptionApplications,
                 "each active effect must apply exactly once per load");
-        assertNotNull(creature.getPotionEffect(EffectTypes.ABSORPTION));
+        assertNotNull(mob.getPotionEffect(EffectTypes.ABSORPTION));
     }
 
     @Test
     void fireLoadIgnoresFireProtectionArmor() {
-        EntityCreature creature = (EntityCreature) PersistenceFixtures.entity(EntityTypes.PIG);
+        CloudMob mob = (CloudMob) PersistenceFixtures.entity(EntityTypes.PIG);
         ItemStack boots = ItemStack.builder().itemType(ItemTypes.DIAMOND_BOOTS)
                 .setData(ItemDataComponents.ENCHANTMENTS,
                         Map.of(EnchantmentTypes.FIRE_PROTECTION,
                                 new Enchantment(EnchantmentTypes.FIRE_PROTECTION, 4)))
                 .build();
-        creature.loadAdditionalData(NbtMap.builder()
-                .putShort("Fire", (short) 5)
+        mob.loadAdditionalData(NbtMap.builder()
+                .putShort("Fire", (short) 100)
                 .putList("Armor", NbtType.COMPOUND, List.of(
                         ItemStackNbtCodec.serializeItem(ItemStack.EMPTY, 0),
                         ItemStackNbtCodec.serializeItem(ItemStack.EMPTY, 1),
@@ -605,52 +756,45 @@ class EntityPersistenceTest {
                         ItemStackNbtCodec.serializeItem(boots, 3)))
                 .build());
 
-        assertEquals(100, creature.getFireTicks());
-        assertEquals((short) 100, save(creature).getShort("Fire"));
+        assertEquals(100, mob.getFireTicks());
+        assertEquals((short) 100, save(mob).getShort("Fire"));
     }
 
     @Test
     void slotlessArmorListLoadsPositionally() {
-        EntityCreature creature = (EntityCreature) PersistenceFixtures.entity(EntityTypes.PIG);
+        CloudMob mob = (CloudMob) PersistenceFixtures.entity(EntityTypes.PIG);
         ItemStack iron = ItemStack.from(ItemTypes.IRON_INGOT, 1);
         ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 2);
-        creature.getArmor().setBoots(diamond);
+        mob.getArmor().setBoots(diamond);
 
         NbtMap ironNoSlot = withoutSlot(ItemStackNbtCodec.serializeItem(iron, 3));
         NbtMap goldNoSlot = withoutSlot(ItemStackNbtCodec.serializeItem(diamond, 0));
-        creature.loadAdditionalData(NbtMap.builder()
+        mob.loadAdditionalData(NbtMap.builder()
                 .putList("Armor", NbtType.COMPOUND, List.of(ironNoSlot, goldNoSlot))
                 .putList("Offhand", NbtType.COMPOUND,
                         List.of(withoutSlot(ItemStackNbtCodec.serializeItem(diamond, 0))))
                 .build());
 
-        assertEquals(iron, creature.getArmor().getItem(0));
-        assertEquals(diamond, creature.getArmor().getItem(1));
-        assertEquals(diamond, creature.getArmor().getItem(3));
-        assertEquals(diamond, creature.getOffhand().getOffhandItem());
+        assertEquals(iron, mob.getArmor().getItem(0));
+        assertEquals(diamond, mob.getArmor().getItem(1));
+        assertEquals(diamond, mob.getArmor().getItem(3));
+        assertEquals(diamond, mob.getOffhand().getOffhandItem());
     }
 
     @Test
     void cloudEntityKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(CloudEntity.class, CloudEntityData.class);
-        Set<String> fields = new HashSet<>();
-        for (Field field : CloudEntity.class.getDeclaredFields()) {
-            fields.add(field.getName());
-        }
-        for (String removed : Set.of("freezeTicks", "scale")) {
-            assertFalse(fields.contains(removed),
-                    "CloudEntity keeps " + removed + "; state must live in CloudEntityData only");
-        }
+        assertThrows(NoSuchFieldException.class, () -> CloudEntity.class.getDeclaredField("freezeTicks"));
     }
 
     @Test
     void livingEntityKeepsNoDuplicateState() {
-        DtoStateChecks.assertEntityKeepsNoDuplicateState(EntityLiving.class, CloudLivingData.class);
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(CloudLivingEntity.class, CloudLivingData.class);
     }
 
     @Test
-    void creatureKeepsNoDuplicateState() {
-        DtoStateChecks.assertEntityKeepsNoDuplicateState(EntityCreature.class, CloudCreatureData.class,
+    void mobKeepsNoDuplicateState() {
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(CloudMob.class, CloudMobData.class,
                 java.util.Map.of(
                         "armor", "an armor view over the live container in data().getArmor()",
                         "offhand", "an offhand view over the live container in data().getOffhand()"));

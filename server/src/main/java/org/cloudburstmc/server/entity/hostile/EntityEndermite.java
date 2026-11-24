@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.entity.hostile;
 
-import org.cloudburstmc.api.entity.Arthropod;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.hostile.Endermite;
 import org.cloudburstmc.api.level.Location;
@@ -8,7 +7,7 @@ import org.cloudburstmc.api.level.Location;
 /**
  * @author Box.
  */
-public class EntityEndermite extends EntityHostile implements Endermite, Arthropod {
+public class EntityEndermite extends EntityHostile implements Endermite {
 
     public EntityEndermite(EntityType<Endermite> type, Location location) {
         super(type, location);
@@ -17,7 +16,7 @@ public class EntityEndermite extends EntityHostile implements Endermite, Arthrop
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(8);
+        this.setDefaultMaxHealth(8);
     }
 
     @Override
@@ -31,7 +30,7 @@ public class EntityEndermite extends EntityHostile implements Endermite, Arthrop
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Endermite";
     }
 }

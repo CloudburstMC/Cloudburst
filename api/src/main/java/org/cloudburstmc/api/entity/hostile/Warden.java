@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.hostile;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface Warden extends Entity {
+/**
+ * The Deep Dark monster associated with sculk shriekers.
+ */
+public interface Warden extends Monster {
 }

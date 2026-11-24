@@ -2,7 +2,7 @@ package org.cloudburstmc.server.item.component;
 
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.entity.EntityTypes;
-import org.cloudburstmc.api.entity.misc.FireworksRocket;
+import org.cloudburstmc.api.entity.projectile.FireworkRocket;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.component.UseHandler;
@@ -11,7 +11,7 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.server.entity.misc.EntityFireworksRocket;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
@@ -82,19 +82,16 @@ public class FireworkRocketItemHandlers {
 
         CloudLevel level = player.getLevel();
         Location location = Location.from(position, level);
-        FireworksRocket entity = CloudEntityRegistry.get().newEntity(EntityTypes.FIREWORKS_ROCKET, location);
-        if (!(entity instanceof EntityFireworksRocket rocket)) {
-            throw new IllegalStateException("Fireworks rocket registry returned " + entity.getClass().getName());
-        }
-
+        FireworkRocket rocket = CloudEntityRegistry.get().newEntity(EntityTypes.FIREWORK_ROCKET, location);
         rocket.setFireworkData(item.get(ItemDataComponents.FIREWORK_DATA));
         rocket.setOwner(player);
         if (boostPlayer) {
             rocket.setBoostedPlayer(player);
         }
 
-        rocket.spawnToAll();
-        rocket.spawnTo(player);
+        if (rocket.spawn()) {
+            ((CloudEntity) rocket).spawnTo(player);
+        }
     }
 
     private static ItemStack consume(ItemStack item, CloudPlayer player) {

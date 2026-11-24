@@ -2,24 +2,29 @@ package org.cloudburstmc.server.entity.projectile;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockComponents;
-import org.cloudburstmc.api.entity.*;
+import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.EntityComponents;
+import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageType;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.EnderCrystal;
 import org.cloudburstmc.api.entity.misc.Painting;
+import org.cloudburstmc.api.entity.projectile.Projectile;
+import org.cloudburstmc.api.entity.projectile.ProjectileSource;
+import org.cloudburstmc.api.entity.vehicle.Vehicle;
 import org.cloudburstmc.api.event.entity.EntityCombustByEntityEvent;
+import org.cloudburstmc.api.event.entity.EntityRemoveCause;
 import org.cloudburstmc.api.event.entity.ProjectileHitEvent;
 import org.cloudburstmc.api.level.BlockShapeMode;
 import org.cloudburstmc.api.level.FluidCollisionMode;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.RayTraceContext;
 import org.cloudburstmc.api.util.*;
-import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.EntityLiving;
+import org.cloudburstmc.server.entity.CloudLivingEntity;
 import org.cloudburstmc.server.entity.data.CloudProjectileData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -28,8 +33,9 @@ import org.cloudburstmc.server.registry.CloudEntityRegistry;
 public abstract class EntityProjectile extends CloudEntity implements Projectile {
 
     protected boolean hadCollision;
+    private boolean blockImpact;
     private boolean leftShooter;
-    private @Nullable ProjectileSource shooter;
+    private @Nullable ProjectileSource nonEntityShooter;
 
     private final CloudProjectileData persistenceState;
 
@@ -54,19 +60,23 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
     @Override
     public @Nullable ProjectileSource getShooter() {
         Entity owner = this.getOwner();
-        return owner instanceof ProjectileSource source ? source : this.shooter;
+        return owner instanceof ProjectileSource source ? source : this.nonEntityShooter;
     }
 
     @Override
     public void setShooter(@Nullable ProjectileSource shooter) {
-        this.setOwner(shooter instanceof Entity entity ? entity : null);
-        this.shooter = shooter;
+        if (shooter instanceof Entity entity) {
+            this.setOwner(entity);
+        } else {
+            this.setOwner(null);
+            this.nonEntityShooter = shooter;
+        }
     }
 
     @Override
     public void setOwner(@Nullable Entity owner) {
         super.setOwner(owner);
-        this.shooter = owner instanceof ProjectileSource source ? source : null;
+        this.nonEntityShooter = null;
         this.leftShooter = false;
     }
 
@@ -77,9 +87,6 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // The damage runs before the base load below, matching the
-        // historical load order. The setter re-runs to keep its validation,
-        // as the previous load did; an absent key keeps the current value.
         if (tag.containsKey("damage")) {
             this.setDamage(this.data().getDamage());
         }
@@ -91,7 +98,8 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
     }
 
     public int getResultDamage() {
-        return GenericMath.ceil(this.motion.length() * getDamage());
+        double damage = (double) this.motion.length() * this.getDamage();
+        return (int) Math.ceil(Math.clamp(damage, 0.0, Integer.MAX_VALUE));
     }
 
     public void setDamage(float damage) {
@@ -107,24 +115,25 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
     }
 
     protected boolean canHitEntity(Entity entity) {
+        Entity owner = this.getOwner();
         return entity != null && entity.isAlive()
                 && (!(entity instanceof CloudPlayer player) || !player.isSpectator())
-                && (entity != this.getOwner() || this.leftShooter)
+                && (this.leftShooter || owner == null || rootVehicle(entity) != rootVehicle(owner))
                 && this.canCollideWith(entity);
     }
 
-    protected boolean applyDamage(CloudEntityDamageEvent source) {
-        return source.getDamageType() == DamageTypes.OUT_OF_WORLD && super.applyDamage(source);
+    protected boolean applyDamage(CloudEntityDamageEvent event) {
+        return event.getDamageType() == DamageTypes.OUT_OF_WORLD && super.applyDamage(event);
     }
 
     protected void onCollideWithEntity(Entity entity) {
         this.damageEntity(entity);
-        this.close();
+        this.remove(EntityRemoveCause.HIT);
     }
 
     protected boolean damageEntity(Entity entity) {
         float damage = this.getResultDamage();
-        if (entity.damage(damage, this.createProjectileDamageSource())) {
+        if (CloudEntity.applyDamage(entity, damage, this.createProjectileDamageSource())) {
             this.hadCollision = true;
             if (this.fireTicks > 0) {
                 EntityCombustByEntityEvent event = new EntityCombustByEntityEvent(this, entity, 5);
@@ -162,13 +171,14 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
         super.initEntity();
 
         this.data().setDamage(this.getBaseDamage());
-        this.setMaxHealth(1);
+        this.setDefaultMaxHealth(1);
         this.setHealth(1);
     }
 
     @Override
     public boolean canCollideWith(Entity entity) {
-        return !this.onGround && (entity instanceof EntityLiving || entity instanceof EnderCrystal || entity instanceof Painting);
+        return !this.isOnGround() && (entity instanceof CloudLivingEntity || entity instanceof EnderCrystal
+                || entity instanceof Painting || entity instanceof Vehicle);
     }
 
     @Override
@@ -177,35 +187,36 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
     }
 
     @Override
-    public boolean onUpdate(int currentTick) {
-        if (this.closed) {
+    protected boolean tickEntity(int currentTick, int elapsedTicks) {
+        if (this.isClosed()) {
             return false;
         }
 
-        int tickDiff = currentTick - this.lastUpdate;
-        if (tickDiff <= 0 && !this.justCreated) {
-            return true;
-        }
-
-        this.lastUpdate = currentTick;
-        boolean hasUpdate = this.entityBaseTick(tickDiff);
+        boolean hasUpdate = this.entityBaseTick(elapsedTicks);
 
         if (this.isAlive()) {
             Vector3f nextMotion = this.motion.mul(this.isInsideOfWater() ? this.getWaterInertia() : 1 - this.getDrag())
                     .sub(0, this.getGravity(), 0);
-            Vector3f moveVector = this.position.add(nextMotion);
-            RayTraceContext trace = new RayTraceContext(this.position, moveVector, BlockShapeMode.COLLIDER,
+            Vector3f nextPosition = this.position.add(nextMotion);
+            RayTraceContext trace = new RayTraceContext(this.position, nextPosition, BlockShapeMode.COLLIDER,
                     FluidCollisionMode.NONE, CollisionContext.of(this));
 
             float hitMargin = Math.clamp((this.age - 2) / 20.0f, 0.0f, 0.3f);
             HitResult hit = this.traceMovement(trace, hitMargin);
             if (hit instanceof EntityHitResult entityHit) {
                 ProjectileHitEvent event = new ProjectileHitEvent(this, entityHit);
-                this.server.getEventManager().fire(event);
+                this.dispatchHitEvent(event);
+                if (this.isClosed()) {
+                    return true;
+                }
+
                 if (!event.isCancelled()) {
                     this.motion = nextMotion;
                     this.setPosition(entityHit.position());
                     this.onCollideWithEntity(entityHit.entity());
+                    if (!this.isClosed()) {
+                        this.afterHit();
+                    }
                     this.flushEntityData();
                     return true;
                 }
@@ -215,30 +226,20 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
 
             if (hit instanceof BlockHitResult blockHit) {
                 ProjectileHitEvent event = new ProjectileHitEvent(this, blockHit);
-                this.server.getEventManager().fire(event);
-                if (!event.isCancelled()) {
-                    this.motion = nextMotion;
-                    this.setPosition(blockHit.position());
-                    this.isCollided = true;
-                    this.hadCollision = true;
-                    this.onBlockCollision(blockHit);
-                    blockHit.block().requireComponent(BlockComponents.ON_PROJECTILE_HIT).execute(blockHit, this);
-                    this.motion = Vector3f.ZERO;
-                    this.updateMovement();
-                    this.flushEntityData();
-                    return true;
-                }
+                this.dispatchHitEvent(event);
+                this.handleBlockImpact(blockHit, nextMotion, !event.isCancelled());
+                return true;
             }
 
-            if (hit instanceof MissHitResult(Vector3f position1, MissReason reason) && reason == MissReason.UNLOADED) {
-                this.setPosition(position1);
+            if (hit instanceof MissHitResult(Vector3f stopPosition, MissReason reason) && reason == MissReason.UNLOADED) {
+                this.setPosition(stopPosition);
                 this.updateMovement();
                 this.flushEntityData();
                 return hasUpdate;
             }
 
             this.motion = nextMotion;
-            this.setPosition(moveVector);
+            this.setPosition(nextPosition);
             if (this.motion.lengthSquared() > 0.0000000001f) {
                 this.orientToMotion(this.motion);
                 hasUpdate = true;
@@ -251,16 +252,60 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
         return hasUpdate;
     }
 
-    protected void onBlockCollision(BlockHitResult hit) {
-    }
-
-    protected final HitResult traceMovement(RayTraceContext trace, float hitMargin) {
+    protected HitResult traceMovement(RayTraceContext trace, float hitMargin) {
         this.updateLeftShooter();
         return this.level.rayTrace(trace, hitMargin, this::canHitEntity);
     }
 
+    protected void dispatchHitEvent(ProjectileHitEvent event) {
+        this.server.getEventManager().fire(event);
+    }
+
+    protected final void notifyHitBlock(BlockHitResult hit) {
+        hit.block().requireComponent(BlockComponents.ON_PROJECTILE_HIT).execute(hit, this);
+    }
+
+    protected void onBlockCollision(BlockHitResult hit) {
+    }
+
+    protected void afterHit() {
+    }
+
+    protected final boolean hasBlockImpact() {
+        return this.blockImpact;
+    }
+
+    protected final void clearBlockImpact() {
+        this.blockImpact = false;
+    }
+
     protected float getWaterInertia() {
         return 0.8f;
+    }
+
+    private void handleBlockImpact(BlockHitResult hit, Vector3f impactMotion, boolean notifyBlock) {
+        if (this.isClosed()) {
+            return;
+        }
+
+        this.motion = impactMotion;
+        this.setPosition(hit.position());
+        this.blockImpact = true;
+        this.hadCollision = true;
+        this.onBlockCollision(hit);
+        if (notifyBlock) {
+            this.notifyHitBlock(hit);
+        }
+
+        if (!this.isClosed()) {
+            this.afterHit();
+        }
+
+        if (!this.isClosed()) {
+            this.motion = Vector3f.ZERO;
+            this.updateMovement();
+            this.flushEntityData();
+        }
     }
 
     private void orientToMotion(Vector3f motion) {
@@ -276,18 +321,9 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
 
         Entity shooter = this.getOwner();
         BoundingBox clearanceBox = this.getBoundingBox().expandTowards(this.motion).inflate(1, 1, 1);
-        if (shooter == null || !intersectsVehicle(shooter, clearanceBox)) {
+        if (shooter == null || !intersectsEntityTree(rootVehicle(shooter), clearanceBox)) {
             this.leftShooter = true;
         }
-    }
-
-    private static boolean intersectsVehicle(Entity entity, BoundingBox box) {
-        Entity root = entity;
-        while (root.getVehicle() != null) {
-            root = root.getVehicle();
-        }
-
-        return intersectsEntityTree(root, box);
     }
 
     private static boolean intersectsEntityTree(Entity entity, BoundingBox box) {

@@ -1,9 +1,7 @@
 package org.cloudburstmc.api.entity.projectile;
 
-import org.cloudburstmc.api.entity.Projectile;
-
 /**
- * An egg thrown by an entity.
+ * A thrown egg that may hatch on impact.
  */
 public interface Egg extends Projectile {
 }

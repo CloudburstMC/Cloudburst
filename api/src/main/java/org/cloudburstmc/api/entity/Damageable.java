@@ -1,9 +1,7 @@
 package org.cloudburstmc.api.entity;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 
@@ -12,13 +10,13 @@ import static java.util.Objects.requireNonNull;
 /**
  * Represents an entity with health that can take damage.
  */
-public interface Damageable {
+public interface Damageable extends Entity {
 
     /**
      * Applies generic damage to this entity.
      *
      * @param amount the finite, non-negative damage amount
-     * @return whether the hit was accepted, even if reductions prevented health loss
+     * @return the result of {@link #damage(float, DamageSource)}
      * @throws IllegalArgumentException if the amount is negative or not finite
      */
     default boolean damage(float amount) {
@@ -30,7 +28,7 @@ public interface Damageable {
      *
      * @param amount the finite, non-negative damage amount
      * @param source the entity responsible for the damage
-     * @return whether the hit was accepted, even if reductions prevented health loss
+     * @return the result of {@link #damage(float, DamageSource)}
      * @throws IllegalArgumentException if the amount is negative or not finite
      */
     default boolean damage(float amount, Entity source) {
@@ -38,18 +36,20 @@ public interface Damageable {
         DamageSource damageSource = DamageSource.builder(attacker instanceof Player ? DamageTypes.PLAYER_ATTACK : DamageTypes.MOB_ATTACK)
                 .directEntity(attacker)
                 .causingEntity(attacker)
-                .weaponItem(attacker instanceof Player player ? player.getInventory().getSelectedItem() : ItemStack.EMPTY)
+                .weaponItem(attacker instanceof HumanEntity human ? human.getMainHandItem() : ItemStack.EMPTY)
                 .build();
         return this.damage(amount, damageSource);
     }
 
     /**
      * Applies damage from the supplied source.
-     * Fully blocked hits on living entities return {@code false}, even when they trigger blocking effects.
+     * For living entities, a hit with no damage remaining after item blocking,
+     * source adjustments, and the hurt cooldown returns {@code false}.
+     * A rejected hit may still trigger blocking effects.
      *
      * @param amount the finite, non-negative damage amount
      * @param source the damage source
-     * @return whether the hit was accepted, even if reductions prevented health loss
+     * @return whether the hit was accepted, even if armor, effects, or absorption prevented health loss
      * @throws IllegalArgumentException if the amount is negative or not finite
      */
     boolean damage(float amount, DamageSource source);
@@ -98,30 +98,13 @@ public interface Damageable {
     int getMaxHealth();
 
     /**
-     * Sets the base maximum health, before health-boost effects.
+     * Sets the persistent base maximum health, before health-boost effects.
      * Reducing the effective maximum also caps current health. Increasing it does not heal.
      *
-     * @param maxHealth the positive base maximum health
+     * @param baseMaxHealth the positive base maximum health
      * @throws IllegalArgumentException if the maximum is not positive
      */
-    void setMaxHealth(int maxHealth);
-
-    /**
-     * Returns whether this entity has health remaining.
-     *
-     * @return whether the entity is alive
-     */
-    default boolean isAlive() {
-        return this.getHealth() > 0;
-    }
-
-    /**
-     * Returns the last damage event applied to this entity.
-     *
-     * @return the last damage event, or {@code null}
-     */
-    @Nullable
-    EntityDamageEvent getLastDamageCause();
+    void setMaxHealth(int baseMaxHealth);
 
     /**
      * Returns the current absorption health.

@@ -13,7 +13,7 @@ public class EntityRavager extends EntityHostile implements Ravager {
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(100);
+        this.setDefaultMaxHealth(100);
     }
 
     @Override
@@ -27,7 +27,7 @@ public class EntityRavager extends EntityHostile implements Ravager {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Ravager";
     }
 }

@@ -1,6 +1,8 @@
 package org.cloudburstmc.server.level.provider.migration;
 
 import lombok.experimental.UtilityClass;
+import org.cloudburstmc.api.entity.EntityTypes;
+import org.cloudburstmc.api.entity.passive.Tameable;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector2i;
 import org.cloudburstmc.nbt.NbtMap;
@@ -33,13 +35,7 @@ public class ImportedEntityData {
                 throw new IllegalArgumentException("Invalid imported entity position or rotation: " + tag);
             }
 
-            String id = tag.getString("identifier", tag.getString("id"));
-            Identifier identifier = id.contains(":") ? Identifier.parse(id) : CloudEntityRegistry.get().getIdentifier(id);
-            if (identifier == null) {
-                throw new IllegalArgumentException("Unmapped imported entity: " + id);
-            }
-
-            return tag.toBuilder().putString("identifier", identifier.toString()).build();
+            return normalizeEntityKeys(tag);
         }).toList();
     }
 
@@ -76,6 +72,31 @@ public class ImportedEntityData {
 
             validateBlockEntityPosition(builder, tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
         }).toList();
+    }
+
+    private static NbtMap normalizeEntityKeys(NbtMap tag) {
+        CloudEntityRegistry registry = CloudEntityRegistry.get();
+        String id = tag.getString("identifier", tag.getString("id"));
+        Identifier identifier = id.contains(":") ? Identifier.parse(id) : registry.getIdentifier(id);
+        if (identifier == null) {
+            throw new IllegalArgumentException("Unmapped imported entity: " + id);
+        }
+
+        NbtMapBuilder normalized = tag.toBuilder().putString("identifier", identifier.toString());
+        normalized.remove("id");
+        if (normalized.remove("NameTag") instanceof String name && !name.isEmpty() && !tag.containsKey("CustomName")) {
+            normalized.putString("CustomName", name);
+        }
+
+        if (EntityTypes.EYE_OF_ENDER_SIGNAL.getId().equals(identifier)) {
+            normalized.remove("damage");
+        }
+
+        if (tag.containsKey("OwnerID") && registry.get(identifier).filter(type -> Tameable.class.isAssignableFrom(type.getEntityClass())).isPresent()) {
+            normalized.remove("OwnerID");
+        }
+
+        return normalized.build();
     }
 
     private static NbtMap normalizeVectors(NbtMap tag) {

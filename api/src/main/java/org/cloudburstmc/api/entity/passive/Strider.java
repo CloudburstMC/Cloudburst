@@ -1,6 +1,9 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.Mob;
 
-public interface Strider extends Entity {
+/**
+ * The lava-walking Nether mount.
+ */
+public interface Strider extends Mob {
 }

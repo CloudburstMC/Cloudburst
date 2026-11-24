@@ -103,14 +103,15 @@ class EnderCrystalPersistenceTest {
     }
 
     @Test
-    void zeroBeamTargetStaysAbsent() {
+    void originBeamTargetSurvivesReload() {
         EntityEnderCrystal crystal = (EntityEnderCrystal) PersistenceFixtures.entity(EntityTypes.ENDER_CRYSTAL);
         crystal.setBeamTarget(Vector3i.ZERO);
 
-        assertNull(crystal.getBeamTarget());
+        assertEquals(Vector3i.ZERO, crystal.getBeamTarget());
 
-        NbtMap saved = save(crystal);
-        assertTrue(saved.get("BeamTarget") == null, "ZERO beam must be omitted, as today");
+        EntityEnderCrystal restored = (EntityEnderCrystal) PersistenceFixtures.entity(EntityTypes.ENDER_CRYSTAL);
+        restored.loadAdditionalData(save(crystal));
+        assertEquals(Vector3i.ZERO, restored.getBeamTarget());
     }
 
     @Test
@@ -134,8 +135,6 @@ class EnderCrystalPersistenceTest {
                 EntityEnderCrystal.class, CloudEnderCrystalData.class);
         assertFalse(hasDtoField(CloudEnderCrystalData.class, "showBottom"),
                 "CloudEnderCrystalData keeps showBottom; state must live in metadata only");
-        assertFalse(hasDtoField(CloudEnderCrystalData.class, "beamTarget"),
-                "CloudEnderCrystalData keeps beamTarget; state must live in metadata only");
     }
 
     private static boolean hasDtoField(Class<?> type, String name) {

@@ -1,6 +1,9 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.Mob;
 
-public interface Fox extends Entity {
+/**
+ * The wild canine mob associated with forest biomes.
+ */
+public interface Fox extends Mob {
 }

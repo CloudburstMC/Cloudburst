@@ -1,9 +1,9 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Creature;
+import org.cloudburstmc.api.entity.Mob;
 
 /**
- * Represents a bee.
+ * The flying pollinator associated with nests and hives.
  */
-public interface Bee extends Creature {
+public interface Bee extends Mob {
 }

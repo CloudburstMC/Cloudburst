@@ -35,13 +35,13 @@ public class EntityPig extends Animal implements Pig {
     }
 
     @Override
-    public void initEntity() {
+    protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(10);
+        this.setDefaultMaxHealth(10);
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Pig";
     }
 
@@ -52,8 +52,8 @@ public class EntityPig extends Animal implements Pig {
 
     @Override
     public boolean isBreedingItem(ItemStack item) {
-        ItemType id = item.getType();
+        ItemType itemType = item.getType();
 
-        return id == ItemTypes.CARROT || id == ItemTypes.POTATO || id == ItemTypes.BEETROOT;
+        return itemType == ItemTypes.CARROT || itemType == ItemTypes.POTATO || itemType == ItemTypes.BEETROOT;
     }
 }

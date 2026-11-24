@@ -6,11 +6,11 @@ import org.cloudburstmc.api.entity.vehicle.Minecart;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.data.MinecartType;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.EntityLiving;
+import org.cloudburstmc.server.entity.CloudLivingEntity;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-public class EntityMinecart extends EntityAbstractMinecart implements Minecart {
+public class EntityMinecart extends EntityAbstractMinecart {
 
     public EntityMinecart(EntityType<Minecart> type, Location location) {
         super(type, location);
@@ -27,15 +27,15 @@ public class EntityMinecart extends EntityAbstractMinecart implements Minecart {
     }
 
     @Override
-    public boolean onUpdate(int currentTick) {
-        boolean update = super.onUpdate(currentTick);
-        if (this.closed || !this.isAlive()) {
+    protected boolean tickEntity(int currentTick, int elapsedTicks) {
+        boolean update = super.tickEntity(currentTick, elapsedTicks);
+        if (this.isClosed() || !this.isAlive()) {
             return false;
         }
 
-        if (this.passengers.isEmpty()) {
+        if (this.getPassengers().isEmpty()) {
             for (Entity entity : this.getLevel().getCollidingEntities(this, this.boundingBox.inflate(0.2f, 0, 0.2f))) {
-                if (entity.getVehicle() != null || !(entity instanceof EntityLiving) || entity instanceof CloudPlayer || entity instanceof EntityWaterAnimal) {
+                if (entity.getVehicle() != null || !(entity instanceof CloudLivingEntity) || entity instanceof CloudPlayer || entity instanceof EntityWaterAnimal) {
                     continue;
                 }
 
@@ -56,7 +56,7 @@ public class EntityMinecart extends EntityAbstractMinecart implements Minecart {
         }
 
         this.ejectPassengers();
-        if (this.getRollingAmplitude() == 0) {
+        if (this.getHurtTime() == 0) {
             this.performHurtAnimation();
             this.setDamage(50);
         }

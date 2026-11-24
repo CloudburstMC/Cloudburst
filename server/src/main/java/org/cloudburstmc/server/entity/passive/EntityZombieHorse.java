@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.entity.passive;
 
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.Smiteable;
 import org.cloudburstmc.api.entity.passive.ZombieHorse;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -10,7 +9,7 @@ import org.cloudburstmc.api.level.Location;
 /**
  * @author PikyCZ
  */
-public class EntityZombieHorse extends Animal implements ZombieHorse, Smiteable {
+public class EntityZombieHorse extends EntityAbstractHorse implements ZombieHorse {
 
     public EntityZombieHorse(EntityType<ZombieHorse> type, Location location) {
         super(type, location);
@@ -27,19 +26,7 @@ public class EntityZombieHorse extends Animal implements ZombieHorse, Smiteable 
     }
 
     @Override
-    public void initEntity() {
-        super.initEntity();
-        this.setMaxHealth(15);
-    }
-
-    @Override
     public ItemStack[] getDrops() {
         return new ItemStack[]{ItemStack.builder().itemType(ItemTypes.ROTTEN_FLESH).build()};
     }
-
-    @Override
-    public boolean isUndead() {
-        return true;
-    }
-
 }

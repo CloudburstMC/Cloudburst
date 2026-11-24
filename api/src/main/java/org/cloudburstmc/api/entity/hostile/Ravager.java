@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.hostile;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface Ravager extends Entity {
+/**
+ * The large raid beast ridden by illagers.
+ */
+public interface Ravager extends Monster {
 }

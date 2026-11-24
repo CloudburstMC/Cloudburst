@@ -3,39 +3,28 @@ package org.cloudburstmc.server.entity.hostile;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.hostile.MagmaCube;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.server.entity.EntityAbstractCubeMob;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMUNE;
 
 /**
  * @author PikyCZ
  */
-public class EntityMagmaCube extends EntityHostile implements MagmaCube {
+public class EntityMagmaCube extends EntityAbstractCubeMob implements MagmaCube {
 
     public EntityMagmaCube(EntityType<MagmaCube> type, Location location) {
-        super(type, location);
+        super(type, location, 4);
     }
 
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(16);
-
         this.fireProof = true;
         this.data.setFlag(FIRE_IMMUNE, true);
     }
 
     @Override
-    public float getWidth() {
-        return 2.04f;
-    }
-
-    @Override
-    public float getHeight() {
-        return 2.04f;
-    }
-
-    @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Magma Cube";
     }
 }

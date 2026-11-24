@@ -4,30 +4,24 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.passive.Nautilus;
 import org.cloudburstmc.api.level.Location;
 
-public class EntityNautilus extends EntityWaterAnimal implements Nautilus {
+public class EntityNautilus extends EntityAbstractNautilus implements Nautilus {
 
     public EntityNautilus(EntityType<Nautilus> type, Location location) {
         super(type, location);
     }
 
     @Override
-    protected void initEntity() {
-        super.initEntity();
-        this.setMaxHealth(15);
-    }
-
-    @Override
     public float getWidth() {
-        return this.isBaby() ? 0.44f : 0.875f;
+        return this.isBaby() ? 0.44f : super.getWidth();
     }
 
     @Override
     public float getHeight() {
-        return this.isBaby() ? 0.5f : 0.95f;
+        return this.isBaby() ? 0.5f : super.getHeight();
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Nautilus";
     }
 }

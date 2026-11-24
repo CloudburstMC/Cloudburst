@@ -4,16 +4,16 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.passive.Camel;
 import org.cloudburstmc.api.level.Location;
 
-public class EntityCamel extends Animal implements Camel {
+public class EntityCamel extends EntityAbstractHorse implements Camel {
 
-    public EntityCamel(EntityType<Camel> type, Location location) {
-        super(type, location);
+    public EntityCamel(EntityType<? extends Camel> entityType, Location location) {
+        super(entityType, location);
     }
 
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(32);
+        this.setDefaultMaxHealth(32);
     }
 
     @Override
@@ -27,7 +27,7 @@ public class EntityCamel extends Animal implements Camel {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Camel";
     }
 }

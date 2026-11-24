@@ -20,7 +20,7 @@ public class EntityAxolotl extends Animal implements Axolotl {
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(14);
+        this.setDefaultMaxHealth(14);
     }
 
     @Override
@@ -34,7 +34,7 @@ public class EntityAxolotl extends Animal implements Axolotl {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Axolotl";
     }
 }

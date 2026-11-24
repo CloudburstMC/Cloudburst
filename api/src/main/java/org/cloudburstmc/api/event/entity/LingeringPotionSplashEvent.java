@@ -7,9 +7,10 @@ import org.cloudburstmc.api.event.Cancellable;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Called before a lingering potion creates an area effect cloud.
+ * Fired before the area effect cloud from a lingering potion is spawned.
  */
 public class LingeringPotionSplashEvent extends EntityEvent implements Cancellable {
+
     private final AreaEffectCloud areaEffectCloud;
 
     /**
@@ -38,9 +39,7 @@ public class LingeringPotionSplashEvent extends EntityEvent implements Cancellab
     }
 
     /**
-     * Returns the cloud that will be spawned unless the event is canceled.
-     *
-     * @return the prepared area effect cloud
+     * Returns the area effect cloud prepared for spawning.
      */
     public AreaEffectCloud getAreaEffectCloud() {
         return this.areaEffectCloud;

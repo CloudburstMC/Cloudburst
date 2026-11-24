@@ -13,7 +13,7 @@ public class EntityBee extends Animal implements Bee {
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(10);
+        this.setDefaultMaxHealth(10);
     }
 
     @Override
@@ -27,7 +27,7 @@ public class EntityBee extends Animal implements Bee {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Bee";
     }
 }

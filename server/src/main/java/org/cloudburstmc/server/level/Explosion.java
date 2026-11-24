@@ -25,7 +25,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.EntityLiving;
+import org.cloudburstmc.server.entity.CloudLivingEntity;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.*;
@@ -190,7 +190,7 @@ public class Explosion {
             }
 
             if (!(entity instanceof Player player && player.isCreative() && player.getAbilities().get(Ability.FLYING))) {
-                float resistance = target instanceof EntityLiving living ? living.getExplosionKnockbackResistance() : 0;
+                float resistance = target instanceof CloudLivingEntity living ? living.getExplosionKnockbackResistance() : 0;
                 float knockback = impact * (1 - resistance);
                 if (knockback > 0 && offset.lengthSquared() > 0) {
                     target.applyKnockback(offset.normalize().mul(knockback), KnockbackCause.EXPLOSION, causing);

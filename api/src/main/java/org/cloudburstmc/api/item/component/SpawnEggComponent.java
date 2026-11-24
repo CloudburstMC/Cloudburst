@@ -5,9 +5,9 @@ import org.cloudburstmc.api.entity.EntityType;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Identifies the entity created by a spawn egg.
+ * Identifies what type of entity a spawn egg spawns.
  *
- * @param entityType entity type created by the item
+ * @param entityType the entity type to spawn
  */
 public record SpawnEggComponent(EntityType<?> entityType) {
 

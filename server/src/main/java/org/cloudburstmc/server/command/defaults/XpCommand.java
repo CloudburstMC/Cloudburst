@@ -79,9 +79,9 @@ public class XpCommand extends AdvertisedCommand {
                 int newLevel = (int) Math.min(requestedLevel, 24791L);
 
                 if (requestedLevel < 0) {
-                    player.setExperience(0, 0);
+                    player.resetExperience();
                 } else {
-                    player.setExperience(player.getExperience(), newLevel);
+                    player.setExperienceLevel(newLevel);
                 }
 
                 if (amount > 0) {
@@ -92,7 +92,7 @@ public class XpCommand extends AdvertisedCommand {
                             Component.text(-amount), Component.text(player.getName())));
                 }
             } else {
-                player.addExperience(amount);
+                player.giveExperiencePoints(amount);
                 sender.sendMessage(Component.translatable("commands.xp.success",
                         Component.text(amount), Component.text(player.getName())));
             }

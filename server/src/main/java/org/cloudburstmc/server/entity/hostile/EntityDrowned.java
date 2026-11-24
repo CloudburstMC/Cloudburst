@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.entity.hostile;
 
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.Smiteable;
 import org.cloudburstmc.api.entity.hostile.Drowned;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -10,30 +9,14 @@ import org.cloudburstmc.api.level.Location;
 /**
  * Created by PetteriM1
  */
-public class EntityDrowned extends EntityHostile implements Drowned, Smiteable {
+public class EntityDrowned extends EntityZombie implements Drowned {
 
-    public EntityDrowned(EntityType<Drowned> type, Location location) {
-        super(type, location);
+    public EntityDrowned(EntityType<Drowned> entityType, Location location) {
+        super(entityType, location);
     }
 
     @Override
-    protected void initEntity() {
-        super.initEntity();
-        this.setMaxHealth(20);
-    }
-
-    @Override
-    public float getWidth() {
-        return 0.6f;
-    }
-
-    @Override
-    public float getHeight() {
-        return 1.95f;
-    }
-
-    @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Drowned";
     }
 
@@ -41,10 +24,4 @@ public class EntityDrowned extends EntityHostile implements Drowned, Smiteable {
     public ItemStack[] getDrops() {
         return new ItemStack[]{ItemStack.builder().itemType(ItemTypes.ROTTEN_FLESH).build()};
     }
-
-    @Override
-    public boolean isUndead() {
-        return true;
-    }
-
 }

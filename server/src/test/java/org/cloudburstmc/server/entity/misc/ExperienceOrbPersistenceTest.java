@@ -42,6 +42,7 @@ class ExperienceOrbPersistenceTest {
         orb.loadAdditionalData(input);
 
         assertEquals(2, orb.getExperience());
+        assertEquals(3, orb.getCount());
 
         NbtMap saved = save(orb);
 
@@ -132,14 +133,73 @@ class ExperienceOrbPersistenceTest {
     }
 
     @Test
-    void largePickupDelayNarrowsOnlyOnSave() {
+    void zeroExperienceSurvivesReload() {
+        EntityExperienceOrb orb = (EntityExperienceOrb) PersistenceFixtures.entity(EntityTypes.XP_ORB);
+        orb.setExperience(0);
+
+        assertEquals(0, orb.getExperience());
+        NbtMap saved = save(orb);
+        assertEquals(0, saved.getInt("experience value"));
+
+        EntityExperienceOrb restored = (EntityExperienceOrb) PersistenceFixtures.entity(EntityTypes.XP_ORB);
+        restored.loadAdditionalData(saved);
+        assertEquals(0, restored.getExperience());
+    }
+
+    @Test
+    void positiveExperienceCanReplaceZero() {
+        EntityExperienceOrb orb = (EntityExperienceOrb) PersistenceFixtures.entity(EntityTypes.XP_ORB);
+        orb.setExperience(0);
+        orb.setExperience(7);
+
+        assertEquals(7, orb.getExperience());
+    }
+
+    @Test
+    void negativeExperienceIsRejectedWithoutChangingValue() {
+        EntityExperienceOrb orb = (EntityExperienceOrb) PersistenceFixtures.entity(EntityTypes.XP_ORB);
+        orb.setExperience(7);
+
+        assertThrows(IllegalArgumentException.class, () -> orb.setExperience(-1));
+        assertThrows(IllegalArgumentException.class, () -> orb.setExperience(Integer.MIN_VALUE));
+        assertEquals(7, orb.getExperience());
+    }
+
+    @Test
+    void largePickupDelayRemainsNonCollectibleAfterReload() {
         EntityExperienceOrb orb = (EntityExperienceOrb) PersistenceFixtures.entity(EntityTypes.XP_ORB);
         orb.setPickupDelay(40000);
 
-        assertEquals(40000, orb.getPickupDelay());
+        assertEquals(Short.MAX_VALUE, orb.getPickupDelay());
 
         NbtMap saved = save(orb);
-        assertTrue(saved.get("PickupDelay") instanceof Short, "PickupDelay must be a short");
-        assertEquals((short) 40000, saved.getShort("PickupDelay"));
+        assertEquals(Short.MAX_VALUE, saved.get("PickupDelay"));
+
+        EntityExperienceOrb restored = (EntityExperienceOrb) PersistenceFixtures.entity(EntityTypes.XP_ORB);
+        restored.loadAdditionalData(saved);
+        assertEquals(Short.MAX_VALUE, restored.getPickupDelay());
+    }
+
+    @Test
+    void consumingOnePickupPreservesTheExperienceValue() {
+        EntityExperienceOrb orb = (EntityExperienceOrb) PersistenceFixtures.entity(EntityTypes.XP_ORB);
+        orb.setExperience(7);
+        orb.setCount(3);
+
+        orb.consumeOne();
+
+        EntityExperienceOrb restored = (EntityExperienceOrb) PersistenceFixtures.entity(EntityTypes.XP_ORB);
+        restored.loadAdditionalData(save(orb));
+        assertEquals(2, restored.getCount());
+        assertEquals(7, restored.getExperience());
+    }
+
+    @Test
+    void nonPositiveCountIsRejectedWithoutChangingCount() {
+        EntityExperienceOrb orb = (EntityExperienceOrb) PersistenceFixtures.entity(EntityTypes.XP_ORB);
+
+        assertThrows(IllegalArgumentException.class, () -> orb.setCount(0));
+        assertThrows(IllegalArgumentException.class, () -> orb.setCount(-1));
+        assertEquals(1, orb.getCount());
     }
 }

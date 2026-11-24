@@ -11,6 +11,7 @@ import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.projectile.FishingHook;
 import org.cloudburstmc.api.entity.projectile.FishingHookState;
+import org.cloudburstmc.api.event.entity.EntityRemoveCause;
 import org.cloudburstmc.api.event.entity.FishingHookStateChangeEvent;
 import org.cloudburstmc.api.event.player.PlayerFishEvent;
 import org.cloudburstmc.api.event.player.PlayerFishState;
@@ -25,6 +26,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.misc.EntityDroppedItem;
 import org.cloudburstmc.server.item.loot.FishingLoot;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -34,6 +36,7 @@ import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class EntityFishingHook extends EntityProjectile implements FishingHook {
+
     private static final int MIN_WAIT_TIME = 100;
     private static final int MAX_WAIT_TIME = 600;
     private static final int MAX_GROUND_TIME = 1200;
@@ -51,8 +54,17 @@ public final class EntityFishingHook extends EntityProjectile implements Fishing
     private boolean biting;
     private boolean openWater = true;
 
-    public EntityFishingHook(EntityType<FishingHook> type, Location location) {
-        super(type, location);
+    public EntityFishingHook(EntityType<FishingHook> entityType, Location location) {
+        super(entityType, location);
+    }
+
+    @Override
+    public void setOwner(@Nullable Entity owner) {
+        CloudPlayer previousOwner = this.playerOwner();
+        super.setOwner(owner);
+        if (previousOwner != null && previousOwner != owner) {
+            previousOwner.clearFishingHook(this);
+        }
     }
 
     public void configure(ItemStack rod) {
@@ -134,16 +146,16 @@ public final class EntityFishingHook extends EntityProjectile implements Fishing
     }
 
     @Override
-    public boolean onUpdate(int currentTick) {
+    protected boolean tickEntity(int currentTick, int elapsedTicks) {
         CloudPlayer owner = playerOwner();
         if (owner == null || shouldStopFishing(owner)) {
-            this.close();
+            this.remove(EntityRemoveCause.DESPAWN);
             return false;
         }
 
-        if (this.onGround) {
+        if (this.isOnGround()) {
             if (++this.groundTime >= MAX_GROUND_TIME) {
-                this.close();
+                this.remove(EntityRemoveCause.DESPAWN);
                 return false;
             }
         } else {
@@ -165,8 +177,8 @@ public final class EntityFishingHook extends EntityProjectile implements Fishing
             tickBobbing(isInWaterBlock(), owner);
         }
 
-        boolean updated = super.onUpdate(currentTick);
-        if (this.closed) {
+        boolean updated = super.tickEntity(currentTick, elapsedTicks);
+        if (this.isClosed()) {
             return false;
         }
 
@@ -185,13 +197,18 @@ public final class EntityFishingHook extends EntityProjectile implements Fishing
     }
 
     private void tickBobbing(boolean inWater, CloudPlayer owner) {
+        Vector3i position = this.getPosition().toInt();
+        if (this.biteTime <= 0 && this.timeUntilHooked <= 0) {
+            this.openWater = true;
+        } else {
+            this.openWater &= this.outOfWaterTime < 10 && calculateOpenWater(position);
+        }
+
         if (!inWater) {
             this.outOfWaterTime = Math.min(10, this.outOfWaterTime + 1);
             return;
         }
 
-        this.outOfWaterTime = Math.max(0, this.outOfWaterTime - 1);
-        Vector3i position = this.getPosition().toInt();
         float surface = position.getY() + this.getLevel().getLiquidHeight(position);
         float force = this.getY() + this.motion.getY() - surface;
         if (Math.abs(force) < 0.01f) {
@@ -206,11 +223,7 @@ public final class EntityFishingHook extends EntityProjectile implements Fishing
             this.motion = this.motion.add(0, -0.1f * random.nextFloat() * random.nextFloat(), 0);
         }
 
-        if (this.biteTime <= 0 && this.timeUntilHooked <= 0) {
-            this.openWater = true;
-        } else {
-            this.openWater &= this.outOfWaterTime < 10 && calculateOpenWater(position);
-        }
+        this.outOfWaterTime = Math.max(0, this.outOfWaterTime - 1);
 
         catchFish(owner, position);
     }
@@ -336,12 +349,12 @@ public final class EntityFishingHook extends EntityProjectile implements Fishing
     }
 
     private boolean calculateOpenWater(Vector3i origin) {
-        FishingOpenWaterType previous = FishingOpenWaterType.INVALID;
+        OpenWaterType previous = OpenWaterType.INVALID;
         for (int y = -1; y <= 2; y++) {
-            FishingOpenWaterType layer = openWaterLayer(origin.add(-2, y, -2), origin.add(2, y, 2));
-            if (layer == FishingOpenWaterType.INVALID
-                    || layer == FishingOpenWaterType.ABOVE_WATER && previous == FishingOpenWaterType.INVALID
-                    || layer == FishingOpenWaterType.INSIDE_WATER && previous == FishingOpenWaterType.ABOVE_WATER) {
+            OpenWaterType layer = openWaterLayer(origin.add(-2, y, -2), origin.add(2, y, 2));
+            if (layer == OpenWaterType.INVALID
+                    || layer == OpenWaterType.ABOVE_WATER && previous == OpenWaterType.INVALID
+                    || layer == OpenWaterType.INSIDE_WATER && previous == OpenWaterType.ABOVE_WATER) {
                 return false;
             }
 
@@ -351,16 +364,16 @@ public final class EntityFishingHook extends EntityProjectile implements Fishing
         return true;
     }
 
-    private FishingOpenWaterType openWaterLayer(Vector3i from, Vector3i to) {
-        FishingOpenWaterType result = null;
+    private OpenWaterType openWaterLayer(Vector3i from, Vector3i to) {
+        OpenWaterType result = null;
         for (int x = from.getX(); x <= to.getX(); x++) {
             for (int y = from.getY(); y <= to.getY(); y++) {
                 for (int z = from.getZ(); z <= to.getZ(); z++) {
                     Block block = this.getLevel().getBlock(x, y, z);
-                    FishingOpenWaterType type = openWaterType(block);
+                    OpenWaterType type = openWaterType(block);
 
                     if (result != null && result != type) {
-                        return FishingOpenWaterType.INVALID;
+                        return OpenWaterType.INVALID;
                     }
 
                     result = type;
@@ -368,17 +381,17 @@ public final class EntityFishingHook extends EntityProjectile implements Fishing
             }
         }
 
-        return result == null ? FishingOpenWaterType.INVALID : result;
+        return result == null ? OpenWaterType.INVALID : result;
     }
 
-    private static FishingOpenWaterType openWaterType(Block block) {
+    private static OpenWaterType openWaterType(Block block) {
         if (block.getState() == BlockStates.AIR || block.getState().getType() == BlockTypes.WATERLILY) {
-            return FishingOpenWaterType.ABOVE_WATER;
+            return OpenWaterType.ABOVE_WATER;
         }
 
         LiquidState liquid = block.getLiquid();
         return isWater(liquid) && liquid.isSource() && block.getState().getCollisionShape().isEmpty()
-                ? FishingOpenWaterType.INSIDE_WATER : FishingOpenWaterType.INVALID;
+                ? OpenWaterType.INSIDE_WATER : OpenWaterType.INVALID;
     }
 
     private boolean isInWaterBlock() {
@@ -393,7 +406,7 @@ public final class EntityFishingHook extends EntityProjectile implements Fishing
 
     @Override
     public boolean canCollideWith(Entity entity) {
-        return super.canCollideWith(entity) || entity instanceof DroppedItem && !this.onGround;
+        return super.canCollideWith(entity) || entity instanceof DroppedItem && !this.isOnGround();
     }
 
     @Override
@@ -413,19 +426,21 @@ public final class EntityFishingHook extends EntityProjectile implements Fishing
         }
 
         if (shouldStopFishing(owner)) {
-            this.close();
+            this.remove(EntityRemoveCause.DESPAWN);
             return 0;
         }
 
         int damage = 0;
-        if (this.hookedEntity != null) {
-            PlayerFishEvent event = fire(owner, PlayerFishState.CAUGHT_ENTITY, this.hookedEntity);
-            if (event.isCancelled()) {
+        Entity caught = this.hookedEntity;
+        if (caught != null) {
+            PlayerFishEvent event = fire(owner, PlayerFishState.CAUGHT_ENTITY, caught);
+            if (event.isCancelled() || this.isClosed() || this.hookedEntity != caught
+                    || caught.isClosed() || !caught.isAlive() || caught.getLevel() != this.getLevel()) {
                 return 0;
             }
 
-            pull(this.hookedEntity, owner);
-            damage = this.hookedEntity instanceof DroppedItem ? 3 : 5;
+            pull(caught, owner);
+            damage = caught instanceof DroppedItem ? 3 : 5;
         } else if (this.biteTime > 0) {
             ItemStack item = FishingLoot.select(this.luck, this.openWater);
             DroppedItem dropped = createCaughtItem(item, owner);
@@ -433,11 +448,11 @@ public final class EntityFishingHook extends EntityProjectile implements Fishing
             event.setExperience(ThreadLocalRandom.current().nextInt(1, 7));
             this.server.getEventManager().fire(event);
             if (event.isCancelled()) {
-                dropped.close();
+                CloudEntity.remove(dropped, EntityRemoveCause.DISCARD);
                 return 0;
             }
 
-            dropped.spawnToAll();
+            dropped.spawn();
             if (event.getExperience() > 0) {
                 this.getLevel().spawnExperienceOrb(owner.getPosition().add(0, 0.5f, 0.5f),
                         event.getExperience(), null, 0);
@@ -445,17 +460,17 @@ public final class EntityFishingHook extends EntityProjectile implements Fishing
 
             damage = 1;
         } else {
-            PlayerFishState state = this.onGround ? PlayerFishState.IN_GROUND : PlayerFishState.REEL_IN;
+            PlayerFishState state = this.isOnGround() ? PlayerFishState.IN_GROUND : PlayerFishState.REEL_IN;
             if (fire(owner, state, null).isCancelled()) {
                 return 0;
             }
         }
 
-        if (this.onGround) {
+        if (this.isOnGround()) {
             damage = 2;
         }
 
-        this.close();
+        this.remove(EntityRemoveCause.DESPAWN);
         return damage;
     }
 
@@ -510,12 +525,18 @@ public final class EntityFishingHook extends EntityProjectile implements Fishing
     }
 
     @Override
-    public void close() {
+    public void remove(EntityRemoveCause cause) {
         CloudPlayer owner = playerOwner();
         if (owner != null) {
             owner.clearFishingHook(this);
         }
 
-        super.close();
+        super.remove(cause);
+    }
+
+    private enum OpenWaterType {
+        ABOVE_WATER,
+        INSIDE_WATER,
+        INVALID
     }
 }

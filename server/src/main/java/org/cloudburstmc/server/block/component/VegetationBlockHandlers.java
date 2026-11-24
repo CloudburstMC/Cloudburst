@@ -6,7 +6,7 @@ import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.component.*;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityTypes;
-import org.cloudburstmc.api.entity.Living;
+import org.cloudburstmc.api.entity.LivingEntity;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.passive.Bee;
@@ -89,34 +89,30 @@ public class VegetationBlockHandlers {
     public static final NeighborBlockHandler NEIGHBOUR_CHANGED = checkSurvival(CAN_SURVIVE);
 
     public static final EntityInsideBlockHandler WITHER_ROSE_ENTITY_INSIDE = (block, entity, precise) -> {
-        if (block.getLevel().getDifficulty() != Difficulty.PEACEFUL
-                && entity instanceof Living living
-                && canReceiveWither(entity)) {
+        if (block.getLevel().getDifficulty() != Difficulty.PEACEFUL && entity instanceof LivingEntity living && canReceiveWither(entity)) {
             ((CloudEntity) living).addPotionEffect(new PotionEffect(EffectTypes.WITHER, 40, 0), null, PotionEffectCause.WITHER_ROSE);
         }
     };
 
     public static final EntityInsideBlockHandler EYEBLOSSOM_ENTITY_INSIDE = (block, entity, precise) -> {
-        if (block.getLevel().getDifficulty() != Difficulty.PEACEFUL
-                && entity instanceof Bee bee
-                && !bee.hasPotionEffect(EffectTypes.POISON)) {
+        if (block.getLevel().getDifficulty() != Difficulty.PEACEFUL && entity instanceof Bee bee && !bee.hasPotionEffect(EffectTypes.POISON)) {
             ((CloudEntity) entity).addPotionEffect(new PotionEffect(EffectTypes.POISON, 25, 0), null, PotionEffectCause.ATTACK);
         }
     };
 
     public static final EntityInsideBlockHandler SWEET_BERRY_BUSH_ENTITY_INSIDE = (block, entity, precise) -> {
-        if (!(entity instanceof Living)
-                || entity.getType() == EntityTypes.FOX
-                || entity.getType() == EntityTypes.BEE) {
+        if (!(entity instanceof LivingEntity) || entity.getType() == EntityTypes.FOX || entity.getType() == EntityTypes.BEE) {
             return;
         }
 
-        entity.makeStuckInBlock(block.getState(), Vector3f.from(0.8f, 0.75f, 0.8f));
+        if (entity instanceof CloudEntity target) {
+            target.makeStuckInBlock(Vector3f.from(0.8f, 0.75f, 0.8f));
+        }
+
         Vector3f movement = entity.getMotion();
-        if (block.getState().ensureTrait(BlockTraits.GROWTH) != 0
-                && (Math.abs(movement.getX()) >= 0.003f || Math.abs(movement.getZ()) >= 0.003f)) {
+        if (block.getState().ensureTrait(BlockTraits.GROWTH) != 0 && (Math.abs(movement.getX()) >= 0.003f || Math.abs(movement.getZ()) >= 0.003f)) {
             DamageSource source = DamageSource.builder(DamageTypes.SWEET_BERRY_BUSH).block(block).build();
-            entity.damage(1, source);
+            CloudEntity.applyDamage(entity, 1, source);
         }
     };
 
@@ -127,8 +123,7 @@ public class VegetationBlockHandlers {
         }
 
         int count = ThreadLocalRandom.current().nextInt(1, 3) + (age == 3 ? 1 : 0);
-        PlayerHarvestBlockEvent event = new PlayerHarvestBlockEvent(
-                player, block, List.of(ItemStack.from(ItemTypes.SWEET_BERRIES, count)));
+        PlayerHarvestBlockEvent event = new PlayerHarvestBlockEvent(player, block, List.of(ItemStack.from(ItemTypes.SWEET_BERRIES, count)));
         ((CloudLevel) block.getLevel()).getServer().getEventManager().fire(event);
         if (event.isCancelled()) {
             return true;
@@ -163,9 +158,7 @@ public class VegetationBlockHandlers {
             BlockState state = block.getState();
             int amount = state.ensureTrait(BlockTraits.GROWTH);
             if (amount < 3) {
-                return new FertilizationResult(
-                        List.of(new BlockChange(block, state.withTrait(BlockTraits.GROWTH, amount + 1))),
-                        List.of());
+                return new FertilizationResult(List.of(new BlockChange(block, state.withTrait(BlockTraits.GROWTH, amount + 1))), List.of());
             }
             return new FertilizationResult(List.of(), List.of(ItemStack.from(type.getDefaultState())));
         };
@@ -179,9 +172,7 @@ public class VegetationBlockHandlers {
                 return FertilizationResult.none();
             }
 
-            return new FertilizationResult(
-                    List.of(new BlockChange(block, state.withTrait(BlockTraits.GROWTH, age + 1))),
-                    List.of());
+            return new FertilizationResult(List.of(new BlockChange(block, state.withTrait(BlockTraits.GROWTH, age + 1))), List.of());
         };
     }
 
@@ -193,16 +184,12 @@ public class VegetationBlockHandlers {
                 return FertilizationResult.none();
             }
 
-            return new FertilizationResult(List.of(
-                    new BlockChange(block, lowerHalf(grown)),
-                    new BlockChange(above, upperHalf(grown))
-            ), List.of());
+            return new FertilizationResult(List.of(new BlockChange(block, lowerHalf(grown)), new BlockChange(above, upperHalf(grown))), List.of());
         };
     }
 
     public static FertilizeBlockHandler replaceWith(BlockType type) {
-        return (block, player, random) -> new FertilizationResult(
-                List.of(new BlockChange(block, type.getDefaultState())), List.of());
+        return (block, player, random) -> new FertilizationResult(List.of(new BlockChange(block, type.getDefaultState())), List.of());
     }
 
     public static FertilizeBlockHandler spreadGroundCover() {
@@ -280,9 +267,7 @@ public class VegetationBlockHandlers {
     }
 
     private static boolean canReceiveWither(Entity entity) {
-        if (((CloudEntity) entity).isInvulnerable()
-                || entity.getType() == EntityTypes.WITHER
-                || entity.getType() == EntityTypes.WITHER_SKELETON) {
+        if (((CloudEntity) entity).isInvulnerable() || entity.getType() == EntityTypes.WITHER || entity.getType() == EntityTypes.WITHER_SKELETON) {
             return false;
         }
 

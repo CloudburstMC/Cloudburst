@@ -2,7 +2,6 @@ package org.cloudburstmc.server.player;
 
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.ban.BanEntry;
 import org.cloudburstmc.api.player.OfflinePlayer;
 import org.cloudburstmc.api.player.Player;
@@ -10,28 +9,20 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.server.CloudServer;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.UUID;
 
-public final class CloudOfflinePlayer implements OfflinePlayer {
+public class CloudOfflinePlayer implements OfflinePlayer {
 
     @Getter
     private final CloudServer server;
-    private final @Nullable UUID uniqueId;
     private final @Nullable String name;
-    private @Nullable NbtMap namedTag;
+    private @Nullable UUID uniqueId;
 
-    public CloudOfflinePlayer(Server server, UUID uuid) {
-        this(server, uuid, null);
-    }
-
-    public CloudOfflinePlayer(Server server, String name) {
-        this(server, null, name);
-    }
-
-    public CloudOfflinePlayer(Server server, @Nullable UUID uuid, @Nullable String name) {
-        this.server = (CloudServer) server;
+    public CloudOfflinePlayer(CloudServer server, @Nullable UUID uuid, @Nullable String name) {
+        this.server = Objects.requireNonNull(server, "server");
         this.uniqueId = uuid;
         this.name = name;
 
@@ -47,40 +38,16 @@ public final class CloudOfflinePlayer implements OfflinePlayer {
             return player.get().getName();
         }
 
-        if (this.name != null) {
-            return this.name;
-        }
-
-        NbtMap data = this.data();
-        return data.containsKey("NameTag") ? data.getString("NameTag") : null;
+        return this.name;
     }
 
     @Override
-    public @Nullable UUID getUniqueId() {
-        if (this.uniqueId != null) {
-            return this.uniqueId;
-        }
-
-        if (this.name != null) {
+    public synchronized @Nullable UUID getUniqueId() {
+        if (this.uniqueId == null && this.name != null) {
             CloudPlayer online = this.server.getPlayerExact(this.name);
-            if (online != null) {
-                return online.getServerId();
-            }
-
-            Optional<UUID> known = this.server.lookupName(this.name);
-            if (known.isPresent()) {
-                return known.get();
-            }
+            this.uniqueId = online != null ? online.getServerId() : this.server.lookupName(this.name).orElse(null);
         }
-
-        NbtMap data = this.data();
-        if (!data.containsKey("UUIDMost") || !data.containsKey("UUIDLeast")) {
-            return null;
-        }
-
-        long most = data.getLong("UUIDMost");
-        long least = data.getLong("UUIDLeast");
-        return most != 0 || least != 0 ? new UUID(most, least) : null;
+        return this.uniqueId;
     }
 
     @Override
@@ -96,11 +63,7 @@ public final class CloudOfflinePlayer implements OfflinePlayer {
     @Override
     public Optional<Player> getPlayer() {
         UUID uuid = this.getUniqueId();
-        if (uuid != null) {
-            return this.server.getPlayer(uuid);
-        }
-
-        return Optional.ofNullable(this.name).map(this.server::getPlayerExact);
+        return uuid != null ? this.server.getPlayer(uuid) : Optional.empty();
     }
 
     @Override
@@ -157,15 +120,10 @@ public final class CloudOfflinePlayer implements OfflinePlayer {
         this.server.setOperator(this.requireUniqueId(), this.getName(), value);
     }
 
-    private synchronized NbtMap data() {
-        if (this.namedTag == null) {
-            NbtMap loaded = this.uniqueId != null
-                    ? this.server.getOfflinePlayerData(this.uniqueId, false)
-                    : this.server.getOfflinePlayerData(this.name, false);
-            this.namedTag = loaded == null ? NbtMap.EMPTY : loaded;
-        }
-
-        return this.namedTag;
+    private NbtMap data() {
+        UUID uuid = this.getUniqueId();
+        NbtMap data = uuid == null ? null : this.server.getOfflinePlayerData(uuid, false);
+        return data != null ? data : NbtMap.EMPTY;
     }
 
     private UUID requireUniqueId() {

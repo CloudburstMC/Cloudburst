@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.hostile;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface Enderman extends Entity {
+/**
+ * The teleporting humanoid mob found in the Overworld, Nether, and End.
+ */
+public interface Enderman extends Monster {
 }

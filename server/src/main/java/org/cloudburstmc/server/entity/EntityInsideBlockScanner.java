@@ -34,17 +34,28 @@ public class EntityInsideBlockScanner {
     }
 
     public static void scan(CloudEntity entity) {
-        stepOnSupportingBlock(entity);
         List<EntityMovementSegment> movements = entity.drainMovementSegments();
+        if (entity.noPhysics || !canScan(entity)) {
+            return;
+        }
+        stepOnSupportingBlock(entity);
 
         Optional<Vector3i> portal = Optional.empty();
         Set<Vector3i> insideBlocks = new HashSet<>();
         Set<Vector3i> collisionBlocks = new HashSet<>();
         for (EntityMovementSegment movement : movements) {
+            if (!canScan(entity)) {
+                return;
+            }
+
             Optional<Vector3i> movementPortal = scanMovement(entity, movement, insideBlocks, collisionBlocks);
             if (portal.isEmpty() && movementPortal.isPresent()) {
                 portal = movementPortal;
             }
+        }
+
+        if (!canScan(entity)) {
+            return;
         }
 
         if (portal.isPresent()) {
@@ -64,15 +75,24 @@ public class EntityInsideBlockScanner {
     }
 
     private static boolean canApplyEffects(Block block, Entity entity) {
+        if (!canScan(entity)) {
+            return false;
+        }
+
         EntityInsideBlockEvent event = new EntityInsideBlockEvent(entity, block);
         block.getLevel().getServer().getEventManager().fire(event);
         return !event.isCancelled()
+                && canScan(entity)
                 && block.getLevel().getBlockState(block.getPosition()) == block.getState()
                 && block.getLevel().getBlock(block.getPosition()).getSecondaryState() == block.getSecondaryState();
     }
 
+    private static boolean canScan(Entity entity) {
+        return !entity.isClosed() && entity.isAlive();
+    }
+
     private static void stepOnSupportingBlock(CloudEntity entity) {
-        if (!entity.onGround || entity.noPhysics || !entity.isAlive()) {
+        if (!entity.isOnGround() || !entity.isAlive()) {
             return;
         }
 
@@ -91,6 +111,10 @@ public class EntityInsideBlockScanner {
         Optional<Vector3i> portal = Optional.empty();
         int steps = movement.steps();
         for (int step = 0; step <= steps; step++) {
+            if (!canScan(entity)) {
+                break;
+            }
+
             float progress = (float) step / steps;
             BoundingBox box = movement.interpolate(progress);
             Optional<Vector3i> stepPortal = scanLoadedBlocks(entity, box, insideBlocks);
@@ -99,7 +123,7 @@ public class EntityInsideBlockScanner {
             }
 
             entity.level.forEachBlockCollision(entity, box, block -> {
-                if (collisionBlocks.add(block.getPosition())) {
+                if (canScan(entity) && collisionBlocks.add(block.getPosition())) {
                     block.requireComponent(BlockComponents.ON_ENTITY_COLLIDE).execute(block, entity);
                 }
             });
@@ -120,6 +144,10 @@ public class EntityInsideBlockScanner {
         for (int z = minZ; z <= maxZ; ++z) {
             for (int x = minX; x <= maxX; ++x) {
                 for (int y = minY; y <= maxY; ++y) {
+                    if (!canScan(entity)) {
+                        return portal;
+                    }
+
                     if (!intersectsUnitBlock(box, x, y, z)) {
                         continue;
                     }

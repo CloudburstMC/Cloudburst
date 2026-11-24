@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.entity.hostile;
 
-import org.cloudburstmc.api.entity.Arthropod;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.hostile.Silverfish;
 import org.cloudburstmc.api.level.Location;
@@ -8,14 +7,14 @@ import org.cloudburstmc.api.level.Location;
 /**
  * @author PikyCZ
  */
-public class EntitySilverfish extends EntityHostile implements Silverfish, Arthropod {
+public class EntitySilverfish extends EntityHostile implements Silverfish {
 
     public EntitySilverfish(EntityType<Silverfish> type, Location location) {
         super(type, location);
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Silverfish";
     }
 
@@ -30,8 +29,8 @@ public class EntitySilverfish extends EntityHostile implements Silverfish, Arthr
     }
 
     @Override
-    public void initEntity() {
+    protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(8);
+        this.setDefaultMaxHealth(8);
     }
 }

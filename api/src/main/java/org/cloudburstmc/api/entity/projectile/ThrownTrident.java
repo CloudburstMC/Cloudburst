@@ -3,7 +3,7 @@ package org.cloudburstmc.api.entity.projectile;
 import org.cloudburstmc.api.item.ItemStack;
 
 /**
- * A thrown trident projectile.
+ * A trident in flight or lodged after impact, carrying the original item.
  */
 public interface ThrownTrident extends AbstractArrow {
 

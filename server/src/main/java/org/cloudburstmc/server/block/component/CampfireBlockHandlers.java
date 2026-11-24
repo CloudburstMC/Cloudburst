@@ -5,11 +5,11 @@ import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.component.*;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.entity.Living;
+import org.cloudburstmc.api.entity.LivingEntity;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.projectile.AbstractArrow;
-import org.cloudburstmc.api.entity.projectile.SplashPotion;
+import org.cloudburstmc.api.entity.projectile.ThrownPotion;
 import org.cloudburstmc.api.event.block.BlockIgniteCause;
 import org.cloudburstmc.api.event.block.BlockIgniteEvent;
 import org.cloudburstmc.api.item.ItemDataComponents;
@@ -22,6 +22,7 @@ import org.cloudburstmc.api.potion.PotionTypes;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.server.blockentity.CampfireBlockEntity;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
@@ -94,7 +95,7 @@ public class CampfireBlockHandlers {
     public static final VoxelShapeBlockHandler INSIDE_SHAPE = (state, context) -> CloudVoxelShapes.box(0, 0, 0, 1, 0.5f, 1);
 
     public static final EntityInsideBlockHandler ON_ENTITY_INSIDE = (block, entity, precise) -> {
-        if (!(entity instanceof Living)) {
+        if (!(entity instanceof LivingEntity)) {
             return;
         }
 
@@ -104,13 +105,13 @@ public class CampfireBlockHandlers {
             }
         } else {
             int damage = block.getState().getType() == BlockTypes.SOUL_CAMPFIRE ? 2 : 1;
-            entity.damage(damage, DamageSource.builder(DamageTypes.CAMPFIRE).block(block).build());
+            CloudEntity.applyDamage(entity, damage, DamageSource.builder(DamageTypes.CAMPFIRE).block(block).build());
         }
     };
 
     public static final ProjectileHitBlockHandler ON_PROJECTILE_HIT = (hit, projectile) -> {
         Block block = hit.block();
-        if (projectile instanceof SplashPotion potion && potion.getPotionType() == PotionTypes.WATER) {
+        if (projectile instanceof ThrownPotion potion && potion.getPotionType() == PotionTypes.WATER) {
             extinguish(block);
             return;
         }

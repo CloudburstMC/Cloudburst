@@ -4,13 +4,10 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.passive.Llama;
 import org.cloudburstmc.api.level.Location;
 
-/**
- * @author PikyCZ
- */
-public class EntityLlama extends Animal implements Llama {
+public class EntityLlama extends EntityAbstractHorse implements Llama {
 
-    public EntityLlama(EntityType<Llama> type, Location location) {
-        super(type, location);
+    public EntityLlama(EntityType<? extends Llama> entityType, Location location) {
+        super(entityType, location);
     }
 
     @Override
@@ -35,11 +32,5 @@ public class EntityLlama extends Animal implements Llama {
             return 0.65f;
         }
         return 1.2f;
-    }
-
-    @Override
-    public void initEntity() {
-        super.initEntity();
-        this.setMaxHealth(15);
     }
 }

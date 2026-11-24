@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.event.player;
 
 import org.cloudburstmc.api.event.Cancellable;
+import org.cloudburstmc.api.event.entity.TeleportCause;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 
@@ -11,7 +12,7 @@ import java.util.Objects;
  */
 public class PlayerTeleportEvent extends PlayerEvent implements Cancellable {
 
-    private final PlayerTeleportCause cause;
+    private final TeleportCause cause;
     private final Location from;
     private Location to;
 
@@ -23,7 +24,7 @@ public class PlayerTeleportEvent extends PlayerEvent implements Cancellable {
      * @param to     the requested destination
      * @param cause  the cause of the teleport
      */
-    public PlayerTeleportEvent(Player player, Location from, Location to, PlayerTeleportCause cause) {
+    public PlayerTeleportEvent(Player player, Location from, Location to, TeleportCause cause) {
         super(player);
         this.from = Objects.requireNonNull(from, "from");
         this.to = Objects.requireNonNull(to, "to");
@@ -62,7 +63,7 @@ public class PlayerTeleportEvent extends PlayerEvent implements Cancellable {
      *
      * @return the teleport cause
      */
-    public PlayerTeleportCause getCause() {
+    public TeleportCause getCause() {
         return cause;
     }
 }

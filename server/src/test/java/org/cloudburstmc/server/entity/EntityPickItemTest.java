@@ -45,6 +45,7 @@ class EntityPickItemTest {
         assertEquals(ItemTypes.END_CRYSTAL, entity(EntityTypes.ENDER_CRYSTAL).getPickItem(false).getType());
         assertEquals(ItemTypes.ARMOR_STAND, entity(EntityTypes.ARMOR_STAND).getPickItem(false).getType());
         assertEquals(ItemTypes.PAINTING, entity(EntityTypes.PAINTING).getPickItem(false).getType());
+        assertEquals(ItemTypes.LEAD, entity(EntityTypes.LEASH_KNOT).getPickItem(false).getType());
         assertEquals(ItemTypes.TNT_MINECART, entity(EntityTypes.TNT_MINECART).getPickItem(false).getType());
         assertSame(ItemStack.EMPTY, entity(EntityTypes.ARROW).getPickItem(false));
         assertSame(ItemStack.EMPTY, entity(EntityTypes.ITEM).getPickItem(false));

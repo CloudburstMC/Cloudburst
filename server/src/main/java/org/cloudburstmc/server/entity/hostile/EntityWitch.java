@@ -16,7 +16,7 @@ public class EntityWitch extends EntityHostile implements Witch {
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(26);
+        this.setDefaultMaxHealth(26);
     }
 
     @Override
@@ -30,7 +30,7 @@ public class EntityWitch extends EntityHostile implements Witch {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Witch";
     }
 }

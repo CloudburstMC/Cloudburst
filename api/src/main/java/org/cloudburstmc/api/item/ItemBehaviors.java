@@ -195,7 +195,7 @@ public class ItemBehaviors {
     public static final ComponentType<ReleaseUseHandler> RELEASE_USE = ComponentType.of("release_use", ReleaseUseHandler.class);
 
     /**
-     * Identifies the entity type created by a spawn egg.
+     * Identifies the entity type to spawn when a spawn egg is used.
      */
     public static final ComponentType<SpawnEggComponent> SPAWN_EGG = ComponentType.of("spawn_egg", SpawnEggComponent.class);
 

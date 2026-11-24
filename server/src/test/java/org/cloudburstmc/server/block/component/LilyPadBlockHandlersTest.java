@@ -68,10 +68,11 @@ class LilyPadBlockHandlersTest {
         BlockTestWorld world = new BlockTestWorld(REGISTRY);
         world.setState(POSITION, BlockTypes.WATERLILY.getDefaultState());
         Boat boat = InterfaceProxy.create(Boat.class, Map.of(
+                "isAlive", true,
                 "getMotion", Vector3f.ZERO,
                 "getBoundingBox", new BoundingBox(0, 64, 0, 1.4f, 64.455f, 1.4f)
         ));
-        Entity other = InterfaceProxy.create(Entity.class, Map.of());
+        Entity other = InterfaceProxy.create(Entity.class, Map.of("isAlive", true));
 
         assertTrue(REGISTRY.requireComponent(BlockTypes.WATERLILY, BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE)
                 .execute(BlockTypes.WATERLILY.getDefaultState(), CollisionContext.of(boat)).covers(CloudVoxelShapes.block()));
@@ -99,10 +100,11 @@ class LilyPadBlockHandlersTest {
         BlockTestWorld world = new BlockTestWorld(REGISTRY);
         world.setState(POSITION, BlockTypes.WATERLILY.getDefaultState());
         world.onEvent(EntityInsideBlockEvent.class, event -> event.setCancelled(true));
-        Boat boat = InterfaceProxy.create(Boat.class, Map.of());
+        Boat boat = InterfaceProxy.create(Boat.class, Map.of("isAlive", true));
 
         EntityInsideBlockScanner.applyEffects(world.block(POSITION), boat, true);
 
+        assertEquals(1, world.getEvents(EntityInsideBlockEvent.class).size());
         assertTrue(world.getEvents(EntityChangeBlockEvent.class).isEmpty());
         assertEquals(0, world.getBreakCount());
     }

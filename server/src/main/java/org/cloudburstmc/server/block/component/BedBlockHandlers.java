@@ -16,7 +16,6 @@ import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.util.PlacementSupport;
-import org.cloudburstmc.server.entity.vehicle.DismountHelper;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.network.LevelEffectPacketFactory;
@@ -267,7 +266,7 @@ public class BedBlockHandlers {
         for (RelativeOffset offset : offsets) {
             int x = side.getStepX() * offset.sideSteps() + forward.getStepX() * offset.forwardSteps();
             int z = side.getStepZ() * offset.sideSteps() + forward.getStepZ() * offset.forwardSteps();
-            Vector3f safePosition = DismountHelper.findSafeDismountLocation(level, position.add(x, 0, z), avoidDanger);
+            Vector3f safePosition = StandUpPosition.find(level, position.add(x, 0, z), avoidDanger);
             if (safePosition != null) {
                 return safePosition;
             }

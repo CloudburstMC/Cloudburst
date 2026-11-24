@@ -3,13 +3,11 @@ package org.cloudburstmc.server.network;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import lombok.experimental.UtilityClass;
-import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.level.gamerule.LevelGameRules;
 import org.cloudburstmc.api.level.particle.ParticleType;
 import org.cloudburstmc.api.level.particle.ParticleTypes;
 import org.cloudburstmc.api.potion.*;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
 import org.cloudburstmc.protocol.bedrock.packet.MobEffectPacket;
 
@@ -117,16 +115,6 @@ public class NetworkUtils {
         effectTypeMap.put(EffectTypes.RAID_OMEN, (byte) 36);
         effectTypeMap.put(EffectTypes.BREATH_OF_THE_NAUTILUS, (byte) 37);
         effectTypeMap.put(EffectTypes.FREEZING, (byte) 38);
-    }
-
-    public static AttributeData attributeToNetwork(Attribute attr) {
-        return new AttributeData(
-                attr.getName(),
-                attr.getMinValue(),
-                attr.getMaxValue(),
-                attr.getValue(),
-                attr.getDefaultValue()
-        );
     }
 
     public static void gameRulesToNetwork(LevelGameRules gameRules, List<GameRuleData<?>> networkRules) {

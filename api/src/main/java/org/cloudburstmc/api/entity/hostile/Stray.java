@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.hostile;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface Stray extends Entity {
+/**
+ * The cold-biome skeleton variant associated with slowness arrows.
+ */
+public interface Stray extends AbstractSkeleton {
 }

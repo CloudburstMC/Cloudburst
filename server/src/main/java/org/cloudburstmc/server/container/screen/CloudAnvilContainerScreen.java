@@ -169,7 +169,7 @@ public class CloudAnvilContainerScreen extends CloudBlockContainerScreen impleme
             return;
         }
 
-        player.setExperience(player.getExperience(), Math.max(0, player.getExperienceLevel() - repairCost));
+        player.setExperienceLevel(Math.max(0, player.getExperienceLevel() - repairCost));
     }
 
     private void consumeInputs(int materialCost, boolean renaming) {

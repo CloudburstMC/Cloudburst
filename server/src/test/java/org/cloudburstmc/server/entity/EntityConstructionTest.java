@@ -5,8 +5,10 @@ import org.cloudburstmc.api.entity.KnockbackCause;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.server.entity.misc.EntityAreaEffectCloud;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
+import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -23,16 +25,37 @@ class EntityConstructionTest {
             }
         };
 
-        assertTrue(entity.justCreated);
         assertEquals(400, entity.getAirTicks());
         assertNull(entity.getOwner());
-        assertFalse(entity.isNameTagAlwaysVisible());
+        assertFalse(entity.isCustomNameAlwaysVisible());
         entity.setAirTicks(200);
         assertEquals(200, entity.getAirTicks());
 
         Vector3f knockback = Vector3f.from(0.5f, 0.4f, 0);
         entity.applyKnockback(knockback, KnockbackCause.DAMAGE, null);
         assertEquals(knockback, entity.getMotion());
+    }
+
+    @Test
+    void freshLivingEntityStartsAtItsSpeciesMaximum() {
+        CloudEntity wither = (CloudEntity) PersistenceFixtures.entity(EntityTypes.WITHER);
+
+        wither.initializeHealth();
+
+        assertEquals(300, wither.getMaxHealth());
+        assertEquals(300f, wither.getHealth());
+    }
+
+    @Test
+    void savedHealthOverridesTheInitialHealth() {
+        CloudEntity wither = (CloudEntity) PersistenceFixtures.entity(EntityTypes.WITHER);
+        wither.initializeHealth();
+
+        wither.loadAdditionalData(NbtMap.builder().putFloat("Health", 115f).build());
+
+        assertEquals(115f, wither.getHealth());
+        wither.setMaxHealth(400);
+        assertEquals(115f, wither.getHealth());
     }
 
     @Test

@@ -3,11 +3,12 @@ package org.cloudburstmc.server.entity.vehicle;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.Explosive;
-import org.cloudburstmc.api.entity.Projectile;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
+import org.cloudburstmc.api.entity.projectile.Projectile;
 import org.cloudburstmc.api.entity.vehicle.TntMinecart;
+import org.cloudburstmc.api.event.entity.EntityRemoveCause;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.ExplosionBlockInteraction;
 import org.cloudburstmc.api.level.ExplosionSettings;
@@ -21,14 +22,18 @@ import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.server.entity.data.CloudTntMinecartData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.item.component.DefaultItemHandlers;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.level.Explosion;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.FUSE_TIME;
 
-public class EntityTntMinecart extends EntityAbstractMinecart implements TntMinecart, Explosive {
+public class EntityTntMinecart extends EntityAbstractMinecart implements TntMinecart {
 
     private static final int DEFAULT_FUSE = 80;
+    private static final float DEFAULT_YIELD = 4;
 
     private final CloudTntMinecartData persistenceState;
+    private boolean detonating;
 
     public EntityTntMinecart(EntityType<TntMinecart> type, Location location) {
         CloudTntMinecartData state = new CloudTntMinecartData();
@@ -37,11 +42,11 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
     }
 
     @Override
-    public void initEntity() {
+    protected void initEntity() {
         super.initEntity();
         this.setDisplayBlock(BlockStates.TNT);
         this.setDisplay(true);
-        this.data.set(FUSE_TIME, this.data().getFuse());
+        this.data.set(FUSE_TIME, this.data().getFuseTicks());
     }
 
     @Override
@@ -51,12 +56,8 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // The fuse runs before the minecart load below, matching
-        // the historical load order. The setter re-runs to keep its
-        // validation and metadata sync, as the previous load did; an absent key
-        // keeps the current value.
         if (tag.containsKey("Fuse")) {
-            this.setFuse(this.data().getFuse());
+            this.setFuseTicks(this.data().getFuseTicks());
         }
         super.loadCustom(tag);
     }
@@ -72,43 +73,44 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
     }
 
     @Override
-    public int getFuse() {
-        return this.data().getFuse();
+    public int getFuseTicks() {
+        return this.data().getFuseTicks();
     }
 
     @Override
-    public void setFuse(int fuse) {
-        if (fuse < -1) {
+    public void setFuseTicks(int fuseTicks) {
+        if (fuseTicks < -1) {
             throw new IllegalArgumentException("Fuse must be -1 or non-negative");
         }
 
-        this.data().setFuse(fuse);
-        this.data.set(FUSE_TIME, fuse);
+        this.data().setFuseTicks(fuseTicks);
+        this.data.set(FUSE_TIME, fuseTicks);
     }
 
     @Override
-    public boolean onUpdate(int currentTick) {
-        int elapsed = currentTick - this.lastUpdate;
+    protected boolean tickEntity(int currentTick, int elapsedTicks) {
         double horizontalSpeedSquared = this.motion.getX() * this.motion.getX() + this.motion.getZ() * this.motion.getZ();
-        boolean updated = super.onUpdate(currentTick);
-        if (this.closed || !this.isAlive()) {
+        boolean updated = super.tickEntity(currentTick, elapsedTicks);
+        if (this.isClosed() || !this.isAlive()) {
             return updated;
         }
 
-        if (this.getFuse() >= 0 && elapsed > 0) {
-            this.setFuse(Math.max(0, this.getFuse() - elapsed));
-            if (this.getFuse() == 0) {
+        int fuseTicks = this.getFuseTicks();
+        if (fuseTicks >= 0 && elapsedTicks > 0) {
+            // The countdown reaches zero before the tick that detonates it.
+            this.setFuseTicks(Math.max(0, fuseTicks - elapsedTicks));
+            if (elapsedTicks > fuseTicks) {
                 this.explode();
-                return false;
+                return updated && !this.isClosed();
             }
         }
 
-        if (this.isCollidedHorizontally && horizontalSpeedSquared >= 0.01) {
-            this.explode(horizontalSpeedSquared);
-            return false;
+        if (this.hasHorizontalCollision() && horizontalSpeedSquared >= 0.01) {
+            this.detonate(horizontalSpeedSquared);
+            return updated && !this.isClosed();
         }
 
-        return updated || this.getFuse() >= 0;
+        return updated || this.getFuseTicks() >= 0;
     }
 
     @Override
@@ -119,17 +121,17 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
     }
 
     private boolean primeFuse() {
-        if (this.getFuse() >= 0 || !this.getLevel().getGameRules().get(GameRules.TNT_EXPLODES)) {
+        if (this.getFuseTicks() >= 0 || !this.getLevel().getGameRules().get(GameRules.TNT_EXPLODES)) {
             return false;
         }
 
-        this.setFuse(DEFAULT_FUSE);
+        this.setFuseTicks(DEFAULT_FUSE);
         this.getLevel().addLevelEvent(this.getPosition(), LevelEvent.SOUND_FUSE, 0);
         return true;
     }
 
     @Override
-    public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
+    protected boolean interactDefault(Player player, ItemStack item, Vector3f clickedPos) {
         if (item.getType() == ItemTypes.FLINT_AND_STEEL || item.getType() == ItemTypes.FIRE_CHARGE) {
             boolean primed = this.primeFuse();
             if (primed && !player.isCreative()) {
@@ -140,11 +142,11 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
             return primed;
         }
 
-        return super.onInteract(player, item, clickedPos);
+        return super.interactDefault(player, item, clickedPos);
     }
 
     @Override
-    public boolean mount(Entity entity) {
+    public boolean mount(Entity vehicle) {
         return false;
     }
 
@@ -168,7 +170,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
             if (burningProjectile) {
                 this.explode();
             } else if (this.primeFuse()) {
-                this.setFuse(this.getLevel().getRandom().nextInt(20) + this.getLevel().getRandom().nextInt(20));
+                this.setFuseTicks(this.getLevel().getRandom().nextInt(20) + this.getLevel().getRandom().nextInt(20));
             }
 
             return true;
@@ -178,28 +180,79 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
     }
 
     @Override
-    public void explode() {
-        this.explode(this.motion.getX() * this.motion.getX() + this.motion.getZ() * this.motion.getZ());
-    }
-
-    private void explode(double horizontalSpeedSquared) {
-        if (this.closed) {
-            return;
-        }
-
-        if (this.getLevel().getGameRules().get(GameRules.TNT_EXPLODES)) {
-            float speed = (float) Math.min(Math.sqrt(horizontalSpeedSquared), 5);
-            float radius = 4 + this.getLevel().getRandom().nextFloat() * 1.5f * speed;
-            ExplosionBlockInteraction interaction = this.getLevel().getGameRules().get(GameRules.TNT_EXPLOSION_DROP_DECAY)
-                    ? ExplosionBlockInteraction.DESTROY_WITH_DECAY : ExplosionBlockInteraction.DESTROY;
-            this.getLevel().explode(this.getPosition(), new ExplosionSettings(radius, interaction, false, this, null));
-        }
-
-        this.close();
+    public float getYield() {
+        Float yield = this.data().getExplosionYield();
+        return yield != null && Float.isFinite(yield) && yield >= 0 ? yield : DEFAULT_YIELD;
     }
 
     @Override
-    public void dropItem() {
-        this.getLevel().dropItem(this.getPosition(), ItemStack.builder().itemType(ItemTypes.TNT_MINECART).build());
+    public void setYield(float yield) {
+        if (!Float.isFinite(yield) || yield < 0) {
+            throw new IllegalArgumentException("Explosion radius must be finite and non-negative");
+        }
+
+        this.data().setExplosionYield(yield);
+        this.markChunkDirty();
+    }
+
+    @Override
+    public boolean isIncendiary() {
+        Boolean incendiary = this.data().getIncendiary();
+        return incendiary != null && incendiary;
+    }
+
+    @Override
+    public void setIsIncendiary(boolean incendiary) {
+        this.data().setIncendiary(incendiary);
+        this.markChunkDirty();
+    }
+
+    @Override
+    public void explode() {
+        this.detonate(this.motion.getX() * this.motion.getX() + this.motion.getZ() * this.motion.getZ());
+    }
+
+    private void detonate(double horizontalSpeedSquared) {
+        if (this.isClosed() || this.detonating) {
+            return;
+        }
+
+        CloudLevel level = this.getLevel();
+        if (!level.getGameRules().get(GameRules.TNT_EXPLODES)) {
+            if (this.getFuseTicks() >= 0) {
+                this.remove(EntityRemoveCause.DISCARD);
+            }
+            return;
+        }
+
+        float speed = (float) Math.min(Math.sqrt(horizontalSpeedSquared), 5);
+        float radius = this.getYield() + level.getRandom().nextFloat() * 1.5f * speed;
+        ExplosionBlockInteraction interaction = level.getGameRules().get(GameRules.TNT_EXPLOSION_DROP_DECAY)
+                ? ExplosionBlockInteraction.DESTROY_WITH_DECAY : ExplosionBlockInteraction.DESTROY;
+
+        this.detonating = true;
+        try {
+            ExplosionSettings primed = level.primeExplosion(
+                    new ExplosionSettings(radius, interaction, this.isIncendiary(), this, null));
+            if (primed == null) {
+                if (!this.isClosed()) {
+                    this.setFuseTicks(-1);
+                    this.markChunkDirty();
+                }
+                return;
+            }
+
+            if (!this.isClosed() && this.getLevel() == level) {
+                new Explosion(level, this.getPosition(), primed).explode();
+                this.remove(EntityRemoveCause.EXPLODE);
+            }
+        } finally {
+            this.detonating = false;
+        }
+    }
+
+    @Override
+    protected ItemType getDropItemType() {
+        return ItemTypes.TNT_MINECART;
     }
 }

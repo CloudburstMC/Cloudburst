@@ -109,8 +109,8 @@ public class TntBlockHandlers {
         }
 
         if (shortFuse) {
-            int fuse = tnt.getFuse();
-            tnt.setFuse(fuse / 8 + level.getRandom().nextInt(Math.max(1, fuse / 4)));
+            int fuse = tnt.getFuseTicks();
+            tnt.setFuseTicks(fuse / 8 + level.getRandom().nextInt(Math.max(1, fuse / 4)));
         }
 
         double angle = level.getRandom().nextDouble() * Math.PI * 2;

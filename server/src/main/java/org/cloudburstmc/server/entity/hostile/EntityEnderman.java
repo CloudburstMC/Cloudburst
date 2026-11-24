@@ -16,7 +16,7 @@ public class EntityEnderman extends EntityHostile implements Enderman {
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(40);
+        this.setDefaultMaxHealth(40);
     }
 
     @Override
@@ -30,7 +30,7 @@ public class EntityEnderman extends EntityHostile implements Enderman {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Enderman";
     }
 }

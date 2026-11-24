@@ -1,9 +1,9 @@
 package org.cloudburstmc.api.entity.projectile;
 
-import org.cloudburstmc.api.entity.Projectile;
+import org.cloudburstmc.api.entity.Entity;
 
 /**
- * A flying eye of ender signal.
+ * The guidance entity produced by using an eye of ender.
  */
-public interface EyeOfEnderSignal extends Projectile {
+public interface EyeOfEnderSignal extends Entity {
 }

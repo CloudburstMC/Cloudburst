@@ -3,18 +3,14 @@ package org.cloudburstmc.server.entity.passive;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.passive.Squid;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 
-/**
- * @author PikyCZ
- */
 public class EntitySquid extends EntityWaterAnimal implements Squid {
 
-    public static final int NETWORK_ID = 17;
-
-    public EntitySquid(EntityType<Squid> type, Location location) {
-        super(type, location);
+    public EntitySquid(EntityType<? extends Squid> entityType, Location location) {
+        super(entityType, location);
     }
 
     @Override
@@ -28,15 +24,17 @@ public class EntitySquid extends EntityWaterAnimal implements Squid {
     }
 
     @Override
-    public void initEntity() {
+    protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(10);
+        this.setDefaultMaxHealth(10);
     }
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{ItemStack.builder()
-                .itemType(ItemTypes.INK_SAC)
-                .build()};
+        return new ItemStack[]{ItemStack.from(this.getInkSacType())};
+    }
+
+    protected ItemType getInkSacType() {
+        return ItemTypes.INK_SAC;
     }
 }

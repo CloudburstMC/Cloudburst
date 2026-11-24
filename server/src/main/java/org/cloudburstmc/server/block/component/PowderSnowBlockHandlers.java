@@ -18,8 +18,9 @@ import org.cloudburstmc.api.util.CollisionContext;
 import org.cloudburstmc.api.util.VoxelShape;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.server.entity.EntityCreature;
-import org.cloudburstmc.server.entity.EntityLiving;
+import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.entity.CloudEquippedLivingEntity;
+import org.cloudburstmc.server.entity.CloudLivingEntity;
 import org.cloudburstmc.server.entity.misc.EntityFallingBlock;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
@@ -40,7 +41,7 @@ public class PowderSnowBlockHandlers {
                 return CloudVoxelShapes.empty();
             }
 
-            float fallDistance = Math.max(0, entity.getHighestPosition() - entity.getY());
+            float fallDistance = entity.getFallDistance();
             if (collisionContext.isDescending() && fallDistance > 2.5f) {
                 return CloudVoxelShapes.box(0, 0, 0, 1, 0.9f, 1);
             }
@@ -61,14 +62,17 @@ public class PowderSnowBlockHandlers {
     };
 
     public static final FallOnBlockHandler FALL_ON = (block, entity, fallDistance) -> {
-        if (entity instanceof EntityLiving && fallDistance >= 4) {
+        if (entity instanceof CloudLivingEntity && fallDistance >= 4) {
             block.getLevel().playSound(entity.getPosition(), SoundTypes.FALL_POWDER_SNOW);
         }
     };
 
     public static final EntityInsideBlockHandler ENTITY_INSIDE = (block, entity, precise) -> {
-        entity.makeStuckInBlock(block.getState(), Vector3f.from(0.9f, 1.5f, 0.9f));
-        if (entity instanceof EntityLiving livingEntity) {
+        if (entity instanceof CloudEntity target) {
+            target.makeStuckInBlock(Vector3f.from(0.9f, 1.5f, 0.9f));
+        }
+
+        if (entity instanceof CloudLivingEntity livingEntity) {
             livingEntity.markInPowderSnow();
         }
 
@@ -95,7 +99,7 @@ public class PowderSnowBlockHandlers {
     private static boolean canWalkOnPowderSnow(Entity entity) {
         return CloudEntityRegistry.get().requireComponent(entity.getType(), EntityComponents.CAN_WALK_ON_POWDER_SNOW)
                 .execute(entity)
-                || entity instanceof EntityCreature creature
-                && creature.getArmor().getBoots().getType() == ItemTypes.LEATHER_BOOTS;
+                || entity instanceof CloudEquippedLivingEntity equipped
+                && equipped.getArmor().getBoots().getType() == ItemTypes.LEATHER_BOOTS;
     }
 }

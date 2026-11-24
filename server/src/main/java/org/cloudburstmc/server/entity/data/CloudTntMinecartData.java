@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 @Getter
 @Setter
@@ -13,5 +14,11 @@ import lombok.Setter;
 public class CloudTntMinecartData extends CloudAbstractMinecartData {
 
     @JsonProperty("Fuse")
-    private int fuse = -1;
+    private int fuseTicks = -1;
+
+    @JsonProperty("ExplosionYield")
+    private @Nullable Float explosionYield;
+
+    @JsonProperty("Incendiary")
+    private @Nullable Boolean incendiary;
 }

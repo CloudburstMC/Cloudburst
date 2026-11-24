@@ -5,7 +5,7 @@ import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.component.*;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityTypes;
-import org.cloudburstmc.api.entity.Living;
+import org.cloudburstmc.api.entity.LivingEntity;
 import org.cloudburstmc.api.entity.passive.Turtle;
 import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.api.event.block.BlockFadeEvent;
@@ -136,7 +136,7 @@ public class TurtleEggBlockHandlers {
 
             interaction = new PlayerInteractEvent(player, null, block, null, PlayerInteractEvent.Action.PHYSICAL);
         } else {
-            if (!(entity instanceof Living) || !level.getGameRules().get(GameRules.MOB_GRIEFING)) {
+            if (!(entity instanceof LivingEntity) || !level.getGameRules().get(GameRules.MOB_GRIEFING)) {
                 return;
             }
 
@@ -157,7 +157,8 @@ public class TurtleEggBlockHandlers {
     private static boolean canTrampleOnLanding(Entity entity) {
         return entity.getType() != EntityTypes.ZOMBIE && entity.getType() != EntityTypes.HUSK
                 && entity.getType() != EntityTypes.DROWNED && entity.getType() != EntityTypes.ZOMBIE_VILLAGER
-                && entity.getType() != EntityTypes.DEPRECATED_ZOMBIE_VILLAGER && entity.getType() != EntityTypes.ZOMBIE_PIGMAN;
+                && entity.getType() != EntityTypes.DEPRECATED_ZOMBIE_VILLAGER
+                && entity.getType() != EntityTypes.ZOMBIFIED_PIGLIN;
     }
 
     private static void decreaseEggs(Block block, boolean particles) {

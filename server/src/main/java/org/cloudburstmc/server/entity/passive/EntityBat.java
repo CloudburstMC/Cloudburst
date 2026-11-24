@@ -24,8 +24,8 @@ public class EntityBat extends Animal implements Bat {
     }
 
     @Override
-    public void initEntity() {
+    protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(6);
+        this.setDefaultMaxHealth(6);
     }
 }

@@ -1,7 +1,7 @@
 package org.cloudburstmc.api.event.entity;
 
 /**
- * The reason a creature is being spawned.
+ * The reason a living entity is being spawned.
  */
 public enum CreatureSpawnReason {
     /**
@@ -17,13 +17,13 @@ public enum CreatureSpawnReason {
      */
     SPAWNER,
     /**
-     * Spawned from an egg laid by another creature.
+     * Hatched from an egg.
      */
     EGG,
     /**
      * Spawned by using a spawn egg.
      */
-    SPAWN_EGG,
+    SPAWNER_EGG,
     /**
      * Spawned as a result of a lightning strike.
      */
@@ -61,7 +61,7 @@ public enum CreatureSpawnReason {
      */
     SLIME_SPLIT,
     /**
-     * Spawned as reinforcement for another creature.
+     * Spawned as reinforcement for another mob.
      */
     REINFORCEMENTS,
     /**
@@ -73,11 +73,11 @@ public enum CreatureSpawnReason {
      */
     DISPENSE_EGG,
     /**
-     * Spawned by infecting another creature.
+     * Spawned by infecting another mob.
      */
     INFECTION,
     /**
-     * Spawned by curing another creature.
+     * Spawned by curing another mob.
      */
     CURED,
     /**
@@ -105,7 +105,7 @@ public enum CreatureSpawnReason {
      */
     SHOULDER_ENTITY,
     /**
-     * Spawned by converting a drowned creature.
+     * Spawned when a zombie converts into a drowned.
      */
     DROWNED,
     /**

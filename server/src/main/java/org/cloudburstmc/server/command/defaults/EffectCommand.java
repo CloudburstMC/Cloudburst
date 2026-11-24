@@ -10,7 +10,7 @@ import org.cloudburstmc.api.command.Commands;
 import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
 import org.cloudburstmc.api.command.argument.CommandArguments;
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.entity.Living;
+import org.cloudburstmc.api.entity.LivingEntity;
 import org.cloudburstmc.api.event.entity.PotionEffectCause;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.EffectTypes;
@@ -46,9 +46,9 @@ public class EffectCommand extends AdvertisedCommand {
     @Override
     protected int execute(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSender sender = sender(context);
-        List<Living> targets = CommandArgumentTypes.entities(context, "player").stream()
-                .filter(Living.class::isInstance)
-                .map(Living.class::cast)
+        List<LivingEntity> targets = CommandArgumentTypes.entities(context, "player").stream()
+                .filter(LivingEntity.class::isInstance)
+                .map(LivingEntity.class::cast)
                 .toList();
 
         if (targets.isEmpty()) {
@@ -56,7 +56,7 @@ public class EffectCommand extends AdvertisedCommand {
         }
 
         if (hasArgument(context, "clear")) {
-            for (Living target : targets) {
+            for (LivingEntity target : targets) {
                 ((CloudEntity) target).clearActivePotionEffects(PotionEffectCause.COMMAND);
                 sender.sendMessage(Component.translatable("commands.effect.success.removed.all",
                         Component.text(target.getName())));
@@ -82,7 +82,7 @@ public class EffectCommand extends AdvertisedCommand {
         boolean visible = !hasArgument(context, "hideParticles")
                 || !argumentValue(context, "hideParticles", Boolean.class);
 
-        for (Living target : targets) {
+        for (LivingEntity target : targets) {
             if (duration == 0) {
                 if (!target.hasPotionEffect(effectType)) {
                     if (target.getActivePotionEffects().isEmpty()) {

@@ -1,6 +1,9 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.Mob;
 
-public interface Squid extends Entity {
+/**
+ * The base squid type, including {@link GlowSquid}.
+ */
+public interface Squid extends Mob {
 }

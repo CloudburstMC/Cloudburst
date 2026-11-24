@@ -2,50 +2,37 @@ package org.cloudburstmc.server.entity.vehicle;
 
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.vehicle.ChestBoat;
-import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
+import org.cloudburstmc.api.event.entity.EntityRemoveCause;
 import org.cloudburstmc.api.inventory.view.StorageView;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.api.level.sound.SoundPlayback;
-import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
-import org.cloudburstmc.server.container.CloudContainer;
-import org.cloudburstmc.server.container.screen.CloudChestBoatScreen;
-import org.cloudburstmc.server.container.view.CloudEntityStorageView;
+import org.cloudburstmc.server.entity.component.EntityStorage;
 import org.cloudburstmc.server.entity.data.CloudChestBoatData;
 import org.cloudburstmc.server.player.CloudPlayer;
-
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
 
 public class EntityChestBoat extends EntityBoat implements ChestBoat {
 
-    private final CloudEntityStorageView inventory;
-    private final Set<CloudPlayer> inventoryViewers = new HashSet<>();
+    private static final int INVENTORY_SIZE = 27;
 
     private final CloudChestBoatData persistenceState;
+    private final EntityStorage storage;
 
     public EntityChestBoat(EntityType<ChestBoat> type, Location location) {
         CloudChestBoatData state = new CloudChestBoatData();
         super(type, location, state);
         this.persistenceState = state;
-        CloudContainer container = new CloudContainer(27);
-        this.data().setItems(container);
-        this.inventory = new CloudEntityStorageView(container);
+        this.storage = new EntityStorage(this, ContainerType.CONTAINER, INVENTORY_SIZE, true);
+        state.setItems(this.storage.getInventory().getContainer());
         this.data.set(CONTAINER_TYPE, (byte) ContainerType.CHEST_BOAT.getId());
-        this.data.set(CONTAINER_SIZE, 27);
+        this.data.set(CONTAINER_SIZE, INVENTORY_SIZE);
         this.data.set(CONTAINER_STRENGTH_MODIFIER, 0);
-    }
-
-    // The DTO stays internal, so the live container is always the detached CloudContainer above.
-    private CloudContainer liveContainer() {
-        return (CloudContainer) this.data().getItems();
     }
 
     @Override
@@ -55,13 +42,8 @@ public class EntityChestBoat extends EntityBoat implements ChestBoat {
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // The inventory runs before the boat load below, matching
-        // the historical load order. The inventory is always cleared before
-        // the stored items are read; the default container read already fails
-        // a stored slot outside the inventory with the same bare error as
-        // before, when it indexed the container, so no re-check is needed here.
         if (!tag.containsKey("Items")) {
-            this.data().getItems().clear();
+            this.storage.getInventory().clear();
         }
         super.loadCustom(tag);
     }
@@ -83,89 +65,38 @@ public class EntityChestBoat extends EntityBoat implements ChestBoat {
 
     @Override
     public StorageView getInventory() {
-        return this.inventory;
+        return this.storage.getInventory();
+    }
+
+    public boolean openStorage(CloudPlayer player) {
+        return this.storage.open(player);
     }
 
     @Override
-    public boolean onUpdate(int currentTick) {
-        boolean active = super.onUpdate(currentTick);
-        for (CloudPlayer player : Set.copyOf(this.inventoryViewers)) {
-            if (this.isInventoryUnavailable(player)) {
-                player.closeInventory(InventoryCloseEvent.Reason.CANT_USE);
-            }
-        }
-
+    protected boolean tickEntity(int currentTick, int elapsedTicks) {
+        boolean active = super.tickEntity(currentTick, elapsedTicks);
+        this.storage.closeUnavailableViewers();
         return active;
     }
 
-    public boolean isInventoryUnavailable(CloudPlayer player) {
-        float distanceSquared = player.getPosition().distanceSquared(this.position);
-        return this.closed || !this.isAlive() || !player.isAlive() || player.getLevel() != this.level || !Float.isFinite(distanceSquared) || distanceSquared > 64;
-    }
-
-    public void openInventory(CloudPlayer player) {
-        if (this.isInventoryUnavailable(player)) {
-            return;
-        }
-
-        if (player.getOpenInventory() instanceof CloudChestBoatScreen screen && screen.getEntity() == this) {
-            return;
-        }
-
-        player.openInventory(new CloudChestBoatScreen(player, this));
-    }
-
-    public void addInventoryViewer(CloudPlayer player) {
-        if (this.inventoryViewers.add(player)) {
-            this.liveContainer().addContainerListener(player);
-            if (this.inventoryViewers.size() == 1) {
-                this.level.playSound(this.position, new SoundPlayback(SoundTypes.RANDOM_CHESTOPEN, 0.5f, 1));
-            }
-        }
-    }
-
-    public void removeInventoryViewer(CloudPlayer player) {
-        if (this.inventoryViewers.remove(player)) {
-            this.liveContainer().removeContainerListener(player);
-            if (this.inventoryViewers.isEmpty() && !this.closed) {
-                this.level.playSound(this.position, new SoundPlayback(SoundTypes.RANDOM_CHESTCLOSED, 0.5f, 1));
-            }
-        }
-    }
-
     @Override
-    public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
+    protected boolean interactDefault(Player player, ItemStack item, Vector3f clickedPosition) {
         if (player.isSpectator() || player.isSneaking() || !this.canAddPassenger(player)) {
-            this.openInventory((CloudPlayer) player);
-            return true;
+            return player instanceof CloudPlayer cloudPlayer && this.openStorage(cloudPlayer);
         }
-
-        return super.onInteract(player, item, clickedPos);
+        return super.interactDefault(player, item, clickedPosition);
     }
 
     @Override
     protected void dropContents() {
-        for (ItemStack item : this.liveContainer().getContents()) {
-            if (!item.isEmpty()) {
-                this.level.dropItem(this.position, item);
-            }
-        }
-
-        this.liveContainer().clear();
+        this.storage.dropContents();
     }
 
     @Override
-    public void close() {
-        if (this.closed) {
-            return;
+    public void remove(EntityRemoveCause cause) {
+        if (!this.isClosed()) {
+            super.remove(cause);
+            this.storage.close();
         }
-
-        super.close();
-
-        for (CloudPlayer player : Set.copyOf(this.inventoryViewers)) {
-            player.closeInventory(InventoryCloseEvent.Reason.CANT_USE);
-        }
-
-        this.liveContainer().close();
     }
 }

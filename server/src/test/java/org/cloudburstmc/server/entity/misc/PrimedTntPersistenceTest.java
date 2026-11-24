@@ -37,7 +37,7 @@ class PrimedTntPersistenceTest {
                 .build();
         tnt.loadAdditionalData(input);
 
-        assertEquals(40, tnt.getFuse());
+        assertEquals(40, tnt.getFuseTicks());
 
         NbtMap saved = save(tnt);
 
@@ -68,11 +68,11 @@ class PrimedTntPersistenceTest {
     @Test
     void absentKeyLeavesStateUnchanged() {
         EntityPrimedTnt tnt = (EntityPrimedTnt) PersistenceFixtures.entity(EntityTypes.TNT);
-        tnt.setFuse(10);
+        tnt.setFuseTicks(10);
 
         tnt.loadAdditionalData(NbtMap.EMPTY);
 
-        assertEquals(10, tnt.getFuse());
+        assertEquals(10, tnt.getFuseTicks());
     }
 
     @Test

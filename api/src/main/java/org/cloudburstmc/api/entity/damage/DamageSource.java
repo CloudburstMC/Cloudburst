@@ -4,7 +4,7 @@ import lombok.EqualsAndHashCode;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.entity.Living;
+import org.cloudburstmc.api.entity.LivingEntity;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
@@ -175,7 +175,7 @@ public class DamageSource {
         return switch (this.damageType.getDamageScaling()) {
             case NEVER -> false;
             case ALWAYS -> true;
-            case WHEN_CAUSED_BY_LIVING_NON_PLAYER -> this.causingEntity instanceof Living && !(this.causingEntity instanceof Player);
+            case WHEN_CAUSED_BY_LIVING_NON_PLAYER -> this.causingEntity instanceof LivingEntity && !(this.causingEntity instanceof Player);
         };
     }
 

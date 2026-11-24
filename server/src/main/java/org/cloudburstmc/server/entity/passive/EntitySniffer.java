@@ -13,7 +13,7 @@ public class EntitySniffer extends Animal implements Sniffer {
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(14);
+        this.setDefaultMaxHealth(14);
     }
 
     @Override
@@ -27,7 +27,7 @@ public class EntitySniffer extends Animal implements Sniffer {
     }
 
     @Override
-    public String getName() {
+    protected String getDefaultName() {
         return "Sniffer";
     }
 }

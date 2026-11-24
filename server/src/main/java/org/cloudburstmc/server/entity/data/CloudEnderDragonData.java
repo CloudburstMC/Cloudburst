@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-public class CloudEnderDragonData extends CloudCreatureData {
+public class CloudEnderDragonData extends CloudMobData {
 
     @JsonProperty("DragonDeathTime")
     private int dragonDeathTime;

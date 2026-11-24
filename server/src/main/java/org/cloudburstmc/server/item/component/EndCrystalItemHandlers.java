@@ -4,6 +4,8 @@ import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.EntityTypes;
+import org.cloudburstmc.api.event.entity.EntityPlaceEvent;
+import org.cloudburstmc.api.event.entity.EntityRemoveCause;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.component.UseOnHandler;
 import org.cloudburstmc.api.level.Location;
@@ -11,9 +13,9 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.server.entity.CloudEntitySnapshot;
 import org.cloudburstmc.server.entity.misc.EntityEnderCrystal;
 import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
 @UtilityClass
 public class EndCrystalItemHandlers {
@@ -34,20 +36,23 @@ public class EndCrystalItemHandlers {
         }
 
         Vector3f spawnPosition = above.toFloat().add(0.5f, 0, 0.5f);
-        EntityEnderCrystal crystal = (EntityEnderCrystal) CloudEntitySnapshot.createFromItem(item, EntityTypes.ENDER_CRYSTAL, Location.from(spawnPosition, level));
+        EntityEnderCrystal crystal = (EntityEnderCrystal) CloudEntityRegistry.get().createFromItem(item, EntityTypes.ENDER_CRYSTAL, Location.from(spawnPosition, level));
         if (!item.has(ItemDataComponents.ENTITY_DATA)) {
             crystal.setShowingBase(false);
         }
 
-        if (!crystal.spawn()) {
+        Player player = entity instanceof Player placer ? placer : null;
+        EntityPlaceEvent event = new EntityPlaceEvent(crystal, player, level.getBlock(position), face);
+        level.getServer().getEventManager().fire(event);
+        if (event.isCancelled() || crystal.getLevel() != level || !crystal.spawn()) {
+            crystal.remove(EntityRemoveCause.DISCARD);
             return item;
         }
 
-        crystal.spawnToAll();
         if (level.getDimension() == CloudLevel.DIMENSION_THE_END) {
             level.getEndFight().initiateRespawn();
         }
 
-        return entity instanceof Player player && player.isCreative() ? item : item.decreaseCount();
+        return player != null && player.isCreative() ? item : item.decreaseCount();
     };
 }

@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.hostile;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface ElderGuardian extends Entity {
+/**
+ * The larger guardian found in ocean monuments, distinct from {@link ElderGuardianGhost}.
+ */
+public interface ElderGuardian extends Guardian {
 }

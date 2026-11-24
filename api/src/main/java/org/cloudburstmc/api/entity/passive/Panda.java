@@ -1,6 +1,9 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.Mob;
 
-public interface Panda extends Entity {
+/**
+ * The bear mob associated with bamboo jungles.
+ */
+public interface Panda extends Mob {
 }

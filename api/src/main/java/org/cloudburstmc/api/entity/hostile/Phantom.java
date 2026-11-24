@@ -1,6 +1,9 @@
 package org.cloudburstmc.api.entity.hostile;
 
-import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.Mob;
 
-public interface Phantom extends Entity {
+/**
+ * The flying monster associated with player insomnia.
+ */
+public interface Phantom extends Mob, Enemy {
 }

@@ -110,6 +110,15 @@ class DroppedItemPersistenceTest {
     }
 
     @Test
+    void negativePickupDelayLoadsAsReadyForPickup() {
+        EntityDroppedItem item = (EntityDroppedItem) PersistenceFixtures.entity(EntityTypes.ITEM);
+
+        item.loadAdditionalData(NbtMap.builder().putShort("PickupDelay", (short) -1).build());
+
+        assertEquals(0, item.getPickupDelay());
+    }
+
+    @Test
     void droppedItemKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
                 EntityDroppedItem.class, CloudDroppedItemData.class);
@@ -136,14 +145,17 @@ class DroppedItemPersistenceTest {
     }
 
     @Test
-    void largePickupDelayNarrowsOnlyOnSave() {
+    void largePickupDelayRemainsNonCollectibleAfterReload() {
         EntityDroppedItem item = (EntityDroppedItem) PersistenceFixtures.entity(EntityTypes.ITEM);
         item.setPickupDelay(40000);
 
-        assertEquals(40000, item.getPickupDelay());
+        assertEquals(Short.MAX_VALUE, item.getPickupDelay());
 
         NbtMap saved = save(item);
-        assertTrue(saved.get("PickupDelay") instanceof Short, "PickupDelay must be a short");
-        assertEquals((short) 40000, saved.getShort("PickupDelay"));
+        assertEquals(Short.MAX_VALUE, saved.get("PickupDelay"));
+
+        EntityDroppedItem restored = (EntityDroppedItem) PersistenceFixtures.entity(EntityTypes.ITEM);
+        restored.loadAdditionalData(saved);
+        assertEquals(Short.MAX_VALUE, restored.getPickupDelay());
     }
 }

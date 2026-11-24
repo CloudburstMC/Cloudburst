@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
-
-public interface ZombieHorse extends Entity {
+/**
+ * The zombie variant of a horse, distinct from a skeleton horse.
+ */
+public interface ZombieHorse extends AbstractHorse {
 }

@@ -38,12 +38,13 @@ public interface EntityRegistry extends ComponentRegistry<EntityType<?>>, KeyedR
     <T extends Entity> void register(EntityType<T> type, EntityFactory<T> factory, int priority, boolean hasSpawnEgg) throws RegistryException;
 
     /**
-     * Creates a new entity instance.
+     * Creates an entity without adding it to the level.
+     * Call {@link Entity#spawn()} to add it.
      *
      * @param type     entity type
-     * @param location spawn location
-     * @param <T>      entity implementation type
-     * @return new entity instance
+     * @param location the entity's initial location and rotation
+     * @param <T>      entity type
+     * @return the unspawned entity
      * @throws RegistryException if the type has no registered factory
      */
     <T extends Entity> T create(EntityType<T> type, Location location) throws RegistryException;

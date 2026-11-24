@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -52,8 +53,8 @@ class EnderDragonPersistenceTest {
         }
 
         @Override
-        protected boolean prepareDeath(EntityDeathEvent event) {
-            return true;
+        protected boolean shouldAbortDeath(EntityDeathEvent event) {
+            return false;
         }
 
         @Override
@@ -62,29 +63,78 @@ class EnderDragonPersistenceTest {
     }
 
     @Test
-    void dyingDragonReloadDoesNotDieAgain() {
-        DeathCountingDragon dragon = new DeathCountingDragon(EntityTypes.ENDER_DRAGON,
-                Location.from(Vector3f.ZERO, InterfaceProxy.create(Level.class)));
-        try {
-            Field bar = EntityEnderDragon.class.getDeclaredField("bossBar");
-            bar.setAccessible(true);
-            bar.set(dragon, InterfaceProxy.create(BossBar.class));
-        } catch (ReflectiveOperationException e) {
-            throw new IllegalStateException(e);
-        }
+    void closingDragonRemovesViewersOnlyFromItsOwnBar() {
+        AtomicInteger removals = new AtomicInteger();
+        BossBar bar = InterfaceProxy.create(BossBar.class, (proxy, method, arguments) -> {
+            if (method.getName().equals("removeAll")) {
+                removals.incrementAndGet();
+            }
+            return null;
+        });
+        EntityEnderDragon fightDragon = dragon();
+        EntityEnderDragon standaloneDragon = dragon();
+        installBossBar(fightDragon, bar, false);
+        installBossBar(standaloneDragon, bar, true);
+
+        fightDragon.close();
+        assertEquals(0, removals.get());
+
+        standaloneDragon.close();
+        assertEquals(1, removals.get());
+    }
+
+    @Test
+    void healingDoesNotReviveADyingDragon() {
+        EntityEnderDragon dragon = dragon();
         dragon.loadAdditionalData(NbtMap.builder()
                 .putFloat("Health", 0f)
                 .putInt("DragonDeathTime", 5)
+                .build());
+
+        dragon.setHealth(10f);
+
+        assertTrue(dragon.isInDeathSequence());
+        assertFalse(dragon.isAlive());
+        assertEquals(0f, dragon.getHealth());
+    }
+
+    @Test
+    void deathSequenceResumesWithoutFiringTheEventAgain() {
+        assertResumesDeathSequence(0);
+        assertResumesDeathSequence(5);
+    }
+
+    private static void assertResumesDeathSequence(int deathTime) {
+        DeathCountingDragon dragon = new DeathCountingDragon(EntityTypes.ENDER_DRAGON,
+                Location.from(Vector3f.ZERO, InterfaceProxy.create(Level.class)));
+        installBossBar(dragon, InterfaceProxy.create(BossBar.class), false);
+        dragon.loadAdditionalData(NbtMap.builder()
+                .putFloat("Health", 0f)
+                .putInt("DragonDeathTime", deathTime)
                 .putInt("DragonDeathExperience", 500)
                 .build());
 
         assertTrue(dragon.isInDeathSequence());
+        assertEquals(0f, dragon.getHealth());
         assertEquals(0, dragon.deathEvents, "reloading a dying dragon must not process death again");
 
         NbtMap saved = save(dragon);
 
-        assertEquals(5, saved.getInt("DragonDeathTime"));
+        assertEquals(deathTime, saved.getInt("DragonDeathTime"));
         assertEquals(500, saved.getInt("DragonDeathExperience"));
+    }
+
+    private static void installBossBar(EntityEnderDragon dragon, BossBar bar, boolean owned) {
+        try {
+            Field barField = EntityEnderDragon.class.getDeclaredField("bossBar");
+            barField.setAccessible(true);
+            barField.set(dragon, bar);
+            Field ownershipField = EntityEnderDragon.class.getDeclaredField("ownsBossBar");
+            ownershipField.setAccessible(true);
+            ownershipField.setBoolean(dragon, owned);
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     @Test

@@ -102,7 +102,7 @@ class AbstractMinecartPersistenceTest {
         TestMinecart minecart = minecart();
         minecart.setDisplay(true);
         minecart.setDisplayBlock(BlockStates.SAND);
-        minecart.setDisplayBlockOffset(9);
+        minecart.setDisplayOffset(9);
 
         minecart.loadAdditionalData(NbtMap.EMPTY);
 

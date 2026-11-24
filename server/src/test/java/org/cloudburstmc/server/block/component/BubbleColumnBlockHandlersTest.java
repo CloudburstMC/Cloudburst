@@ -114,6 +114,8 @@ class BubbleColumnBlockHandlersTest {
         AtomicReference<Vector3f> motion = new AtomicReference<>(Vector3f.from(0.2f, 0.69f, -0.3f));
         AtomicInteger fallResets = new AtomicInteger();
         Entity entity = InterfaceProxy.create(Entity.class, (proxy, method, arguments) -> switch (method.getName()) {
+            case "isAlive" -> true;
+            case "isClosed" -> false;
             case "getMotion" -> motion.get();
             case "getBoundingBox" -> new BoundingBox(0, 64, 0, 0.6f, 65.8f, 0.6f);
             case "setMotion" -> {

@@ -1,6 +1,9 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.Mob;
 
-public interface WanderingTrader extends Entity {
+/**
+ * The itinerant merchant associated with trader llamas.
+ */
+public interface WanderingTrader extends Mob {
 }

@@ -3,7 +3,7 @@ package org.cloudburstmc.api.entity.projectile;
 import org.cloudburstmc.api.item.ItemStack;
 
 /**
- * An arrow projectile.
+ * A standard or tipped arrow that carries the item returned on pickup.
  */
 public interface Arrow extends AbstractArrow {
 

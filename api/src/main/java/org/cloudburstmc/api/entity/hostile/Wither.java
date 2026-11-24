@@ -1,6 +1,9 @@
 package org.cloudburstmc.api.entity.hostile;
 
-import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.Boss;
 
-public interface Wither extends Entity {
+/**
+ * The summoned boss associated with wither skulls.
+ */
+public interface Wither extends Monster, Boss {
 }

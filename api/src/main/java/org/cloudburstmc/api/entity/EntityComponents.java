@@ -5,11 +5,7 @@ import org.cloudburstmc.api.data.ComponentType;
 import org.cloudburstmc.api.entity.component.*;
 
 /**
- * Standard configuration and behavior components for entity types.
- * <p>
- * These components allow per-{@link EntityType} customisation of entity behavior
- * without subclassing. Handlers are registered in {@code EntityRegistry} and can
- * be overridden per type.
+ * Standard components for configuring entity behavior per {@link EntityType}.
  */
 @UtilityClass
 public class EntityComponents {
@@ -19,32 +15,6 @@ public class EntityComponents {
      * Absent on entity types without buoyancy.
      */
     public static final ComponentType<Buoyancy> BUOYANCY = ComponentType.of("buoyancy", Buoyancy.class);
-
-    /**
-     * Returns the base melee attack damage this entity deals.
-     */
-    public static final ComponentType<FloatEntityHandler> GET_ATTACK_DAMAGE = ComponentType.of("entity_get_attack_damage", FloatEntityHandler.class);
-
-    /**
-     * Resolves the damage type used by this projectile type.
-     */
-    public static final ComponentType<DamageTypeEntityHandler> GET_PROJECTILE_DAMAGE_TYPE = ComponentType.of("entity_get_projectile_damage_type", DamageTypeEntityHandler.class);
-
-    /**
-     * Resolves the item representing an entity when it is picked.
-     */
-    public static final ComponentType<PickItemEntityHandler> GET_PICK_ITEM = ComponentType.of("entity_get_pick_item", PickItemEntityHandler.class);
-
-    /**
-     * Called when a player interacts with this entity.
-     */
-    public static final ComponentType<InteractEntityHandler> ON_INTERACT = ComponentType.of("entity_on_interact", InteractEntityHandler.class);
-
-    /**
-     * Called on each server tick update for this entity.
-     * Returns {@code true} if the entity needs further updates next tick.
-     */
-    public static final ComponentType<TickEntityHandler> ON_TICK = ComponentType.of("entity_on_tick", TickEntityHandler.class);
 
     /**
      * Whether this entity type can receive a custom name tag.
@@ -62,7 +32,42 @@ public class EntityComponents {
     public static final ComponentType<BooleanEntityHandler> CAN_WALK_ON_POWDER_SNOW = ComponentType.of("entity_can_walk_on_powder_snow", BooleanEntityHandler.class);
 
     /**
+     * Returns the base melee attack damage this entity deals.
+     */
+    public static final ComponentType<FloatEntityHandler> GET_ATTACK_DAMAGE = ComponentType.of("entity_get_attack_damage", FloatEntityHandler.class);
+
+    /**
      * Returns the multiplier applied to freezing damage for this entity type.
      */
     public static final ComponentType<FloatEntityHandler> GET_FREEZING_DAMAGE_MULTIPLIER = ComponentType.of("entity_get_freezing_damage_multiplier", FloatEntityHandler.class);
+
+    /**
+     * Resolves the item representing an entity when it is picked.
+     */
+    public static final ComponentType<PickItemEntityHandler> GET_PICK_ITEM = ComponentType.of("entity_get_pick_item", PickItemEntityHandler.class);
+
+    /**
+     * Resolves the damage type used by this projectile type.
+     */
+    public static final ComponentType<DamageTypeEntityHandler> GET_PROJECTILE_DAMAGE_TYPE = ComponentType.of("entity_get_projectile_damage_type", DamageTypeEntityHandler.class);
+
+    /**
+     * Whether an entity is undead for potion effects and combat.
+     */
+    public static final ComponentType<BooleanEntityHandler> IS_UNDEAD = ComponentType.of("entity_is_undead", BooleanEntityHandler.class);
+
+    /**
+     * Called when a player interacts with this entity.
+     */
+    public static final ComponentType<InteractEntityHandler> ON_INTERACT = ComponentType.of("entity_on_interact", InteractEntityHandler.class);
+
+    /**
+     * Optional behavior run after a live entity's normal tick.
+     */
+    public static final ComponentType<TickEntityHandler> ON_TICK = ComponentType.of("entity_on_tick", TickEntityHandler.class);
+
+    /**
+     * Whether Bane of Arthropods deals bonus damage and applies slowness to this entity type.
+     */
+    public static final ComponentType<BooleanEntityHandler> SENSITIVE_TO_BANE_OF_ARTHROPODS = ComponentType.of("entity_sensitive_to_bane_of_arthropods", BooleanEntityHandler.class);
 }

@@ -9,10 +9,10 @@ import org.cloudburstmc.api.level.Location;
 /**
  * Created by PetteriM1
  */
-public class EntityCod extends Animal implements Cod {
+public class EntityCod extends EntityWaterAnimal implements Cod {
 
-    public EntityCod(EntityType<Cod> type, Location location) {
-        super(type, location);
+    public EntityCod(EntityType<Cod> entityType, Location location) {
+        super(entityType, location);
     }
 
     @Override
@@ -20,7 +20,7 @@ public class EntityCod extends Animal implements Cod {
         return ItemStack.from(ItemTypes.COD_BUCKET);
     }
 
-    public String getName() {
+    protected String getDefaultName() {
         return "Cod";
     }
 
@@ -35,8 +35,8 @@ public class EntityCod extends Animal implements Cod {
     }
 
     @Override
-    public void initEntity() {
+    protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(3);
+        this.setDefaultMaxHealth(3);
     }
 }

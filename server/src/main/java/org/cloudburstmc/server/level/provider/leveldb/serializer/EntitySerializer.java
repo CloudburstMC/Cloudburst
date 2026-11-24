@@ -119,7 +119,7 @@ public class EntitySerializer {
 
                     Identifier identifier = Identifier.parse(entityTag.getString("identifier"));
                     CloudEntityRegistry registry = CloudEntityRegistry.get();
-                    EntityType<?> type = registry.getOrCreateUnknownType(identifier);
+                    EntityType<?> type = registry.resolveSavedType(identifier);
 
                     try {
                         CloudEntity entity = (CloudEntity) registry.newEntity(type, location);

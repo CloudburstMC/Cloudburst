@@ -1,6 +1,6 @@
 package org.cloudburstmc.api.event.entity;
 
-import org.cloudburstmc.api.entity.Projectile;
+import org.cloudburstmc.api.entity.projectile.Projectile;
 
 import static java.util.Objects.requireNonNull;
 

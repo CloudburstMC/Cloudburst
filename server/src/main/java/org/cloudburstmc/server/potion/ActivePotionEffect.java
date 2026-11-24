@@ -2,7 +2,6 @@ package org.cloudburstmc.server.potion;
 
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.RegainReason;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
@@ -12,7 +11,7 @@ import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.protocol.bedrock.packet.MobEffectPacket;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.EntityLiving;
+import org.cloudburstmc.server.entity.CloudLivingEntity;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -90,7 +89,7 @@ public class ActivePotionEffect {
         return interval == 0 || timingValue % interval == 0;
     }
 
-    public void applyTick(Entity entity) {
+    public void applyTick(CloudEntity entity) {
         if (this.type == EffectTypes.POISON) {
             if (entity.getHealth() > 1) {
                 entity.damage(1, DamageSource.of(DamageTypes.MAGIC));
@@ -104,55 +103,35 @@ public class ActivePotionEffect {
             player.getFoodData().eat(nutrition, nutrition * 2.0f);
         } else if (this.type == EffectTypes.HUNGER && entity instanceof CloudPlayer player) {
             player.addExhaustion(0.005f * (this.amplifier + 1), ExhaustionReason.HUNGER_EFFECT);
-        } else if (this.type == EffectTypes.FREEZING && entity instanceof EntityLiving living) {
+        } else if (this.type == EffectTypes.FREEZING && entity instanceof CloudLivingEntity living) {
             living.freezeForTicks(1);
         }
     }
 
-    public void onApplied(Entity entity, @Nullable ActivePotionEffect previousEffect) {
+    public void onApplied(CloudEntity entity, @Nullable ActivePotionEffect previousEffect) {
         if (entity instanceof CloudPlayer player) {
             MobEffectPacket.Event event = previousEffect == null ? MobEffectPacket.Event.ADD : MobEffectPacket.Event.MODIFY;
             player.sendPacket(NetworkUtils.effectToNetwork(this.snapshot(), player.getRuntimeId(), event, player.getServer().getTick()));
-
-            if (this.type == EffectTypes.SPEED) {
-                if (previousEffect != null) {
-                    player.setMovementSpeed(player.getMovementSpeed() / (1 + 0.2f * (previousEffect.amplifier + 1)), false);
-                }
-
-                player.setMovementSpeed(player.getMovementSpeed() * (1 + 0.2f * (this.amplifier + 1)));
-            } else if (this.type == EffectTypes.SLOWNESS) {
-                if (previousEffect != null) {
-                    player.setMovementSpeed(player.getMovementSpeed() / (1 - 0.15f * (previousEffect.amplifier + 1)), false);
-                }
-
-                player.setMovementSpeed(player.getMovementSpeed() * (1 - 0.15f * (this.amplifier + 1)));
-            }
         }
 
         if (this.type == EffectTypes.INVISIBILITY) {
-            ((CloudEntity) entity).getData().setFlag(INVISIBLE, true);
-            entity.setNameTagVisible(false);
+            entity.getData().setFlag(INVISIBLE, true);
+            entity.setCustomNameVisible(false);
         } else if (this.type == EffectTypes.ABSORPTION) {
             float absorption = (this.amplifier + 1.0f) * 4;
             entity.setAbsorption(Math.max(entity.getAbsorption(), absorption));
         }
     }
 
-    public void onRemoved(Entity entity) {
+    public void onRemoved(CloudEntity entity) {
         if (entity instanceof CloudPlayer player) {
             player.sendPacket(NetworkUtils.effectToNetwork(this.snapshot(), player.getRuntimeId(),
                     MobEffectPacket.Event.REMOVE, player.getServer().getTick()));
-
-            if (this.type == EffectTypes.SPEED) {
-                player.setMovementSpeed(player.getMovementSpeed() / (1 + 0.2f * (this.amplifier + 1)));
-            } else if (this.type == EffectTypes.SLOWNESS) {
-                player.setMovementSpeed(player.getMovementSpeed() / (1 - 0.15f * (this.amplifier + 1)));
-            }
         }
 
         if (this.type == EffectTypes.INVISIBILITY) {
-            ((CloudEntity) entity).getData().setFlag(INVISIBLE, false);
-            entity.setNameTagVisible(true);
+            entity.getData().setFlag(INVISIBLE, false);
+            entity.setCustomNameVisible(true);
         } else if (this.type == EffectTypes.ABSORPTION) {
             entity.setAbsorption(0);
         }

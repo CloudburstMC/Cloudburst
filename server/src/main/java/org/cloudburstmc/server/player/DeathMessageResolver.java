@@ -8,7 +8,7 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.damage.*;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.entity.EntityLiving;
+import org.cloudburstmc.server.entity.CloudLivingEntity;
 
 import java.util.List;
 import java.util.Objects;
@@ -70,7 +70,7 @@ public class DeathMessageResolver {
             return message(victim, "death.attack.player", attacker, player.displayName());
         }
 
-        if (attacker instanceof EntityLiving) {
+        if (attacker instanceof CloudLivingEntity) {
             return message(victim, "death.attack.mob", attacker, displayName(attacker));
         }
 
@@ -82,7 +82,7 @@ public class DeathMessageResolver {
             return message(victim, "death.attack.arrow", attacker, player.displayName());
         }
 
-        if (attacker instanceof EntityLiving) {
+        if (attacker instanceof CloudLivingEntity) {
             return message(victim, "death.attack.arrow", attacker, displayName(attacker));
         }
 
@@ -94,7 +94,7 @@ public class DeathMessageResolver {
             return message(victim, "death.attack.explosion.player", attacker, player.displayName());
         }
 
-        if (attacker instanceof EntityLiving) {
+        if (attacker instanceof CloudLivingEntity) {
             return message(victim, "death.attack.explosion.player", attacker, displayName(attacker));
         }
 
@@ -129,9 +129,7 @@ public class DeathMessageResolver {
     }
 
     private static Component displayName(Entity entity) {
-        return Objects.equals(entity.getNameTag(), "")
-                ? Component.text(entity.getName())
-                : Component.text(entity.getNameTag());
+        return Objects.requireNonNullElseGet(entity.customName(), () -> Component.text(entity.getName()));
     }
 
     public record Resolution(Component message, @Nullable Entity killer) {
