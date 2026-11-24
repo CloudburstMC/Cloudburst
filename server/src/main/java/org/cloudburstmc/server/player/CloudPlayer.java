@@ -159,7 +159,6 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
     @Setter
     private boolean clientCacheEnabled;
 
-    protected long randomClientId;
     protected String username;
     protected Component displayName;
     public long lastSkinChange;
@@ -266,7 +265,6 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
         this.connectionData = connectionData;
         this.locale.set(connectionData.getLocale());
 
-        this.randomClientId = connectionData.getClientId();
         this.username = PlainTextComponentSerializer.plainText().serialize(BedrockLegacyTextSerializer.getInstance().deserialize(connectionData.getName()));
         this.displayName(Component.text(this.username));
         this.data.set(NAME, this.defaultNameplate());
@@ -563,14 +561,6 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
     @Override
     public PlayerClientInfo getClientInfo() {
         return this.connectionData;
-    }
-
-    /**
-     * @deprecated Use {@link #getServerId()} for persistent player identity.
-     */
-    @Deprecated
-    public Long getClientId() {
-        return randomClientId;
     }
 
     public String getXuid() {

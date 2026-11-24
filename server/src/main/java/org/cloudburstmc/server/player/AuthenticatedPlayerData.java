@@ -30,7 +30,6 @@ public class AuthenticatedPlayerData implements PlayerProfile, PlayerClientInfo 
     private final @Nullable String xuid;
     private final PublicKey parsedIdentityPublicKey;
     private final boolean authenticated;
-    private final long clientId;
     private final @Nullable String serverAddress;
     private final @Nullable String deviceModel;
     private final DevicePlatform devicePlatform;
@@ -63,7 +62,6 @@ public class AuthenticatedPlayerData implements PlayerProfile, PlayerClientInfo 
             JsonNode skinToken = Objects.requireNonNull(ServerJson.MAPPER.readTree(verifiedSkinData), "Client data is empty");
             DecodedClientData clientData = DecodedClientData.read(skinToken);
 
-            this.clientId = clientData.clientId();
             this.serverAddress = clientData.serverAddress();
             this.deviceModel = clientData.deviceModel();
             this.devicePlatform = clientData.devicePlatform();
@@ -167,14 +165,13 @@ public class AuthenticatedPlayerData implements PlayerProfile, PlayerClientInfo 
         return Objects.hash(uniqueId, name);
     }
 
-    private record DecodedClientData(long clientId, @Nullable String serverAddress, @Nullable String deviceModel,
+    private record DecodedClientData(@Nullable String serverAddress, @Nullable String deviceModel,
                                      DevicePlatform devicePlatform, @Nullable String gameVersion, int guiScale,
                                      Locale locale, InputMode currentInputMode, InputMode defaultInputMode,
                                      UiProfile uiProfile) {
 
         private static DecodedClientData read(JsonNode token) {
             return new DecodedClientData(
-                    longValue(token.get("ClientRandomId")),
                     stringValue(token, "ServerAddress"),
                     stringValue(token, "DeviceModel"),
                     enumValue(DevicePlatform.values(), intValue(token, "DeviceOS", -1), DevicePlatform.UNKNOWN),
@@ -198,10 +195,6 @@ public class AuthenticatedPlayerData implements PlayerProfile, PlayerClientInfo 
         private static int intValue(JsonNode token, String name, int fallback) {
             JsonNode value = token.get(name);
             return value == null ? fallback : value.intValue();
-        }
-
-        private static long longValue(@Nullable JsonNode value) {
-            return value == null ? 0 : value.longValue();
         }
     }
 }
