@@ -140,7 +140,8 @@ public abstract class CloudInventoryScreen implements InventoryScreen {
             packet.setContainerId(ContainerId.UI);
             packet.setContainerNameData(uiSlotContainerName(type));
             packet.setSlot(slot);
-            packet.setItem(ItemStackPacketCodec.toNetworkNetId(this.getSlot(type, slot)));
+            ItemStack item = this.getSlot(type, slot);
+            packet.setItem(ItemStackPacketCodec.toNetwork(item, this.player.getItemStackNetworkIds().get(item)));
             this.player.sendPacket(packet);
         } else if (this.resolveSlotGroup(type) instanceof CloudSlotGroupBase group) {
             int inventorySlot = this.resolveInventorySlot(type, slot);

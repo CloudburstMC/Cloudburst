@@ -51,7 +51,7 @@ public class InventoryResponses {
 
         slots.computeIfAbsent(ContainerSlotType.CURSOR, key -> new LinkedHashMap<>()).put(0, ItemStack.EMPTY);
 
-        return okResponse(request.getRequestId(), slots);
+        return okResponse(this.player.getItemStackNetworkIds(), request.getRequestId(), slots);
     }
 
     public ItemStackResponse acknowledgeLegacyCurrentState(int requestId, List<LegacySetItemSlotData> legacySlots) {
@@ -65,21 +65,17 @@ public class InventoryResponses {
 
         slots.computeIfAbsent(ContainerSlotType.CURSOR, key -> new LinkedHashMap<>()).put(0, ItemStack.EMPTY);
 
-        return okResponse(requestId, slots);
+        return okResponse(this.player.getItemStackNetworkIds(), requestId, slots);
     }
 
-    public static void putCurrentStateSlot(Map<ContainerSlotType, Map<Integer, ItemStack>> slots, ContainerSlotType containerType, int slot, ItemStack item) {
-        slots.computeIfAbsent(containerType, key -> new LinkedHashMap<>()).put(slot, item);
-    }
-
-    public static ItemStackResponse okResponse(int requestId, Map<ContainerSlotType, Map<Integer, ItemStack>> slots) {
+    public static ItemStackResponse okResponse(ItemStackNetworkIds ids, int requestId, Map<ContainerSlotType, Map<Integer, ItemStack>> slots) {
         List<ItemStackResponseContainer> containers = new ArrayList<>();
         for (Map.Entry<ContainerSlotType, Map<Integer, ItemStack>> entry : slots.entrySet()) {
             ContainerSlotType containerType = entry.getKey();
 
             List<ItemStackResponseSlot> responseSlots = new ArrayList<>();
             for (Map.Entry<Integer, ItemStack> slotEntry : entry.getValue().entrySet()) {
-                responseSlots.add(makeResponseSlot(slotEntry.getKey(), slotEntry.getValue()));
+                responseSlots.add(makeResponseSlot(ids, slotEntry.getKey(), slotEntry.getValue()));
             }
 
             containers.add(new ItemStackResponseContainer(
@@ -92,12 +88,12 @@ public class InventoryResponses {
         return new ItemStackResponse(ItemStackResponseStatus.OK, requestId, containers);
     }
 
-    private static ItemStackResponseSlot makeResponseSlot(int slot, ItemStack item) {
+    private static ItemStackResponseSlot makeResponseSlot(ItemStackNetworkIds ids, int slot, ItemStack item) {
         if (item.isEmpty()) {
             return new ItemStackResponseSlot(slot, slot, 0, 0, "", 0, "");
         }
 
-        int netId = ItemStackNetworkIds.get(item);
+        int netId = ids.get(item);
         String customName = item.get(ItemDataComponents.CUSTOM_NAME);
 
         return new ItemStackResponseSlot(
@@ -109,6 +105,10 @@ public class InventoryResponses {
                 item.getDamage(),
                 ""
         );
+    }
+
+    public static void putCurrentStateSlot(Map<ContainerSlotType, Map<Integer, ItemStack>> slots, ContainerSlotType containerType, int slot, ItemStack item) {
+        slots.computeIfAbsent(containerType, key -> new LinkedHashMap<>()).put(slot, item);
     }
 
     private void trackCurrentStateSlots(Map<ContainerSlotType, Map<Integer, ItemStack>> slots, CloudInventoryScreen screen, ItemStackRequestAction action) {

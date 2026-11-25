@@ -74,7 +74,6 @@ import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.level.chunk.LockedChunk;
 import org.cloudburstmc.server.network.GameModeNetworkMapping;
 import org.cloudburstmc.server.network.LevelEffectPacketFactory;
-import org.cloudburstmc.server.network.inventory.ItemStackNetworkIds;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.ItemPickController;
 import org.cloudburstmc.server.player.RespawnConfig;
@@ -633,7 +632,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
      */
     private boolean isHeldItemDesynced(@Nullable ItemData clientItemData) {
         ItemStack serverItem = this.player.getInventory().getSelectedItem();
-        if (clientItemData != null && clientItemData.isUsingNetId() && !serverItem.isEmpty() && clientItemData.getNetId() == ItemStackNetworkIds.get(serverItem)) {
+        if (clientItemData != null && clientItemData.isUsingNetId() && !serverItem.isEmpty() && this.player.getItemStackNetworkIds().matches(serverItem, clientItemData.getNetId())) {
             return false;
         }
 

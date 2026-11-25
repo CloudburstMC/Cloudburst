@@ -1,26 +1,33 @@
 package org.cloudburstmc.server.network.inventory;
 
 import com.google.common.collect.MapMaker;
-import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.item.ItemStack;
 
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Assigns Bedrock network IDs to live stack instances and server-created offers.
+ * Assigns stack and offer IDs within one player connection.
  */
-@UtilityClass
 public class ItemStackNetworkIds {
 
-    private static final AtomicInteger NEXT_ID = new AtomicInteger(1);
-    private static final ConcurrentMap<ItemStack, Integer> STACK_IDS = new MapMaker().weakKeys().makeMap();
+    private final AtomicInteger nextId = new AtomicInteger(1);
+    private final ConcurrentMap<ItemStack, Integer> stackIds = new MapMaker().weakKeys().makeMap();
 
-    public static int get(ItemStack stack) {
-        return stack.isEmpty() ? 0 : STACK_IDS.computeIfAbsent(stack, ignored -> allocate());
+    public int get(ItemStack stack) {
+        return stack.isEmpty() ? 0 : this.stackIds.computeIfAbsent(stack, ignored -> this.allocate());
     }
 
-    public static int allocate() {
-        return NEXT_ID.getAndUpdate(id -> id == Integer.MAX_VALUE ? 1 : id + 1);
+    public boolean matches(ItemStack stack, int id) {
+        if (stack.isEmpty()) {
+            return id == 0;
+        }
+
+        Integer assigned = this.stackIds.get(stack);
+        return assigned != null && assigned == id;
+    }
+
+    public int allocate() {
+        return this.nextId.getAndUpdate(id -> id == Integer.MAX_VALUE ? 1 : id + 1);
     }
 }

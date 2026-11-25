@@ -105,6 +105,7 @@ import org.cloudburstmc.server.level.EndPortals;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.network.*;
 import org.cloudburstmc.server.network.inventory.InventoryRequestQueue;
+import org.cloudburstmc.server.network.inventory.ItemStackNetworkIds;
 import org.cloudburstmc.server.network.nethernet.CloudLoginTimeoutHandler;
 import org.cloudburstmc.server.network.nethernet.CloudNetherNetPeer;
 import org.cloudburstmc.server.permission.CloudPermissible;
@@ -187,6 +188,8 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
     private final Map<UUID, Set<PluginContainer>> hiddenPlayers = new HashMap<>();
     private final Set<CloudBossBar> bossBars = new LinkedHashSet<>();
 
+    @Getter
+    private final ItemStackNetworkIds itemStackNetworkIds = new ItemStackNetworkIds();
     @Getter
     private final InventoryRequestQueue inventoryRequestQueue = new InventoryRequestQueue(this);
     private final CloudPlayerInventory inventory = new CloudPlayerInventory(this, this.container);
@@ -2460,7 +2463,7 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
         ItemStack itemStack = inventory.getItem(slot);
         InventorySlotPacket packet = new InventorySlotPacket();
         packet.setSlot(slot);
-        packet.setItem(ItemStackPacketCodec.toNetworkNetId(itemStack));
+        packet.setItem(ItemStackPacketCodec.toNetwork(itemStack, this.itemStackNetworkIds.get(itemStack)));
         packet.setContainerId(containerId);
         this.sendPacket(packet);
 
@@ -2492,7 +2495,7 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
 
         List<ItemData> contents = new ArrayList<>();
         for (ItemStack item : inventory.getContents()) {
-            contents.add(ItemStackPacketCodec.toNetworkNetId(item));
+            contents.add(ItemStackPacketCodec.toNetwork(item, this.itemStackNetworkIds.get(item)));
         }
 
         InventoryContentPacket packet = new InventoryContentPacket();

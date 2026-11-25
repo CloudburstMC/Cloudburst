@@ -222,7 +222,7 @@ public class InventoryRequest {
             }
         }
 
-        return InventoryResponses.okResponse(requestId, slots);
+        return InventoryResponses.okResponse(this.player.getItemStackNetworkIds(), requestId, slots);
     }
 
     private void handleTransfer(TransferItemStackRequestAction action) {
@@ -528,7 +528,7 @@ public class InventoryRequest {
         }
 
         ItemStack item = this.getSlot(source);
-        if (CloudBeaconView.isInvalidPayment(item) || item.get(ItemDataComponents.ITEM_LOCK) != null || ItemStackNetworkIds.get(item) != source.getStackNetworkId()) {
+        if (CloudBeaconView.isInvalidPayment(item) || item.get(ItemDataComponents.ITEM_LOCK) != null || !this.player.getItemStackNetworkIds().matches(item, source.getStackNetworkId())) {
             return false;
         }
 

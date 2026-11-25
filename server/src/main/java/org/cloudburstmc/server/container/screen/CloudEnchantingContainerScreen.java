@@ -28,7 +28,6 @@ import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.server.container.mapping.UIContainerMapping;
 import org.cloudburstmc.server.container.view.CloudEnchantingView;
 import org.cloudburstmc.server.enchantment.TableEnchantments;
-import org.cloudburstmc.server.network.inventory.ItemStackNetworkIds;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudEnchantmentRegistry;
 
@@ -280,7 +279,7 @@ public class CloudEnchantingContainerScreen extends CloudBlockContainerScreen im
             List<EnchantData> enchants = offer.enchantments().stream()
                     .map(enchantment -> new EnchantData(registry.getSerializedId(enchantment.type()), enchantment.level()))
                     .toList();
-            this.offerIds[i] = ItemStackNetworkIds.allocate();
+            this.offerIds[i] = this.player.getItemStackNetworkIds().allocate();
             packet.getOptions().add(new EnchantOptionData(
                     offer.requiredLevel(), PRIMARY_ENCHANTMENT_SLOT,
                     List.of(), List.of(enchants.getFirst()), enchants.subList(1, enchants.size()),

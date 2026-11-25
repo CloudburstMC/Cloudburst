@@ -13,7 +13,6 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.server.block.BlockPalette;
-import org.cloudburstmc.server.network.inventory.ItemStackNetworkIds;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.ArrayList;
@@ -28,44 +27,18 @@ import java.util.Set;
 public class ItemStackPacketCodec {
 
     public static ItemData toNetwork(ItemStack item) {
+        return toNetwork(item, 0);
+    }
+
+    public static ItemData toNetwork(ItemStack item, int stackNetworkId) {
         if (item == null || item.isEmpty()) {
             return ItemData.AIR;
         }
 
         return toNetworkBuilder(item)
-                .netId(0)
-                .usingNetId(false)
+                .netId(stackNetworkId)
+                .usingNetId(stackNetworkId != 0)
                 .build();
-    }
-
-    public static ItemData toNetworkNetId(ItemStack item) {
-        if (item == null || item.isEmpty()) {
-            return ItemData.AIR;
-        }
-
-        int netId = ItemStackNetworkIds.get(item);
-        return toNetworkBuilder(item)
-                .netId(netId)
-                .usingNetId(true)
-                .build();
-    }
-
-    private static ItemData.Builder toNetworkBuilder(ItemStack item) {
-        Identifier identifier = item.getType().getId();
-        int damage = CloudItemRegistry.get().getSerializer(item.getType()).getAuxValue(item);
-        ItemDefinition definition = CloudItemRegistry.get().getDefinition(identifier, damage);
-
-        BlockDefinition blockDefinition = null;
-        BlockState blockState = item.getBlockState().orElse(null);
-        if (blockState != null) {
-            try {
-                blockDefinition = BlockPalette.INSTANCE.getDefinition(blockState);
-            } catch (IllegalArgumentException e) {
-                // Some creative entries reference block states absent from the palette.
-            }
-        }
-
-        return encode(item, definition, damage, blockDefinition);
     }
 
     public static ItemData.Builder encode(ItemStack item, ItemDefinition definition, int damage, @Nullable BlockDefinition blockDefinition) {
@@ -113,6 +86,24 @@ public class ItemStackPacketCodec {
         }
 
         return builder.build();
+    }
+
+    private static ItemData.Builder toNetworkBuilder(ItemStack item) {
+        Identifier identifier = item.getType().getId();
+        int damage = CloudItemRegistry.get().getSerializer(item.getType()).getAuxValue(item);
+        ItemDefinition definition = CloudItemRegistry.get().getDefinition(identifier, damage);
+
+        BlockDefinition blockDefinition = null;
+        BlockState blockState = item.getBlockState().orElse(null);
+        if (blockState != null) {
+            try {
+                blockDefinition = BlockPalette.INSTANCE.getDefinition(blockState);
+            } catch (IllegalArgumentException e) {
+                // Some creative entries reference block states absent from the palette.
+            }
+        }
+
+        return encode(item, definition, damage, blockDefinition);
     }
 
     private static List<BlockType> decodeBlockTypes(String[] names) {
