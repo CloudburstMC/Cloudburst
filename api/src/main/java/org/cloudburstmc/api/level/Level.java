@@ -552,100 +552,33 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
     DroppedItem dropItem(Vector3f position, ItemStack item, @Nullable Vector3f motion, boolean dropAround, int delay);
 
     /**
-     * Returns relative daylight time, or zero when this level has no daylight cycle.
-     *
-     * @return a tick from 0 through 23999
+     * Returns the daylight clock, or {@code null} in a dimension without a daylight cycle.
      */
-    long getTime();
-
-    /**
-     * Moves daylight time forward to the requested position within a day.
-     * The change calls {@link org.cloudburstmc.api.event.level.TimeSkipEvent} and may be cancelled.
-     *
-     * @param time the relative time, wrapped to a single day
-     * @throws IllegalStateException if this level has no daylight cycle
-     * @throws ArithmeticException   if the change exceeds the supported tick range
-     */
-    void setTime(long time);
-
-    /**
-     * Returns full daylight time, including completed days.
-     *
-     * @return the daylight ticks, or zero when this level has no daylight cycle
-     */
-    long getFullTime();
-
-    /**
-     * Sets full daylight time without changing elapsed game time.
-     * The change calls {@link org.cloudburstmc.api.event.level.TimeSkipEvent} and may be cancelled.
-     *
-     * @param time the full daylight tick count
-     * @throws IllegalStateException if this level has no daylight cycle
-     * @throws ArithmeticException   if the change cannot be represented as a signed tick offset
-     */
-    void setFullTime(long time);
+    @Nullable
+    WorldClock getDefaultClock();
 
     /**
      * Returns elapsed simulation ticks. Daylight changes and pauses do not change this value.
-     *
-     * @return the elapsed game ticks
      */
     long getGameTime();
 
     /**
-     * Checks whether the dimension supports a daylight cycle, independently of clock pauses and game rules.
-     *
-     * @return whether daylight time is available
-     */
-    boolean hasDaylightCycle();
-
-    /**
-     * Checks daytime sky brightness, including weather.
-     *
-     * @return whether outside light is bright enough for daytime behavior, or false without a daylight cycle
+     * Returns whether outside light is bright enough for daytime behavior.
      */
     boolean isDayTime();
 
     /**
-     * Checks nighttime sky brightness, including weather.
-     *
-     * @return whether outside light is dark enough for nighttime behavior, or false without a daylight cycle
+     * Returns whether outside light is dark enough for nighttime behavior.
      */
     boolean isNightTime();
 
     /**
-     * @return the moon phase, or a full moon when this level has no daylight cycle
+     * Returns the moon phase, or a full moon when this level has no daylight clock.
      */
     default MoonPhase getMoonPhase() {
-        return MoonPhase.forDay(DayCycle.day(this.getFullTime()));
+        WorldClock clock = this.getDefaultClock();
+        return clock == null ? MoonPhase.FULL_MOON : MoonPhase.forDay(DayCycle.day(clock.getTotalTicks()));
     }
-
-    /**
-     * @return whether the daylight clock is paused, or this level has no daylight cycle
-     */
-    boolean isTimePaused();
-
-    /**
-     * Pauses or resumes the daylight clock without changing the daylight-cycle game rule.
-     *
-     * @param paused whether to pause the clock
-     * @throws IllegalStateException if this level has no daylight cycle
-     */
-    void setTimePaused(boolean paused);
-
-    /**
-     * @return daylight ticks per simulation tick, or zero when this level has no daylight cycle
-     */
-    float getTimeRate();
-
-    /**
-     * Changes the daylight clock rate without changing elapsed game time.
-     *
-     * @param rate a finite rate from 0.00001 through 1000
-     * @throws IllegalArgumentException if the rate is outside the supported range
-     * @throws IllegalStateException    if this level has no daylight cycle
-     */
-    void setTimeRate(float rate);
 
     /**
      * Checks whether rain is active.

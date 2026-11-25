@@ -268,6 +268,7 @@ public class VanillaBlockBehaviors {
         configureSlab(registry, DARK_OAK_SLAB, DARK_OAK_DOUBLE_SLAB);
         configureTrapdoor(registry, DARK_OAK_TRAPDOOR);
         configureSlab(registry, DARK_PRISMARINE_SLAB, DARK_PRISMARINE_DOUBLE_SLAB);
+        configureDaylightDetectors(registry);
 
         registry.configure(DEEPSLATE)
                 .set(BlockComponents.GET_LOOT, VanillaBlockLoot.silkTouchAlternative(DEEPSLATE, COBBLED_DEEPSLATE));
@@ -1075,6 +1076,17 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.ON_STATE_CHANGED, CoralBlockHandlers.ON_STATE_CHANGED)
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, CoralBlockHandlers.ON_NEIGHBOUR_CHANGED)
                 .set(BlockComponents.ON_TICK, CoralBlockHandlers.die(dead));
+    }
+
+    private void configureDaylightDetectors(CloudBlockRegistry registry) {
+        for (BlockType type : List.of(DAYLIGHT_DETECTOR, DAYLIGHT_DETECTOR_INVERTED)) {
+            configureUsable(registry, type, DaylightDetectorBlockHandlers.USE);
+            registry.configure(type)
+                    .set(BlockComponents.ON_ADDED, DaylightDetectorBlockHandlers.ON_ADDED)
+                    .set(BlockComponents.GET_PICK_BLOCK, DaylightDetectorBlockHandlers.GET_PICK_BLOCK)
+                    .set(BlockComponents.GET_LOOT, DaylightDetectorBlockHandlers.GET_LOOT)
+                    .set(BlockComponents.GET_REDSTONE_SIGNAL, DaylightDetectorBlockHandlers.GET_REDSTONE_SIGNAL);
+        }
     }
 
     private void configureDoor(CloudBlockRegistry registry, BlockType type) {

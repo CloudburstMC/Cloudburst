@@ -8,11 +8,15 @@ import java.util.*;
 /**
  * Client presentation metadata for a command root.
  */
-public record CommandNetworkData(Set<CommandData.Flag> flags, CommandPermission permission, Map<String, LiteralParameter> literalParameters) {
+public record CommandNetworkData(Set<CommandData.Flag> flags, CommandPermission permission, Map<String, LiteralParameter> literalParameters, boolean clientLocalizesDescription) {
     public static final CommandNetworkData DEFAULT = of();
     public static final CommandNetworkData NOT_CHEAT = of(CommandData.Flag.NOT_CHEAT);
     public static final CommandNetworkData MESSAGE = of(CommandData.Flag.MESSAGE_TYPE);
     public static final CommandNetworkData MESSAGE_NOT_CHEAT = of(CommandData.Flag.MESSAGE_TYPE, CommandData.Flag.NOT_CHEAT);
+
+    public CommandNetworkData(Set<CommandData.Flag> flags, CommandPermission permission, Map<String, LiteralParameter> literalParameters) {
+        this(flags, permission, literalParameters, false);
+    }
 
     public CommandNetworkData {
         Objects.requireNonNull(flags, "flags");

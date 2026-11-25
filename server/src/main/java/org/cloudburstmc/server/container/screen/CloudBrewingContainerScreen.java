@@ -40,7 +40,7 @@ public class CloudBrewingContainerScreen extends CloudBlockContainerScreen imple
     @Override
     public void open() {
         if (this.brewingEntity.hasCustomName()) {
-            this.brewingEntity.spawnTo(this.player);
+            this.player.getLevel().sendBlockEntityUpdate(this.brewingEntity, this.player);
         }
         super.open();
         this.brewingEntity.sendProgress(this.player);

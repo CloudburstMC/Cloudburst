@@ -2,8 +2,9 @@ package org.cloudburstmc.server.network;
 
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.level.DayCycle;
-import org.cloudburstmc.api.level.Level;
+import org.cloudburstmc.api.level.WorldClock;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
 import org.cloudburstmc.protocol.bedrock.packet.GameRulesChangedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetTimePacket;
@@ -19,25 +20,36 @@ public class LevelTimePacketFactory {
         return (int) Math.floorMod(fullTime, LUNAR_CYCLE_TICKS);
     }
 
-    public static SetTimePacket time(Level level) {
+    public static SetTimePacket time(Player player) {
         SetTimePacket packet = new SetTimePacket();
-        packet.setTime(networkTime(level.getFullTime()));
+        packet.setTime(networkTime(player.getPlayerTime()));
         return packet;
     }
 
-    public static boolean advancesAutomatically(Level level) {
-        return level.hasDaylightCycle() && !level.isTimePaused() && level.getTimeRate() == 1 && level.getGameRules().get(GameRules.DO_DAYLIGHT_CYCLE);
+    public static boolean advancesAutomatically(Player player) {
+        WorldClock clock = player.getLevel().getDefaultClock();
+        return clock != null && player.isPlayerTimeRelative() && !clock.isPaused() && clock.getRate() == 1 && player.getLevel().getGameRules().get(GameRules.DO_DAYLIGHT_CYCLE);
     }
 
-    public static GameRulesChangedPacket gameRules(Level level) {
+    public static GameRulesChangedPacket gameRules(Player player) {
         GameRulesChangedPacket packet = new GameRulesChangedPacket();
-        writeGameRules(level, packet.getGameRules());
+        writeGameRules(player, packet.getGameRules());
         return packet;
     }
 
-    public static void writeGameRules(Level level, List<GameRuleData<?>> rules) {
-        NetworkUtils.gameRulesToNetwork(level.getGameRules(), rules);
+    public static GameRulesChangedPacket daylightRule(Player player) {
+        GameRulesChangedPacket packet = new GameRulesChangedPacket();
+        packet.getGameRules().add(daylightCycle(player));
+        return packet;
+    }
+
+    public static void writeGameRules(Player player, List<GameRuleData<?>> rules) {
+        NetworkUtils.gameRulesToNetwork(player.getLevel().getGameRules(), rules);
         rules.removeIf(rule -> rule.getName().equals(GameRules.DO_DAYLIGHT_CYCLE.getName()));
-        rules.add(new GameRuleData<>(GameRules.DO_DAYLIGHT_CYCLE.getName(), advancesAutomatically(level)));
+        rules.add(daylightCycle(player));
+    }
+
+    private static GameRuleData<Boolean> daylightCycle(Player player) {
+        return new GameRuleData<>(GameRules.DO_DAYLIGHT_CYCLE.getName(), advancesAutomatically(player));
     }
 }

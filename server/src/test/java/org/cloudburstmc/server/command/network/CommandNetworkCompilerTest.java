@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.command.network;
 
+import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -17,8 +18,10 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.registry.KeyedRegistry;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.protocol.bedrock.data.command.*;
+import org.cloudburstmc.server.command.CommandTreeValidator;
 import org.cloudburstmc.server.command.defaults.GameruleCommand;
 import org.cloudburstmc.server.command.defaults.GiveCommand;
+import org.cloudburstmc.server.command.defaults.TimeCommand;
 import org.cloudburstmc.server.registry.CloudCommandRegistry;
 import org.cloudburstmc.server.registry.CloudGameRuleRegistry;
 import org.cloudburstmc.server.testutil.BlockTestRegistry;
@@ -234,6 +237,83 @@ class CommandNetworkCompilerTest {
     }
 
     @Test
+    void advertisesTimeOverloadsInClientOrder() {
+        CloudCommandRegistry registry = new CloudCommandRegistry(BlockTestRegistry.get());
+        TimeCommand command = new TimeCommand();
+        LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("time");
+        command.configure(builder, "time", registry.arguments());
+
+        LiteralCommandNode<CommandSourceStack> root = builder.build();
+        CommandTreeValidator.validate(root);
+        List<CommandOverloadData> overloads =
+                CommandNetworkCompiler.compileOverloads(root, source(), command.networkData());
+        assertEquals(12, overloads.size());
+        assertEquals(CommandPermission.GAME_DIRECTORS, command.networkData().permission());
+        assertTrue(command.networkData().flags().isEmpty());
+
+        List<String> modes = List.of("add", "set", "set", "query", "pause", "resume");
+        List<String> modeEnums = List.of(
+                "TimeModeAdd", "TimeModeSet", "TimeModeSet", "TimeModeQuery", "TimeModePause", "TimeModeResume");
+        List<List<String>> names = List.of(
+                List.of("mode", "amount"),
+                List.of("mode", "amount"),
+                List.of("mode", "timeMarkerName", "timeMarkerOccurrence"),
+                List.of("mode", "time"),
+                List.of("mode"),
+                List.of("mode"));
+
+        for (int index = 0; index < overloads.size(); index++) {
+            int modeIndex = index % modes.size();
+            boolean namedClock = index >= modes.size();
+            CommandParamData[] parameters = overloads.get(index).getOverloads();
+            List<String> expectedNames = new ArrayList<>();
+            int prefix = namedClock ? 2 : 0;
+            if (namedClock) {
+                expectedNames.addAll(List.of("command", "clockName"));
+                assertParameterEnum(parameters[0], "TimeOfCommand", false, "of");
+                assertParameterEnum(parameters[1], "WorldClocks", true, "minecraft:overworld");
+            }
+            expectedNames.addAll(namedClock && modeIndex == 3 ? List.of("mode", "clockQuery") : names.get(modeIndex));
+            assertEquals(expectedNames, Arrays.stream(parameters).map(CommandParamData::getName).toList());
+            assertParameterEnum(parameters[prefix], modeEnums.get(modeIndex), false, modes.get(modeIndex));
+            assertEquals(modeIndex == 2 ? List.of("timeMarkerOccurrence") : List.of(),
+                    Arrays.stream(parameters).filter(CommandParamData::isOptional).map(CommandParamData::getName).toList());
+
+            switch (modeIndex) {
+                case 0, 1 -> assertEquals(CommandParam.INT, parameters[prefix + 1].getType());
+                case 2 -> {
+                    assertEquals(CommandParam.CLOCK_TIME_MARKER_NAME, parameters[prefix + 1].getType());
+                    assertParameterEnum(parameters[prefix + 2], "TimeMarkerOccurrence", false, "next", "previous", "stay");
+                }
+                case 3 -> {
+                    if (namedClock) {
+                        assertParameterEnum(parameters[prefix + 1], "ClockTimeQuery", false, "time");
+                    } else {
+                        assertParameterEnum(parameters[prefix + 1], "TimeQuery2", false, "time", "daytime", "gametime", "day");
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    void parsesClockAndMarkerArgumentsThroughBrigadier() {
+        CloudCommandRegistry registry = new CloudCommandRegistry(BlockTestRegistry.get());
+        LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("time");
+        new TimeCommand().configure(builder, "time", registry.arguments());
+        CommandDispatcher<CommandSourceStack> dispatcher = new CommandDispatcher<>();
+        dispatcher.register(builder);
+
+        var parsed = dispatcher.parse("time of minecraft:overworld set minecraft:noon previous", source());
+        assertFalse(parsed.getReader().canRead());
+        var context = parsed.getContext().build(parsed.getReader().getString());
+        assertNotNull(context.getCommand());
+        assertEquals("minecraft:overworld", context.getArgument("clockName", String.class));
+        assertEquals("minecraft:noon", context.getArgument("timeMarkerName", String.class));
+        assertEquals("previous", context.getArgument("timeMarkerOccurrence", String.class));
+    }
+
+    @Test
     void resolvesRegistryItemsIndependentlyFromLiveSuggestions() throws CommandSyntaxException {
         MutableItemRegistry registry = new MutableItemRegistry();
         ItemType hidden = registry.register("minecraft:hidden");
@@ -267,6 +347,14 @@ class CommandNetworkCompilerTest {
         parameter.setEnumData(definition);
         return new CommandData(name, "", Set.of(), CommandPermission.ANY, null, Collections.emptyList(),
                 new CommandOverloadData[]{new CommandOverloadData(false, new CommandParamData[]{parameter})});
+    }
+
+    private static void assertParameterEnum(CommandParamData parameter, String name, boolean soft, String... values) {
+        CommandEnumData data = parameter.getEnumData();
+        assertNotNull(data);
+        assertEquals(name, data.getName());
+        assertEquals(soft, data.isSoft());
+        assertEquals(List.of(values), List.copyOf(data.getValues().keySet()));
     }
 
     private static CommandParamData[] overload(List<CommandOverloadData> overloads, String enumName) {

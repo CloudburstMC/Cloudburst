@@ -283,7 +283,6 @@ public class BedBlockHandlers {
 
         Bed entity = CloudBlockEntityRegistry.get().newEntity(BlockEntityTypes.BED, chunk, pos);
         entity.setColor(color);
-        entity.spawnToAll();
     }
 
     private static Vector3i resolveHeadPos(Block block) {

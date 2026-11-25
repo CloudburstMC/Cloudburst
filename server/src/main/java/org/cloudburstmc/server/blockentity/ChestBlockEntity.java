@@ -220,7 +220,7 @@ public class ChestBlockEntity extends ContainerBlockEntity implements Chest {
 
     private void pairChanged() {
         this.setDirty();
-        this.spawnToAll();
+        this.queueClientUpdate();
         this.updateComparator();
     }
 

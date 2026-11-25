@@ -9,7 +9,7 @@ public enum TimeSkipReason {
      */
     COMMAND,
     /**
-     * A change requested through the level API.
+     * A change requested through the clock API.
      */
     CUSTOM,
     /**

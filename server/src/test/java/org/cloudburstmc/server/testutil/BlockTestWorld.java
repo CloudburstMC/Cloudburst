@@ -96,8 +96,7 @@ public class BlockTestWorld {
             case "getSeaLevel" -> 63;
             case "getMinHeight" -> -64;
             case "getMaxHeight" -> 320;
-            case "getTime" -> 0L;
-            case "hasDaylightCycle" -> true;
+            case "getDefaultClock" -> null;
             case "getBlockState" -> this.state(position(arguments));
             case "getBlock" -> this.block(position(arguments));
             case "getBlockEntity" -> this.blockEntities.get(position(arguments));

@@ -65,7 +65,7 @@ public class SkullBlockEntity extends BaseBlockEntity implements Skull {
         super.onUpdate();
         if (changed || this.rotationDirty) {
             this.rotationDirty = false;
-            this.spawnToAll();
+            this.queueClientUpdate();
         }
         return false;
     }

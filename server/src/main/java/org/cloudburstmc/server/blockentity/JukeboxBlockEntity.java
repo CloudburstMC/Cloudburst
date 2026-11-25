@@ -156,7 +156,7 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox, Auto
             this.beginPlayback(song, 0);
         }
         this.setDirty();
-        this.spawnToAll();
+        this.queueClientUpdate();
         this.updateSignals();
         this.getLevel().updateComparatorOutputLevel(this.getPosition());
     }

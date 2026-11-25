@@ -30,7 +30,7 @@ public class ShulkerBoxPlaceHandler extends DefaultBlockPlaceHandler {
         }
 
         blockEntity.setFacing(face);
-        blockEntity.spawnToAll();
+        level.queueBlockEntitySync(blockEntity);
         return true;
     }
 }

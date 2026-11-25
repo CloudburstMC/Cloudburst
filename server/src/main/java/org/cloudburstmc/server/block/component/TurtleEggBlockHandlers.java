@@ -16,6 +16,7 @@ import org.cloudburstmc.api.event.entity.EntityInteractEvent;
 import org.cloudburstmc.api.event.player.PlayerInteractEvent;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.level.WorldClock;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.level.particle.ParticleTypes;
 import org.cloudburstmc.api.level.sound.SoundType;
@@ -183,8 +184,9 @@ public class TurtleEggBlockHandlers {
             return;
         }
 
-        long time = level.getTime();
-        boolean dawn = level.hasDaylightCycle() && time >= 21062 && time < 21905;
+        WorldClock clock = level.getDefaultClock();
+        int time = clock == null ? 0 : clock.getTimeOfDay();
+        boolean dawn = time >= 21062 && time < 21905;
         if (random.nextFloat() >= (dawn ? 1f : 0.002f)) {
             return;
         }

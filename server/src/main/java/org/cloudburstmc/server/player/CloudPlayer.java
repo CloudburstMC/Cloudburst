@@ -153,6 +153,12 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
     public long creationTime;
 
     @Getter
+    private long playerTimeOffset;
+
+    @Getter
+    private boolean playerTimeRelative = true;
+
+    @Getter
     private boolean initialized;
 
     @Getter
@@ -345,14 +351,14 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
         startGamePacket.setDifficulty(this.server.getDifficulty().getId());
         startGamePacket.setDefaultSpawn(this.getLevel().getSpawnLocation().toInt());
         startGamePacket.setAchievementsDisabled(true);
-        startGamePacket.setDayCycleStopTime(LevelTimePacketFactory.networkTime(this.getLevel().getFullTime()));
+        startGamePacket.setDayCycleStopTime(LevelTimePacketFactory.networkTime(this.getPlayerTime()));
         startGamePacket.setCurrentTick(this.getLevel().getGameTime());
         startGamePacket.setRainLevel(0);
         startGamePacket.setLightningLevel(0);
         startGamePacket.setCommandsEnabled(true);
         startGamePacket.setMultiplayerGame(true);
         startGamePacket.setBroadcastingToLan(true);
-        LevelTimePacketFactory.writeGameRules(this.getLevel(), startGamePacket.getGamerules());
+        LevelTimePacketFactory.writeGameRules(this, startGamePacket.getGamerules());
         startGamePacket.setLevelId("");
         startGamePacket.setLevelName(this.getLevel().getName());
         startGamePacket.setGeneratorId(1);
@@ -683,6 +689,27 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
     @Override
     public boolean hasPlayedBefore() {
         return this.getFirstPlayed().orElse(0) > 0;
+    }
+
+    @Override
+    public void setPlayerTime(long time, boolean relative) {
+        this.playerTimeOffset = time;
+        this.playerTimeRelative = relative;
+        if (this.spawned && this.isConnected() && this.getLevel().getDefaultClock() != null) {
+            this.sendPacket(LevelTimePacketFactory.daylightRule(this));
+            this.getLevel().sendTime(this);
+        }
+    }
+
+    @Override
+    public long getPlayerTime() {
+        WorldClock clock = this.getLevel().getDefaultClock();
+        if (clock == null) {
+            return 0;
+        }
+
+        long ticks = clock.getTotalTicks();
+        return (this.playerTimeRelative ? ticks : ticks - DayCycle.timeOfDay(ticks)) + this.playerTimeOffset;
     }
 
     @Override
@@ -1521,7 +1548,7 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
 
         this.getChunkManager().prepareRegion(this.getPosition());
 
-        this.sendPacket(LevelTimePacketFactory.gameRules(level));
+        this.sendPacket(LevelTimePacketFactory.gameRules(this));
         level.sendTime(this);
 
         if (dimensionChanged) {

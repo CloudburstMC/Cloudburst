@@ -221,7 +221,7 @@ public class ConduitBlockEntity extends BaseBlockEntity implements Conduit {
 
         this.setDirty();
         if (this.initialized) {
-            this.spawnToAll();
+            this.queueClientUpdate();
         }
     }
 

@@ -105,7 +105,7 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
             this.data().setPrimary(primary);
             this.data().setSecondary(secondary);
             this.setDirty();
-            this.spawnToAll();
+            this.queueClientUpdate();
         }
     }
 
@@ -154,7 +154,7 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
         this.setActive(this.tier > 0 && this.hasClearBeam());
 
         if (this.tier != previousTier && !this.isClosed()) {
-            this.spawnToAll();
+            this.queueClientUpdate();
         }
     }
 

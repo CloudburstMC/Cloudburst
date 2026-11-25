@@ -46,7 +46,7 @@ public class BannerBlockEntity extends BaseBlockEntity implements Banner {
             this.storeDesign(data);
             this.setDirty();
             if (this.getLevel() != null) {
-                this.spawnToAll();
+                this.queueClientUpdate();
             }
         }
     }
@@ -58,7 +58,7 @@ public class BannerBlockEntity extends BaseBlockEntity implements Banner {
         this.storeDesign(design);
         this.setCustomName(item.get(ItemDataComponents.CUSTOM_NAME));
         this.setDirty();
-        this.spawnToAll();
+        this.queueClientUpdate();
     }
 
     private void storeDesign(BannerData design) {

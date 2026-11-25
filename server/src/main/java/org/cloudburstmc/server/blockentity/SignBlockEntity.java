@@ -66,7 +66,7 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
         }
 
         data().setText(String.join("\n", text));
-        this.spawnToAll();
+        this.queueClientUpdate();
         this.setDirty();
     }
 

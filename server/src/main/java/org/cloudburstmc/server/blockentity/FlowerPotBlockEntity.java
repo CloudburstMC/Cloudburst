@@ -82,6 +82,6 @@ public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
             block.set(updated, true, false);
         }
 
-        this.spawnToAll();
+        this.queueClientUpdate();
     }
 }

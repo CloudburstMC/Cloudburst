@@ -170,7 +170,7 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
     }
 
     public void setDirty() {
-        this.spawnToAll();
+        this.queueClientUpdate();
         super.setDirty();
     }
 

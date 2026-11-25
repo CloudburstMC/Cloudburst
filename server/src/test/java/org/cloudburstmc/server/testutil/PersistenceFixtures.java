@@ -33,8 +33,7 @@ public class PersistenceFixtures {
      */
     public static <T extends BlockEntity> T blockEntity(BlockEntityType<T> type, Vector3i position) {
         ensureInitialized();
-        Level level = InterfaceProxy.create(Level.class);
-        CloudChunk chunk = new CloudChunk(position.getX() >> 4, position.getZ() >> 4, level);
+        CloudChunk chunk = new CloudChunk(position.getX() >> 4, position.getZ() >> 4, TestLevels.overworld());
         return CloudBlockEntityRegistry.get().newEntity(type, chunk, position);
     }
 

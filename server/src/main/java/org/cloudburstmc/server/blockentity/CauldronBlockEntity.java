@@ -122,7 +122,7 @@ public class CauldronBlockEntity extends BaseBlockEntity implements Cauldron {
         if (!contents.equals(getContents())) {
             data().setContents(contents);
             this.setDirty();
-            this.spawnToAll();
+            this.queueClientUpdate();
         }
     }
 

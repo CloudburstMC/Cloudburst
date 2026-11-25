@@ -6,6 +6,9 @@ import lombok.Setter;
 @Getter
 public class LevelClock {
 
+    private static final float MIN_RATE = 0.00001f;
+    private static final float MAX_RATE = 1000;
+
     private long totalTicks;
     private float partialTick;
     private float rate = 1;
@@ -26,7 +29,7 @@ public class LevelClock {
     }
 
     public void setRate(float rate) {
-        if (!Float.isFinite(rate) || rate < 0.00001f || rate > 1000) {
+        if (!Float.isFinite(rate) || rate < MIN_RATE || rate > MAX_RATE) {
             throw new IllegalArgumentException("Clock rate must be between 0.00001 and 1000");
         }
 

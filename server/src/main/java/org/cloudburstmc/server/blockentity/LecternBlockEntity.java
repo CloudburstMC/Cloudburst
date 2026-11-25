@@ -156,7 +156,7 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
 
     private void publishChange() {
         this.setDirty();
-        this.spawnToAll();
+        this.queueClientUpdate();
         this.getLevel().updateAroundRedstone(this.getPosition(), null);
         this.getLevel().updateComparatorOutputLevel(this.getPosition());
     }

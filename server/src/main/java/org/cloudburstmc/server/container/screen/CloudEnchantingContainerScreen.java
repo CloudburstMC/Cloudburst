@@ -64,7 +64,7 @@ public class CloudEnchantingContainerScreen extends CloudBlockContainerScreen im
     public void open() {
         Block block = this.getBlock();
         if (block.getLevel().getBlockEntity(block.getPosition()) instanceof EnchantingTableBlockEntity table && table.hasCustomName()) {
-            table.spawnTo(this.player);
+            this.player.getLevel().sendBlockEntityUpdate(table, this.player);
         }
         this.player.sendPacket(new PlayerEnchantOptionsPacket());
         super.open();

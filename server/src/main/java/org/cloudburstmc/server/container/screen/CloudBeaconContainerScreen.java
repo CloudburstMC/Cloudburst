@@ -48,7 +48,7 @@ public class CloudBeaconContainerScreen extends CloudBlockContainerScreen implem
 
     @Override
     public void open() {
-        this.beacon.spawnTo(this.player);
+        this.player.getLevel().sendBlockEntityUpdate(this.beacon, this.player);
         super.open();
     }
 

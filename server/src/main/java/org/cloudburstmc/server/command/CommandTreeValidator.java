@@ -5,6 +5,7 @@ import com.mojang.brigadier.tree.CommandNode;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.command.CommandSourceStack;
 import org.cloudburstmc.api.command.argument.CommandArgumentType;
+import org.cloudburstmc.server.command.network.NetworkArgumentType;
 
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -30,6 +31,7 @@ public class CommandTreeValidator {
 
         if (node instanceof ArgumentCommandNode<CommandSourceStack, ?> argument
                 && !(argument.getType() instanceof CommandArgumentType<?>)
+                && !(argument.getType() instanceof NetworkArgumentType<?>)
                 && !(argument.getType() instanceof ServerOnlyArgumentType<?>)) {
             throw new IllegalArgumentException("Command argument has no client representation: " + node.getName());
         }

@@ -9,7 +9,6 @@ import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.persistence.PersistentDataContainer;
-import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -140,7 +139,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
         if (this.pendingInitialUpdate) {
             this.pendingInitialUpdate = false;
             if (this.isSpawnable()) {
-                this.spawnToAll();
+                this.queueClientUpdate();
             }
         }
 
@@ -194,24 +193,17 @@ public abstract class BaseBlockEntity implements BlockEntity {
         return false;
     }
 
-    @Override
-    public void spawnTo(Player player) {
-        if (!this.closed) {
-            ((CloudPlayer) player).sendPacket(this.createUpdatePacket());
+    protected void queueClientUpdate() {
+        if (!this.closed && this.level != null) {
+            this.level.queueBlockEntitySync(this);
         }
     }
 
-    @Override
-    public void spawnToAll() {
-        if (this.closed || this.chunk == null) {
-            return;
-        }
-
-        for (CloudPlayer player : this.chunk.getViewers()) {
-            if (player.spawned) {
-                this.spawnTo(player);
-            }
-        }
+    public BlockEntityDataPacket createUpdatePacket() {
+        BlockEntityDataPacket packet = new BlockEntityDataPacket();
+        packet.setBlockPosition(this.position);
+        packet.setData(this.getClientTag());
+        return packet;
     }
 
     public final void loadAdditionalData(NbtMap tag) {
@@ -296,12 +288,5 @@ public abstract class BaseBlockEntity implements BlockEntity {
     private void writeClientData(NbtMapBuilder tag) {
         tag.putAll(ClientNbtWriter.write(ServerNbt.MAPPER, this.data));
         this.saveCustomClient(tag);
-    }
-
-    private BlockEntityDataPacket createUpdatePacket() {
-        BlockEntityDataPacket packet = new BlockEntityDataPacket();
-        packet.setBlockPosition(this.position);
-        packet.setData(this.getClientTag());
-        return packet;
     }
 }

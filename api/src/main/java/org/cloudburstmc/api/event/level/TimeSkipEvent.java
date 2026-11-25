@@ -1,7 +1,7 @@
 package org.cloudburstmc.api.event.level;
 
 import org.cloudburstmc.api.event.Cancellable;
-import org.cloudburstmc.api.level.Level;
+import org.cloudburstmc.api.level.WorldClock;
 
 import java.util.Objects;
 
@@ -12,18 +12,27 @@ import java.util.Objects;
  */
 public class TimeSkipEvent extends LevelEvent implements Cancellable {
 
+    private final WorldClock clock;
     private final TimeSkipReason skipReason;
     private long skipAmount;
 
     /**
-     * @param level      the affected level
+     * @param clock      the affected daylight clock
      * @param skipReason the cause of the change
      * @param skipAmount the signed number of daylight ticks to skip
      */
-    public TimeSkipEvent(Level level, TimeSkipReason skipReason, long skipAmount) {
-        super(Objects.requireNonNull(level, "level"));
+    public TimeSkipEvent(WorldClock clock, TimeSkipReason skipReason, long skipAmount) {
+        super(Objects.requireNonNull(clock, "clock").getLevel());
+        this.clock = clock;
         this.skipReason = Objects.requireNonNull(skipReason, "skipReason");
         this.skipAmount = skipAmount;
+    }
+
+    /**
+     * Returns the clock whose time is being changed.
+     */
+    public WorldClock getClock() {
+        return this.clock;
     }
 
     /**

@@ -43,7 +43,6 @@ public class CauldronBlockHandlers {
         } else {
             cauldron = CloudBlockEntityRegistry.get().newEntity(BlockEntityTypes.CAULDRON, block);
             cauldron.setDirty();
-            cauldron.spawnToAll();
         }
 
         if (fill(block) == 0 || content(block) != Bucket.WATER) {

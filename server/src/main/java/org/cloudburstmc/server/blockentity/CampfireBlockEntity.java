@@ -132,7 +132,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
         }
 
         if (contentsChanged) {
-            this.spawnToAll();
+            this.queueClientUpdate();
         }
 
         return lit || progressChanged;
@@ -160,7 +160,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
 
         if (changed) {
             this.setDirty();
-            this.spawnToAll();
+            this.queueClientUpdate();
         }
     }
 
@@ -366,7 +366,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
     private void syncSlotChange() {
         this.setDirty();
         this.scheduleUpdate();
-        this.spawnToAll();
+        this.queueClientUpdate();
     }
 
     private boolean isLit() {

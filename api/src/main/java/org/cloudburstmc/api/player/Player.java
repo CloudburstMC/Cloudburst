@@ -295,6 +295,36 @@ public interface Player extends HumanEntity, CommandSender {
     Level getLevel();
 
     /**
+     * Sets this player's displayed time without changing the level clock.
+     *
+     * @param time     the offset from the level time, or from the start of its current day when fixed
+     * @param relative whether the displayed time follows the level clock
+     */
+    void setPlayerTime(long time, boolean relative);
+
+    /**
+     * Returns the displayed daylight tick count, or zero in a dimension without a daylight clock.
+     */
+    long getPlayerTime();
+
+    /**
+     * Returns the configured time offset.
+     */
+    long getPlayerTimeOffset();
+
+    /**
+     * Returns whether the displayed time follows the level clock.
+     */
+    boolean isPlayerTimeRelative();
+
+    /**
+     * Removes this player's time override.
+     */
+    default void resetPlayerTime() {
+        this.setPlayerTime(0, true);
+    }
+
+    /**
      * Returns the player's current game mode.
      *
      * @return the current {@link GameMode}

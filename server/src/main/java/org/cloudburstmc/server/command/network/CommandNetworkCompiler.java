@@ -86,7 +86,12 @@ public class CommandNetworkCompiler {
             return null;
         }
 
-        return new CommandData(root.getLiteral(), commandDescription(registry.commandDescription(root.getLiteral())),
+        String description = registry.commandDescription(root.getLiteral());
+        if (!networkData.clientLocalizesDescription()) {
+            description = commandDescription(description);
+        }
+
+        return new CommandData(root.getLiteral(), description,
                 networkData.flags(), networkData.permission(),
                 commandAliases(root.getLiteral(), registry.aliasesFor(root.getLiteral())),
                 Collections.emptyList(), overloads.toArray(CommandOverloadData[]::new));
@@ -127,10 +132,6 @@ public class CommandNetworkCompiler {
             return;
         }
 
-        if (node.getCommand() != null) {
-            paths.add(new ExecutablePath(List.copyOf(nodes), List.copyOf(path)));
-        }
-
         if (node.getRedirect() != null) {
             collectExecutablePaths(node.getRedirect(), source, nodes, path, paths, visiting, networkData);
         }
@@ -151,6 +152,10 @@ public class CommandNetworkCompiler {
             nodes.removeLast();
         }
 
+        if (node.getCommand() != null) {
+            paths.add(new ExecutablePath(List.copyOf(nodes), List.copyOf(path)));
+        }
+
         visiting.remove(node);
     }
 
@@ -159,7 +164,7 @@ public class CommandNetworkCompiler {
         List<CommandOverloadData> overloads = new ArrayList<>();
 
         while (!remaining.isEmpty()) {
-            ExecutablePath path = longestPath(remaining);
+            ExecutablePath path = remaining.getFirst();
             int optionalStart = path.nodes().size();
             while (optionalStart > 0 && !isRequired(path.nodes().get(optionalStart - 1)) && containsPrefix(paths, path, optionalStart - 1)) {
                 optionalStart--;
@@ -179,16 +184,6 @@ public class CommandNetworkCompiler {
         return List.copyOf(overloads);
     }
 
-    private static ExecutablePath longestPath(List<ExecutablePath> paths) {
-        ExecutablePath longest = paths.getFirst();
-        for (ExecutablePath path : paths) {
-            if (path.nodes().size() > longest.nodes().size()) {
-                longest = path;
-            }
-        }
-        return longest;
-    }
-
     private static boolean containsPrefix(List<ExecutablePath> paths, ExecutablePath path, int length) {
         for (ExecutablePath candidate : paths) {
             if (candidate.nodes().size() == length && isPrefix(candidate, path)) {
@@ -202,19 +197,26 @@ public class CommandNetworkCompiler {
         if (prefix.nodes().size() > path.nodes().size()) {
             return false;
         }
+
         for (int index = 0; index < prefix.nodes().size(); index++) {
             if (prefix.nodes().get(index) != path.nodes().get(index)) {
                 return false;
             }
         }
+
         return true;
     }
 
     private static boolean isRequired(CommandNode<CommandSourceStack> node) {
-        return node instanceof LiteralCommandNode<?>
-                || node instanceof ArgumentCommandNode<CommandSourceStack, ?> argument
-                && argument.getType() instanceof CommandArgumentType<?> commandArgument
-                && commandArgument.isRequiredInSyntax();
+        return switch (node) {
+            case LiteralCommandNode<?> _ -> true;
+            case ArgumentCommandNode<CommandSourceStack, ?> argument -> switch (argument.getType()) {
+                case CommandArgumentType<?> type -> type.isRequiredInSyntax();
+                case NetworkArgumentType<?> type -> type.parser().isRequiredInSyntax();
+                default -> false;
+            };
+            default -> false;
+        };
     }
 
     private static CommandParamData copyParameter(CommandParamData source, boolean optional) {
@@ -244,9 +246,19 @@ public class CommandNetworkCompiler {
             return data;
         }
 
-        if (node instanceof ArgumentCommandNode<CommandSourceStack, ?> argument
-                && argument.getType() instanceof CommandArgumentType<?> commandArgument) {
-            return toNetworkParameter(argument, commandArgument);
+        if (node instanceof ArgumentCommandNode<CommandSourceStack, ?> argument) {
+            if (argument.getType() instanceof NetworkArgumentType<?>(var parser, var presentation)) {
+                data.setName(argumentName(argument, parser));
+                switch (presentation) {
+                    case NetworkArgumentType.NativeParameter(var type) -> data.setType(type);
+                    case NetworkArgumentType.SoftEnumParameter(var name, var values) -> data.setEnumData(new CommandEnumData(name, enumValues(values), true));
+                }
+                return data;
+            }
+
+            if (argument.getType() instanceof CommandArgumentType<?> commandArgument) {
+                return toNetworkParameter(argument, commandArgument);
+            }
         }
 
         throw new IllegalArgumentException("Command node has no client representation: " + node.getName());
@@ -254,8 +266,7 @@ public class CommandNetworkCompiler {
 
     private static CommandParamData toNetworkParameter(ArgumentCommandNode<CommandSourceStack, ?> node, CommandArgumentType<?> argument) {
         CommandParamData data = new CommandParamData();
-        String displayName = argument.getDisplayName();
-        data.setName(displayName == null || displayName.isBlank() ? node.getName() : displayName);
+        data.setName(argumentName(node, argument));
 
         switch (argument.getKind()) {
             case STRING -> data.setType(CommandParam.STRING);
@@ -285,6 +296,11 @@ public class CommandNetworkCompiler {
         }
 
         return data;
+    }
+
+    private static String argumentName(ArgumentCommandNode<CommandSourceStack, ?> node, CommandArgumentType<?> argument) {
+        String displayName = argument.getDisplayName();
+        return displayName == null || displayName.isBlank() ? node.getName() : displayName;
     }
 
     private static String enumName(ArgumentCommandNode<CommandSourceStack, ?> node, CommandArgumentType<?> argument) {

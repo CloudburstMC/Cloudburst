@@ -583,11 +583,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return;
         }
 
-        BlockEntity blockEntity = player.getLevel().getLoadedBlockEntity(blockPos);
         player.getLevel().sendBlocks(new CloudPlayer[]{player}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
 
-        if (blockEntity != null && blockEntity.isSpawnable()) {
-            blockEntity.spawnTo(player);
+        if (player.getLevel().getLoadedBlockEntity(blockPos) instanceof BaseBlockEntity blockEntity && blockEntity.isSpawnable()) {
+            player.getLevel().sendBlockEntityUpdate(blockEntity, player);
         }
     }
 
@@ -1521,7 +1520,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         BaseBlockEntity blockEntity = (BaseBlockEntity) player.getLevel().getLoadedBlockEntity(blockPos);
         if (blockEntity != null && blockEntity.isSpawnable()) {
             if (!blockEntity.updateFromClient(packet.getData(), player)) {
-                blockEntity.spawnTo(player);
+                player.getLevel().sendBlockEntityUpdate(blockEntity, player);
             }
         }
         return PacketSignal.HANDLED;
@@ -1765,7 +1764,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             }
         }
 
-        lectern.spawnTo(this.player);
+        this.player.getLevel().sendBlockEntityUpdate(lectern, this.player);
         return PacketSignal.HANDLED;
     }
 

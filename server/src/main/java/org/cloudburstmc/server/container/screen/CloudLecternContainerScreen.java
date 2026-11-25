@@ -56,7 +56,7 @@ public class CloudLecternContainerScreen extends CloudInventoryScreen implements
         }
 
         this.closedByReader = false;
-        this.lectern.spawnTo(this.player);
+        this.player.getLevel().sendBlockEntityUpdate(this.lectern, this.player);
         ContainerOpenPacket packet = new ContainerOpenPacket();
         packet.setType(ContainerType.LECTERN);
         packet.setBlockPosition(this.lectern.getPosition());
@@ -89,7 +89,7 @@ public class CloudLecternContainerScreen extends CloudInventoryScreen implements
         if (this.lectern.hasBook()) {
             this.player.getServer().getGlobalScheduler().runDelayed(null, _ -> {
                 if (this.player.isConnected() && this.isAvailable()) {
-                    this.lectern.spawnTo(this.player);
+                    this.player.getLevel().sendBlockEntityUpdate(this.lectern, this.player);
                 }
             }, 2);
         }

@@ -50,7 +50,7 @@ public class CloudFurnaceContainerScreen extends CloudBlockContainerScreen imple
     @Override
     public void open() {
         if (this.furnaceEntity.hasCustomName()) {
-            this.furnaceEntity.spawnTo(this.player);
+            this.player.getLevel().sendBlockEntityUpdate(this.furnaceEntity, this.player);
         }
         super.open();
         this.furnaceEntity.sendProgress(this.player);

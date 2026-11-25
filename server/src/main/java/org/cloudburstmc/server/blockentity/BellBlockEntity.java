@@ -50,7 +50,7 @@ public class BellBlockEntity extends BaseBlockEntity implements Bell {
         this.ringTick = this.getServer().getTick();
         this.strikeDirection = strike;
         this.getLevel().playSound(this.getPosition().toFloat().add(0.5f, 0.5f, 0.5f), SoundTypes.BLOCK_BELL_HIT);
-        this.spawnToAll();
+        this.queueClientUpdate();
         return true;
     }
 
