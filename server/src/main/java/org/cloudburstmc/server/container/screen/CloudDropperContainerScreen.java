@@ -21,7 +21,7 @@ public class CloudDropperContainerScreen extends CloudBlockContainerScreen imple
 
     public CloudDropperContainerScreen(CloudPlayer player, Block block) {
         super(ScreenTypes.DROPPER, player, block);
-        this.dropperEntity = getOrCreateBlockEntity(block, BlockEntityTypes.DROPPER);
+        this.dropperEntity = getOrCreateBlockEntity(block, BlockEntityTypes.DROPPER, DropperBlockEntity.class);
     }
 
     @Override

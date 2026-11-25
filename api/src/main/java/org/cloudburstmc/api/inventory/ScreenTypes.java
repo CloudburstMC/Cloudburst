@@ -59,8 +59,8 @@ public class ScreenTypes {
     public static final ScreenType<SmithingScreen> SMITHING = ScreenType.of(Identifier.parse("cloudburstmc:screen_smithing"), SmithingScreen.class);
     public static final ScreenType<StonecutterScreen> STONECUTTER = ScreenType.of(Identifier.parse("cloudburstmc:screen_stonecutter"), StonecutterScreen.class);
     public static final ScreenType<StorageScreen> BARREL = ScreenType.of(Identifier.parse("cloudburstmc:screen_barrel"), StorageScreen.class);
-    public static final ScreenType<StorageScreen> CHEST = ScreenType.of(Identifier.parse("cloudburstmc:screen_chest"), StorageScreen.class);
-    public static final ScreenType<StorageScreen> DOUBLE_CHEST = ScreenType.of(Identifier.parse("cloudburstmc:screen_double_chest"), StorageScreen.class);
+    public static final ScreenType<ChestScreen> CHEST = ScreenType.of(Identifier.parse("cloudburstmc:screen_chest"), ChestScreen.class);
+    public static final ScreenType<ChestScreen> DOUBLE_CHEST = ScreenType.of(Identifier.parse("cloudburstmc:screen_double_chest"), ChestScreen.class);
     public static final ScreenType<StorageScreen> SHULKER_BOX = ScreenType.of(Identifier.parse("cloudburstmc:screen_shulker_box"), StorageScreen.class);
     public static final ScreenType<VirtualChestScreen> VIRTUAL_CHEST = ScreenType.of(Identifier.parse("cloudburstmc:screen_virtual_chest"), VirtualChestScreen.class);
     public static final ScreenType<VirtualDoubleChestScreen> VIRTUAL_DOUBLE_CHEST = ScreenType.of(Identifier.parse("cloudburstmc:screen_virtual_double_chest"), VirtualDoubleChestScreen.class);

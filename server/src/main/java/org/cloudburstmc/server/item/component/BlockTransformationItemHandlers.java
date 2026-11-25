@@ -92,7 +92,7 @@ public class BlockTransformationItemHandlers {
             if (partner.getState().getType() == block.getState().getType() && partner.getState().ensureTrait(BlockTraits.IS_UPPER_BLOCK) != block.getState().ensureTrait(BlockTraits.IS_UPPER_BLOCK)) {
                 changes.add(new BlockChange(partner, replacement.getType().getDefaultState().copyTraits(partner.getState())));
             }
-        } else if (level.getLoadedBlockEntity(block.getPosition()) instanceof Chest chest && chest.isPaired()) {
+        } else if (level.getLoadedBlockEntity(block.getPosition()) instanceof Chest chest) {
             Chest partner = chest.getPair();
             if (partner != null && partner.getBlockState().getType() == block.getState().getType()) {
                 changes.add(new BlockChange(level.getBlock(partner.getPosition()), replacement.getType().getDefaultState().copyTraits(partner.getBlockState())));

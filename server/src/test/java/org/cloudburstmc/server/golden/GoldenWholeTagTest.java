@@ -175,6 +175,16 @@ class GoldenWholeTagTest {
                     expected.putInt("ItemDuration3", 50);
                 }
             }
+            case "Chest", "TestPluginChest" -> {
+                if (client && input.containsKey("CustomName")) {
+                    expected.putString("CustomName", input.getString("CustomName"));
+                }
+            }
+            case "EnderChest" -> {
+                for (String key : List.of("Items", "Findable", "LootTable", "LootTableSeed", "pairx", "pairz", "pairlead")) {
+                    expected.remove(key);
+                }
+            }
             case "FlowerPot" -> {
                 if (client) {
                     expected.putCompound("PlantBlock", input.getCompound("PlantBlock"));

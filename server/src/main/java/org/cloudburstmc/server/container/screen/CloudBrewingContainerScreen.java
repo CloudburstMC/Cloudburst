@@ -23,7 +23,7 @@ public class CloudBrewingContainerScreen extends CloudBlockContainerScreen imple
 
     public CloudBrewingContainerScreen(CloudPlayer player, Block block) {
         super(ScreenTypes.BREWING_STAND, player, block);
-        this.brewingEntity = getOrCreateBlockEntity(block, BlockEntityTypes.BREWING_STAND);
+        this.brewingEntity = getOrCreateBlockEntity(block, BlockEntityTypes.BREWING_STAND, BrewingStandBlockEntity.class);
         this.brewingStandView = new CloudBrewingStandView(this.brewingEntity);
     }
 

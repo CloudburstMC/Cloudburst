@@ -25,7 +25,7 @@ public class CloudFurnaceContainerScreen extends CloudBlockContainerScreen imple
 
     private CloudFurnaceContainerScreen(ScreenType<FurnaceScreen> type, CloudPlayer player, Block block, ContainerSlotType ingredientSlotType, BlockEntityType<?> blockEntityType) {
         super(type, player, block);
-        this.furnaceEntity = getOrCreateBlockEntity(block, blockEntityType);
+        this.furnaceEntity = getOrCreateBlockEntity(block, blockEntityType, FurnaceBlockEntity.class);
         this.furnaceView = new CloudFurnaceView(this.furnaceEntity);
         this.ingredientSlotType = ingredientSlotType;
     }

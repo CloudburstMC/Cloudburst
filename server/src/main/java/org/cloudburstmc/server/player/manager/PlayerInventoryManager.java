@@ -60,7 +60,7 @@ public class PlayerInventoryManager {
             throw new IllegalArgumentException("Screen belongs to another player");
         }
 
-        if (this.openingScreen || this.currentScreen == screen) {
+        if (this.openingScreen || this.currentScreen == screen || !screen.canOpen()) {
             return;
         }
 
@@ -72,9 +72,10 @@ public class PlayerInventoryManager {
                 return;
             }
 
+            screen.setup();
             InventoryOpenEvent event = new InventoryOpenEvent(screen);
             this.player.getServer().getEventManager().fire(event);
-            if (event.isCancelled() || !this.player.isConnected()) {
+            if (event.isCancelled() || !this.player.isConnected() || !screen.canOpen()) {
                 return;
             }
 
@@ -86,7 +87,6 @@ public class PlayerInventoryManager {
                 }
             }
 
-            screen.setup();
             this.currentScreen = screen;
 
             try {
@@ -105,6 +105,16 @@ public class PlayerInventoryManager {
         } finally {
             this.openingScreen = false;
         }
+    }
+
+    public boolean closeUnavailableScreen() {
+        CloudInventoryScreen screen = this.currentScreen;
+        if (screen == null || screen.canKeepOpen()) {
+            return false;
+        }
+
+        this.closeScreen(InventoryCloseEvent.Reason.CANT_USE);
+        return true;
     }
 
     public void closeScreen(InventoryCloseEvent.Reason reason) {

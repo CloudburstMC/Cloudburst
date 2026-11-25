@@ -21,7 +21,7 @@ public class CloudHopperContainerScreen extends CloudBlockContainerScreen implem
 
     public CloudHopperContainerScreen(CloudPlayer player, Block block) {
         super(ScreenTypes.HOPPER, player, block);
-        this.hopperEntity = getOrCreateBlockEntity(block, BlockEntityTypes.HOPPER);
+        this.hopperEntity = getOrCreateBlockEntity(block, BlockEntityTypes.HOPPER, HopperBlockEntity.class);
     }
 
     @Override

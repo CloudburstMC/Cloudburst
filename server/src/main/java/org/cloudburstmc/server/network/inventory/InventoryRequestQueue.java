@@ -136,6 +136,11 @@ public class InventoryRequestQueue {
             return;
         }
 
+        if (this.player.getInventoryManager().closeUnavailableScreen()) {
+            responses.add(new ItemStackResponse(ItemStackResponseStatus.ERROR, request.getRequestId(), List.of()));
+            return;
+        }
+
         CloudInventoryScreen screen = this.player.getInventoryManager().getScreen();
         try {
             ItemStackResponse acknowledgement = this.acknowledgeArmorUse(request, screen);

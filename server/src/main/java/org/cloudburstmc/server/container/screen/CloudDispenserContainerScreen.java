@@ -21,7 +21,7 @@ public class CloudDispenserContainerScreen extends CloudBlockContainerScreen imp
 
     public CloudDispenserContainerScreen(CloudPlayer player, Block block) {
         super(ScreenTypes.DISPENSER, player, block);
-        this.dispenserEntity = getOrCreateBlockEntity(block, BlockEntityTypes.DISPENSER);
+        this.dispenserEntity = getOrCreateBlockEntity(block, BlockEntityTypes.DISPENSER, DispenserBlockEntity.class);
     }
 
     @Override

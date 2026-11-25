@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.container.CloudContainer;
@@ -19,14 +20,19 @@ import org.cloudburstmc.server.nbt.annotation.NbtTag;
 @NoArgsConstructor
 public class CloudChestData extends CloudContainerData {
 
+    public static final int SIZE = 27;
+
     @JsonProperty("Items")
     @NbtTag(value = NbtTagType.LIST, element = NbtTagType.COMPOUND)
-    @NbtContainerSize(27)
-    private ItemContainer items = new CloudContainer(27);
+    @NbtContainerSize(SIZE)
+    private ItemContainer items = new CloudContainer(SIZE);
 
     @JsonProperty("Findable")
     private boolean findable;
 
     @JsonIgnore
-    private Vector3i pairPosition;
+    private @Nullable Vector3i pairPosition;
+
+    @JsonIgnore
+    private boolean pairLead;
 }

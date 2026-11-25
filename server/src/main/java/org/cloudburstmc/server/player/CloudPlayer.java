@@ -1573,6 +1573,7 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
         }
 
         if (this.spawned) {
+            this.getInventoryManager().closeUnavailableScreen();
             this.reconcileGlidingState();
             if (this.spinAttackEndTick >= 0 && currentTick >= this.spinAttackEndTick) {
                 this.stopSpinAttack();

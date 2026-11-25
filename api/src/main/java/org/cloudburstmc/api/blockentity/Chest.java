@@ -1,21 +1,32 @@
 package org.cloudburstmc.api.blockentity;
 
-import org.cloudburstmc.api.inventory.view.BlockStorageView;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.inventory.ItemContainer;
 
 /**
- * A chest block entity with 27 storage slots. Two adjacent chests can be paired to form a double chest.
+ * A chest or one half of a double chest.
  */
-public interface Chest extends BlockEntity, BlockStorageView {
+public interface Chest extends BlockEntity, Lidded {
 
-    boolean isFindable();
+    /**
+     * Returns the inventory of this block, excluding any paired half.
+     */
+    ItemContainer getBlockInventory();
 
-    void setFindable(boolean findable);
+    /**
+     * Returns the joined inventory when both halves are loaded, or this block's inventory otherwise.
+     * A joined inventory cannot be modified after the pair separates.
+     */
+    ItemContainer getInventory();
 
-    boolean isPaired();
-
+    /**
+     * Returns the adjacent half of a double chest, or {@code null} if unavailable.
+     */
+    @Nullable
     Chest getPair();
 
-    boolean pairWith(Chest chest);
-
-    boolean unpair();
+    /**
+     * Returns whether an obstruction prevents either half from opening.
+     */
+    boolean isBlocked();
 }

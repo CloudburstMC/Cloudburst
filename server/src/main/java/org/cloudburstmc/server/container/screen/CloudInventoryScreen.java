@@ -54,9 +54,21 @@ public abstract class CloudInventoryScreen implements InventoryScreen {
     }
 
     public final void setup() {
+        if (this.cachedSlotGroupTypes != null) {
+            return;
+        }
+
         this.setupMappings();
         this.cachedSlotGroupTypes = ImmutableSet.copyOf(this.sections.keySet());
         this.cachedAllSlotGroups = ImmutableSet.copyOf(this.sections.values());
+    }
+
+    public boolean canOpen() {
+        return true;
+    }
+
+    public boolean canKeepOpen() {
+        return true;
     }
 
     public void open() {

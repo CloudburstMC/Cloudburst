@@ -2,6 +2,9 @@ package org.cloudburstmc.server.level.chunk;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
+import lombok.Getter;
+import lombok.Setter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockLayer;
 import org.cloudburstmc.api.block.BlockState;
@@ -22,21 +25,10 @@ public class CloudChunkSection implements ChunkSection {
     private final NibbleArray blockLight;
     private final NibbleArray skyLight;
 
-    /**
-     * Compact position index of all randomly-ticking blocks in this section.
-     * Kept in sync with {@link #tickingBlockCount} by {@link #setBlockState}.
-     * Used by the random-tick loop for O(1) rejection of non-ticking rolls.
-     */
-    private final SectionTickList tickingList;
-
+    @Getter
+    @Setter
     private BiomeStorage biomeStorage;
-
-    /**
-     * Number of primary states in this section that have the
-     * {@code CAN_RANDOM_TICK} component set to {@code true}.
-     * Maintained incrementally in {@link #setBlockState}.
-     */
-    private short tickingBlockCount;
+    private int tickingBlockCount;
 
     public CloudChunkSection(BlockRegistry blockRegistry) {
         this(
@@ -70,8 +62,6 @@ public class CloudChunkSection implements ChunkSection {
         this.blockLight = new NibbleArray(blockLight);
         this.skyLight = new NibbleArray(skyLight);
         this.biomeStorage = new BiomeStorage(DEFAULT_BIOME_ID);
-        this.tickingList = new SectionTickList();
-        this.tickingBlockCount = 0;
         recalcTickingBlocks();
     }
 
@@ -87,8 +77,6 @@ public class CloudChunkSection implements ChunkSection {
         this.blockLight = blockLight;
         this.skyLight = skyLight;
         this.biomeStorage = biomeStorage;
-        this.tickingList = new SectionTickList();
-        this.tickingBlockCount = 0;
         recalcTickingBlocks();
     }
 
@@ -107,49 +95,26 @@ public class CloudChunkSection implements ChunkSection {
         Preconditions.checkArgument(z >= 0 && z < 16, "z (%s) is not between 0 and 15", z);
     }
 
-    private boolean canRandomTick(BlockState state) {
-        if (state == BlockStates.AIR) {
-            return false;
-        }
-
-        return Preconditions.checkNotNull(
-                this.blockRegistry.requireComponent(state.getType(), BlockComponents.CAN_RANDOM_TICK),
-                "Random tick component is not registered for %s", state.getType());
-    }
-
     public BlockState getBlockState(int x, int y, int z, BlockLayer layer) {
         checkBounds(x, y, z);
         return this.storage[BlockLayerStorage.index(layer)].getBlock(blockIndex(x, y, z));
     }
 
-    /**
-     * Sets the block at the given intra-section coordinates and maintains the
-     * {@link #tickingBlockCount} counter and {@link #tickingList} index
-     * incrementally for the primary layer only.
-     */
     public BlockState setBlockState(int x, int y, int z, BlockLayer layer, BlockState blockState) {
         checkBounds(x, y, z);
         int storageIndex = BlockLayerStorage.index(layer);
         int idx = blockIndex(x, y, z);
 
         BlockState oldState = this.storage[storageIndex].getBlock(idx);
-        if (layer == BlockLayer.PRIMARY) {
-            boolean oldTicks = canRandomTick(oldState);
-            boolean newTicks = canRandomTick(blockState);
-
-            if (oldTicks && !newTicks) {
-                tickingBlockCount--;
-                tickingList.remove(x, y, z);
-            } else if (!oldTicks && newTicks) {
-                tickingBlockCount++;
-                tickingList.add(x, y, z, blockState);
-            } else if (oldTicks) {
-                tickingList.remove(x, y, z);
-                tickingList.add(x, y, z, blockState);
-            }
+        int tickDelta = 0;
+        if (layer == BlockLayer.PRIMARY && oldState.getType() != blockState.getType()) {
+            int previous = this.canRandomTick(oldState) ? 1 : 0;
+            int next = this.canRandomTick(blockState) ? 1 : 0;
+            tickDelta = next - previous;
         }
 
         this.storage[storageIndex].setBlock(idx, blockState);
+        this.tickingBlockCount += tickDelta;
         return oldState;
     }
 
@@ -158,17 +123,36 @@ public class CloudChunkSection implements ChunkSection {
      * that has the {@code CAN_RANDOM_TICK} component set to {@code true}.
      */
     public boolean isRandomlyTicking() {
-        return tickingBlockCount > 0;
+        return this.tickingBlockCount > 0;
     }
 
     /**
-     * Returns the compact position index of all randomly-ticking blocks in
-     * this section. Use {@link SectionTickList#size()} as the modulus for the
-     * probability-rejection loop; never iterate it when
-     * {@link #isRandomlyTicking()} is {@code false}.
+     * Returns the current primary state if it can randomly tick, or {@code null} otherwise.
      */
-    public SectionTickList getTickingList() {
-        return tickingList;
+    public @Nullable BlockState getRandomTickingState(int x, int y, int z) {
+        BlockState state = this.getBlockState(x, y, z, BlockLayer.PRIMARY);
+        return this.canRandomTick(state) ? state : null;
+    }
+
+    private boolean canRandomTick(BlockState state) {
+        if (state == BlockStates.AIR) {
+            return false;
+        }
+
+        return Preconditions.checkNotNull(
+                this.blockRegistry.requireComponent(state.getType(), BlockComponents.CAN_RANDOM_TICK),
+                "Random tick component is not registered for %s", state.getType()
+        );
+    }
+
+    private void recalcTickingBlocks() {
+        int count = 0;
+        for (int index = 0; index < SIZE; index++) {
+            if (this.canRandomTick(this.storage[0].getBlock(index))) {
+                count++;
+            }
+        }
+        this.tickingBlockCount = count;
     }
 
     public int getSkyLight(int x, int y, int z) {
@@ -259,20 +243,6 @@ public class CloudChunkSection implements ChunkSection {
         this.biomeStorage.setBiome(blockIndex(x, y, z), biomeId);
     }
 
-    /**
-     * Returns the underlying {@link BiomeStorage} for this section.
-     */
-    public BiomeStorage getBiomeStorage() {
-        return this.biomeStorage;
-    }
-
-    /**
-     * Replaces the underlying {@link BiomeStorage} for this section.
-     */
-    public void setBiomeStorage(BiomeStorage biomeStorage) {
-        this.biomeStorage = biomeStorage;
-    }
-
     public NibbleArray getSkyLightArray() {
         return skyLight;
     }
@@ -309,26 +279,5 @@ public class CloudChunkSection implements ChunkSection {
                 skyLight.copy(),
                 this.biomeStorage.copy()
         );
-    }
-
-    /**
-     * Rebuilds {@link #tickingBlockCount} and {@link #tickingList} from
-     * scratch by scanning the primary layer.
-     */
-    private void recalcTickingBlocks() {
-        tickingList.clear();
-        int count = 0;
-        for (int x = 0; x < 16; x++) {
-            for (int z = 0; z < 16; z++) {
-                for (int y = 0; y < 16; y++) {
-                    BlockState state = this.storage[0].getBlock(blockIndex(x, y, z));
-                    if (canRandomTick(state)) {
-                        tickingList.add(x, y, z, state);
-                        count++;
-                    }
-                }
-            }
-        }
-        tickingBlockCount = (short) count;
     }
 }

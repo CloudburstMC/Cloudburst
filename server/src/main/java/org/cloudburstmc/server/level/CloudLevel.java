@@ -74,7 +74,6 @@ import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.item.ToolUtils;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.chunk.CloudChunkSection;
-import org.cloudburstmc.server.level.chunk.SectionTickList;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import org.cloudburstmc.server.level.collision.CollisionEngine;
 import org.cloudburstmc.server.level.gamerule.CloudGameRules;
@@ -136,6 +135,7 @@ public class CloudLevel implements Level, BlockStateRegion {
     private final EntityTickList updateEntities = new EntityTickList();
 
     private final Long2ObjectOpenHashMap<Deque<BedrockPacket>> chunkPackets = new Long2ObjectOpenHashMap<>();
+    private final Set<BlockEntity> pendingBlockEntitySync = new LinkedHashSet<>();
     private final Set<Vector3i> batchedNeighbourUpdates = new LinkedHashSet<>();
     private int blockUpdateBatchDepth;
 
@@ -491,6 +491,27 @@ public class CloudLevel implements Level, BlockStateRegion {
         }
     }
 
+    /**
+     * Sends fresh block entity data after queued block state updates.
+     */
+    public void queueBlockEntitySync(BlockEntity entity) {
+        this.pendingBlockEntitySync.add(entity);
+    }
+
+    private void flushBlockEntitySync() {
+        if (this.pendingBlockEntitySync.isEmpty()) {
+            return;
+        }
+
+        List<BlockEntity> entities = List.copyOf(this.pendingBlockEntitySync);
+        this.pendingBlockEntitySync.clear();
+        for (BlockEntity entity : entities) {
+            if (!entity.isClosed() && entity.isValid()) {
+                entity.spawnToAll();
+            }
+        }
+    }
+
     public void doTick(int currentTick) {
         this.updateQueuedLight();
 
@@ -589,6 +610,8 @@ public class CloudLevel implements Level, BlockStateRegion {
                 }
             }
         }
+
+        this.flushBlockEntitySync();
 
         synchronized (chunkPackets) {
             for (long index : this.chunkPackets.keySet()) {
@@ -862,31 +885,22 @@ public class CloudLevel implements Level, BlockStateRegion {
                     }
 
                     for (int sectionIdx = 0; sectionIdx < sections.length; sectionIdx++) {
-                        ChunkSection section = sections[sectionIdx];
-                        if (section == null) {
+                        CloudChunkSection section = (CloudChunkSection) sections[sectionIdx];
+                        if (section == null || !section.isRandomlyTicking()) {
                             continue;
                         }
-
-                        CloudChunkSection cs = (CloudChunkSection) section;
-                        if (!cs.isRandomlyTicking()) {
-                            continue;
-                        }
-
-                        SectionTickList tickList = cs.getTickingList();
-                        int tickingBlocks = tickList.size();
 
                         int sectionBaseY = (sectionIdx << 4) + minHeight;
                         for (int i = 0; i < tickSpeed; ++i) {
-                            if (rng.nextInt(4096) >= tickingBlocks) {
+                            int blockIndex = rng.nextInt(CloudChunkSection.SIZE);
+                            int lx = blockIndex >>> 8;
+                            int ly = blockIndex & 15;
+                            int lz = (blockIndex >>> 4) & 15;
+
+                            BlockState state = section.getRandomTickingState(lx, ly, lz);
+                            if (state == null) {
                                 continue;
                             }
-
-                            int idx = rng.nextInt(tickingBlocks);
-
-                            BlockState state = tickList.getState(idx);
-                            int lx = tickList.getX(idx);
-                            int ly = tickList.getY(idx);
-                            int lz = tickList.getZ(idx);
 
                             int worldX = baseWorldX + lx;
                             int worldY = sectionBaseY + ly;
@@ -2602,6 +2616,7 @@ public class CloudLevel implements Level, BlockStateRegion {
         Preconditions.checkArgument(entity.getLevel() == this, "BlockEntity is not in this level");
         blockEntities.remove(entity);
         updateBlockEntities.remove(entity);
+        this.pendingBlockEntitySync.remove(entity);
     }
 
     public Location getSafeSpawn() {

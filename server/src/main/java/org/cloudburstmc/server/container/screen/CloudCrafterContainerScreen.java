@@ -23,7 +23,7 @@ public class CloudCrafterContainerScreen extends CloudBlockContainerScreen imple
 
     public CloudCrafterContainerScreen(CloudPlayer player, Block block) {
         super(ScreenTypes.CRAFTER, player, block);
-        this.crafterEntity = getOrCreateBlockEntity(block, BlockEntityTypes.CRAFTER);
+        this.crafterEntity = getOrCreateBlockEntity(block, BlockEntityTypes.CRAFTER, CrafterBlockEntity.class);
     }
 
     @Override

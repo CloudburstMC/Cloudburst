@@ -1,260 +1,259 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.api.blockentity.BlockEntity;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.block.BlockLayer;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Chest;
 import org.cloudburstmc.api.inventory.ItemContainer;
-import org.cloudburstmc.api.inventory.view.BlockStorageView;
-import org.cloudburstmc.api.inventory.view.SlotGroup;
-import org.cloudburstmc.api.inventory.view.SlotGroupType;
-import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.server.block.component.ChestBlockHandlers;
 import org.cloudburstmc.server.blockentity.data.CloudChestData;
 import org.cloudburstmc.server.container.CloudContainer;
-import org.cloudburstmc.server.container.ContainerListener;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Block entity implementation for a chest: a 27-slot storage container. Two adjacent chests can be
- * paired to form a double chest backed by a shared combined container.
- */
-public class ChestBlockEntity extends ContainerBlockEntity implements Chest, BlockStorageView {
+public class ChestBlockEntity extends ContainerBlockEntity implements Chest {
 
-    private CloudContainer combinedContainer = null;
-    private boolean pairlead;
+    private static final String PAIR_X = "pairx";
+    private static final String PAIR_Z = "pairz";
+    private static final String PAIR_LEAD = "pairlead";
+    private static final Set<String> PAIR_KEYS = Set.of(PAIR_X, PAIR_Z, PAIR_LEAD);
 
     private final CloudChestData persistenceState;
+    private final ChestLid lid = new ChestLid(this);
+    private @Nullable PairedChestStorage pairedInventory;
 
     public ChestBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         CloudChestData state = new CloudChestData();
         super(type, chunk, position, state);
         this.persistenceState = state;
+        state.setItems(new ChestStorage(this));
     }
 
     @Override
-    public SlotGroupType<? extends SlotGroup> getSlotGroupType() {
-        return SlotGroupTypes.CHEST;
+    public BlockState getBlockState() {
+        Vector3i pos = this.getPosition();
+        return this.getChunk().getBlockState(pos.getX() & 15, pos.getY(), pos.getZ() & 15, BlockLayer.PRIMARY);
     }
 
     @Override
-    protected CloudChestData data() {
-        return this.persistenceState;
+    public CloudContainer getBlockInventory() {
+        return this.storage();
     }
 
     @Override
-    protected ItemContainer items() {
-        return data().getItems();
-    }
-
-    @Override
-    protected void loadCustom(NbtMap tag) {
-        if (tag.containsKey("pairx") && tag.containsKey("pairz")) {
-            data().setPairPosition(Vector3i.from(tag.getInt("pairx"), this.getPosition().getY(), tag.getInt("pairz")));
-        }
-        tag.listenForBoolean("pairlead", this::setPairlead);
-    }
-
-    @Override
-    protected void saveCustom(NbtMapBuilder tag) {
-        Vector3i pairPosition = data().getPairPosition();
-        if (pairPosition != null) {
-            tag.putInt("pairx", pairPosition.getX());
-            tag.putInt("pairz", pairPosition.getZ());
-            tag.putBoolean("pairlead", this.pairlead);
-        }
-    }
-
-    @Override
-    protected void saveCustomClient(NbtMapBuilder tag) {
-        writePair(tag);
-    }
-
-    @Override
-    protected Set<String> customKeys() {
-        return Set.of("pairx", "pairz", "pairlead");
-    }
-
-    private void writePair(NbtMapBuilder tag) {
-        Vector3i pairPosition = data().getPairPosition();
-        if (pairPosition != null && this.pairlead) {
-            tag.putInt("pairx", pairPosition.getX());
-            tag.putInt("pairz", pairPosition.getZ());
-            tag.putBoolean("pairlead", this.pairlead);
-        }
-    }
-
-    public String getLootTable() {
-        return data().getLootTable();
-    }
-
-    public void setLootTable(String lootTable) {
-        data().setLootTable(lootTable);
-    }
-
-    public Integer getLootTableSeed() {
-        return data().getLootTableSeed();
-    }
-
-    public void setLootTableSeed(Integer lootTableSeed) {
-        data().setLootTableSeed(lootTableSeed);
-    }
-
-    public void setPairlead(boolean pairlead) {
-        this.pairlead = pairlead;
-    }
-
-    public boolean isFindable() {
-        return data().isFindable();
-    }
-
-    public void setFindable(boolean findable) {
-        data().setFindable(findable);
-    }
-
-    @Override
-    public void close() {
-        if (!this.isClosed()) {
-            for (ContainerListener listener : new HashSet<>(this.getContainer().getListeners())) {
-                if (listener instanceof CloudPlayer) {
-                    ((CloudPlayer) listener).closeInventory();
-                }
-            }
-
-//            for (InventoryListener listener : new HashSet<>(this.getInventory().getListeners())) {
-//                listener.removeWindow(this.getRealInventory());
-//            }
-            super.close();
-        }
-    }
-
-    @Override
-    public void onBreak() {
-        if (this.isPaired()) {
-            unpair();
-        }
-        CloudContainer single = (CloudContainer) items();
-        for (ItemStack content : single.getContents()) {
-            this.dropItemOnBreak(content);
-        }
-        single.clear(); // Stop items from being moved around by another player in the inventory
+    public ItemContainer getInventory() {
+        return this.getContainer();
     }
 
     @Override
     public CloudContainer getContainer() {
-        if (this.combinedContainer == null && this.isPaired()) {
-            this.checkPairing();
-        }
-
-        return this.combinedContainer != null ? this.combinedContainer : (CloudContainer) items();
-    }
-
-    protected void checkPairing() {
         ChestBlockEntity pair = this.getPair();
+        if (pair == null) {
+            this.discardInvalidPair();
+            return this.getBlockInventory();
+        }
 
+        if (this.pairedInventory == null) {
+            this.joinInventories(pair);
+        }
+
+        return this.pairedInventory;
+    }
+
+    @Override
+    protected ItemContainer items() {
+        return this.data().getItems();
+    }
+
+    private ChestStorage storage() {
+        return (ChestStorage) this.items();
+    }
+
+    private void onInventoryChanged() {
+        this.setDirty();
+        this.updateComparator();
+        ChestBlockEntity pair = this.getPair();
         if (pair != null) {
-            if (!pair.isPaired()) {
-                pair.createPair(this);
-                pair.checkPairing();
-            }
-
-            createCombinedContainer(pair);
-        } else {
-            Vector3i pairPosition = data().getPairPosition();
-            if (pairPosition != null && this.getLevel().isChunkLoaded(pairPosition)) {
-                this.combinedContainer = null;
-                data().setPairPosition(null);
-                this.pairlead = false;
-            }
+            pair.updateComparator();
         }
     }
 
-    /**
-     * Builds this chest's side of a pairing with the pair chest: adopts the pair's combined
-     * container when it has one, otherwise creates the shared container over the two chests'
-     * DTO containers with today's slot ordering.
-     *
-     * @param pair the paired chest
-     */
-    void createCombinedContainer(ChestBlockEntity pair) {
-        if (pair.combinedContainer != null) {
-            this.combinedContainer = pair.combinedContainer;
-        } else if (this.combinedContainer == null) {
-            Vector3i pairPosition = pair.data().getPairPosition();
-            Vector3i thisPosition = this.data().getPairPosition();
-            if (((pairPosition.getX() + pairPosition.getZ()) << 15) >
-                    ((thisPosition.getX() + thisPosition.getZ()) << 15)) {
-                this.combinedContainer = new CloudContainer((CloudContainer) pair.items(), (CloudContainer) items());
-            } else {
-                this.combinedContainer = new CloudContainer((CloudContainer) items(), (CloudContainer) pair.items());
-            }
+    private void updateComparator() {
+        if (this.getLevel() != null && !this.isClosed()) {
+            this.getLevel().updateComparatorOutputLevel(this.getPosition());
         }
     }
 
     public boolean isPaired() {
-        return data().getPairPosition() != null;
+        return this.data().getPairPosition() != null;
     }
 
-    public ChestBlockEntity getPair() {
-        Vector3i pairPosition = data().getPairPosition();
-        if (this.isPaired() && this.getLevel() != null) {
-            BlockEntity blockEntity = this.getLevel().getLoadedBlockEntity(pairPosition);
-            if (blockEntity instanceof ChestBlockEntity) {
-                return (ChestBlockEntity) blockEntity;
-            }
+    public boolean isPairLead() {
+        return this.data().isPairLead();
+    }
+
+    @Override
+    public @Nullable ChestBlockEntity getPair() {
+        if (this.isClosed()) {
+            return null;
         }
 
+        ChestBlockEntity pair = this.findPairedEntity();
+        if (pair == null || pair.isClosed() || this.isIncompatiblePartner(pair)) {
+            return null;
+        }
+
+        return this.getPosition().equals(pair.data().getPairPosition()) ? pair : null;
+    }
+
+    public boolean pairWith(ChestBlockEntity other) {
+        if (this.cannotFormPair(other)) {
+            return false;
+        }
+
+        this.lid.closeViewers();
+        other.lid.closeViewers();
+
+        // Closing an inventory can fire events that change either chest.
+        if (this.cannotFormPair(other)) {
+            return false;
+        }
+
+        Direction facing = this.getBlockState().ensureTrait(BlockTraits.CARDINAL_DIRECTION).toDirection();
+        boolean lead = facing.rotateCounterClockwise().relative(this.getPosition()).equals(other.getPosition());
+        this.data().setPairPosition(other.getPosition());
+        this.data().setPairLead(lead);
+        other.data().setPairPosition(this.getPosition());
+        other.data().setPairLead(!lead);
+        this.joinInventories(other);
+        this.pairChanged();
+        other.pairChanged();
+        return true;
+    }
+
+    public void unpair() {
+        if (!this.isPaired()) {
+            return;
+        }
+
+        ChestBlockEntity other = this.findPairedEntity();
+        this.lid.closeViewers();
+        this.clearPair();
+        this.pairChanged();
+
+        if (other != null && this.getPosition().equals(other.data().getPairPosition())) {
+            other.lid.closeViewers();
+            other.clearPair();
+            other.pairChanged();
+        }
+    }
+
+    private boolean cannotFormPair(ChestBlockEntity other) {
+        return this.isClosed() || other.isClosed() || this.isPaired() || other.isPaired() || this.isIncompatiblePartner(other);
+    }
+
+    private boolean isIncompatiblePartner(ChestBlockEntity other) {
+        if (this == other || this.getChunk().getLevel() != other.getChunk().getLevel()) {
+            return true;
+        }
+
+        BlockState state = this.getBlockState();
+        if (!ChestBlockHandlers.canJoin(state, other.getBlockState())) {
+            return true;
+        }
+
+        Direction facing = state.ensureTrait(BlockTraits.CARDINAL_DIRECTION).toDirection();
+        Vector3i pos = this.getPosition();
+        return !facing.rotateClockwise().relative(pos).equals(other.getPosition()) && !facing.rotateCounterClockwise().relative(pos).equals(other.getPosition());
+    }
+
+    private @Nullable ChestBlockEntity findPairedEntity() {
+        Vector3i position = this.data().getPairPosition();
+        CloudChunk chunk = position == null ? null : this.getPairChunk(position);
+        if (chunk != null && chunk.getBlockEntity(position.getX() & 15, position.getY(), position.getZ() & 15) instanceof ChestBlockEntity pair) {
+            return pair;
+        }
         return null;
     }
 
-    public boolean pairWith(Chest chest) {
-        if (this.isPaired() || chest.isPaired() || this.getBlockState().getType() != chest.getBlockState().getType()) {
-            return false;
+    private @Nullable CloudChunk getPairChunk(Vector3i position) {
+        CloudChunk ownChunk = this.getChunk();
+        if (ownChunk.getX() == (position.getX() >> 4) && ownChunk.getZ() == (position.getZ() >> 4)) {
+            return ownChunk;
         }
-
-        this.createPair((ChestBlockEntity) chest);
-        this.pairlead = true;
-
-        chest.spawnToAll();
-        this.spawnToAll();
-        this.checkPairing();
-
-        return true;
+        return this.getLevel() == null ? null : this.getLevel().getLoadedChunk(position);
     }
 
-    private void createPair(ChestBlockEntity chest) {
-        data().setPairPosition(chest.getPosition());
-        chest.data().setPairPosition(this.getPosition());
+    private void discardInvalidPair() {
+        Vector3i position = this.data().getPairPosition();
+        if (position != null && this.getPairChunk(position) != null) {
+            this.clearPair();
+            this.pairChanged();
+        }
     }
 
-    public boolean unpair() {
-        if (!this.isPaired()) {
-            return false;
-        }
+    private void joinInventories(ChestBlockEntity other) {
+        ChestBlockEntity first = this.isPairLead() ? this : other;
+        ChestBlockEntity second = first == this ? other : this;
+        PairedChestStorage inventory = new PairedChestStorage(first.storage(), second.storage());
+        this.pairedInventory = inventory;
+        other.pairedInventory = inventory;
+    }
 
-        ChestBlockEntity chest = this.getPair();
+    private void clearPair() {
+        this.data().setPairPosition(null);
+        this.data().setPairLead(false);
+        this.pairedInventory = null;
+    }
 
-        this.combinedContainer = null;
-        data().setPairPosition(null);
-
+    private void pairChanged() {
+        this.setDirty();
         this.spawnToAll();
+        this.updateComparator();
+    }
 
-        if (chest != null) {
-            chest.data().setPairPosition(null);
-            chest.combinedContainer = null;
-            chest.pairlead = false;
-            chest.checkPairing();
-            chest.spawnToAll();
-        }
-        this.checkPairing();
+    @Override
+    public boolean isBlocked() {
+        ChestBlockEntity pair = this.getPair();
+        return ChestBlockHandlers.isBlocked(this.getBlock()) || pair != null && ChestBlockHandlers.isBlocked(pair.getBlock());
+    }
 
-        return true;
+    @Override
+    public boolean isLidOpen() {
+        return this.lid.isOpen();
+    }
+
+    @Override
+    public void setLidOpen(boolean open) {
+        this.lid.setOpen(open);
+    }
+
+    public int getRedstoneSignal() {
+        return this.lid.signal();
+    }
+
+    public boolean hasViewers() {
+        return this.lid.hasViewers();
+    }
+
+    public void startOpen(CloudPlayer player) {
+        this.lid.startOpen(player);
+    }
+
+    public void stopOpen(CloudPlayer player) {
+        this.lid.stopOpen(player);
     }
 
     @Override
@@ -263,22 +262,152 @@ public class ChestBlockEntity extends ContainerBlockEntity implements Chest, Blo
     }
 
     @Override
-    public boolean onUpdate() {
-        super.onUpdate();
-        if (this.pairlead) {
-            Vector3i pairPosition = data().getPairPosition();
-            if (pairPosition != null) {
-                ChestBlockEntity other = getPair();
-                if (other == null) {
-                    return true;
-                }
-                if (!other.isPaired()) {
-                    other.data().setPairPosition(this.getPosition());
-                    checkPairing();
-                    other.checkPairing();
-                }
+    public void applyPlacementItem(ItemStack item) {
+        this.setCustomName(item.get(ItemDataComponents.CUSTOM_NAME));
+    }
+
+    @Override
+    public void onBreak() {
+        this.unpair();
+        this.lid.closeViewers();
+        CloudContainer inventory = this.getBlockInventory();
+        for (ItemStack item : inventory.getContents()) {
+            this.dropItemOnBreak(item);
+        }
+        inventory.clear();
+    }
+
+    @Override
+    public void close() {
+        if (!this.isClosed()) {
+            ChestBlockEntity pair = this.getPair();
+            this.lid.closeViewers();
+            this.pairedInventory = null;
+            if (pair != null) {
+                pair.pairedInventory = null;
+            }
+            super.close();
+        }
+    }
+
+    @Override
+    protected CloudChestData data() {
+        return this.persistenceState;
+    }
+
+    public boolean isFindable() {
+        return this.data().isFindable();
+    }
+
+    public @Nullable String getLootTable() {
+        return this.data().getLootTable();
+    }
+
+    public @Nullable Integer getLootTableSeed() {
+        return this.data().getLootTableSeed();
+    }
+
+    @Override
+    protected void loadCustom(NbtMap tag) {
+        if (tag.containsKey(PAIR_X) && tag.containsKey(PAIR_Z)) {
+            Vector3i position = Vector3i.from(tag.getInt(PAIR_X), this.getPosition().getY(), tag.getInt(PAIR_Z));
+            this.data().setPairPosition(position);
+            this.data().setPairLead(tag.getBoolean(PAIR_LEAD));
+        } else {
+            this.clearPair();
+        }
+        this.pairedInventory = null;
+    }
+
+    @Override
+    protected void saveCustom(NbtMapBuilder tag) {
+        this.writePair(tag, true);
+    }
+
+    @Override
+    protected void saveCustomClient(NbtMapBuilder tag) {
+        this.writePair(tag, false);
+        String name = this.getCustomName();
+        if (name != null) {
+            tag.putString("CustomName", name);
+        }
+    }
+
+    @Override
+    protected Set<String> customKeys() {
+        return PAIR_KEYS;
+    }
+
+    private void writePair(NbtMapBuilder tag, boolean includeNonLeadFlag) {
+        Vector3i position = this.data().getPairPosition();
+        if (position == null) {
+            return;
+        }
+
+        tag.putInt(PAIR_X, position.getX());
+        tag.putInt(PAIR_Z, position.getZ());
+        if (includeNonLeadFlag || this.isPairLead()) {
+            tag.putBoolean(PAIR_LEAD, this.isPairLead());
+        }
+    }
+
+    private static class ChestStorage extends CloudContainer {
+
+        private final ChestBlockEntity owner;
+
+        private ChestStorage(ChestBlockEntity owner) {
+            super(CloudChestData.SIZE);
+            this.owner = owner;
+        }
+
+        @Override
+        protected void onSlotChange(int slot, ItemStack previous) {
+            this.owner.onInventoryChanged();
+            super.onSlotChange(slot, previous);
+            PairedChestStorage pair = this.owner.pairedInventory;
+            if (pair != null) {
+                pair.childSlotChanged(this, slot, previous);
             }
         }
-        return false;
+
+        private void pairedSlotChanged(int slot, ItemStack previous) {
+            this.owner.onInventoryChanged();
+            super.onSlotChange(slot, previous);
+        }
+    }
+
+    private static class PairedChestStorage extends CloudContainer {
+
+        private final ChestStorage first;
+        private final ChestStorage second;
+
+        private PairedChestStorage(ChestStorage first, ChestStorage second) {
+            super(first, second);
+            this.first = first;
+            this.second = second;
+        }
+
+        @Override
+        public void setItem(int slot, @NonNull ItemStack item) {
+            if (this.first.owner.pairedInventory != this || this.second.owner.pairedInventory != this) {
+                throw new IllegalStateException("Double chest is no longer paired");
+            }
+            super.setItem(slot, item);
+        }
+
+        @Override
+        protected void onSlotChange(int slot, ItemStack previous) {
+            int split = this.first.size();
+            if (slot < split) {
+                this.first.pairedSlotChanged(slot, previous);
+            } else {
+                this.second.pairedSlotChanged(slot - split, previous);
+            }
+            super.onSlotChange(slot, previous);
+        }
+
+        private void childSlotChanged(ChestStorage child, int slot, ItemStack previous) {
+            super.onSlotChange(child == this.first ? slot : this.first.size() + slot, previous);
+        }
     }
 }

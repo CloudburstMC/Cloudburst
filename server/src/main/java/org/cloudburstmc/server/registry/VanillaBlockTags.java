@@ -1746,6 +1746,9 @@ class VanillaBlockTags {
                 TUFF
         );
         inherit(MINEABLE_WITH_PICKAXE, WALLS);
+        for (BlockType chest : VanillaCopperBlocks.family(COPPER_CHEST)) {
+            tag(MINEABLE_WITH_PICKAXE, chest);
+        }
     }
 
     private static void initMineableWithAxe() {

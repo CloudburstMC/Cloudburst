@@ -209,7 +209,8 @@ public class VanillaBlockBehaviors {
         configureLeaves(registry, CHERRY_LEAVES, VanillaBlockLoot.leaves(CHERRY_LEAVES, CHERRY_SAPLING, false));
         configureSlab(registry, CHERRY_SLAB, CHERRY_DOUBLE_SLAB);
         configureTrapdoor(registry, CHERRY_TRAPDOOR);
-        configureUsable(registry, CHEST, ContainerBlockHandlers.CHEST);
+        configureChest(registry, CHEST);
+        VanillaCopperBlocks.family(COPPER_CHEST).forEach(type -> configureChest(registry, type));
         configureAnvil(registry, CHIPPED_ANVIL);
 
         registry.configure(CHORUS_FLOWER)
@@ -319,6 +320,9 @@ public class VanillaBlockBehaviors {
 
         configureSlab(registry, END_STONE_BRICK_SLAB, END_STONE_BRICK_DOUBLE_SLAB);
         configureUsable(registry, ENDER_CHEST, ContainerBlockHandlers.ENDER_CHEST);
+        registry.configure(ENDER_CHEST)
+                .set(BlockComponents.ON_ADDED, ChestBlockHandlers.ENDER_CHEST_ADDED)
+                .set(BlockComponents.GET_LOOT, ChestBlockHandlers.ENDER_CHEST_LOOT);
         registry.configure(END_ROD)
                 .set(BlockComponents.RESOLVE_PLACEMENT_STATE, EndRodBlockHandlers.RESOLVE_PLACEMENT_STATE);
         configureDoor(registry, EXPOSED_COPPER_DOOR);
@@ -734,7 +738,10 @@ public class VanillaBlockBehaviors {
                         .set(BlockComponents.ON_EXPLOSION_HIT, TntBlockHandlers.ON_EXPLOSION_HIT)
                         .set(BlockComponents.ON_PROJECTILE_HIT, TntBlockHandlers.ON_PROJECTILE_HIT));
         configureTorch(registry, TORCH);
-        configureUsable(registry, TRAPPED_CHEST, ContainerBlockHandlers.TRAPPED_CHEST);
+        configureChest(registry, TRAPPED_CHEST);
+        registry.configure(TRAPPED_CHEST)
+                .set(BlockComponents.GET_REDSTONE_SIGNAL, ChestBlockHandlers.GET_TRAPPED_SIGNAL)
+                .set(BlockComponents.GET_DIRECT_REDSTONE_SIGNAL, ChestBlockHandlers.GET_DIRECT_TRAPPED_SIGNAL);
 
         registry.configure(TRIP_WIRE)
                 .set(BlockComponents.ON_PLACE, new TripwireBlockPlaceHandler())
@@ -1148,6 +1155,21 @@ public class VanillaBlockBehaviors {
             registry.configure(type)
                     .set(BlockComponents.RESOLVE_PLACEMENT_STATE, FenceBlockHandlers.RESOLVE_PLACEMENT_STATE)
                     .set(BlockComponents.ON_NEIGHBOUR_CHANGED, FenceBlockHandlers.ON_NEIGHBOUR_CHANGED);
+        }
+    }
+
+    private void configureChest(CloudBlockRegistry registry, BlockType type) {
+        configureUsable(registry, type, ContainerBlockHandlers.CHEST);
+        registry.configure(type)
+                .set(BlockComponents.ON_ADDED, ChestBlockHandlers.CHEST_ADDED)
+                .set(BlockComponents.ON_REMOVE, ChestBlockHandlers.CHEST_REMOVED)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, ChestBlockHandlers.CHEST_PLACEMENT)
+                .set(BlockComponents.ON_PLACE, ChestBlockHandlers.PLACE_CHEST)
+                .set(BlockComponents.GET_COMPARATOR_OUTPUT, ChestBlockHandlers.GET_COMPARATOR_OUTPUT);
+        if (VanillaCopperBlocks.next(type) != null) {
+            registry.configure(type)
+                    .set(BlockComponents.CAN_RANDOM_TICK, true)
+                    .set(BlockComponents.ON_RANDOM_TICK, ChestBlockHandlers.WEATHER_CHEST);
         }
     }
 

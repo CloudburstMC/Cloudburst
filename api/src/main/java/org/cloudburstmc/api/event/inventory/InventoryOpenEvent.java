@@ -6,12 +6,9 @@ import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.inventory.InventoryScreen;
 
 /**
- * Called when a player opens an inventory screen.
- *
- * <p>Call {@link #setTitleOverride(Component)} to replace the title shown
- * to the player without modifying the underlying screen.</p>
+ * Called before an inventory screen opens. Cancelling prevents it from opening.
  */
-public final class InventoryOpenEvent extends InventoryEvent implements Cancellable {
+public class InventoryOpenEvent extends InventoryEvent implements Cancellable {
 
     @Nullable
     private Component titleOverride;

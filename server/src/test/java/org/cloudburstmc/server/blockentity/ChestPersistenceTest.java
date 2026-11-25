@@ -1,17 +1,21 @@
 package org.cloudburstmc.server.blockentity;
 
+import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
+import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.util.data.CardinalDirection;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.blockentity.data.CloudBlockEntityData;
 import org.cloudburstmc.server.blockentity.data.CloudChestData;
 import org.cloudburstmc.server.blockentity.data.CloudContainerData;
-import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -61,7 +65,6 @@ class ChestPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-
         ChestBlockEntity entity = (ChestBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CHEST, POSITION);
         NbtMap input = chestTag();
         entity.loadAdditionalData(input);
@@ -81,7 +84,7 @@ class ChestPersistenceTest {
                     NbtType.byClass(saved.get(key).getClass()), "type of " + key);
         }
 
-        assertEquals(Set.of("id", "pairx", "pairz", "pairlead"),
+        assertEquals(Set.of("id", "pairx", "pairz", "pairlead", "CustomName"),
                 entity.getClientTag().keySet());
     }
 
@@ -218,8 +221,8 @@ class ChestPersistenceTest {
         assertFalse(saved.getBoolean("pairlead"));
 
         NbtMap client = entity.getClientTag();
-        assertFalse(client.containsKey("pairx"));
-        assertFalse(client.containsKey("pairz"));
+        assertEquals(11, client.getInt("pairx"));
+        assertEquals(-5, client.getInt("pairz"));
         assertFalse(client.containsKey("pairlead"));
     }
 
@@ -280,105 +283,94 @@ class ChestPersistenceTest {
     }
 
     @Test
-    void pairedChestCombinedContainerSeesDataContainers() {
-        ChestBlockEntity left = (ChestBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CHEST,
-                Vector3i.from(10, 64, -5));
-        ChestBlockEntity right = (ChestBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CHEST,
-                Vector3i.from(11, 64, -5));
+    void pairedChestKeepsEachHalfsStorageAndSharesTheJoinedInventory() {
+        ChestBlockEntity left = (ChestBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CHEST, POSITION);
+        Vector3i rightPosition = POSITION.add(1, 0, 0);
+        CloudChunk chunk = left.getChunk();
+        BlockState state = BlockStates.CHEST.withTrait(BlockTraits.CARDINAL_DIRECTION, CardinalDirection.NORTH);
+        chunk.setBlockState(POSITION.getX() & 15, POSITION.getY(), POSITION.getZ() & 15, BlockLayer.PRIMARY, state);
+        chunk.setBlockState(rightPosition.getX() & 15, rightPosition.getY(), rightPosition.getZ() & 15,
+                BlockLayer.PRIMARY, state);
+        ChestBlockEntity right = new ChestBlockEntity(BlockEntityTypes.CHEST, chunk, rightPosition);
 
         ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 5);
         ItemStack stick = ItemStack.from(ItemTypes.STICK, 2);
-        left.data().getItems().setItem(3, diamond);
-        right.data().getItems().setItem(5, stick);
+        left.getBlockInventory().setItem(3, diamond);
+        right.getBlockInventory().setItem(5, stick);
 
-        left.data().setPairPosition(right.getPosition());
-        right.data().setPairPosition(left.getPosition());
-        left.setPairlead(true);
-        left.createCombinedContainer(right);
+        assertTrue(left.pairWith(right));
+        ItemContainer joined = left.getInventory();
+        assertSame(joined, right.getInventory());
+        assertEquals(54, joined.size());
+        assertEquals(stick, joined.getItem(5));
+        assertEquals(diamond, joined.getItem(30));
+        assertEquals(27, left.getBlockInventory().size());
 
-        CloudContainer combined = left.getContainer();
-        assertEquals(54, combined.size());
+        ItemStack gold = ItemStack.from(ItemTypes.GOLD_INGOT);
+        joined.setItem(30, gold);
+        assertEquals(gold, left.getBlockInventory().getItem(3));
 
-        int diamondSlot = -1;
-        int stickSlot = -1;
-        for (int slot = 0; slot < combined.size(); slot++) {
-            if (combined.getItem(slot).equals(diamond)) {
-                diamondSlot = slot;
-            }
-            if (combined.getItem(slot).equals(stick)) {
-                stickSlot = slot;
-            }
-        }
-        assertNotEquals(-1, diamondSlot, "combined container sees the left chest's DTO container");
-        assertNotEquals(-1, stickSlot, "combined container sees the right chest's DTO container");
-        assertNotEquals(diamondSlot, stickSlot);
-
-        ItemStack gold = ItemStack.from(ItemTypes.GOLD_INGOT, 1);
-        combined.setItem(diamondSlot, gold);
-        assertEquals(gold, left.data().getItems().getItem(3));
-
-        combined.setItem(stickSlot, ItemStack.EMPTY);
-        assertTrue(right.data().getItems().getItem(5).isEmpty());
-
-        ItemStack iron = ItemStack.from(ItemTypes.IRON_INGOT, 4);
-        right.data().getItems().setItem(5, iron);
-        assertEquals(iron, combined.getItem(stickSlot));
-
-        ItemStack coal = ItemStack.from(ItemTypes.COAL, 7);
-        left.data().getItems().setItem(3, coal);
-        assertEquals(coal, combined.getItem(diamondSlot));
+        left.unpair();
+        assertThrows(IllegalStateException.class, () -> joined.setItem(30, diamond));
+        assertNull(left.getPair());
+        assertNull(right.getPair());
+        assertSame(left.getBlockInventory(), left.getInventory());
+        assertEquals(stick, right.getInventory().getItem(5));
     }
 
     @Test
-    void unpairedPartnerIsRepairedBeforeCombining() {
-        final ChestBlockEntity[] leftRef = new ChestBlockEntity[1];
-        final ChestBlockEntity[] rightRef = new ChestBlockEntity[1];
-        ChestBlockEntity seed = (ChestBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CHEST,
-                Vector3i.from(10, 64, -5));
-        org.cloudburstmc.server.level.chunk.CloudChunk chunk = seed.getChunk();
-        seed.close();
-        ChestBlockEntity left = new ChestBlockEntity(BlockEntityTypes.CHEST, chunk,
-                Vector3i.from(10, 64, -5)) {
-            @Override
-            public ChestBlockEntity getPair() {
-                return rightRef[0];
-            }
-        };
-        ChestBlockEntity right = new ChestBlockEntity(BlockEntityTypes.CHEST, chunk,
-                Vector3i.from(11, 64, -5)) {
-            @Override
-            public ChestBlockEntity getPair() {
-                return leftRef[0];
-            }
-        };
-        leftRef[0] = left;
-        rightRef[0] = right;
+    void copperChestPairKeepsItsInventoryAndClientPairingAcrossOxidation() {
+        ChestBlockEntity left = (ChestBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CHEST, POSITION);
+        Vector3i rightPosition = POSITION.add(1, 0, 0);
+        CloudChunk chunk = left.getChunk();
+        BlockState copper = BlockTypes.COPPER_CHEST.getDefaultState()
+                .withTrait(BlockTraits.CARDINAL_DIRECTION, CardinalDirection.NORTH);
+        BlockState exposed = BlockTypes.EXPOSED_COPPER_CHEST.getDefaultState().copyTraits(copper);
+        int x = POSITION.getX() & 15;
+        int y = POSITION.getY();
+        int z = POSITION.getZ() & 15;
+        chunk.setBlockState(x, y, z, BlockLayer.PRIMARY, copper);
+        chunk.setBlockState(x + 1, y, z, BlockLayer.PRIMARY, copper);
+        ChestBlockEntity right = new ChestBlockEntity(BlockEntityTypes.CHEST, chunk, rightPosition);
 
-        left.data().setPairPosition(right.getPosition());
-        assertFalse(right.isPaired(), "partner starts unpaired");
+        assertTrue(left.pairWith(right));
+        ItemContainer joined = left.getInventory();
+        ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND);
+        joined.setItem(30, diamond);
 
-        left.checkPairing();
+        chunk.setBlockState(x, y, z, BlockLayer.PRIMARY, exposed);
+        assertSame(right, left.getPair());
+        chunk.setBlockState(x + 1, y, z, BlockLayer.PRIMARY, exposed);
 
-        assertEquals(right.getPosition(), left.data().getPairPosition());
-        assertEquals(left.getPosition(), right.data().getPairPosition());
-        assertTrue(left.isPaired());
-        assertTrue(right.isPaired());
-        assertEquals(54, left.getContainer().size());
-        assertEquals(54, right.getContainer().size());
+        assertTrue(left.isValid());
+        assertTrue(right.isValid());
+        assertSame(joined, left.getInventory());
+        assertSame(joined, right.getInventory());
+        assertEquals(diamond, joined.getItem(30));
+        assertEquals(rightPosition.getX(), left.getClientTag().getInt("pairx"));
+        assertEquals(POSITION.getX(), right.getClientTag().getInt("pairx"));
+        assertTrue(right.getClientTag().getBoolean("pairlead"));
     }
 
     @Test
     void chestBlockEntityKeepsNoDuplicateState() {
         DtoStateChecks.assertKeepsNoDuplicateState(ChestBlockEntity.class, CloudChestData.class,
-                Map.of("combinedContainer",
-                        "derived double-chest view over the two chests' DTO containers, not persisted state"));
+                Map.of("pairedInventory", "A joined view of the two block inventories"));
     }
 
     @Test
-    void enderChestBlockEntityKeepsNoDuplicateState() {
-        DtoStateChecks.assertKeepsNoDuplicateState(EnderChestBlockEntity.class, CloudChestData.class,
-                Map.of("combinedContainer",
-                        "inherited from ChestBlockEntity: derived double-chest view over the two chests' DTO containers, not persisted state"));
+    void enderChestDoesNotPersistBlockInventoryOrPairing() {
+        EnderChestBlockEntity chest = (EnderChestBlockEntity) PersistenceFixtures.blockEntity(
+                BlockEntityTypes.ENDER_CHEST, POSITION);
+        chest.loadAdditionalData(chestTag());
+
+        NbtMap saved = chest.getServerTag();
+        assertEquals("EnderChest", saved.getString("id"));
+        assertEquals(7, saved.getInt("Mystery"));
+        for (String key : List.of("Items", "Findable", "LootTable", "LootTableSeed", "pairx", "pairz", "pairlead")) {
+            assertFalse(saved.containsKey(key), key);
+        }
+        DtoStateChecks.assertKeepsNoDuplicateState(EnderChestBlockEntity.class, CloudBlockEntityData.class);
     }
 
     @Test
