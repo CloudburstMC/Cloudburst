@@ -42,6 +42,10 @@ public class VanillaChestBlocks {
         return definition != null && definition.family() == Family.COPPER;
     }
 
+    public static boolean usesPlacementOrder(BlockType type) {
+        return DEFINITIONS.getOrDefault(type, WOODEN).family() != Family.TRAPPED;
+    }
+
     public static boolean emitsSignal(BlockType type) {
         Definition definition = DEFINITIONS.get(type);
         return definition != null && definition.family().emitsSignal();

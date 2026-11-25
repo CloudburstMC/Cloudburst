@@ -317,20 +317,20 @@ class ChestPersistenceTest {
         left.getBlockInventory().setItem(3, diamond);
         right.getBlockInventory().setItem(5, stick);
 
-        assertTrue(left.pairWith(right));
+        assertTrue(left.pairWithPlacedChest(right));
         ItemContainer joined = left.getInventory();
         assertSame(joined, right.getInventory());
         assertEquals(54, joined.size());
-        assertEquals(stick, joined.getItem(5));
-        assertEquals(diamond, joined.getItem(30));
+        assertEquals(diamond, joined.getItem(3));
+        assertEquals(stick, joined.getItem(32));
         assertEquals(27, left.getBlockInventory().size());
 
         ItemStack gold = ItemStack.from(ItemTypes.GOLD_INGOT);
-        joined.setItem(30, gold);
+        joined.setItem(3, gold);
         assertEquals(gold, left.getBlockInventory().getItem(3));
 
         left.unpair();
-        assertThrows(IllegalStateException.class, () -> joined.setItem(30, diamond));
+        assertThrows(IllegalStateException.class, () -> joined.setItem(3, diamond));
         assertNull(left.getPair());
         assertNull(right.getPair());
         assertSame(left.getBlockInventory(), left.getInventory());
@@ -352,7 +352,7 @@ class ChestPersistenceTest {
         chunk.setBlockState(x + 1, y, z, BlockLayer.PRIMARY, copper);
         ChestBlockEntity right = new ChestBlockEntity(BlockEntityTypes.CHEST, chunk, rightPosition);
 
-        assertTrue(left.pairWith(right));
+        assertTrue(left.pairWithPlacedChest(right));
         ItemContainer joined = left.getInventory();
         ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND);
         joined.setItem(30, diamond);
@@ -368,7 +368,7 @@ class ChestPersistenceTest {
         assertEquals(diamond, joined.getItem(30));
         assertEquals(rightPosition.getX(), left.getClientTag().getInt("pairx"));
         assertEquals(POSITION.getX(), right.getClientTag().getInt("pairx"));
-        assertTrue(right.getClientTag().getBoolean("pairlead"));
+        assertTrue(left.getClientTag().getBoolean("pairlead"));
     }
 
     @Test

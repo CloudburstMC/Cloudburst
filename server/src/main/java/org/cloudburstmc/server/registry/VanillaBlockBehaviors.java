@@ -1051,6 +1051,38 @@ public class VanillaBlockBehaviors {
         }
     }
 
+    private void configureChests(CloudBlockRegistry registry) {
+        VanillaChestBlocks.definitions().forEach((type, definition) -> {
+            if (definition.family() == VanillaChestBlocks.Family.ENDER) {
+                configureUsable(registry, type, ContainerBlockHandlers.ENDER_CHEST);
+                registry.configure(type)
+                        .set(BlockComponents.ON_ADDED, ChestBlockHandlers.ENDER_CHEST_ADDED)
+                        .set(BlockComponents.GET_LOOT, ChestBlockHandlers.ENDER_CHEST_LOOT);
+                return;
+            }
+
+            configureUsable(registry, type, ContainerBlockHandlers.CHEST);
+            registry.configure(type)
+                    .set(BlockComponents.ON_ADDED, ChestBlockHandlers.CHEST_ADDED)
+                    .set(BlockComponents.ON_REMOVE, ChestBlockHandlers.CHEST_REMOVED)
+                    .set(BlockComponents.ON_PLACE, ChestBlockHandlers.PLACE_CHEST)
+                    .set(BlockComponents.GET_COMPARATOR_OUTPUT, ChestBlockHandlers.GET_COMPARATOR_OUTPUT);
+
+            if (definition.family().emitsSignal()) {
+                registry.configure(type)
+                        .set(BlockComponents.GET_REDSTONE_SIGNAL, ChestBlockHandlers.GET_TRAPPED_SIGNAL)
+                        .set(BlockComponents.GET_DIRECT_REDSTONE_SIGNAL, ChestBlockHandlers.GET_DIRECT_TRAPPED_SIGNAL)
+                        .set(BlockComponents.CONNECTS_TO_REDSTONE_WIRE, RedstoneConnectionHandlers.ALL_SIDES);
+            }
+
+            if (VanillaCopperBlocks.next(type) != null) {
+                registry.configure(type)
+                        .set(BlockComponents.CAN_RANDOM_TICK, true)
+                        .set(BlockComponents.ON_RANDOM_TICK, ChestBlockHandlers.WEATHER_CHEST);
+            }
+        });
+    }
+
     private void configureColoredBuildingBlockSlabs(CloudBlockRegistry registry) {
         for (VanillaSlabAndStairFamily family : VanillaBlockFamilies.COLORED_BUILDING_BLOCKS) {
             configureSlab(registry, family.slab(), family.doubleSlab());
@@ -1158,37 +1190,6 @@ public class VanillaBlockBehaviors {
                     .set(BlockComponents.RESOLVE_PLACEMENT_STATE, FenceBlockHandlers.RESOLVE_PLACEMENT_STATE)
                     .set(BlockComponents.ON_NEIGHBOUR_CHANGED, FenceBlockHandlers.ON_NEIGHBOUR_CHANGED);
         }
-    }
-
-    private void configureChests(CloudBlockRegistry registry) {
-        VanillaChestBlocks.definitions().forEach((type, definition) -> {
-            if (definition.family() == VanillaChestBlocks.Family.ENDER) {
-                configureUsable(registry, type, ContainerBlockHandlers.ENDER_CHEST);
-                registry.configure(type)
-                        .set(BlockComponents.ON_ADDED, ChestBlockHandlers.ENDER_CHEST_ADDED)
-                        .set(BlockComponents.GET_LOOT, ChestBlockHandlers.ENDER_CHEST_LOOT);
-                return;
-            }
-
-            configureUsable(registry, type, ContainerBlockHandlers.CHEST);
-            registry.configure(type)
-                    .set(BlockComponents.ON_ADDED, ChestBlockHandlers.CHEST_ADDED)
-                    .set(BlockComponents.ON_REMOVE, ChestBlockHandlers.CHEST_REMOVED)
-                    .set(BlockComponents.RESOLVE_PLACEMENT_STATE, ChestBlockHandlers.CHEST_PLACEMENT)
-                    .set(BlockComponents.ON_PLACE, ChestBlockHandlers.PLACE_CHEST)
-                    .set(BlockComponents.GET_COMPARATOR_OUTPUT, ChestBlockHandlers.GET_COMPARATOR_OUTPUT);
-            if (definition.family().emitsSignal()) {
-                registry.configure(type)
-                        .set(BlockComponents.GET_REDSTONE_SIGNAL, ChestBlockHandlers.GET_TRAPPED_SIGNAL)
-                        .set(BlockComponents.GET_DIRECT_REDSTONE_SIGNAL, ChestBlockHandlers.GET_DIRECT_TRAPPED_SIGNAL)
-                        .set(BlockComponents.CONNECTS_TO_REDSTONE_WIRE, RedstoneConnectionHandlers.ALL_SIDES);
-            }
-            if (VanillaCopperBlocks.next(type) != null) {
-                registry.configure(type)
-                        .set(BlockComponents.CAN_RANDOM_TICK, true)
-                        .set(BlockComponents.ON_RANDOM_TICK, ChestBlockHandlers.WEATHER_CHEST);
-            }
-        });
     }
 
     private void configureFlowerBed(CloudBlockRegistry registry, BlockType type) {

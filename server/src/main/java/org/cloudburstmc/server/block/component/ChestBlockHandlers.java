@@ -14,6 +14,7 @@ import org.cloudburstmc.api.level.sound.SoundPlayback;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.SlabSlot;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
@@ -35,9 +36,7 @@ public class ChestBlockHandlers {
 
     public static final ComplexBlockHandler CHEST_ADDED = ChestBlockHandlers::chestAdded;
 
-    public static final PlacementStateHandler CHEST_PLACEMENT = ChestBlockHandlers::resolvePlacementState;
-
-    public static final PlaceBlockHandler PLACE_CHEST = (state, player, position, face, _) -> placeChest(state, player, position, face);
+    public static final PlaceBlockHandler PLACE_CHEST = (state, player, position, _, _) -> placeChest(state, player, position);
 
     public static final ComplexBlockHandler CHEST_REMOVED = block -> {
         BlockType removed = block.getState().getType();
@@ -78,22 +77,32 @@ public class ChestBlockHandlers {
         return state.ensureTrait(BlockTraits.CARDINAL_DIRECTION) == other.ensureTrait(BlockTraits.CARDINAL_DIRECTION);
     }
 
+    private static boolean canJoinTypes(BlockType type, BlockType other) {
+        return type == other || (VanillaChestBlocks.isCopper(type) && VanillaChestBlocks.isCopper(other));
+    }
+
     public static boolean isBlocked(Block block) {
-        if (isBlockedByBlock(block)) {
+        Block above = block.getSide(Direction.UP);
+        BlockState aboveState = above.getState();
+        if (conductsRedstone(above, aboveState) || (aboveState.getType().is(BlockTags.SLAB) && aboveState.ensureTrait(BlockTraits.SLAB_SLOT) == SlabSlot.BOTTOM)) {
             return true;
         }
 
         Vector3i pos = block.getPosition();
-        BoundingBox above = new BoundingBox(pos.getX(), pos.getY() + 1, pos.getZ(),
+        BoundingBox lidSpace = new BoundingBox(pos.getX(), pos.getY() + 1, pos.getZ(),
                 pos.getX() + 1, pos.getY() + 2, pos.getZ() + 1);
         return !block.getLevel()
-                .getNearbyEntities(above, entity -> entity instanceof Cat cat && cat.isSitting())
+                .getNearbyEntities(lidSpace, entity -> entity instanceof Cat cat && cat.isSitting())
                 .isEmpty();
     }
 
     public static boolean isBlockedByBlock(Block block) {
         Block above = block.getSide(Direction.UP);
-        return above.requireComponent(BlockComponents.CONDUCTS_REDSTONE).execute(above.getState());
+        return conductsRedstone(above, above.getState());
+    }
+
+    private static boolean conductsRedstone(Block block, BlockState state) {
+        return block.requireComponent(BlockComponents.CONDUCTS_REDSTONE).execute(state);
     }
 
     public static void playLidSound(BaseBlockEntity entity, boolean open) {
@@ -132,39 +141,15 @@ public class ChestBlockHandlers {
         }
     }
 
-    private static BlockState resolvePlacementState(BlockState state, Block block, Player player, Direction face, Vector3f clickPosition) {
-        BlockState placement = DefaultPlacementStateHandler.INSTANCE.execute(state, block, player, face, clickPosition);
-        if (player == null || !player.isSneaking() || !face.getAxis().isHorizontal() || !(block.getLevel() instanceof CloudLevel level)) {
-            return placement;
-        }
-
-        Vector3i neighborPosition = face.getOpposite().relative(block.getPosition());
-        if (!(level.getLoadedBlockEntity(neighborPosition) instanceof ChestBlockEntity adjacent) || adjacent.isPaired()) {
-            return placement;
-        }
-
-        BlockState neighbor = adjacent.getBlockState();
-        Direction facing = neighbor.ensureTrait(BlockTraits.CARDINAL_DIRECTION).toDirection();
-        if (facing.getAxis() != face.getAxis() && canJoinTypes(state.getType(), neighbor.getType())) {
-            return placement.withTrait(BlockTraits.CARDINAL_DIRECTION, facing.getCardinalDirection());
-        }
-
-        return placement;
-    }
-
-    private static boolean placeChest(BlockState state, Player player, Vector3i position, Direction face) {
+    private static boolean placeChest(BlockState state, Player player, Vector3i position) {
         if (player == null || !player.getLevel().setBlockState(position, state, true, true)) {
             return false;
         }
 
         if (player.getLevel() instanceof CloudLevel level && level.getLoadedBlockEntity(position) instanceof ChestBlockEntity chest) {
             Direction facing = state.ensureTrait(BlockTraits.CARDINAL_DIRECTION).toDirection();
-            if (!player.isSneaking()) {
-                if (!pairAt(level, chest, facing.rotateClockwise())) {
-                    pairAt(level, chest, facing.rotateCounterClockwise());
-                }
-            } else if (face.getAxis().isHorizontal() && face.getAxis() != facing.getAxis()) {
-                pairAt(level, chest, face.getOpposite());
+            if (!pairAt(level, chest, facing.rotateClockwise())) {
+                pairAt(level, chest, facing.rotateCounterClockwise());
             }
         }
 
@@ -172,7 +157,7 @@ public class ChestBlockHandlers {
     }
 
     private static boolean pairAt(CloudLevel level, ChestBlockEntity chest, Direction direction) {
-        if (!(level.getLoadedBlockEntity(direction.relative(chest.getPosition())) instanceof ChestBlockEntity adjacent) || !chest.pairWith(adjacent)) {
+        if (!(level.getLoadedBlockEntity(direction.relative(chest.getPosition())) instanceof ChestBlockEntity adjacent) || !adjacent.pairWithPlacedChest(chest)) {
             return false;
         }
 
@@ -184,37 +169,6 @@ public class ChestBlockHandlers {
         }
 
         return true;
-    }
-
-    private static boolean canJoinTypes(BlockType type, BlockType other) {
-        return type == other || (VanillaChestBlocks.isCopper(type) && VanillaChestBlocks.isCopper(other));
-    }
-
-    private static int getComparatorOutput(Block block) {
-        if (!(blockEntity(block) instanceof ChestBlockEntity chest) || chest.isBlocked()) {
-            return 0;
-        }
-
-        CloudContainer inventory = chest.getContainer();
-        double fullness = 0;
-        for (int slot = 0; slot < inventory.size(); slot++) {
-            ItemStack item = inventory.getItem(slot);
-            if (!item.isEmpty()) {
-                int stackLimit = CloudItemRegistry.get()
-                        .requireComponent(item.getType(), ItemBehaviors.GET_MAX_STACK_SIZE)
-                        .execute(item);
-                int limit = Math.min(inventory.getMaxStackSize(slot), stackLimit);
-                if (limit > 0) {
-                    fullness += (double) item.getCount() / limit;
-                }
-            }
-        }
-
-        return fullness == 0 ? 0 : Math.min(15, 1 + (int) (14 * fullness / inventory.size()));
-    }
-
-    private static BlockEntity blockEntity(Block block) {
-        return block.getLevel().getBlockEntity(block.getPosition());
     }
 
     private static void applyType(ChestBlockEntity chest, BlockType type) {
@@ -251,5 +205,32 @@ public class ChestBlockHandlers {
         }
 
         CopperWeatheringBlockHandlers.ON_RANDOM_TICK.execute(block, random);
+    }
+
+    private static int getComparatorOutput(Block block) {
+        if (!(blockEntity(block) instanceof ChestBlockEntity chest) || chest.isBlocked()) {
+            return 0;
+        }
+
+        CloudContainer inventory = chest.getContainer();
+        double fullness = 0;
+        for (int slot = 0; slot < inventory.size(); slot++) {
+            ItemStack item = inventory.getItem(slot);
+            if (!item.isEmpty()) {
+                int stackLimit = CloudItemRegistry.get()
+                        .requireComponent(item.getType(), ItemBehaviors.GET_MAX_STACK_SIZE)
+                        .execute(item);
+                int limit = Math.min(inventory.getMaxStackSize(slot), stackLimit);
+                if (limit > 0) {
+                    fullness += (double) item.getCount() / limit;
+                }
+            }
+        }
+
+        return fullness == 0 ? 0 : Math.min(15, 1 + (int) (14 * fullness / inventory.size()));
+    }
+
+    private static BlockEntity blockEntity(Block block) {
+        return block.getLevel().getBlockEntity(block.getPosition());
     }
 }

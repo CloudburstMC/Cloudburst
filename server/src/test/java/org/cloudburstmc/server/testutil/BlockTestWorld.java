@@ -100,6 +100,7 @@ public class BlockTestWorld {
             case "getBlockState" -> this.state(position(arguments));
             case "getBlock" -> this.block(position(arguments));
             case "getBlockEntity" -> this.blockEntities.get(position(arguments));
+            case "getNearbyEntities" -> Set.of();
             case "getLoadedBlock" -> this.unloadedPositions.contains(position(arguments))
                     ? null
                     : this.block(position(arguments));

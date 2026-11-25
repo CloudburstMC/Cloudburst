@@ -8,6 +8,7 @@ import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.util.data.CardinalDirection;
+import org.cloudburstmc.api.util.data.SlabSlot;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.testutil.BlockTestRegistry;
@@ -40,6 +41,19 @@ class ChestBlockHandlersTest {
         assertTrue(ChestBlockHandlers.canJoin(copper, waxed));
         assertFalse(ChestBlockHandlers.canJoin(copper,
                 waxed.withTrait(BlockTraits.CARDINAL_DIRECTION, CardinalDirection.SOUTH)));
+    }
+
+    @Test
+    void bottomSlabBlocksStorageChestButTopSlabDoesNot() {
+        BlockTestWorld world = new BlockTestWorld(REGISTRY);
+        Vector3i position = Vector3i.from(0, 64, 0);
+        Vector3i above = position.add(0, 1, 0);
+        world.setState(position, BlockStates.CHEST);
+        world.setState(above, BlockStates.OAK_SLAB.withTrait(BlockTraits.SLAB_SLOT, SlabSlot.BOTTOM));
+        assertTrue(ChestBlockHandlers.isBlocked(world.block(position)));
+
+        world.setState(above, BlockStates.OAK_SLAB.withTrait(BlockTraits.SLAB_SLOT, SlabSlot.TOP));
+        assertFalse(ChestBlockHandlers.isBlocked(world.block(position)));
     }
 
     @Test

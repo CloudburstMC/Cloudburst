@@ -20,6 +20,7 @@ import org.cloudburstmc.server.blockentity.data.CloudChestData;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.VanillaChestBlocks;
 
 import java.util.Set;
 
@@ -81,27 +82,18 @@ public class ChestBlockEntity extends ContainerBlockEntity implements Chest {
         return (ChestStorage) this.items();
     }
 
-    private void onInventoryChanged() {
-        this.setDirty();
-        this.updateComparator();
-        ChestBlockEntity pair = this.getPair();
-        if (pair != null) {
-            pair.updateComparator();
-        }
-    }
-
-    private void updateComparator() {
-        if (this.getLevel() != null && !this.isClosed()) {
-            this.getLevel().updateComparatorOutputLevel(this.getPosition());
-        }
-    }
-
     public boolean isPaired() {
         return this.data().getPairPosition() != null;
     }
 
     public boolean isPairLead() {
         return this.data().isPairLead();
+    }
+
+    public boolean isNorthOrWestOf(ChestBlockEntity other) {
+        Vector3i position = this.getPosition();
+        Vector3i otherPosition = other.getPosition();
+        return position.getX() < otherPosition.getX() || position.getZ() < otherPosition.getZ();
     }
 
     @Override
@@ -118,28 +110,27 @@ public class ChestBlockEntity extends ContainerBlockEntity implements Chest {
         return this.getPosition().equals(pair.data().getPairPosition()) ? pair : null;
     }
 
-    public boolean pairWith(ChestBlockEntity other) {
-        if (this.cannotFormPair(other)) {
+    public boolean pairWithPlacedChest(ChestBlockEntity placed) {
+        if (this.cannotFormPair(placed)) {
             return false;
         }
 
         this.lid.closeViewers();
-        other.lid.closeViewers();
+        placed.lid.closeViewers();
 
         // Closing an inventory can fire events that change either chest.
-        if (this.cannotFormPair(other)) {
+        if (this.cannotFormPair(placed)) {
             return false;
         }
 
-        Direction facing = this.getBlockState().ensureTrait(BlockTraits.CARDINAL_DIRECTION).toDirection();
-        boolean lead = facing.rotateCounterClockwise().relative(this.getPosition()).equals(other.getPosition());
-        this.data().setPairPosition(other.getPosition());
+        boolean lead = VanillaChestBlocks.usesPlacementOrder(this.getBlockState().getType()) || this.isNorthOrWestOf(placed);
+        this.data().setPairPosition(placed.getPosition());
         this.data().setPairLead(lead);
-        other.data().setPairPosition(this.getPosition());
-        other.data().setPairLead(!lead);
-        this.joinInventories(other);
+        placed.data().setPairPosition(this.getPosition());
+        placed.data().setPairLead(!lead);
+        this.joinInventories(placed);
         this.pairChanged();
-        other.pairChanged();
+        placed.pairChanged();
         return true;
     }
 
@@ -224,6 +215,21 @@ public class ChestBlockEntity extends ContainerBlockEntity implements Chest {
         this.updateComparator();
     }
 
+    private void onInventoryChanged() {
+        this.setDirty();
+        this.updateComparator();
+        ChestBlockEntity pair = this.getPair();
+        if (pair != null) {
+            pair.updateComparator();
+        }
+    }
+
+    private void updateComparator() {
+        if (this.getLevel() != null && !this.isClosed()) {
+            this.getLevel().updateComparatorOutputLevel(this.getPosition());
+        }
+    }
+
     @Override
     public boolean isBlocked() {
         ChestBlockEntity pair = this.getPair();
@@ -290,11 +296,6 @@ public class ChestBlockEntity extends ContainerBlockEntity implements Chest {
         }
     }
 
-    @Override
-    protected CloudChestData data() {
-        return this.persistenceState;
-    }
-
     public boolean isFindable() {
         return this.data().isFindable();
     }
@@ -305,6 +306,11 @@ public class ChestBlockEntity extends ContainerBlockEntity implements Chest {
 
     public @Nullable Integer getLootTableSeed() {
         return this.data().getLootTableSeed();
+    }
+
+    @Override
+    protected CloudChestData data() {
+        return this.persistenceState;
     }
 
     @Override

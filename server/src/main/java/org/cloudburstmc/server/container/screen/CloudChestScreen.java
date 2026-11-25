@@ -54,8 +54,25 @@ public class CloudChestScreen extends CloudBlockStorageScreen implements ChestSc
     }
 
     @Override
+    protected CloudContainer getStorageContainer() {
+        return this.inventory;
+    }
+
+    @Override
+    protected List<ChestBlockEntity> getTitleTargets() {
+        if (this.pair == null) {
+            return List.of(this.chest);
+        }
+
+        return this.chest.isNorthOrWestOf(this.pair) ? List.of(this.chest, this.pair) : List.of(this.pair, this.chest);
+    }
+
+    @Override
     public boolean canOpen() {
-        return this.canKeepOpen() && this.chest.getPair() == this.pair && !this.chest.isBlocked() && this.chest.getContainer() == this.inventory;
+        return this.canKeepOpen()
+                && this.chest.getPair() == this.pair
+                && !this.chest.isBlocked()
+                && this.chest.getContainer() == this.inventory;
     }
 
     @Override
@@ -84,18 +101,5 @@ public class CloudChestScreen extends CloudBlockStorageScreen implements ChestSc
         }
 
         super.close();
-    }
-
-    @Override
-    protected CloudContainer getStorageContainer() {
-        return this.inventory;
-    }
-
-    @Override
-    protected List<ChestBlockEntity> getTitleTargets() {
-        if (this.pair == null) {
-            return List.of(this.chest);
-        }
-        return this.chest.isPairLead() ? List.of(this.chest, this.pair) : List.of(this.pair, this.chest);
     }
 }
