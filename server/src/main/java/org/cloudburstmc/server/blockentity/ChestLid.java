@@ -2,13 +2,13 @@ package org.cloudburstmc.server.blockentity;
 
 import lombok.Getter;
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEventPacket;
 import org.cloudburstmc.server.block.component.ChestBlockHandlers;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.VanillaChestBlocks;
 
 import java.util.HashMap;
 import java.util.List;
@@ -85,7 +85,7 @@ public class ChestLid {
 
     private void updateSignal(int previous) {
         int current = this.signal();
-        if (previous == current || this.chest.getLevel() == null || this.chest.getBlockState().getType() != BlockTypes.TRAPPED_CHEST) {
+        if (previous == current || this.chest.getLevel() == null || !VanillaChestBlocks.emitsSignal(this.chest.getBlockState().getType())) {
             return;
         }
 

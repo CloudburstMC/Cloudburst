@@ -11,8 +11,6 @@ import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.sound.SoundPlayback;
-import org.cloudburstmc.api.level.sound.SoundType;
-import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.Direction;
@@ -24,21 +22,16 @@ import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
+import org.cloudburstmc.server.registry.VanillaChestBlocks;
 import org.cloudburstmc.server.registry.VanillaCopperBlocks;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.random.RandomGenerator;
 
-import static org.cloudburstmc.api.block.BlockTypes.COPPER_CHEST;
-import static org.cloudburstmc.api.block.BlockTypes.ENDER_CHEST;
-
 @UtilityClass
 public class ChestBlockHandlers {
-
-    private static final Set<BlockType> COPPER_CHESTS = Set.copyOf(VanillaCopperBlocks.family(COPPER_CHEST));
 
     public static final ComplexBlockHandler CHEST_ADDED = ChestBlockHandlers::chestAdded;
 
@@ -49,7 +42,7 @@ public class ChestBlockHandlers {
     public static final ComplexBlockHandler CHEST_REMOVED = block -> {
         BlockType removed = block.getState().getType();
         BlockType replacement = block.refresh().getState().getType();
-        if (!(COPPER_CHESTS.contains(removed) && COPPER_CHESTS.contains(replacement)) && blockEntity(block) instanceof ChestBlockEntity chest) {
+        if (!(VanillaChestBlocks.isCopper(removed) && VanillaChestBlocks.isCopper(replacement)) && blockEntity(block) instanceof ChestBlockEntity chest) {
             chest.unpair();
             chest.close();
         }
@@ -117,7 +110,7 @@ public class ChestBlockHandlers {
         }
 
         float pitch = ThreadLocalRandom.current().nextFloat(0.9f, 1.0f);
-        entity.getLevel().playSound(position, new SoundPlayback(lidSound(type, open), 0.5f, pitch));
+        entity.getLevel().playSound(position, new SoundPlayback(VanillaChestBlocks.lidSound(type, open), 0.5f, pitch));
     }
 
     private static void chestAdded(Block block) {
@@ -132,7 +125,7 @@ public class ChestBlockHandlers {
 
         BlockType type = block.getState().getType();
         ChestBlockEntity pair = chest.getPair();
-        if (pair != null && COPPER_CHESTS.contains(type) && block.getLevel() instanceof CloudLevel level) {
+        if (pair != null && VanillaChestBlocks.isCopper(type) && block.getLevel() instanceof CloudLevel level) {
             applyType(pair, type);
             level.queueBlockEntitySync(chest);
             level.queueBlockEntitySync(pair);
@@ -184,7 +177,7 @@ public class ChestBlockHandlers {
         }
 
         BlockType type = chest.getBlockState().getType();
-        if (COPPER_CHESTS.contains(type)) {
+        if (VanillaChestBlocks.isCopper(type)) {
             BlockType preferred = preferredCopperType(type, adjacent.getBlockState().getType());
             applyType(chest, preferred);
             applyType(adjacent, preferred);
@@ -194,7 +187,7 @@ public class ChestBlockHandlers {
     }
 
     private static boolean canJoinTypes(BlockType type, BlockType other) {
-        return type == other || (COPPER_CHESTS.contains(type) && COPPER_CHESTS.contains(other));
+        return type == other || (VanillaChestBlocks.isCopper(type) && VanillaChestBlocks.isCopper(other));
     }
 
     private static int getComparatorOutput(Block block) {
@@ -258,22 +251,5 @@ public class ChestBlockHandlers {
         }
 
         CopperWeatheringBlockHandlers.ON_RANDOM_TICK.execute(block, random);
-    }
-
-    private static SoundType lidSound(BlockType type, boolean open) {
-        if (type == ENDER_CHEST) {
-            return open ? SoundTypes.RANDOM_ENDERCHESTOPEN : SoundTypes.RANDOM_ENDERCHESTCLOSED;
-        }
-
-        if (COPPER_CHESTS.contains(type)) {
-            BlockType unwaxed = Objects.requireNonNullElse(VanillaCopperBlocks.unwaxed(type), type);
-            return switch (VanillaCopperBlocks.weatheringStage(unwaxed)) {
-                case 2 -> open ? SoundTypes.BLOCK_COPPER_CHEST_WEATHERED_OPEN : SoundTypes.BLOCK_COPPER_CHEST_WEATHERED_CLOSED;
-                case 3 -> open ? SoundTypes.BLOCK_COPPER_CHEST_OXIDIZED_OPEN : SoundTypes.BLOCK_COPPER_CHEST_OXIDIZED_CLOSED;
-                default -> open ? SoundTypes.BLOCK_COPPER_CHEST_OPEN : SoundTypes.BLOCK_COPPER_CHEST_CLOSED;
-            };
-        }
-
-        return open ? SoundTypes.RANDOM_CHESTOPEN : SoundTypes.RANDOM_CHESTCLOSED;
     }
 }

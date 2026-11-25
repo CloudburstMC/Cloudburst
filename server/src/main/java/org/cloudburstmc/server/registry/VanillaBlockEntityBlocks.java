@@ -5,7 +5,6 @@ import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 
-import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -26,7 +25,7 @@ public class VanillaBlockEntityBlocks {
     private static final Set<BlockType> BREWING_STANDS = Set.of(BREWING_STAND);
     private static final Set<BlockType> CAMPFIRES = Set.of(CAMPFIRE, SOUL_CAMPFIRE);
     private static final Set<BlockType> CAULDRONS = Set.of(CAULDRON);
-    private static final Set<BlockType> CHESTS = chestBlocks();
+    private static final Set<BlockType> CHESTS = VanillaChestBlocks.blocksFor(BlockEntityTypes.CHEST);
     private static final Set<BlockType> COMMAND_BLOCKS = Set.of(COMMAND_BLOCK, CHAIN_COMMAND_BLOCK, REPEATING_COMMAND_BLOCK);
     private static final Set<BlockType> COMPARATORS = Set.of(UNPOWERED_COMPARATOR, POWERED_COMPARATOR);
     private static final Set<BlockType> CONDUITS = Set.of(CONDUIT);
@@ -37,7 +36,7 @@ public class VanillaBlockEntityBlocks {
     private static final Set<BlockType> ENCHANTING_TABLES = Set.of(ENCHANTING_TABLE);
     private static final Set<BlockType> END_GATEWAYS = Set.of(END_GATEWAY);
     private static final Set<BlockType> END_PORTALS = Set.of(END_PORTAL);
-    private static final Set<BlockType> ENDER_CHESTS = Set.of(ENDER_CHEST);
+    private static final Set<BlockType> ENDER_CHESTS = VanillaChestBlocks.blocksFor(BlockEntityTypes.ENDER_CHEST);
     private static final Set<BlockType> FLOWER_POTS = Set.of(FLOWER_POT);
     private static final Set<BlockType> FURNACES = Set.of(FURNACE, LIT_FURNACE);
     private static final Set<BlockType> HOPPERS = Set.of(HOPPER);
@@ -81,13 +80,6 @@ public class VanillaBlockEntityBlocks {
             throw new IllegalArgumentException("No vanilla block family for " + type.getId());
         }
         return blocks;
-    }
-
-    private static Set<BlockType> chestBlocks() {
-        Set<BlockType> blocks = new HashSet<>(VanillaCopperBlocks.family(COPPER_CHEST));
-        blocks.add(CHEST);
-        blocks.add(TRAPPED_CHEST);
-        return Set.copyOf(blocks);
     }
 
     private static Map<BlockEntityType<?>, Set<BlockType>> createIndex() {

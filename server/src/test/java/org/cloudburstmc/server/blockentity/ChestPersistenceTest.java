@@ -5,6 +5,7 @@ import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.util.data.CardinalDirection;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtList;
@@ -16,6 +17,7 @@ import org.cloudburstmc.server.blockentity.data.CloudChestData;
 import org.cloudburstmc.server.blockentity.data.CloudContainerData;
 import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.server.registry.VanillaChestBlocks;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
@@ -280,6 +282,23 @@ class ChestPersistenceTest {
         assertNull(plain.getLootTableSeed());
         assertFalse(plain.getServerTag().containsKey("LootTable"));
         assertFalse(plain.getServerTag().containsKey("LootTableSeed"));
+    }
+
+    @Test
+    void chestDefinitionsKeepCopperVariantsInOneFamilyAndEnderChestsSeparate() {
+        Set<BlockType> storageChests = VanillaChestBlocks.blocksFor(BlockEntityTypes.CHEST);
+        assertEquals(Set.of(BlockTypes.CHEST, BlockTypes.TRAPPED_CHEST,
+                        BlockTypes.COPPER_CHEST, BlockTypes.EXPOSED_COPPER_CHEST, BlockTypes.WEATHERED_COPPER_CHEST,
+                        BlockTypes.OXIDIZED_COPPER_CHEST, BlockTypes.WAXED_COPPER_CHEST, BlockTypes.WAXED_EXPOSED_COPPER_CHEST,
+                        BlockTypes.WAXED_WEATHERED_COPPER_CHEST, BlockTypes.WAXED_OXIDIZED_COPPER_CHEST),
+                storageChests);
+        assertEquals(Set.of(BlockTypes.ENDER_CHEST), VanillaChestBlocks.blocksFor(BlockEntityTypes.ENDER_CHEST));
+
+        assertTrue(VanillaChestBlocks.emitsSignal(BlockTypes.TRAPPED_CHEST));
+        assertFalse(VanillaChestBlocks.emitsSignal(BlockTypes.CHEST));
+        assertSame(SoundTypes.BLOCK_COPPER_CHEST_WEATHERED_OPEN,
+                VanillaChestBlocks.lidSound(BlockTypes.WAXED_WEATHERED_COPPER_CHEST, true));
+        assertSame(SoundTypes.RANDOM_ENDERCHESTCLOSED, VanillaChestBlocks.lidSound(BlockTypes.ENDER_CHEST, false));
     }
 
     @Test
