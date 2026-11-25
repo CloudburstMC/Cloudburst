@@ -1074,7 +1074,6 @@ public class VanillaBlockBehaviors {
             configureUsable(registry, type, DaylightDetectorBlockHandlers.USE);
             registry.configure(type)
                     .set(BlockComponents.ON_ADDED, DaylightDetectorBlockHandlers.ON_ADDED)
-                    .set(BlockComponents.GET_PICK_BLOCK, DaylightDetectorBlockHandlers.GET_PICK_BLOCK)
                     .set(BlockComponents.GET_LOOT, DaylightDetectorBlockHandlers.GET_LOOT)
                     .set(BlockComponents.GET_REDSTONE_SIGNAL, DaylightDetectorBlockHandlers.GET_REDSTONE_SIGNAL);
         }

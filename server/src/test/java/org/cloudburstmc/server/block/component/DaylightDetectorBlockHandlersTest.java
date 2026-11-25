@@ -1,11 +1,14 @@
 package org.cloudburstmc.server.block.component;
 
 import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.testutil.BlockTestRegistry;
 import org.cloudburstmc.server.testutil.BlockTestWorld;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
@@ -53,14 +56,19 @@ class DaylightDetectorBlockHandlersTest {
     }
 
     @Test
-    void invertedSensorDropsAndPicksAsTheNormalSensor() {
+    void invertedDetectorPicksAndPlacesInvertedButDropsNormal() {
         BlockTestWorld world = new BlockTestWorld(REGISTRY);
-        world.setState(POSITION, BlockStates.DAYLIGHT_DETECTOR_INVERTED);
-        ItemStack expected = ItemStack.from(BlockStates.DAYLIGHT_DETECTOR);
+        world.setState(POSITION, BlockStates.DAYLIGHT_DETECTOR_INVERTED.withTrait(BlockTraits.REDSTONE_SIGNAL, 7));
 
-        assertEquals(expected, REGISTRY.requireComponent(BlockTypes.DAYLIGHT_DETECTOR_INVERTED, BlockComponents.GET_PICK_BLOCK)
-                .execute(world.block(POSITION)));
-        assertEquals(List.of(expected),
+        ItemStack picked = REGISTRY.requireComponent(BlockTypes.DAYLIGHT_DETECTOR_INVERTED, BlockComponents.GET_PICK_BLOCK)
+                .execute(world.block(POSITION));
+        assertSame(ItemTypes.DAYLIGHT_DETECTOR_INVERTED, picked.getType());
+        assertSame(BlockStates.DAYLIGHT_DETECTOR_INVERTED, picked.requireBlockState());
+        assertSame(BlockStates.DAYLIGHT_DETECTOR_INVERTED,
+                CloudItemRegistry.get().requireComponent(picked.getType(), ItemBehaviors.GET_BLOCK)
+                        .execute(picked).orElseThrow());
+
+        assertEquals(List.of(ItemStack.from(BlockStates.DAYLIGHT_DETECTOR)),
                 REGISTRY.requireComponent(BlockTypes.DAYLIGHT_DETECTOR_INVERTED, BlockComponents.GET_LOOT)
                         .execute(world.block(POSITION), BlockLootContext.empty(new Random(0))));
     }

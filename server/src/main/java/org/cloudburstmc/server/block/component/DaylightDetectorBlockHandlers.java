@@ -3,8 +3,12 @@ package org.cloudburstmc.server.block.component;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
-import org.cloudburstmc.api.block.component.*;
+import org.cloudburstmc.api.block.component.BlockLootHandler;
+import org.cloudburstmc.api.block.component.ComplexBlockHandler;
+import org.cloudburstmc.api.block.component.RedstoneSignalHandler;
+import org.cloudburstmc.api.block.component.UseBlockHandler;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
@@ -23,9 +27,7 @@ public class DaylightDetectorBlockHandlers {
     public static final UseBlockHandler USE = (block, player, _, _) ->
             player != null && (player.isSurvival() || player.isCreative()) && setInverted(block, block.getState().getType() == BlockTypes.DAYLIGHT_DETECTOR);
 
-    public static final PickBlockHandler GET_PICK_BLOCK = _ -> ItemStack.from(BlockTypes.DAYLIGHT_DETECTOR.getDefaultState());
-
-    public static final BlockLootHandler GET_LOOT = (block, _) -> List.of(GET_PICK_BLOCK.execute(block));
+    public static final BlockLootHandler GET_LOOT = (_, _) -> List.of(ItemStack.from(BlockStates.DAYLIGHT_DETECTOR));
 
     public static final RedstoneSignalHandler GET_REDSTONE_SIGNAL = (_, _) -> {
         // TODO: Sample sky light on mode changes and every 20 ticks in dimensions with skylight.
