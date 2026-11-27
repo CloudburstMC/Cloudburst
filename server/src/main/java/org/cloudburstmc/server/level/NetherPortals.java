@@ -593,7 +593,7 @@ public class NetherPortals {
             return;
         }
 
-        if (random.nextInt(PORTAL_SPAWN_DIFFICULTY_THRESHOLD) >= difficulty.getId()) {
+        if (random.nextInt(PORTAL_SPAWN_DIFFICULTY_THRESHOLD) >= difficulty.getValue()) {
             return;
         }
 

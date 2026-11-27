@@ -12,7 +12,7 @@ import org.cloudburstmc.api.player.Player;
 public final class PlayerGameModeChangeEvent extends PlayerEvent implements Cancellable {
 
     private final GameMode newGameMode;
-    private final Cause cause;
+    private final PlayerGameModeChangeCause cause;
     private boolean cancelled;
     @Nullable
     private Component cancelMessage;
@@ -23,9 +23,9 @@ public final class PlayerGameModeChangeEvent extends PlayerEvent implements Canc
      * @param cause         the reason the game mode is changing
      * @param cancelMessage the message sent to the command sender if the event is
      *                      canceled, or {@code null} if no message should be sent.
-     *                      Only meaningful when the cause is {@link Cause#COMMAND}.
+     *                      Only meaningful when the cause is {@link PlayerGameModeChangeCause#COMMAND}.
      */
-    public PlayerGameModeChangeEvent(Player player, GameMode newGameMode, Cause cause, @Nullable Component cancelMessage) {
+    public PlayerGameModeChangeEvent(Player player, GameMode newGameMode, PlayerGameModeChangeCause cause, @Nullable Component cancelMessage) {
         super(player);
         this.newGameMode = newGameMode;
         this.cause = cause;
@@ -52,13 +52,13 @@ public final class PlayerGameModeChangeEvent extends PlayerEvent implements Canc
     /**
      * Returns the reason this game mode change was triggered.
      */
-    public Cause getCause() {
+    public PlayerGameModeChangeCause getCause() {
         return cause;
     }
 
     /**
      * Returns the message that will be sent to the command sender if this event
-     * is canceled. Only meaningful when the cause is {@link Cause#COMMAND}.
+     * is canceled. Only meaningful when the cause is {@link PlayerGameModeChangeCause#COMMAND}.
      *
      * @return the cancel message, or {@code null} if none is set
      */
@@ -75,32 +75,5 @@ public final class PlayerGameModeChangeEvent extends PlayerEvent implements Canc
      */
     public void cancelMessage(@Nullable Component cancelMessage) {
         this.cancelMessage = cancelMessage;
-    }
-
-    /**
-     * The reason a player's game mode was changed.
-     */
-    public enum Cause {
-        /**
-         * A plugin changed the player's game mode via {@link Player#setGameMode(GameMode)}.
-         */
-        PLUGIN,
-        /**
-         * The {@code /gamemode} command was used.
-         */
-        COMMAND,
-        /**
-         * The player's game mode was changed because the server's default game mode
-         * was applied (e.g. on join when {@code force-gamemode} is enabled).
-         *
-         * <p>The player may not be fully initialized when this cause is in use.
-         * Check {@link Player#isSpawned()} before modifying player state.</p>
-         */
-        DEFAULT_GAMEMODE,
-        /**
-         * Fallback cause for use by third-party code constructing this event
-         * without a specific reason.
-         */
-        UNKNOWN
     }
 }

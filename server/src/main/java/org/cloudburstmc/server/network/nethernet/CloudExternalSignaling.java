@@ -191,7 +191,7 @@ public class CloudExternalSignaling implements AutoCloseable {
         String name = listingText(motd);
         return new ServerStatus(name.isBlank() ? "Cloudburst" : name, listingText(status.levelName()),
                 Math.clamp(status.maxPlayerCount(), 0, 1_000_000),
-                Math.clamp(status.gameMode().getVanillaId(), 0, 2));
+                Math.clamp(status.gameMode().getValue(), 0, 2));
     }
 
     private static ProviderClient.Health health(CloudServerStatus status, boolean accepting, int capacity, ProviderClient.Software software) {

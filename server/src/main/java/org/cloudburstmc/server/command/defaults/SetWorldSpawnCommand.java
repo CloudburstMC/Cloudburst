@@ -40,7 +40,7 @@ public class SetWorldSpawnCommand extends AdvertisedCommand {
                 level = ((CloudPlayer) sender).getLevel();
                 pos = ((CloudPlayer) sender).getPosition();
             } else {
-                sender.sendMessage(Component.translatable("commands.locate.fail.noplayer"));
+                sender.sendMessage(Component.translatable("commands.locate.structure.fail.noplayer"));
                 return success();
             }
         } else {

@@ -32,6 +32,7 @@ import org.cloudburstmc.api.event.block.BlockPhysicsEvent;
 import org.cloudburstmc.api.event.block.BlockPlaceEvent;
 import org.cloudburstmc.api.event.entity.ExplosionPrimeEvent;
 import org.cloudburstmc.api.event.level.*;
+import org.cloudburstmc.api.event.player.PlayerInteractAction;
 import org.cloudburstmc.api.event.player.PlayerInteractEvent;
 import org.cloudburstmc.api.item.EquipmentSlot;
 import org.cloudburstmc.api.item.ItemBehaviors;
@@ -848,7 +849,7 @@ public class CloudLevel implements Level, BlockStateRegion {
     private void tickChunks() {
         LevelConfiguration.ChunkTicking settings = this.getConfiguration().getChunkTicking();
         int chunksPerTick = settings.getPerTick();
-        int tickRadius = Math.min(this.server.getViewDistance(), Math.max(1, settings.getTickRadius()));
+        int tickRadius = Math.min(this.server.getViewDistance(), this.server.getSimulationDistance());
 
         if (chunksPerTick <= 0 || this.players.isEmpty()) {
             this.chunkTickList.clear();
@@ -2050,7 +2051,7 @@ public class CloudLevel implements Level, BlockStateRegion {
     public BlockInteractionResult interactWithBlock(Block target, Direction face, Vector3f clickPosition, ItemStack item, Player player) {
         ComponentMap targetBehaviors = target.getComponents();
         if (player != null) {
-            PlayerInteractEvent ev = new PlayerInteractEvent(player, item, target, face, PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK);
+            PlayerInteractEvent ev = new PlayerInteractEvent(player, item, target, face, PlayerInteractAction.RIGHT_CLICK_BLOCK);
             if (player.getGameMode() == GameMode.SPECTATOR) {
                 ev.setCancelled();
             }
@@ -3012,7 +3013,7 @@ public class CloudLevel implements Level, BlockStateRegion {
         this.levelData.setDifficulty(difficulty);
 
         SetDifficultyPacket packet = new SetDifficultyPacket();
-        packet.setDifficulty(difficulty.getId());
+        packet.setDifficulty(difficulty.getValue());
         for (CloudPlayer player : this.players.values()) {
             player.sendPacket(packet);
         }

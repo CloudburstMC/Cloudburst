@@ -7,6 +7,7 @@ import org.cloudburstmc.api.entity.LivingEntity;
 import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.api.event.entity.EntityChangeBlockEvent;
 import org.cloudburstmc.api.event.entity.EntityInteractEvent;
+import org.cloudburstmc.api.event.player.PlayerInteractAction;
 import org.cloudburstmc.api.event.player.PlayerInteractEvent;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.player.Player;
@@ -31,7 +32,7 @@ public class FarmlandBlockHandlers {
                 return;
             }
 
-            interaction = new PlayerInteractEvent(player, null, block, null, PlayerInteractEvent.Action.PHYSICAL);
+            interaction = new PlayerInteractEvent(player, null, block, null, PlayerInteractAction.PHYSICAL);
         } else {
             if (!level.getGameRules().get(GameRules.MOB_GRIEFING)) {
                 return;

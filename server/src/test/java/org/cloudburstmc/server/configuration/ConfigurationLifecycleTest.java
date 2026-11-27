@@ -282,7 +282,7 @@ class ConfigurationLifecycleTest {
         Path properties = directory.resolve("server.properties");
         Files.writeString(properties, "motd=original\n");
 
-        assertThrows(ConfigurationValidationException.class, () -> ServerConfigurations.load(new ServerFileLayout(directory, directory.resolve("worlds"))));
+        assertThrows(ConfigurationValidationException.class, () -> ServerConfigurations.load(new ServerFileLayout(directory, directory.resolve("worlds")), Map.of()));
         assertEquals("motd=original\n", Files.readString(properties));
     }
 }

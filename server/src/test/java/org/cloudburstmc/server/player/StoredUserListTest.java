@@ -23,13 +23,14 @@ class StoredUserListTest {
         UUID uuid = UUID.fromString("75cd5b39-da8c-31ec-a7ef-4efdf2fe451b");
         assertEquals("[]", Files.readString(file));
 
-        list.add(new ServerOpListEntry(uuid, "VibingGuy69", false));
+        list.add(new ServerOpListEntry(uuid, "VibingGuy69", 4, false));
 
         assertEquals("""
                 [
                   {
                     "uuid": "75cd5b39-da8c-31ec-a7ef-4efdf2fe451b",
                     "name": "VibingGuy69",
+                    "level": 4,
                     "bypassesPlayerLimit": false
                   }
                 ]
@@ -41,8 +42,8 @@ class StoredUserListTest {
         Path file = directory.resolve("ops.json");
         ServerOpList list = new ServerOpList(file);
         UUID uuid = UUID.randomUUID();
-        list.add(new ServerOpListEntry(uuid, "Player", false));
-        list.add(new ServerOpListEntry(uuid, "Renamed", true));
+        list.add(new ServerOpListEntry(uuid, "Player", 4, false));
+        list.add(new ServerOpListEntry(uuid, "Renamed", 4, true));
 
         assertEquals("Renamed", new ServerOpList(file).get(uuid).orElseThrow().name());
         try (Stream<Path> files = Files.list(directory)) {
@@ -53,31 +54,31 @@ class StoredUserListTest {
     @Test
     void membershipUsesUuidRatherThanDisplayName() throws Exception {
         Path file = directory.resolve("whitelist.json");
-        UserWhiteList list = new UserWhiteList(file);
+        UserWhitelist list = new UserWhitelist(file);
         UUID first = UUID.randomUUID();
         UUID second = UUID.randomUUID();
-        list.add(new UserWhiteListEntry(first, "Player"));
+        list.add(new UserWhitelistEntry(first, "Player"));
 
         assertTrue(list.contains(first));
         assertFalse(list.contains(second));
 
-        list.add(new UserWhiteListEntry(first, "Renamed"));
-        UserWhiteList reloaded = new UserWhiteList(file);
+        list.add(new UserWhitelistEntry(first, "Renamed"));
+        UserWhitelist reloaded = new UserWhitelist(file);
 
         assertEquals(1, reloaded.entries().size());
         assertEquals("Renamed", reloaded.get(first).orElseThrow().name());
         assertTrue(Files.readString(file).contains(first.toString()));
 
         reloaded.remove(first);
-        assertTrue(new UserWhiteList(file).entries().isEmpty());
+        assertTrue(new UserWhitelist(file).entries().isEmpty());
     }
 
     @Test
     void invalidReloadPreservesActiveMembershipAndTheInputFile() throws Exception {
         Path file = directory.resolve("whitelist.json");
-        UserWhiteList list = new UserWhiteList(file);
+        UserWhitelist list = new UserWhitelist(file);
         UUID uuid = UUID.randomUUID();
-        list.add(new UserWhiteListEntry(uuid, "Player"));
+        list.add(new UserWhitelistEntry(uuid, "Player"));
         String duplicate = "[{\"uuid\":\"%s\"},{\"uuid\":\"%s\"}]".formatted(uuid, uuid);
         Files.writeString(file, duplicate);
 
@@ -89,11 +90,11 @@ class StoredUserListTest {
     @Test
     void failedSaveDoesNotPublishOrOverwriteMembership() throws Exception {
         Path file = directory.resolve("whitelist.json");
-        UserWhiteList list = new UserWhiteList(file);
+        UserWhitelist list = new UserWhitelist(file);
         String original = Files.readString(file);
         UUID uuid = UUID.randomUUID();
 
-        assertThrows(IllegalArgumentException.class, () -> list.add(new UserWhiteListEntry(uuid, "x".repeat(1024 * 1024))));
+        assertThrows(IllegalArgumentException.class, () -> list.add(new UserWhitelistEntry(uuid, "x".repeat(1024 * 1024))));
         assertFalse(list.contains(uuid));
         assertEquals(original, Files.readString(file));
     }
@@ -104,8 +105,8 @@ class StoredUserListTest {
         ServerOpList list = new ServerOpList(file);
         UUID regular = UUID.randomUUID();
         UUID bypass = UUID.randomUUID();
-        list.add(new ServerOpListEntry(regular, "Regular", false));
-        list.add(new ServerOpListEntry(bypass, "Bypass", true));
+        list.add(new ServerOpListEntry(regular, "Regular", 4, false));
+        list.add(new ServerOpListEntry(bypass, "Bypass", 4, true));
 
         ServerOpList reloaded = new ServerOpList(file);
 
@@ -119,7 +120,23 @@ class StoredUserListTest {
         Path file = directory.resolve("whitelist.json");
         for (String invalid : new String[]{"null", "[null]", "[{\"uuid\":null}]", "[] []"}) {
             Files.writeString(file, invalid);
-            assertThrows(RuntimeException.class, () -> new UserWhiteList(file));
+            assertThrows(RuntimeException.class, () -> new UserWhitelist(file));
         }
+    }
+
+    @Test
+    void reservedNameIsClaimedByTheFirstSignIn() {
+        Path file = directory.resolve("ops.json");
+        ServerOpList list = new ServerOpList(file);
+        UUID uuid = UUID.randomUUID();
+        list.add(new ServerOpListEntry(null, "NewPlayer", 3, true));
+
+        assertTrue(list.getReserved("newplayer").isPresent());
+        assertTrue(list.claim(uuid, "NewPlayer"));
+        assertFalse(list.claim(uuid, "NewPlayer"));
+
+        ServerOpList reloaded = new ServerOpList(file);
+        assertTrue(reloaded.getReserved("NewPlayer").isEmpty());
+        assertEquals(new ServerOpListEntry(uuid, "NewPlayer", 3, true), reloaded.get(uuid).orElseThrow());
     }
 }

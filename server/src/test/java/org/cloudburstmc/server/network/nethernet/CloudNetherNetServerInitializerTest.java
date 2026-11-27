@@ -22,6 +22,7 @@ import org.cloudburstmc.protocol.bedrock.packet.SubClientLoginPacket;
 import org.cloudburstmc.protocol.common.PacketSignal;
 import org.cloudburstmc.protocol.common.util.VarInts;
 import org.cloudburstmc.server.network.GameplayPacketQueue;
+import org.cloudburstmc.server.network.PacketLimiter;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -152,7 +153,7 @@ class CloudNetherNetServerInitializerTest {
             session.setCodec(Bedrock_v649.CODEC);
             CloudNetherNetPeer peer = assertInstanceOf(CloudNetherNetPeer.class, session.getPeer());
             gameplay.set(peer.startGameplay(session, new BedrockPacketHandler() {
-            }));
+            }, PacketLimiter.NONE));
         }));
 
         try {

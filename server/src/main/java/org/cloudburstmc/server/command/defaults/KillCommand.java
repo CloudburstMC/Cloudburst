@@ -46,7 +46,7 @@ public class KillCommand extends AdvertisedCommand {
             }
 
             if (!hasKillPermission(sender, targets)) {
-                return failure(context, Component.translatable("commands.generic.permission").color(NamedTextColor.RED));
+                return failure(context, Component.translatable("cloudburst.command.generic.permission").color(NamedTextColor.RED));
             }
 
             return kill(sender, targets);
@@ -54,7 +54,7 @@ public class KillCommand extends AdvertisedCommand {
 
         if (sender instanceof Entity entity) {
             if (!sender.hasPermission("cloudburst.command.kill.self")) {
-                return failure(context, Component.translatable("commands.generic.permission").color(NamedTextColor.RED));
+                return failure(context, Component.translatable("cloudburst.command.generic.permission").color(NamedTextColor.RED));
             }
 
             return kill(sender, List.of(entity));

@@ -38,6 +38,7 @@ public class ResourcePackPacketHandler implements BedrockPacketHandler {
     private final Consumer<Boolean> onCacheStatus;
     private final Channel channel;
     private final boolean required;
+    private final Locale locale;
     private final ArrayDeque<CloudResourcePack> requestedPacks = new ArrayDeque<>();
     private final ArrayDeque<Integer> pendingChunks = new ArrayDeque<>();
     private final BitSet requestedChunks = new BitSet();
@@ -56,12 +57,14 @@ public class ResourcePackPacketHandler implements BedrockPacketHandler {
     private boolean chunkInFlight;
 
     public ResourcePackPacketHandler(BedrockServerSession session, CloudPackManager packs, boolean required,
-                                     Predicate<Runnable> submitRead, Runnable onComplete, Consumer<Boolean> onCacheStatus) {
+                                     Predicate<Runnable> submitRead, Runnable onComplete, Consumer<Boolean> onCacheStatus,
+                                     Locale locale) {
         this.session = session;
         this.peer = (CloudNetherNetPeer) session.getPeer();
         this.channel = this.peer.getChannel();
         this.packs = packs;
         this.required = required;
+        this.locale = locale;
         this.submitRead = submitRead;
         this.onComplete = onComplete;
         this.onCacheStatus = onCacheStatus;
@@ -256,7 +259,7 @@ public class ResourcePackPacketHandler implements BedrockPacketHandler {
 
     private void reject() {
         this.finish();
-        this.peer.disconnectSession(this.session, DisconnectFailReason.RESOURCE_PACK_PROBLEM, Component.translatable("disconnectionScreen.resourcePack"));
+        this.peer.disconnectSession(this.session, DisconnectFailReason.RESOURCE_PACK_PROBLEM, Component.translatable("disconnectionScreen.resourcePack"), this.locale);
     }
 
     private void finish() {

@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -28,7 +29,7 @@ class ServerConfigurationReloadTest {
         Files.delete(layout.level("example"));
         Files.writeString(source.resolve("level.dat"), "original metadata");
 
-        ServerConfigurations config = ServerConfigurations.load(layout);
+        ServerConfigurations config = ServerConfigurations.load(layout, Map.of());
         config.initializeLevelConfiguration("example");
         config.initializeLevelConfiguration("dynamic");
 
@@ -60,7 +61,7 @@ class ServerConfigurationReloadTest {
         prepare();
         Path overrides = directory.resolve("worlds/example/cloudburst-level.yml");
         String original = Files.readString(overrides);
-        ServerConfigurations config = ServerConfigurations.load(new ServerFileLayout(directory, directory.resolve("worlds")));
+        ServerConfigurations config = ServerConfigurations.load(new ServerFileLayout(directory, directory.resolve("worlds")), Map.of());
         LevelConfiguration settings = config.getLevelConfiguration("example");
 
         assertEquals(40, settings.getLevel().getMaxLiquidTicks());
@@ -74,7 +75,7 @@ class ServerConfigurationReloadTest {
     @Test
     void reloadPublishesGlobalAndLevelChangesTogether() throws Exception {
         prepare();
-        ServerConfigurations config = ServerConfigurations.load(new ServerFileLayout(directory, directory.resolve("worlds")));
+        ServerConfigurations config = ServerConfigurations.load(new ServerFileLayout(directory, directory.resolve("worlds")), Map.of());
         writeGlobal(30);
         Files.writeString(directory.resolve("worlds/example/cloudburst-level.yml"),
                 "level:\n  water-over-lava-flow-speed: 9\n");
@@ -89,7 +90,7 @@ class ServerConfigurationReloadTest {
     @Test
     void dynamicallyLoadedLevelsUseOverridesAndParticipateInReloads() throws Exception {
         prepare();
-        ServerConfigurations config = ServerConfigurations.load(new ServerFileLayout(directory, directory.resolve("worlds")));
+        ServerConfigurations config = ServerConfigurations.load(new ServerFileLayout(directory, directory.resolve("worlds")), Map.of());
         Path file = directory.resolve("worlds/dynamic/cloudburst-level.yml");
         Files.createDirectories(file.getParent());
         Files.writeString(file, "level:\n  max-liquid-ticks: 12\n");
@@ -106,7 +107,7 @@ class ServerConfigurationReloadTest {
     @Test
     void invalidLevelSettingsPreventEveryChangeFromBecomingActive() throws Exception {
         prepare();
-        ServerConfigurations config = ServerConfigurations.load(new ServerFileLayout(directory, directory.resolve("worlds")));
+        ServerConfigurations config = ServerConfigurations.load(new ServerFileLayout(directory, directory.resolve("worlds")), Map.of());
         writeGlobal(30);
         Files.writeString(directory.resolve("worlds/example/cloudburst-level.yml"),
                 "level:\n  max-liquid-ticks: 0\n");
@@ -121,8 +122,8 @@ class ServerConfigurationReloadTest {
     @Test
     void startupOnlyChangesAreRejectedWithoutChangingActiveSettings() throws Exception {
         prepare();
-        ServerConfigurations config = ServerConfigurations.load(new ServerFileLayout(directory, directory.resolve("worlds")));
-        Files.writeString(directory.resolve("server.properties"), "default-level=example\nserver-port=20000\n");
+        ServerConfigurations config = ServerConfigurations.load(new ServerFileLayout(directory, directory.resolve("worlds")), Map.of());
+        Files.writeString(directory.resolve("server.properties"), "level-name=example\nserver-port=20000\n");
 
         ConfigurationValidationException exception = assertThrows(ConfigurationValidationException.class, config::reload);
 
@@ -145,7 +146,7 @@ class ServerConfigurationReloadTest {
         writeGlobal(20);
         Files.writeString(directory.resolve("worlds/example/cloudburst-level.yml"), "level: {}\n");
         ServerFileLayout layout = new ServerFileLayout(directory, directory.resolve("worlds"));
-        ServerConfigurations settings = ServerConfigurations.load(layout);
+        ServerConfigurations settings = ServerConfigurations.load(layout, Map.of());
         assertEquals(40, settings.getLevelConfiguration("example").getLevel().getMaxLiquidTicks());
     }
 
@@ -157,7 +158,7 @@ class ServerConfigurationReloadTest {
         Files.createDirectories(overrides.getParent());
         Files.writeString(overrides, "level:\n  max-liquid-ticks: 17\n");
 
-        ServerConfigurations config = ServerConfigurations.load(new ServerFileLayout(directory, levels));
+        ServerConfigurations config = ServerConfigurations.load(new ServerFileLayout(directory, levels), Map.of());
 
         assertEquals(17, config.getLevelConfiguration("example").getLevel().getMaxLiquidTicks());
         assertThrows(IllegalStateException.class, () -> config.getLevelConfiguration("missing"));
@@ -176,7 +177,7 @@ class ServerConfigurationReloadTest {
             Files.writeString(directory.resolve(name).resolve("untouched"), "obsolete data\n");
         }
 
-        ServerConfigurations config = ServerConfigurations.load(new ServerFileLayout(directory, directory.resolve("worlds")));
+        ServerConfigurations config = ServerConfigurations.load(new ServerFileLayout(directory, directory.resolve("worlds")), Map.of());
         config.reload();
 
         assertEquals(20, config.getMovement().getMaxSpeedThreshold());
@@ -198,7 +199,7 @@ class ServerConfigurationReloadTest {
                 """);
 
         assertThrows(ConfigurationValidationException.class,
-                () -> ServerConfigurations.load(new ServerFileLayout(directory, directory.resolve("worlds"))));
+                () -> ServerConfigurations.load(new ServerFileLayout(directory, directory.resolve("worlds")), Map.of()));
     }
 
     @Test
@@ -228,7 +229,7 @@ class ServerConfigurationReloadTest {
         prepare();
         ServerFileLayout layout = new ServerFileLayout(directory, directory.resolve("worlds"));
         for (String name : new String[]{"missing", "example"}) {
-            Files.writeString(layout.properties(), "default-level=" + name + "\n");
+            Files.writeString(layout.properties(), "level-name=" + name + "\n");
             Files.writeString(layout.global(), """
                     levels:
                       example:
@@ -236,9 +237,9 @@ class ServerConfigurationReloadTest {
                     """);
 
             ConfigurationValidationException exception = assertThrows(ConfigurationValidationException.class,
-                    () -> ServerConfigurations.load(layout));
+                    () -> ServerConfigurations.load(layout, Map.of()));
 
-            assertTrue(exception.getMessage().contains("default-level"));
+            assertTrue(exception.getMessage().contains("level-name"));
             assertFalse(Files.exists(layout.playerData(name)));
             assertFalse(Files.exists(layout.savedData(name)));
             assertFalse(Files.exists(layout.userCache()));
@@ -248,7 +249,7 @@ class ServerConfigurationReloadTest {
     @Test
     void chunkThreadCountChangesRequireRestartAndPreserveActiveSettings() throws Exception {
         prepare();
-        ServerConfigurations config = ServerConfigurations.load(new ServerFileLayout(directory, directory.resolve("worlds")));
+        ServerConfigurations config = ServerConfigurations.load(new ServerFileLayout(directory, directory.resolve("worlds")), Map.of());
         Files.writeString(directory.resolve("config/cloudburst-global.yml"),
                 "chunk-system:\n  worker-threads: 3\n  io-threads: 2\n", java.nio.file.StandardOpenOption.APPEND);
 
@@ -260,7 +261,7 @@ class ServerConfigurationReloadTest {
     }
 
     private void prepare() throws Exception {
-        Files.writeString(directory.resolve("server.properties"), "default-level=example\n");
+        Files.writeString(directory.resolve("server.properties"), "level-name=example\n");
         writeGlobal(20);
         Files.writeString(directory.resolve("config/cloudburst-level-defaults.yml"), """
                 level:

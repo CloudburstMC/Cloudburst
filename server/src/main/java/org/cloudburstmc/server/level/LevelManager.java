@@ -6,10 +6,13 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.event.level.LevelLoadEvent;
 import org.cloudburstmc.api.event.level.LevelUnloadEvent;
+import org.cloudburstmc.api.event.player.QuitReason;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.protocol.bedrock.data.DisconnectFailReason;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.configuration.GlobalConfiguration;
 import org.cloudburstmc.server.diagnostics.ServerExceptionHandler;
@@ -245,7 +248,7 @@ public class LevelManager implements Closeable {
         log.info("Unloading world '{}'", level.getId());
         for (CloudPlayer player : List.copyOf(level.getPlayers().values())) {
             if (fallback == null) {
-                player.close(player.leaveMessage(), "Forced default level unload");
+                player.disconnect(player.leaveMessage(), Component.translatable("cloudburst.disconnect.levelUnloaded"), DisconnectFailReason.DISCONNECTED, QuitReason.KICKED);
             } else {
                 player.teleport(fallback.getSafeSpawn());
             }

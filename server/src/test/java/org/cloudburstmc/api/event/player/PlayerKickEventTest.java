@@ -1,7 +1,6 @@
 package org.cloudburstmc.api.event.player;
 
 import net.kyori.adventure.text.Component;
-import org.cloudburstmc.api.player.KickReason;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.junit.jupiter.api.Test;
@@ -11,28 +10,30 @@ import static org.junit.jupiter.api.Assertions.*;
 class PlayerKickEventTest {
 
     @Test
-    void categoryAndDisconnectTextAreIndependentOfTheLeaveMessage() {
+    void causeAndReasonAreIndependentOfTheLeaveMessage() {
         Player player = InterfaceProxy.create(Player.class);
         Component leaveMessage = Component.text("Player left");
-        PlayerKickEvent event = new PlayerKickEvent(player, KickReason.IP_BANNED, "Address banned", leaveMessage);
+        Component reason = Component.text("Address banned");
+        PlayerKickEvent event = new PlayerKickEvent(player, reason, leaveMessage, KickCause.IP_BANNED);
 
         assertSame(player, event.getPlayer());
-        assertEquals(KickReason.IP_BANNED, event.getKickReason());
-        assertEquals("Address banned", event.getReason());
-        assertEquals(leaveMessage, event.getQuitMessage());
+        assertEquals(KickCause.IP_BANNED, event.getCause());
+        assertEquals(reason, event.reason());
+        assertEquals(leaveMessage, event.leaveMessage());
 
-        event.setQuitMessage(null);
+        event.leaveMessage(null);
 
-        assertNull(event.getQuitMessage());
-        assertEquals(KickReason.IP_BANNED, event.getKickReason());
-        assertEquals("Address banned", event.getReason());
+        assertNull(event.leaveMessage());
+        assertEquals(KickCause.IP_BANNED, event.getCause());
+        assertEquals(reason, event.reason());
     }
 
     @Test
-    void omittedDisconnectTextUsesTheCategoryName() {
-        PlayerKickEvent event = new PlayerKickEvent(InterfaceProxy.create(Player.class), KickReason.UNKNOWN, null);
+    void reasonCanBeReplaced() {
+        PlayerKickEvent event = new PlayerKickEvent(InterfaceProxy.create(Player.class), Component.text("a"), null, KickCause.UNKNOWN);
 
-        assertEquals(KickReason.UNKNOWN, event.getKickReason());
-        assertEquals("UNKNOWN", event.getReason());
+        event.reason(Component.text("b"));
+
+        assertEquals(Component.text("b"), event.reason());
     }
 }

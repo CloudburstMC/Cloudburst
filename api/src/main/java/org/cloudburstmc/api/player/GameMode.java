@@ -1,227 +1,123 @@
 package org.cloudburstmc.api.player;
 
-import com.google.common.collect.Sets;
-import lombok.Getter;
 import net.kyori.adventure.translation.Translatable;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Locale;
+import java.util.Set;
 
 /**
- * Represents a player game mode, defining what actions a player may perform
+ * A player game mode, defining what actions a player may perform
  * and which {@link Ability abilities} they hold by default.
  */
-@Getter
-public class GameMode implements Translatable {
-
-    private static final Map<String, GameMode> nameMap = new HashMap<>();
-
+public enum GameMode implements Translatable {
     /**
      * Normal gameplay: the player can build, mine, interact with the world,
      * and fight mobs, but has no special privileges.
      */
-    public static final GameMode SURVIVAL = GameMode.builder(0, "survival", "s")
-            .register()
-            .abilities(
-                    Ability.BUILD,
-                    Ability.MINE,
-                    Ability.DOORS_AND_SWITCHES,
-                    Ability.OPEN_CONTAINERS,
-                    Ability.ATTACK_PLAYERS,
-                    Ability.ATTACK_MOBS
-            ).build();
-
+    SURVIVAL(0, EnumSet.of(
+            Ability.BUILD,
+            Ability.MINE,
+            Ability.DOORS_AND_SWITCHES,
+            Ability.OPEN_CONTAINERS,
+            Ability.ATTACK_PLAYERS,
+            Ability.ATTACK_MOBS)
+    ),
     /**
      * Creative mode: the player is invulnerable, can fly, breaks blocks
      * instantly, and has access to all items.
      */
-    public static final GameMode CREATIVE = GameMode.builder(1, "creative", "c")
-            .register()
-            .abilities(
-                    Ability.BUILD,
-                    Ability.MINE,
-                    Ability.DOORS_AND_SWITCHES,
-                    Ability.OPEN_CONTAINERS,
-                    Ability.ATTACK_PLAYERS,
-                    Ability.ATTACK_MOBS,
-                    Ability.INVULNERABLE,
-                    Ability.MAY_FLY,
-                    Ability.INSTABUILD
-            ).build();
-
+    CREATIVE(1, EnumSet.of(
+            Ability.BUILD,
+            Ability.MINE,
+            Ability.DOORS_AND_SWITCHES,
+            Ability.OPEN_CONTAINERS,
+            Ability.ATTACK_PLAYERS,
+            Ability.ATTACK_MOBS,
+            Ability.INVULNERABLE,
+            Ability.MAY_FLY,
+            Ability.INSTABUILD)
+    ),
     /**
-     * Adventure mode: the player can interact with the world and fight mobs.
-     * Block placement and breaking are restricted server-side by item tags;
-     * {@link Ability#BUILD} and {@link Ability#MINE} remain enabled in the
-     * abilities layer so the game behaves correctly.
+     * Adventure mode: the player can interact with the world and fight mobs,
+     * but can only place and break blocks that their held item allows.
      */
-    public static final GameMode ADVENTURE = GameMode.builder(2, "adventure", "a")
-            .register()
-            .abilities(
-                    Ability.BUILD,
-                    Ability.MINE,
-                    Ability.DOORS_AND_SWITCHES,
-                    Ability.OPEN_CONTAINERS,
-                    Ability.ATTACK_PLAYERS,
-                    Ability.ATTACK_MOBS
-            ).build();
-
+    ADVENTURE(2, EnumSet.of(
+            Ability.BUILD,
+            Ability.MINE,
+            Ability.DOORS_AND_SWITCHES,
+            Ability.OPEN_CONTAINERS,
+            Ability.ATTACK_PLAYERS,
+            Ability.ATTACK_MOBS)
+    ),
     /**
      * Spectator mode: the player is invulnerable, always flying, passes through
      * blocks, and cannot interact with anything.
      */
-    public static final GameMode SPECTATOR = GameMode.builder(3, "spectator", "spc")
-            .register()
-            .abilities(
-                    Ability.BUILD,
-                    Ability.MINE,
-                    Ability.DOORS_AND_SWITCHES,
-                    Ability.OPEN_CONTAINERS,
-                    Ability.ATTACK_PLAYERS,
-                    Ability.ATTACK_MOBS,
-                    Ability.INVULNERABLE,
-                    Ability.MAY_FLY,
-                    Ability.INSTABUILD
-            ).build();
+    SPECTATOR(3, EnumSet.of(
+            Ability.BUILD,
+            Ability.MINE,
+            Ability.DOORS_AND_SWITCHES,
+            Ability.OPEN_CONTAINERS,
+            Ability.ATTACK_PLAYERS,
+            Ability.ATTACK_MOBS,
+            Ability.INVULNERABLE,
+            Ability.MAY_FLY,
+            Ability.INSTABUILD)
+    );
 
-    private final int vanillaId;
-    private final String name;
-    private final Set<String> aliases;
-
-    /**
-     * The set of {@link Ability abilities} granted to a player when they enter
-     * this game mode. This is the baseline; the server may additionally grant
-     * operator-only abilities such as {@link Ability#OPERATOR_COMMANDS} and
-     * {@link Ability#TELEPORT} according to the player's operator status.
-     */
+    private final int value;
     private final Set<Ability> defaultAbilities;
 
-    private GameMode(int vanillaId, String name, Set<String> aliases, Set<Ability> defaultAbilities) {
-        this.vanillaId = vanillaId;
-        this.name = name;
-        this.aliases = aliases;
+    GameMode(int value, Set<Ability> defaultAbilities) {
+        this.value = value;
         this.defaultAbilities = Collections.unmodifiableSet(defaultAbilities);
     }
 
     /**
-     * Looks up a registered game mode by name or alias (case-sensitive).
-     * Returns {@code null} if no game mode is registered under the given name.
-     *
-     * @param name the name or alias to look up
-     * @return the matching {@link GameMode}, or {@code null}
+     * Returns the numeric ID of this game mode, from 0 to 3.
      */
-    @Nullable
-    public static GameMode from(String name) {
-        return nameMap.get(name);
+    public int getValue() {
+        return this.value;
     }
 
     /**
-     * Resolves a {@link GameMode} from a numeric game type ID.
+     * Returns the game mode with the given numeric ID.
      *
-     * @param id the numeric game type value
-     * @return the corresponding {@link GameMode}
+     * @param value the numeric ID
+     * @return the game mode, or {@code null} when the ID is unknown
      */
-    @NonNull
-    public static GameMode from(int id) {
-        return switch (id) {
-            case 0 -> SURVIVAL;
-            case 1 -> CREATIVE;
-            case 2 -> ADVENTURE;
-            case 3 -> SPECTATOR;
-            default -> SURVIVAL;
-        };
+    public static @Nullable GameMode getByValue(int value) {
+        for (GameMode mode : values()) {
+            if (mode.value == value) {
+                return mode;
+            }
+        }
+
+        return null;
     }
 
     /**
-     * Creates a new {@link Builder} for a custom game mode.
-     *
-     * @param id      the numeric game type ID
-     * @param name    the primary name, used for commands and lookup
-     * @param aliases additional lookup strings (the numeric ID is always added automatically)
-     * @return a new {@link Builder}
+     * Returns the {@link Ability abilities} granted to a player in this game mode.
+     * The server may additionally grant operator abilities such as
+     * {@link Ability#OPERATOR_COMMANDS} and {@link Ability#TELEPORT}.
      */
-    @NonNull
-    public static Builder builder(int id, String name, String... aliases) {
-        return new Builder(id, name, aliases);
-    }
-
-    /**
-     * Returns the translation key for this game mode, e.g. {@code "gameMode.survival"}.
-     */
-    @Override
-    public @NonNull String translationKey() {
-        return "gameMode." + this.name;
+    public Set<Ability> getDefaultAbilities() {
+        return this.defaultAbilities;
     }
 
     /**
      * Returns whether this game mode grants {@link Ability#INVULNERABLE}.
-     * This is true for {@link #CREATIVE} and {@link #SPECTATOR}.
      */
     public boolean isInvulnerable() {
-        return defaultAbilities.contains(Ability.INVULNERABLE);
+        return this.defaultAbilities.contains(Ability.INVULNERABLE);
     }
 
-    /**
-     * Builder for constructing custom {@link GameMode} instances.
-     */
-    public static class Builder {
-
-        private final int vanillaId;
-        private final String name;
-        private final Set<String> aliases;
-        private final Set<Ability> defaultAbilities = EnumSet.noneOf(Ability.class);
-
-        private boolean register = false;
-
-        private Builder(int vanillaId, String name, String... aliases) {
-            this.vanillaId = vanillaId;
-            this.name = name;
-            this.aliases = Sets.newHashSet(aliases);
-            this.aliases.add(Integer.toString(vanillaId));
-        }
-
-        /**
-         * Registers this game mode in the global name map so it can be
-         * resolved by {@link GameMode#from(String)} using its name, aliases,
-         * or numeric ID string.
-         *
-         * @return this builder
-         */
-        public Builder register() {
-            register = true;
-            return this;
-        }
-
-        /**
-         * Declares the {@link Ability abilities} that players receive by default
-         * when assigned this game mode. Calling this method multiple times
-         * accumulates abilities.
-         *
-         * @param abilities the abilities to grant
-         * @return this builder
-         */
-        public Builder abilities(Ability... abilities) {
-            Collections.addAll(this.defaultAbilities, abilities);
-            return this;
-        }
-
-        /**
-         * Builds and optionally registers the {@link GameMode}.
-         *
-         * @return the constructed {@link GameMode}
-         */
-        public GameMode build() {
-            GameMode gm = new GameMode(vanillaId, name, aliases, defaultAbilities);
-
-            if (register) {
-                nameMap.put(name, gm);
-                for (String alias : gm.aliases) {
-                    nameMap.put(alias, gm);
-                }
-            }
-
-            return gm;
-        }
+    @Override
+    public @NonNull String translationKey() {
+        return "gameMode." + this.name().toLowerCase(Locale.ROOT);
     }
 }

@@ -3,6 +3,7 @@ package org.cloudburstmc.server.network.nethernet;
 import io.netty.channel.Channel;
 import io.netty.util.internal.SystemPropertyUtil;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.translation.GlobalTranslator;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.netty.channel.nethernet.NetherNetChildChannel;
@@ -22,9 +23,12 @@ import org.cloudburstmc.protocol.bedrock.packet.SubClientLoginPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UnknownPacket;
 import org.cloudburstmc.protocol.common.util.Zlib;
 import org.cloudburstmc.server.network.GameplayPacketQueue;
+import org.cloudburstmc.server.network.PacketLimiter;
+import org.cloudburstmc.server.network.ThresholdCompressionStrategy;
 
 import javax.crypto.SecretKey;
 import java.security.PublicKey;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -45,13 +49,17 @@ public class CloudNetherNetPeer extends BedrockPeer {
 
     @Override
     public void setCompression(PacketCompressionAlgorithm algorithm) {
+        this.setCompression(algorithm, 0);
+    }
+
+    public void setCompression(PacketCompressionAlgorithm algorithm, int threshold) {
         CompressionStrategy strategy = switch (Objects.requireNonNull(algorithm, "algorithm")) {
             case ZLIB -> ZLIB;
             case SNAPPY -> SNAPPY;
             case NONE -> NONE;
         };
 
-        super.setCompression(strategy);
+        super.setCompression(new ThresholdCompressionStrategy(strategy, threshold));
     }
 
     @Override
@@ -78,10 +86,12 @@ public class CloudNetherNetPeer extends BedrockPeer {
      * Returns the gameplay queue and schedules the handoff from login on the connection loop.
      */
     @SuppressWarnings("resource") // The shared event loop is owned by the network.
-    public GameplayPacketQueue startGameplay(BedrockServerSession session, BedrockPacketHandler disconnectHandler) {
+    public GameplayPacketQueue startGameplay(BedrockServerSession session, BedrockPacketHandler disconnectHandler, PacketLimiter limiter) {
         if (session.getPeer() != this || session.isSubClient()) {
             throw new IllegalStateException("Only the primary session can start gameplay");
         }
+
+        this.gameplayPackets.limit(limiter);
 
         this.getChannel().eventLoop().execute(() -> {
             if (!this.getChannel().isActive() || !session.isConnected()) {
@@ -111,10 +121,11 @@ public class CloudNetherNetPeer extends BedrockPeer {
     }
 
     /**
-     * Sends a rejection before closing. Rejecting the primary session also stops further input.
+     * Sends a disconnect with the message translated for the given locale, then closes the session.
+     * Disconnecting the primary session also stops further input.
      */
     @SuppressWarnings("resource")
-    public void disconnectSession(BedrockServerSession session, DisconnectFailReason reason, Component message) {
+    public void disconnectSession(BedrockServerSession session, DisconnectFailReason reason, Component message, Locale locale) {
         if (session.getPeer() != this) {
             throw new IllegalArgumentException("Session belongs to a different peer");
         }
@@ -124,7 +135,7 @@ public class CloudNetherNetPeer extends BedrockPeer {
                 return;
             }
 
-            BedrockComponent kickMessage = new BedrockComponent(message);
+            BedrockComponent kickMessage = new BedrockComponent(GlobalTranslator.render(message, locale));
             DisconnectPacket packet = new DisconnectPacket();
             packet.setReason(reason);
             packet.setKickMessage(kickMessage);

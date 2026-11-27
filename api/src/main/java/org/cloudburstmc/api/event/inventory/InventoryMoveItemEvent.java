@@ -10,6 +10,7 @@ import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.api.inventory.view.SlotGroupType;
 import org.cloudburstmc.api.item.ItemStack;
 
+import java.util.Objects;
 import java.util.Optional;
 
 
@@ -25,11 +26,11 @@ public class InventoryMoveItemEvent extends Event implements Cancellable {
     private final SlotGroup target;
     @NonNull
     private final SlotGroup initiator;
-    private final Action action;
+    private final InventoryMoveItemAction action;
     private ItemStack item;
 
     private InventoryMoveItemEvent(@Nullable SlotGroup source, @Nullable SlotGroup target,
-                                   @NonNull SlotGroup initiator, @NonNull ItemStack item, @NonNull Action action) {
+                                   @NonNull SlotGroup initiator, @NonNull ItemStack item, @NonNull InventoryMoveItemAction action) {
         this.source = source;
         this.target = target;
         this.initiator = initiator;
@@ -38,25 +39,25 @@ public class InventoryMoveItemEvent extends Event implements Cancellable {
     }
 
     /**
-     * Creates an {@link Action#TRANSFER} event (items moving from one slot group to another).
+     * Creates an {@link InventoryMoveItemAction#TRANSFER} event (items moving from one slot group to another).
      *
      * @param source    the slot group items are moving from (must not be {@code null})
      * @param target    the slot group items are moving into (must not be {@code null})
      * @param initiator the slot group that initiated the transfer (must not be {@code null})
      * @param item      the item stack being transferred (must not be {@code null})
-     * @return a new {@code InventoryMoveItemEvent} with {@link Action#TRANSFER}
+     * @return a new {@code InventoryMoveItemEvent} with {@link InventoryMoveItemAction#TRANSFER}
      */
     public static InventoryMoveItemEvent transfer(@NonNull SlotGroup source, @NonNull SlotGroup target,
                                                   @NonNull SlotGroup initiator, @NonNull ItemStack item) {
-        java.util.Objects.requireNonNull(source, "source");
-        java.util.Objects.requireNonNull(target, "target");
-        java.util.Objects.requireNonNull(initiator, "initiator");
-        java.util.Objects.requireNonNull(item, "item");
-        return new InventoryMoveItemEvent(source, target, initiator, item, Action.TRANSFER);
+        Objects.requireNonNull(source, "source");
+        Objects.requireNonNull(target, "target");
+        Objects.requireNonNull(initiator, "initiator");
+        Objects.requireNonNull(item, "item");
+        return new InventoryMoveItemEvent(source, target, initiator, item, InventoryMoveItemAction.TRANSFER);
     }
 
     /**
-     * Creates an {@link Action#TRANSFER} event where one side is an item entity in the world
+     * Creates an {@link InventoryMoveItemAction#TRANSFER} event where one side is an item entity in the world
      * rather than a named slot group.
      *
      * <p>Use this overload when a hopper picks up items from the ground ({@code source} is
@@ -67,7 +68,7 @@ public class InventoryMoveItemEvent extends Event implements Cancellable {
      * @param target    the slot group items are moving into, or {@code null} for an item entity
      * @param initiator the slot group that initiated the transfer (must not be {@code null})
      * @param item      the item stack being transferred (must not be {@code null})
-     * @return a new {@code InventoryMoveItemEvent} with {@link Action#TRANSFER}
+     * @return a new {@code InventoryMoveItemEvent} with {@link InventoryMoveItemAction#TRANSFER}
      * @throws IllegalArgumentException if both {@code source} and {@code target} are {@code null}
      */
     public static InventoryMoveItemEvent transferWithWorld(@Nullable SlotGroup source, @Nullable SlotGroup target,
@@ -75,25 +76,25 @@ public class InventoryMoveItemEvent extends Event implements Cancellable {
         if (source == null && target == null) {
             throw new IllegalArgumentException("At least one of source or target must be non-null");
         }
-        java.util.Objects.requireNonNull(initiator, "initiator");
-        java.util.Objects.requireNonNull(item, "item");
-        return new InventoryMoveItemEvent(source, target, initiator, item, Action.TRANSFER);
+        Objects.requireNonNull(initiator, "initiator");
+        Objects.requireNonNull(item, "item");
+        return new InventoryMoveItemEvent(source, target, initiator, item, InventoryMoveItemAction.TRANSFER);
     }
 
     /**
-     * Creates an {@link Action#DISPENSE} event (items ejected into the world with no destination).
+     * Creates an {@link InventoryMoveItemAction#DISPENSE} event (items ejected into the world with no destination).
      *
      * @param source    the slot group items are dispensed from (must not be {@code null})
      * @param initiator the slot group that initiated the dispense (must not be {@code null})
      * @param item      the item stack being dispensed (must not be {@code null})
-     * @return a new {@code InventoryMoveItemEvent} with {@link Action#DISPENSE} and {@code null} target
+     * @return a new {@code InventoryMoveItemEvent} with {@link InventoryMoveItemAction#DISPENSE} and {@code null} target
      */
     public static InventoryMoveItemEvent dispense(@NonNull SlotGroup source, @NonNull SlotGroup initiator,
                                                   @NonNull ItemStack item) {
-        java.util.Objects.requireNonNull(source, "source");
-        java.util.Objects.requireNonNull(initiator, "initiator");
-        java.util.Objects.requireNonNull(item, "item");
-        return new InventoryMoveItemEvent(source, null, initiator, item, Action.DISPENSE);
+        Objects.requireNonNull(source, "source");
+        Objects.requireNonNull(initiator, "initiator");
+        Objects.requireNonNull(item, "item");
+        return new InventoryMoveItemEvent(source, null, initiator, item, InventoryMoveItemAction.DISPENSE);
     }
 
     /**
@@ -113,10 +114,10 @@ public class InventoryMoveItemEvent extends Event implements Cancellable {
     /**
      * Returns the destination slot group that items are moving into.
      *
-     * <p>Returns {@code null} for {@link Action#DISPENSE} actions, where items are
+     * <p>Returns {@code null} for {@link InventoryMoveItemAction#DISPENSE} actions, where items are
      * ejected into the world and there is no receiving slot group.</p>
      *
-     * @return the destination slot group, or {@code null} for {@link Action#DISPENSE}
+     * @return the destination slot group, or {@code null} for {@link InventoryMoveItemAction#DISPENSE}
      */
     @Nullable
     public SlotGroup getTarget() {
@@ -151,7 +152,7 @@ public class InventoryMoveItemEvent extends Event implements Cancellable {
 
     /**
      * Returns the {@link SlotGroupType} of the destination slot group,
-     * or {@code null} when there is no target (e.g. {@link Action#DISPENSE}).
+     * or {@code null} when there is no target (e.g. {@link InventoryMoveItemAction#DISPENSE}).
      *
      * @return the target slot group type, or {@code null}
      */
@@ -211,8 +212,8 @@ public class InventoryMoveItemEvent extends Event implements Cancellable {
     /**
      * Returns the item stack being transferred.
      *
-     * <p>For {@link Action#TRANSFER} this is the item moving from source to target.
-     * For {@link Action#DISPENSE} this is the item being ejected into the world.</p>
+     * <p>For {@link InventoryMoveItemAction#TRANSFER} this is the item moving from source to target.
+     * For {@link InventoryMoveItemAction#DISPENSE} this is the item being ejected into the world.</p>
      *
      * @return the item stack involved in this transfer (never {@code null})
      */
@@ -232,19 +233,7 @@ public class InventoryMoveItemEvent extends Event implements Cancellable {
         this.item = item;
     }
 
-    public Action getAction() {
+    public InventoryMoveItemAction getAction() {
         return action;
-    }
-
-    public enum Action {
-        /**
-         * Items are transferred between two inventories (e.g. hopper push/pull).
-         * One side may be {@code null} when moving items to/from the world (item entities).
-         */
-        TRANSFER,
-        /**
-         * Items are dispensed out of a dispenser or dropper into the world.
-         */
-        DISPENSE
     }
 }

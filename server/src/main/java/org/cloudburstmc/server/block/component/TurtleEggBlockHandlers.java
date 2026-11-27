@@ -13,6 +13,7 @@ import org.cloudburstmc.api.event.block.BlockGrowEvent;
 import org.cloudburstmc.api.event.entity.CreatureSpawnEvent;
 import org.cloudburstmc.api.event.entity.CreatureSpawnReason;
 import org.cloudburstmc.api.event.entity.EntityInteractEvent;
+import org.cloudburstmc.api.event.player.PlayerInteractAction;
 import org.cloudburstmc.api.event.player.PlayerInteractEvent;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
@@ -135,7 +136,7 @@ public class TurtleEggBlockHandlers {
                 return;
             }
 
-            interaction = new PlayerInteractEvent(player, null, block, null, PlayerInteractEvent.Action.PHYSICAL);
+            interaction = new PlayerInteractEvent(player, null, block, null, PlayerInteractAction.PHYSICAL);
         } else {
             if (!(entity instanceof LivingEntity) || !level.getGameRules().get(GameRules.MOB_GRIEFING)) {
                 return;

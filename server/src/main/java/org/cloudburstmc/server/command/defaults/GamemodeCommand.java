@@ -10,22 +10,25 @@ import org.cloudburstmc.api.command.CommandSourceStack;
 import org.cloudburstmc.api.command.Commands;
 import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
 import org.cloudburstmc.api.command.argument.CommandArguments;
-import org.cloudburstmc.api.event.player.PlayerGameModeChangeEvent;
+import org.cloudburstmc.api.event.player.PlayerGameModeChangeCause;
 import org.cloudburstmc.api.player.GameMode;
-import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.server.command.AdvertisedCommand;
 import org.cloudburstmc.server.command.CommandUtils;
+import org.cloudburstmc.server.command.argument.GameModeArguments;
 import org.cloudburstmc.server.command.network.CommandNetworkData;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.List;
-import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 public class GamemodeCommand extends AdvertisedCommand {
 
+    static final CommandNetworkData NETWORK_DATA = new CommandNetworkData(Set.of(), CommandPermission.GAME_DIRECTORS, Map.of());
+
     public GamemodeCommand() {
-        super("gamemode", "commands.gamemode.description", CommandNetworkData.DEFAULT,
-                "cloudburst.command.gamemode");
+        super("gamemode", "commands.gamemode.description", NETWORK_DATA, "cloudburst.command.gamemode");
     }
 
     @Override
@@ -40,7 +43,7 @@ public class GamemodeCommand extends AdvertisedCommand {
         builder.then(namedMode);
 
         RequiredArgumentBuilder<CommandSourceStack, Integer> numericMode =
-                Commands.argument("gameModeValue", CommandArgumentTypes.integer("gameMode", 0, 3))
+                Commands.argument("gameModeValue", CommandArgumentTypes.integer("gameMode"))
                         .executes(this::executeCommand);
         numericMode.then(Commands.argument("player", arguments.players())
                 .requires(Commands.requiresPermission("cloudburst.command.gamemode.other"))
@@ -51,12 +54,15 @@ public class GamemodeCommand extends AdvertisedCommand {
     @Override
     protected int execute(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSender sender = sender(context);
-        String gameModeValue = hasArgument(context, "gameMode")
+        String input = hasArgument(context, "gameMode")
                 ? argumentValue(context, "gameMode")
                 : String.valueOf(argumentValue(context, "gameModeValue", Integer.class));
-        GameMode gameMode = parseGameMode(gameModeValue);
+        GameMode gameMode = switch (input) {
+            case "default", "d", "5" -> sender.getServer().getDefaultGameMode();
+            default -> GameModeArguments.gameMode(input);
+        };
         if (gameMode == null) {
-            return failure(context, Component.text("Unknown game mode"));
+            return failure(context, Component.translatable("commands.gamemode.fail.invalid", Component.text(input)));
         }
 
         List<CloudPlayer> targets;
@@ -74,13 +80,13 @@ public class GamemodeCommand extends AdvertisedCommand {
 
         for (CloudPlayer target : targets) {
             if (target.getGameMode() == gameMode) {
-                sender.sendMessage(Component.text("Game mode update for " + target.getName() + " failed"));
+                sender.sendMessage(Component.translatable("cloudburst.command.gamemode.failed", Component.text(target.getName())));
                 continue;
             }
 
-            boolean changed = target.setGameMode(gameMode, PlayerGameModeChangeEvent.Cause.COMMAND);
+            boolean changed = target.setGameMode(gameMode, PlayerGameModeChangeCause.COMMAND);
             if (!changed) {
-                sender.sendMessage(Component.text("Game mode update for " + target.getName() + " failed"));
+                sender.sendMessage(Component.translatable("cloudburst.command.gamemode.failed", Component.text(target.getName())));
             } else if (target.equals(sender)) {
                 CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.gamemode.success.self", Component.translatable(gameMode)));
             } else {
@@ -91,13 +97,5 @@ public class GamemodeCommand extends AdvertisedCommand {
         }
 
         return success();
-    }
-
-    private static GameMode parseGameMode(String input) {
-        String value = input.toLowerCase(Locale.ROOT);
-        if ("default".equals(value) || "d".equals(value)) {
-            return CloudServer.getInstance().getGameMode();
-        }
-        return GameMode.from(value);
     }
 }

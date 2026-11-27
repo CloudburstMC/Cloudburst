@@ -14,7 +14,9 @@ import org.cloudburstmc.server.persistence.AtomicFiles;
 import tools.jackson.databind.node.ObjectNode;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -27,23 +29,31 @@ public class ServerConfigurations {
 
     private final ServerFileLayout layout;
     private final Path propertiesPath;
+    private final Map<String, String> propertyOverrides;
     private volatile Snapshot snapshot;
 
-    private ServerConfigurations(ServerFileLayout layout, Snapshot snapshot) {
+    private ServerConfigurations(ServerFileLayout layout, Map<String, String> propertyOverrides, Snapshot snapshot) {
         this.layout = layout;
         this.propertiesPath = layout.properties();
+        this.propertyOverrides = propertyOverrides;
         this.snapshot = snapshot;
     }
 
-    public static ServerConfigurations load(ServerFileLayout layout) {
+    /**
+     * Loads all settings and saves server properties, including the overrides, back to disk.
+     *
+     * @param propertyOverrides server property values that replace the values read from disk
+     */
+    public static ServerConfigurations load(ServerFileLayout layout, Map<String, String> propertyOverrides) {
         Objects.requireNonNull(layout, "layout");
-        ServerConfigurations configuration = new ServerConfigurations(layout, readSnapshot(layout, true, Set.of()));
+        Map<String, String> overrides = Map.copyOf(propertyOverrides);
+        ServerConfigurations configuration = new ServerConfigurations(layout, overrides, readSnapshot(layout, overrides, true, Set.of()));
         configuration.saveProperties(configuration.snapshot.properties());
         return configuration;
     }
 
     public synchronized void reload() {
-        Snapshot replacement = readSnapshot(layout, false, snapshot.runtimeSettings().keySet());
+        Snapshot replacement = readSnapshot(layout, propertyOverrides, false, snapshot.runtimeSettings().keySet());
         requireReloadable(snapshot, replacement);
         snapshot = replacement;
     }
@@ -110,100 +120,112 @@ public class ServerConfigurations {
         return snapshot.properties().getServerIp();
     }
 
-    public int getViewDistance() {
-        return snapshot.properties().getViewDistance();
-    }
-
-    public boolean isAchievements() {
-        return snapshot.properties().isAchievements();
-    }
-
-    public boolean isAnnouncePlayerAchievements() {
-        return snapshot.properties().isAnnouncePlayerAchievements();
+    public boolean isOnlineMode() {
+        return snapshot.properties().isOnlineMode();
     }
 
     public int getMaxPlayers() {
         return snapshot.properties().getMaxPlayers();
     }
 
-    public boolean isHardcore() {
-        return snapshot.properties().isHardcore();
+    public void setMaxPlayers(int value) {
+        updateProperties(properties -> properties.modifyMaxPlayers(value));
     }
 
-    public boolean isSpawnAnimals() {
-        return snapshot.properties().isSpawnAnimals();
+    public int getViewDistance() {
+        return snapshot.properties().getViewDistance();
     }
 
-    public boolean isSpawnMobs() {
-        return snapshot.properties().isSpawnMobs();
+    public int getSimulationDistance() {
+        return snapshot.properties().getSimulationDistance();
     }
 
-    public boolean isAllowFlight() {
-        return snapshot.properties().isAllowFlight();
-    }
-
-    public boolean isWhiteList() {
-        return snapshot.properties().isWhiteList();
+    public boolean isWhitelist() {
+        return snapshot.properties().isWhitelist();
     }
 
     public void setWhitelist(boolean value) {
         updateProperties(properties -> properties.modifyWhitelist(value));
     }
 
-    public String getDefaultLevel() {
-        return snapshot.properties().getDefaultLevel();
+    public boolean isEnforceWhitelist() {
+        return snapshot.properties().isEnforceWhitelist();
     }
 
-    public int getSpawnProtection() {
-        return snapshot.properties().getSpawnProtection();
+    public void setEnforceWhitelist(boolean value) {
+        updateProperties(properties -> properties.modifyEnforceWhitelist(value));
+    }
+
+    public String getLevelName() {
+        return snapshot.properties().getLevelName();
+    }
+
+    public GameMode getGamemode() {
+        return SettingNames.byName(GameMode.class, snapshot.properties().getGamemode());
+    }
+
+    public void setGamemode(GameMode gameMode) {
+        updateProperties(properties -> properties.modifyGamemode(SettingNames.name(gameMode)));
     }
 
     public boolean isForceGamemode() {
         return snapshot.properties().isForceGamemode();
     }
 
-    public boolean isPVP() {
-        return snapshot.properties().isPvp();
-    }
-
-    public boolean isGenerateStructures() {
-        return snapshot.properties().isGenerateStructures();
-    }
-
-    public boolean isAllowNether() {
-        return snapshot.properties().isAllowNether();
-    }
-
-    public boolean isAllowEnd() {
-        return snapshot.properties().isAllowEnd();
-    }
-
-    public boolean isAutoSave() {
-        return snapshot.properties().isAutoSave();
-    }
-
-    public boolean isForceResources() {
-        return snapshot.properties().isForceResources();
-    }
-
-    public boolean isXboxAuth() {
-        return snapshot.properties().isXboxAuth();
-    }
-
-    public GameMode getGamemode() {
-        return GameMode.from(snapshot.properties().getGamemode());
-    }
-
-    public void setGamemode(GameMode gameMode) {
-        updateProperties(properties -> properties.modifyGamemode(gameMode.getVanillaId()));
-    }
-
     public Difficulty getDifficulty() {
-        return Difficulty.fromId(snapshot.properties().getDifficulty());
+        return SettingNames.byName(Difficulty.class, snapshot.properties().getDifficulty());
     }
 
     public void setDifficulty(Difficulty difficulty) {
-        updateProperties(properties -> properties.modifyDifficulty(difficulty));
+        updateProperties(properties -> properties.modifyDifficulty(SettingNames.name(difficulty)));
+    }
+
+    public boolean isHardcore() {
+        return snapshot.properties().isHardcore();
+    }
+
+    public int getSpawnProtection() {
+        return snapshot.properties().getSpawnProtection();
+    }
+
+    public void setSpawnProtection(int value) {
+        updateProperties(properties -> properties.modifySpawnProtection(value));
+    }
+
+    public int getOpPermissionLevel() {
+        return snapshot.properties().getOpPermissionLevel();
+    }
+
+    public boolean isAllowFlight() {
+        return snapshot.properties().isAllowFlight();
+    }
+
+    public boolean isRequireResourcePack() {
+        return snapshot.properties().isRequireResourcePack();
+    }
+
+    public int getPlayerIdleTimeout() {
+        return snapshot.properties().getPlayerIdleTimeout();
+    }
+
+    public void setPlayerIdleTimeout(int value) {
+        updateProperties(properties -> properties.modifyPlayerIdleTimeout(value));
+    }
+
+    public int getNetworkCompressionThreshold() {
+        return snapshot.properties().getNetworkCompressionThreshold();
+    }
+
+    public int getRateLimit() {
+        return snapshot.properties().getRateLimit();
+    }
+
+    public boolean isLogIps() {
+        return snapshot.properties().isLogIps();
+    }
+
+    public long getMaxTickTime() {
+        return snapshot.properties().getMaxTickTime();
     }
 
     public GlobalConfiguration.Spark getSpark() {
@@ -275,23 +297,15 @@ public class ServerConfigurations {
         }
     }
 
-    private static Snapshot readSnapshot(ServerFileLayout layout, boolean create, Set<String> additionalLevels) {
+    private static Snapshot readSnapshot(ServerFileLayout layout, Map<String, String> propertyOverrides, boolean create, Set<String> additionalLevels) {
         Path propertiesPath = layout.properties();
-        DedicatedServerProperties properties;
-
         if (!create && !Files.exists(propertiesPath)) {
             throw new ConfigurationValidationException(propertiesPath, List.of(new ConfigurationProblem("<document>", null, "must exist before reloading")));
         }
 
-        try {
-            properties = Files.exists(propertiesPath)
-                    ? ServerConfigurationMappers.PROPERTIES.readValue(propertiesPath.toFile(), DedicatedServerProperties.class)
-                    : new DedicatedServerProperties();
-        } catch (RuntimeException e) {
-            throw SettingsValidation.mappingFailure(propertiesPath, e);
-        }
-
+        DedicatedServerProperties properties = readProperties(propertiesPath, propertyOverrides);
         SettingsValidation.validate(propertiesPath, properties);
+        requireNamedValues(propertiesPath, properties);
 
         try {
             Path globalFile = layout.global();
@@ -323,13 +337,49 @@ public class ServerConfigurations {
         }
     }
 
-    private static void requirePrimaryLevel(Path propertiesPath, DedicatedServerProperties properties, Map<String, LevelDefinition> levels) {
-        String name = properties.getDefaultLevel();
-        LevelDefinition primary = levels.get(name);
-        if (primary == null || primary.getDimension() != LevelDimension.OVERWORLD) {
-            throw new ConfigurationValidationException(propertiesPath, List.of(new ConfigurationProblem("default-level", name, "must name a configured Overworld level")));
+    private static DedicatedServerProperties readProperties(Path path, Map<String, String> overrides) {
+        Properties values = new Properties();
+        try {
+            if (Files.exists(path)) {
+                try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+                    values.load(reader);
+                }
+            }
+
+            values.putAll(overrides);
+            return values.isEmpty()
+                    ? new DedicatedServerProperties()
+                    : ServerConfigurationMappers.PROPERTIES.readPropertiesAs(values, DedicatedServerProperties.class);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Unable to read server properties: " + path, e);
+        } catch (RuntimeException e) {
+            throw SettingsValidation.mappingFailure(path, e);
         }
     }
+
+    private static void requirePrimaryLevel(Path propertiesPath, DedicatedServerProperties properties, Map<String, LevelDefinition> levels) {
+        String name = properties.getLevelName();
+        LevelDefinition primary = levels.get(name);
+        if (primary == null || primary.getDimension() != LevelDimension.OVERWORLD) {
+            throw new ConfigurationValidationException(propertiesPath, List.of(new ConfigurationProblem("level-name", name, "must name a configured Overworld level")));
+        }
+    }
+
+    private static void requireNamedValues(Path propertiesPath, DedicatedServerProperties properties) {
+        List<ConfigurationProblem> problems = new ArrayList<>();
+        if (SettingNames.byName(GameMode.class, properties.getGamemode()) == null) {
+            problems.add(new ConfigurationProblem("gamemode", properties.getGamemode(), "must name a game mode"));
+        }
+
+        if (SettingNames.byName(Difficulty.class, properties.getDifficulty()) == null) {
+            problems.add(new ConfigurationProblem("difficulty", properties.getDifficulty(), "must be one of peaceful, easy, normal or hard"));
+        }
+
+        if (!problems.isEmpty()) {
+            throw new ConfigurationValidationException(propertiesPath, problems);
+        }
+    }
+
 
     private void requireReloadable(Snapshot current, Snapshot replacement) {
         List<ConfigurationProblem> problems = new ArrayList<>();

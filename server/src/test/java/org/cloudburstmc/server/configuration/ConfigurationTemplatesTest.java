@@ -52,7 +52,7 @@ class ConfigurationTemplatesTest {
         String rendered = ConfigurationTemplates.render("cloudburst-level-defaults.yml", "fr_FR");
 
         assertTrue(rendered.contains("# Nombre de chunks envoyés aux joueurs par tick"));
-        assertTrue(rendered.contains("# Rayon de chunks autour d'un joueur à cocher"));
+        assertTrue(rendered.contains("# Nombre maximum de chunks traités à chaque tick"));
     }
 
     @Test

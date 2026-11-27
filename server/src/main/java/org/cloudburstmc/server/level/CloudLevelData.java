@@ -49,7 +49,7 @@ public class CloudLevelData {
     private float rainLevel;
     private float lightningLevel;
     private Difficulty difficulty = Difficulty.PEACEFUL;
-    private GameMode gameMode = GameMode.SURVIVAL;
+    private @Nullable GameMode gameMode = GameMode.SURVIVAL;
     private int netherScale;
     private long lastPlayed;
     private boolean hardcore;
@@ -132,8 +132,8 @@ public class CloudLevelData {
         this.difficulty = Objects.requireNonNull(difficulty, "difficulty");
     }
 
-    public void setGameMode(GameMode gameMode) {
-        this.gameMode = Objects.requireNonNull(gameMode, "gameMode");
+    public void setGameMode(@Nullable GameMode gameMode) {
+        this.gameMode = gameMode;
     }
 
     public void setAdditionalData(Map<String, Object> additionalData) {

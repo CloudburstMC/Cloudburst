@@ -13,6 +13,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -72,6 +73,16 @@ public class StoredJsonList<K, E> {
 
         Map<K, E> replacement = new LinkedHashMap<>(entries);
         replacement.remove(key);
+        save(replacement);
+        entries = Collections.unmodifiableMap(replacement);
+    }
+
+    /**
+     * Applies a change to a copy of the entries, then saves and publishes the copy.
+     */
+    protected synchronized void update(Consumer<Map<K, E>> change) {
+        Map<K, E> replacement = new LinkedHashMap<>(entries);
+        change.accept(replacement);
         save(replacement);
         entries = Collections.unmodifiableMap(replacement);
     }

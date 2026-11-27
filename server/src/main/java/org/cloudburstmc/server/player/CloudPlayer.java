@@ -29,7 +29,7 @@ import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRemoveCause;
 import org.cloudburstmc.api.event.entity.PotionEffectCause;
 import org.cloudburstmc.api.event.entity.TeleportCause;
-import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
+import org.cloudburstmc.api.event.inventory.InventoryCloseReason;
 import org.cloudburstmc.api.event.inventory.InventoryPickupArrowEvent;
 import org.cloudburstmc.api.event.inventory.InventoryPickupItemEvent;
 import org.cloudburstmc.api.event.player.*;
@@ -60,9 +60,9 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.netty.channel.nethernet.NetherNetChannel;
 import org.cloudburstmc.protocol.adventure.BedrockComponent;
 import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
+import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.data.*;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
@@ -70,12 +70,12 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.protocol.common.util.OptionalBoolean;
-import org.cloudburstmc.server.Achievement;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.component.BedBlockHandlers;
 import org.cloudburstmc.server.block.component.RespawnAnchorBlockHandlers;
 import org.cloudburstmc.server.boss.CloudBossBar;
+import org.cloudburstmc.server.command.CloudConsoleMessageRenderer;
 import org.cloudburstmc.server.command.network.CommandNetworkCompiler;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.Container;
@@ -122,6 +122,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -146,6 +147,9 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
     private final AuthenticatedPlayerData connectionData;
     private final PlayerPacketHandler packetHandler;
     private final GameplayPacketQueue inboundQueue;
+    private long lastActionTime = System.nanoTime();
+    private int connectionTicks;
+    private float averageReceivedPackets;
 
     @Getter
     protected boolean connected = true;
@@ -234,7 +238,6 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
     private long sleepStartedAt;
 
     private final PlayerSaveData saveData = new PlayerSaveData();
-    private final Set<String> achievements = new HashSet<>();
 
     @Getter
     protected final CloudPlayerFood foodData = new CloudPlayerFood(this);
@@ -264,7 +267,7 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
         this.session = session;
         this.packetHandler = new PlayerPacketHandler(this);
         this.server = CloudServer.getInstance();
-        this.saveData.setGameMode(this.server.getGameMode());
+        this.saveData.setGameMode(this.server.getDefaultGameMode());
         this.boundingBox = new BoundingBox(0, 0, 0, 0, 0, 0);
         this.lastSkinChange = -1;
 
@@ -284,7 +287,8 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
         this.armor.getContainer().addContainerListener(this);
         this.offhand.getContainer().addContainerListener(this);
 
-        this.inboundQueue = ((CloudNetherNetPeer) session.getPeer()).startGameplay(session, new SessionHandler());
+        this.inboundQueue = ((CloudNetherNetPeer) session.getPeer()).startGameplay(session, new SessionHandler(),
+                PacketLimiter.create(this.server.getConfig().getNetwork().getPacketLimits()));
     }
 
     public void loadLoginData() {
@@ -301,24 +305,24 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
             NbtMapBuilder tag = NbtMap.builder();
             oldPlayer.saveAdditionalData(tag);
             nbt = tag.build();
-            oldPlayer.close("", "disconnectionScreen.loggedinOtherLocation");
+            oldPlayer.disconnect(null, Component.translatable("disconnectionScreen.loggedinOtherLocation"), DisconnectFailReason.LOGGED_IN_OTHER_LOCATION, QuitReason.KICKED);
         } else {
             nbt = this.server.getOfflinePlayerData(this.getServerId(), true);
         }
 
         if (nbt == null) {
-            this.close(this.leaveMessage(), "Invalid data");
+            this.disconnect(this.leaveMessage(), Component.translatable("disconnectionScreen.title.errorEncountered"), DisconnectFailReason.UNKNOWN, QuitReason.ERRONEOUS_STATE);
             return;
         }
 
-        if (this.connectionData.isAuthenticated() || !this.server.getConfig().isXboxAuth()) {
+        if (this.connectionData.isAuthenticated() || !this.server.getConfig().isOnlineMode()) {
             server.updateName(this.getServerId(), this.username);
         }
 
         this.loadAdditionalData(nbt);
 
         if (this.server.getForceGamemode()) {
-            this.setGameMode(this.server.getGameMode(), PlayerGameModeChangeEvent.Cause.DEFAULT_GAMEMODE);
+            this.setGameMode(this.server.getDefaultGameMode(), PlayerGameModeChangeCause.DEFAULT_GAMEMODE);
         }
 
         this.abilities = buildAbilitiesForGameMode(this.getGameMode());
@@ -350,8 +354,8 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
         startGamePacket.setSeed(-1L);
         startGamePacket.setDimensionId(this.getLevel().getDimension());
         startGamePacket.setTrustingPlayers(false);
-        startGamePacket.setLevelGameType(GameModeNetworkMapping.forStartGame(this.server.getGameMode()));
-        startGamePacket.setDifficulty(this.server.getDifficulty().getId());
+        startGamePacket.setLevelGameType(GameModeNetworkMapping.forStartGame(this.server.getDefaultGameMode()));
+        startGamePacket.setDifficulty(this.server.getDifficulty().getValue());
         startGamePacket.setDefaultSpawn(this.getLevel().getSpawnLocation().toInt());
         startGamePacket.setAchievementsDisabled(true);
         startGamePacket.setDayCycleStopTime(LevelTimePacketFactory.networkTime(this.getPlayerTime()));
@@ -561,7 +565,7 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
     }
 
     private String getLoggableAddress() {
-        return NetworkUtils.loggableAddress(this.getSocketAddress(), this.server.getConfig().getPlayer().isLogPlayerAddresses());
+        return NetworkUtils.loggableAddress(this.getSocketAddress(), this.server.getConfig().isLogIps());
     }
 
     @Override
@@ -663,7 +667,7 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
     public BanEntry<UUID> ban(@Nullable String reason, @Nullable Instant expiration, @Nullable String source, boolean kick) {
         BanEntry<UUID> entry = this.server.getPlayerBanList().addBan(this.getServerId(), reason, expiration, source);
         if (kick && !entry.isExpired()) {
-            this.kick(KickReason.PLAYER_BANNED, entry.reason());
+            this.kick(BanMessages.player(entry), KickCause.BANNED);
         }
 
         return entry;
@@ -727,10 +731,10 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
 
     @Override
     public void setGameMode(GameMode gameMode) {
-        this.setGameMode(gameMode, PlayerGameModeChangeEvent.Cause.PLUGIN);
+        this.setGameMode(gameMode, PlayerGameModeChangeCause.PLUGIN);
     }
 
-    public boolean setGameMode(GameMode gameMode, PlayerGameModeChangeEvent.Cause cause) {
+    public boolean setGameMode(GameMode gameMode, PlayerGameModeChangeCause cause) {
         if (this.getGameMode() == gameMode) {
             return false;
         }
@@ -921,7 +925,54 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
             return;
         }
 
-        this.inboundQueue.drain(this.packetHandler::handlePacket);
+        this.inboundQueue.drain(this::handleInboundPacket);
+    }
+
+    private void handleInboundPacket(BedrockPacket packet) {
+        if (!this.isConnected()) {
+            return;
+        }
+
+        try {
+            this.packetHandler.handlePacket(packet);
+        } catch (RuntimeException failure) {
+            log.error("Failed to handle {} from {}", packet.getClass().getSimpleName(), this.getName(), failure);
+            this.disconnect(this.leaveMessage(), Component.translatable("disconnectionScreen.title.errorEncountered"), DisconnectFailReason.UNKNOWN, QuitReason.ERRONEOUS_STATE);
+        }
+    }
+
+    /**
+     * Records player activity that defers the idle timeout.
+     */
+    public void resetLastActionTime() {
+        this.lastActionTime = System.nanoTime();
+    }
+
+    /**
+     * Disconnects the player when the idle timeout or the packet rate limit is exceeded.
+     */
+    public void tickConnection() {
+        if (!this.isConnected() || !this.loggedIn) {
+            return;
+        }
+
+        int idleTimeout = this.server.getConfig().getPlayerIdleTimeout();
+        if (idleTimeout > 0 && System.nanoTime() - this.lastActionTime > TimeUnit.MINUTES.toNanos(idleTimeout)) {
+            this.kick(Component.translatable("disconnectionScreen.body.idleTooLong"), KickCause.IDLING);
+            return;
+        }
+
+        if (++this.connectionTicks % 20 != 0) {
+            return;
+        }
+
+        int received = this.inboundQueue.takeReceivedCount();
+        this.averageReceivedPackets = received + 0.75f * (this.averageReceivedPackets - received);
+        int rateLimit = this.server.getConfig().getRateLimit();
+        if (rateLimit > 0 && this.averageReceivedPackets > rateLimit) {
+            log.warn("{} exceeded the rate limit ({} packets per second)", this.getName(), this.averageReceivedPackets);
+            this.kick(Component.translatable("disconnect.spam"), KickCause.SPAM);
+        }
     }
 
     public void flushNetworkUpdates() {
@@ -977,94 +1028,39 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
         this.sendPacket(pk);
     }
 
-    public boolean kick() {
-        return this.kick("");
-    }
-
-    public boolean kick(String reason, boolean isAdmin) {
-        return this.kick(KickReason.UNKNOWN, reason, isAdmin);
-    }
-
-    public boolean kick(String reason) {
-        return kick(KickReason.UNKNOWN, reason);
-    }
-
-    public boolean kick(KickReason reason) {
-        return this.kick(reason, true);
-    }
-
-    public boolean kick(KickReason reason, String reasonString) {
-        return this.kick(reason, reasonString, true);
-    }
-
-    public boolean kick(KickReason reason, boolean isAdmin) {
-        return this.kick(reason, reason.toString(), isAdmin);
-    }
-
-    public boolean kick(KickReason reason, String reasonString, boolean isAdmin) {
-        PlayerKickEvent ev;
-        this.server.getEventManager().fire(ev = new PlayerKickEvent(this, reason, reasonString, this.leaveMessage()));
-        if (!ev.isCancelled()) {
-            String message;
-            if (isAdmin) {
-                if (!this.isBanned()) {
-                    message = "Kicked by admin." + (!reasonString.isEmpty() ? " Reason: " + reasonString : "");
-                } else {
-                    message = reasonString;
-                }
-            } else {
-                if (reasonString.isEmpty()) {
-                    message = "disconnectionScreen.noReason";
-                } else {
-                    message = reasonString;
-                }
-            }
-
-            this.close(ev.getQuitMessage(), message);
-
-            return true;
+    @Override
+    public void kick(@Nullable Component message, KickCause cause) {
+        Component reason = message == null ? Component.translatable("disconnect.kicked") : message;
+        PlayerKickEvent event = new PlayerKickEvent(this, reason, this.leaveMessage(), cause);
+        this.server.getEventManager().fire(event);
+        if (!event.isCancelled()) {
+            this.disconnect(event.leaveMessage(), event.reason(), disconnectReason(cause), QuitReason.KICKED);
         }
-
-        return false;
-    }
-
-    @Override
-    public void kick(Component reason) {
-        this.kick(reason, KickReason.UNKNOWN);
-    }
-
-    @Override
-    public void kick(Component reason, KickReason cause) {
-        String reasonString = PlainTextComponentSerializer.plainText().serialize(reason);
-        this.kick(cause, reasonString, true);
     }
 
     @Override
     public void close() {
-        this.close("");
+        this.disconnect(null, Component.translatable("disconnectionScreen.noReason"), DisconnectFailReason.DISCONNECTED, QuitReason.KICKED);
     }
 
-    public void close(String message) {
-        this.close(message, "generic");
+    private static DisconnectFailReason disconnectReason(KickCause cause) {
+        return switch (cause) {
+            case WHITELIST -> DisconnectFailReason.NOT_ALLOWED;
+            case IDLING -> DisconnectFailReason.KICKED_FOR_IDLE;
+            case FLYING_PLAYER, INVALID_ENTITY_ATTACKED, SPAM -> DisconnectFailReason.KICKED_FOR_EXPLOIT;
+            case PLUGIN, KICKED, BANNED, IP_BANNED, UNKNOWN -> DisconnectFailReason.KICKED;
+        };
     }
 
-    public void close(String message, String reason) {
-        this.close(message, reason, true);
-    }
-
-    public void close(String message, String reason, boolean notify) {
-        this.close(message.isEmpty() ? null : Component.text(message), reason, notify);
-    }
-
-    public void close(Component message) {
-        this.close(message, "generic");
-    }
-
-    public void close(Component message, String reason) {
-        this.close(message, reason, true);
-    }
-
-    public void close(@Nullable Component message, String reason, boolean notify) {
+    /**
+     * Disconnects the player without a kick event.
+     *
+     * @param quitMessage the message broadcast to other players, or null to omit it
+     * @param reason      the message shown to the player when the server ends the connection
+     * @param failReason  the disconnect category reported to the client
+     * @param quitReason  how the connection ended, as reported to {@link PlayerQuitEvent}
+     */
+    public void disconnect(@Nullable Component quitMessage, Component reason, DisconnectFailReason failReason, QuitReason quitReason) {
         if (this.connected && !this.isClosed()) {
             List.copyOf(this.bossBars).forEach(bossBar -> bossBar.removePlayer(this));
             this.connected = false;
@@ -1073,7 +1069,7 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
 
             if (this.getName() != null && !this.getName().isEmpty()) {
                 if (this.initialized) {
-                    this.server.getEventManager().fire(ev = new PlayerQuitEvent(this, message, true, reason));
+                    this.server.getEventManager().fire(ev = new PlayerQuitEvent(this, quitMessage, quitReason));
                 }
 
                 if (this.loggedIn && (ev == null || ev.getAutoSave())) {
@@ -1091,14 +1087,14 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
 
             this.hiddenPlayers.clear();
 
-            this.closeInventory(InventoryCloseEvent.Reason.DISCONNECT);
+            this.closeInventory(InventoryCloseReason.DISCONNECT);
 
             this.getChunkManager().unpairReadyEntities();
 
             super.remove(EntityRemoveCause.PLAYER_QUIT);
 
             if (this.session.getPeer().isConnected()) {
-                this.session.disconnect(notify ? reason : "");
+                ((CloudNetherNetPeer) this.session.getPeer()).disconnectSession(this.session, failReason, reason, this.getLocale());
             }
 
             if (this.loggedIn) {
@@ -1107,8 +1103,8 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
 
             this.loggedIn = false;
 
-            if (ev != null && !Objects.equals(this.username, "") && this.initialized && ev.getQuitMessage() != null) {
-                this.server.broadcast(ev.getQuitMessage());
+            if (ev != null && !Objects.equals(this.username, "") && this.initialized && ev.quitMessage() != null) {
+                this.server.broadcast(ev.quitMessage());
             }
 
             this.spawned = false;
@@ -1116,7 +1112,7 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
             log.info(this.getServer().getLanguage().translate("cloudburst.player.logOut",
                     "§b" + (this.getName() == null ? "" : this.getName()) + "§r",
                     this.getLoggableAddress(),
-                    this.getServer().getLanguage().translate(reason))
+                    PlainTextComponentSerializer.plainText().serialize(CloudConsoleMessageRenderer.render(reason, this.getServer().getLanguage())))
             );
             this.clearViewers();
             this.spawnLocation = null;
@@ -1169,10 +1165,10 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
 
     @Override
     public void setSpawn(Location location) {
-        setSpawn(location, PlayerSetSpawnEvent.Cause.PLUGIN);
+        setSpawn(location, PlayerSetSpawnCause.PLUGIN);
     }
 
-    public void setSpawn(Location location, PlayerSetSpawnEvent.Cause cause) {
+    public void setSpawn(Location location, PlayerSetSpawnCause cause) {
         checkNotNull(location, "location");
         Location previous = this.spawnLocation;
         PlayerSetSpawnEvent event = new PlayerSetSpawnEvent(this, cause, previous, location, true, false, null);
@@ -1209,7 +1205,7 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
         }
 
         Location previous = this.spawnLocation;
-        PlayerSetSpawnEvent event = new PlayerSetSpawnEvent(this, PlayerSetSpawnEvent.Cause.RESET, previous, null, false, false, null);
+        PlayerSetSpawnEvent event = new PlayerSetSpawnEvent(this, PlayerSetSpawnCause.RESET, previous, null, false, false, null);
         this.server.getEventManager().fire(event);
         if (event.isCancelled()) {
             return;
@@ -1298,7 +1294,7 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
 
     private void setSpawnFromBed(Vector3i blockPos, Location location) {
         Location previous = this.spawnLocation;
-        PlayerSetSpawnEvent event = new PlayerSetSpawnEvent(this, PlayerSetSpawnEvent.Cause.BED, previous, location, false, true, Component.translatable("tile.bed.respawnSet"));
+        PlayerSetSpawnEvent event = new PlayerSetSpawnEvent(this, PlayerSetSpawnCause.BED, previous, location, false, true, Component.translatable("tile.bed.respawnSet"));
         this.server.getEventManager().fire(event);
         if (event.isCancelled()) {
             return;
@@ -1330,7 +1326,7 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
 
         Location previous = this.spawnLocation;
         PlayerSetSpawnEvent event = new PlayerSetSpawnEvent(
-                this, PlayerSetSpawnEvent.Cause.RESPAWN_ANCHOR, previous, location,
+                this, PlayerSetSpawnCause.RESPAWN_ANCHOR, previous, location,
                 false, true, Component.translatable("tile.respawn_anchor.respawnSet")
         );
         this.server.getEventManager().fire(event);
@@ -2121,7 +2117,7 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
             if (!this.isOnline()) {
                 return true;
             }
-            this.closeInventory(InventoryCloseEvent.Reason.TELEPORT);
+            this.closeInventory(InventoryCloseReason.TELEPORT);
 
             this.teleportPosition = this.getPosition();
             this.getChunkManager().queueNewChunks(this.teleportPosition);
@@ -2303,8 +2299,8 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
         packet.setPlatformChatId("");
         packet.setDeviceId("");
         packet.setGameType(GameModeNetworkMapping.forPlayer(this.getGameMode()));
-        packet.setCommandPermission(CommandPermission.ANY);
-        packet.setPlayerPermission(PlayerPermission.MEMBER);
+        packet.setCommandPermission(this.abilities.commandPermission());
+        packet.setPlayerPermission(this.abilities.playerPermission());
         packet.getAbilityLayers().add(this.abilities.buildBaseLayer());
         packet.getMetadata().putAll(this.getData().snapshot());
         return packet;
@@ -2402,10 +2398,10 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
 
     @Override
     public void closeInventory() {
-        closeInventory(InventoryCloseEvent.Reason.PLUGIN);
+        closeInventory(InventoryCloseReason.PLUGIN);
     }
 
-    public void closeInventory(InventoryCloseEvent.Reason reason) {
+    public void closeInventory(InventoryCloseReason reason) {
         this.invManager.closeScreen(reason);
     }
 
@@ -3019,12 +3015,6 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
             return false;
         }
 
-        if (item.getBlockState().filter(state -> state.is(BlockTags.LOG)).isPresent()) {
-            this.awardAchievement("mineWood");
-        } else if (item.getType() == ItemTypes.DIAMOND) {
-            this.awardAchievement("diamond");
-        }
-
         ItemStack[] remaining = this.getContainer().addItem(item);
         if (remaining.length != 0) {
             throw new IllegalStateException("Inventory accepted an item pickup but failed to insert it");
@@ -3071,37 +3061,6 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
         CloudServer.broadcastPacket(entity.getViewers(), packet);
         this.sendPacket(packet);
         entity.remove(EntityRemoveCause.PICKUP);
-    }
-
-    public boolean hasAchievement(String achievementId) {
-        return this.achievements.contains(achievementId);
-    }
-
-    private void awardAchievement(String achievementId) {
-        if (!CloudServer.getInstance().getConfig().isAchievements()) {
-            return;
-        }
-
-        Achievement achievement = Achievement.achievements.get(achievementId);
-        if (achievement == null || hasAchievement(achievementId)) {
-            return;
-        }
-
-        for (String id : achievement.requires()) {
-            if (!this.hasAchievement(id)) {
-                return;
-            }
-        }
-
-        PlayerAchievementAwardedEvent event = new PlayerAchievementAwardedEvent(this, achievementId);
-        this.server.getEventManager().fire(event);
-
-        if (event.isCancelled()) {
-            return;
-        }
-
-        this.achievements.add(achievementId);
-        achievement.broadcast(this);
     }
 
     @Override
@@ -3608,43 +3567,37 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
 
     @Override
     public void clearTitle() {
-        SetTitlePacket packet = new SetTitlePacket();
-        packet.setType(SetTitlePacket.Type.CLEAR);
-        packet.setText("");
-        this.sendPacket(packet);
+        this.sendTitlePacket(SetTitlePacket.Type.CLEAR, "", 0, 0, 0);
     }
 
     @Override
     public void resetTitle() {
-        SetTitlePacket packet = new SetTitlePacket();
-        packet.setType(SetTitlePacket.Type.RESET);
-        packet.setText("");
-        this.sendPacket(packet);
+        this.sendTitlePacket(SetTitlePacket.Type.RESET, "", 0, 0, 0);
     }
 
     @Override
     public void sendSubtitle(Component subtitle) {
-        SetTitlePacket packet = new SetTitlePacket();
-        packet.setType(SetTitlePacket.Type.SUBTITLE);
-        packet.setText(new BedrockComponent(subtitle));
-        this.sendPacket(packet);
+        this.sendTitlePacket(SetTitlePacket.Type.SUBTITLE, new BedrockComponent(subtitle), 0, 0, 0);
     }
 
     @Override
     public void setTitleTimes(int fadeIn, int duration, int fadeOut) {
-        SetTitlePacket packet = new SetTitlePacket();
-        packet.setType(SetTitlePacket.Type.TIMES);
-        packet.setFadeInTime(fadeIn);
-        packet.setStayTime(duration);
-        packet.setFadeOutTime(fadeOut);
-        packet.setText("");
-        this.sendPacket(packet);
+        this.sendTitlePacket(SetTitlePacket.Type.TIMES, "", fadeIn, duration, fadeOut);
     }
 
     private void setTitle(Component text) {
+        this.sendTitlePacket(SetTitlePacket.Type.TITLE, new BedrockComponent(text), 0, 0, 0);
+    }
+
+    private void sendTitlePacket(SetTitlePacket.Type type, CharSequence text, int fadeIn, int stay, int fadeOut) {
         SetTitlePacket packet = new SetTitlePacket();
-        packet.setType(SetTitlePacket.Type.TITLE);
-        packet.setText(new BedrockComponent(text));
+        packet.setType(type);
+        packet.setText(text);
+        packet.setFadeInTime(fadeIn);
+        packet.setStayTime(stay);
+        packet.setFadeOutTime(fadeOut);
+        packet.setXuid("");
+        packet.setPlatformOnlineId("");
         this.sendPacket(packet);
     }
 
@@ -3699,13 +3652,7 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
 
     @Override
     public void sendActionBar(Component title, int fadeIn, int duration, int fadeout) {
-        SetTitlePacket packet = new SetTitlePacket();
-        packet.setType(SetTitlePacket.Type.ACTIONBAR);
-        packet.setText(new BedrockComponent(title));
-        packet.setFadeInTime(fadeIn);
-        packet.setStayTime(duration);
-        packet.setFadeOutTime(fadeout);
-        this.sendPacket(packet);
+        this.sendTitlePacket(SetTitlePacket.Type.ACTIONBAR, new BedrockComponent(title), fadeIn, duration, fadeout);
     }
 
     private int ticks(Duration duration) {
@@ -3861,11 +3808,13 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
 
         @Override
         public void onDisconnect(CharSequence reason) {
-            String disconnectReason = reason.toString();
+            Component disconnectReason = Component.translatable(reason.toString());
+            QuitReason quitReason = BedrockDisconnectReasons.TIMEOUT.contentEquals(reason) ? QuitReason.TIMED_OUT : QuitReason.DISCONNECTED;
+            Runnable disconnect = () -> CloudPlayer.this.disconnect(null, disconnectReason, DisconnectFailReason.DISCONNECTED, quitReason);
             if (CloudPlayer.this.server.isPrimaryThread()) {
-                CloudPlayer.this.close("", disconnectReason);
+                disconnect.run();
             } else {
-                CloudPlayer.this.server.getGlobalScheduler().execute(null, () -> CloudPlayer.this.close("", disconnectReason));
+                CloudPlayer.this.server.getGlobalScheduler().execute(null, disconnect);
             }
         }
     }

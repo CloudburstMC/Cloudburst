@@ -425,7 +425,7 @@ public class CloudTargetSelectorParser {
             throw ERROR_INVALID_SELECTOR_OPTION.createWithContext(this.reader, option);
         }
 
-        GameMode parsed = GameMode.from(mode.toLowerCase(Locale.ROOT));
+        GameMode parsed = GameModeArguments.gameMode(mode);
         if (parsed == null) {
             throw ERROR_INVALID_SELECTOR_OPTION.createWithContext(this.reader, option);
         }

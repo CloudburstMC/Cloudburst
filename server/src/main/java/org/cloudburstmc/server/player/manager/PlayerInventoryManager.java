@@ -5,6 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
+import org.cloudburstmc.api.event.inventory.InventoryCloseReason;
 import org.cloudburstmc.api.event.inventory.InventoryOpenEvent;
 import org.cloudburstmc.api.inventory.VirtualContainerScreen;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
@@ -66,7 +67,7 @@ public class PlayerInventoryManager {
 
         this.openingScreen = true;
         try {
-            this.closeScreen(InventoryCloseEvent.Reason.OPEN_NEW);
+            this.closeScreen(InventoryCloseReason.OPEN_NEW);
             if (this.closingWindowId != null) {
                 this.pendingScreen = screen;
                 return;
@@ -94,7 +95,7 @@ public class PlayerInventoryManager {
             } catch (Exception e) {
                 try {
                     if (this.currentScreen == screen) {
-                        this.closeScreen(InventoryCloseEvent.Reason.CANT_USE);
+                        this.closeScreen(InventoryCloseReason.CANT_USE);
                     }
                 } catch (Exception cleanupFailure) {
                     e.addSuppressed(cleanupFailure);
@@ -113,16 +114,16 @@ public class PlayerInventoryManager {
             return false;
         }
 
-        this.closeScreen(InventoryCloseEvent.Reason.CANT_USE);
+        this.closeScreen(InventoryCloseReason.CANT_USE);
         return true;
     }
 
-    public void closeScreen(InventoryCloseEvent.Reason reason) {
+    public void closeScreen(InventoryCloseReason reason) {
         this.pendingScreen = null;
         this.closeScreen(reason, null);
     }
 
-    private void closeScreen(InventoryCloseEvent.Reason reason, @Nullable ContainerClosePacket request) {
+    private void closeScreen(InventoryCloseReason reason, @Nullable ContainerClosePacket request) {
         CloudInventoryScreen screen = this.currentScreen;
         if (screen == null) {
             return;
@@ -183,7 +184,7 @@ public class PlayerInventoryManager {
         Window active = this.window;
         if (active != null && (active.id() == packet.getId() || packet.getId() == ContainerId.NONE)) {
             boolean rejected = packet.getId() == ContainerId.NONE;
-            this.closeScreen(rejected ? InventoryCloseEvent.Reason.CANT_USE : InventoryCloseEvent.Reason.PLAYER, packet);
+            this.closeScreen(rejected ? InventoryCloseReason.CANT_USE : InventoryCloseReason.PLAYER, packet);
         } else {
             this.player.sendPacket(packet);
         }

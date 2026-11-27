@@ -20,7 +20,7 @@ import org.cloudburstmc.api.player.Player;
  */
 public final class PlayerSetSpawnEvent extends PlayerEvent implements Cancellable {
 
-    private final Cause cause;
+    private final PlayerSetSpawnCause cause;
     @Nullable
     private final Location previousSpawn;
 
@@ -33,7 +33,7 @@ public final class PlayerSetSpawnEvent extends PlayerEvent implements Cancellabl
 
     public PlayerSetSpawnEvent(
             @NonNull Player player,
-            @NonNull Cause cause,
+            @NonNull PlayerSetSpawnCause cause,
             @Nullable Location previousSpawn,
             @Nullable Location newSpawn,
             boolean forced,
@@ -53,7 +53,7 @@ public final class PlayerSetSpawnEvent extends PlayerEvent implements Cancellabl
      * Why the spawn is being changed.
      */
     @NonNull
-    public Cause getCause() {
+    public PlayerSetSpawnCause getCause() {
         return cause;
     }
 
@@ -129,36 +129,5 @@ public final class PlayerSetSpawnEvent extends PlayerEvent implements Cancellabl
      */
     public void setNotification(@Nullable Component notification) {
         this.notification = notification;
-    }
-
-    public enum Cause {
-        /**
-         * Player slept in a bed.
-         */
-        BED,
-        /**
-         * Player interacted with a charged respawn anchor.
-         */
-        RESPAWN_ANCHOR,
-        /**
-         * The server is updating the player's tracked spawn as part of the respawn sequence.
-         */
-        PLAYER_RESPAWN,
-        /**
-         * {@code /spawnpoint} command or equivalent.
-         */
-        COMMAND,
-        /**
-         * Plugin directly called {@code setSpawn()}.
-         */
-        PLUGIN,
-        /**
-         * Spawn point is being cleared (set to null / world spawn).
-         */
-        RESET,
-        /**
-         * Cause could not be determined.
-         */
-        UNKNOWN
     }
 }

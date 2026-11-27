@@ -47,10 +47,6 @@ public class LevelConfiguration {
 
         @Builder.Default
         @SettingConstraint(min = 0)
-        private int tickRadius = 3;
-
-        @Builder.Default
-        @SettingConstraint(min = 0)
         private int perTick = 40;
 
         @Builder.Default
@@ -72,14 +68,6 @@ public class LevelConfiguration {
             isGetterVisibility = JsonAutoDetect.Visibility.NONE)
     @JsonNaming(PropertyNamingStrategies.KebabCaseStrategy.class)
     public static class ChunkSending {
-
-        @Builder.Default
-        @SettingConstraint(min = 0, minInclusive = false)
-        private int maxChunkRadius = 48;
-
-        @Builder.Default
-        @SettingConstraint(min = 0, minInclusive = false)
-        private int maxLoadedChunkRadius = 10;
 
         @Builder.Default
         @SettingConstraint(min = 0, minInclusive = false)

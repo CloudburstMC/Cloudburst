@@ -8,6 +8,7 @@ import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import lombok.extern.log4j.Log4j2;
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.component.AttackBlockHandler;
@@ -16,7 +17,7 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.misc.ExperienceOrb;
 import org.cloudburstmc.api.event.entity.PotionEffectCause;
-import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
+import org.cloudburstmc.api.event.inventory.InventoryCloseReason;
 import org.cloudburstmc.api.event.player.*;
 import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemDataComponents;
@@ -27,7 +28,6 @@ import org.cloudburstmc.api.item.component.StabHandler;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Ability;
 import org.cloudburstmc.api.player.ExhaustionReason;
-import org.cloudburstmc.api.player.KickReason;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.registry.GlobalRegistry;
 import org.cloudburstmc.api.util.Direction;
@@ -89,6 +89,15 @@ import java.util.concurrent.TimeUnit;
  */
 @Log4j2
 public class PlayerPacketHandler implements BedrockPacketHandler {
+
+    private static final Set<PlayerAuthInputData> ACTIVE_INPUTS = EnumSet.of(
+            PlayerAuthInputData.JUMP_DOWN, PlayerAuthInputData.SNEAK_DOWN, PlayerAuthInputData.SPRINT_DOWN,
+            PlayerAuthInputData.WANT_UP, PlayerAuthInputData.WANT_DOWN,
+            PlayerAuthInputData.PERFORM_ITEM_INTERACTION, PlayerAuthInputData.PERFORM_BLOCK_ACTIONS,
+            PlayerAuthInputData.PERFORM_ITEM_STACK_REQUEST, PlayerAuthInputData.MISSED_SWING,
+            PlayerAuthInputData.START_USING_ITEM
+    );
+
     private final CloudPlayer player;
 
     protected Vector3i lastRightClickPos = Vector3i.ZERO;
@@ -166,6 +175,9 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         player.setScaffoldDescentInput(inputData.contains(PlayerAuthInputData.DESCEND_BLOCK));
         processInputFlags(inputData);
         processContinuousInputState(inputData);
+        if (isActiveInput(packet)) {
+            player.resetLastActionTime();
+        }
 
         processMovement(packet);
         player.applyInputMovement();
@@ -192,6 +204,21 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
 
         return PacketSignal.HANDLED;
+    }
+
+    private static boolean isActiveInput(PlayerAuthInputPacket packet) {
+        Vector2f move = packet.getRawMoveVector();
+        if (move != null && (move.getX() != 0 || move.getY() != 0)) {
+            return true;
+        }
+
+        for (PlayerAuthInputData input : packet.getInputData()) {
+            if (ACTIVE_INPUTS.contains(input)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void processContinuousInputState(Set<PlayerAuthInputData> inputData) {
@@ -390,7 +417,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         clearBlockBreak();
         this.completedInstantBreakPosition = null;
 
-        PlayerInteractEvent.Action action = targetState == BlockStates.AIR ? PlayerInteractEvent.Action.LEFT_CLICK_AIR : PlayerInteractEvent.Action.LEFT_CLICK_BLOCK;
+        PlayerInteractAction action = targetState == BlockStates.AIR ? PlayerInteractAction.LEFT_CLICK_AIR : PlayerInteractAction.LEFT_CLICK_BLOCK;
         PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(player, tool, target, face, action);
         player.getServer().getEventManager().fire(playerInteractEvent);
         if (playerInteractEvent.isCancelled()) {
@@ -777,7 +804,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
 
         Vector3f directionVector = player.getDirectionVector();
-        PlayerInteractEvent interactEvent = new PlayerInteractEvent(player, useItem, directionVector, face, PlayerInteractEvent.Action.RIGHT_CLICK_AIR);
+        PlayerInteractEvent interactEvent = new PlayerInteractEvent(player, useItem, directionVector, face, PlayerInteractAction.RIGHT_CLICK_AIR);
         player.getServer().getEventManager().fire(interactEvent);
 
         if (interactEvent.isCancelled()) {
@@ -983,7 +1010,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     break;
                 case START_FLYING:
                     if (!player.getServer().getAllowFlight() && !player.getAbilities().get(org.cloudburstmc.api.player.Ability.MAY_FLY)) {
-                        player.kick(KickReason.FLYING_DISABLED, "Flying is not enabled on player server");
+                        player.kick(Component.translatable("cloudburst.disconnect.flying"), KickCause.FLYING_PLAYER);
                     } else {
                         PlayerToggleFlightEvent flightEvent = new PlayerToggleFlightEvent(player, true);
                         player.getServer().getEventManager().fire(flightEvent);
@@ -1071,6 +1098,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (!player.isSpawned()) {
             return PacketSignal.HANDLED;
         }
+
+        player.resetLastActionTime();
         if (packet.getRuntimeEntityId() != player.getRuntimeId()) {
             log.warn("{} sent EmotePacket with invalid entity id: {} != {}", player.getName(), packet.getRuntimeEntityId(), player.getRuntimeId());
             return PacketSignal.HANDLED;
@@ -1092,6 +1121,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (!player.spawned || !player.isAlive()) {
             return PacketSignal.HANDLED;
         }
+
+        player.resetLastActionTime();
 
         if (packet.getContainerId() != ContainerId.INVENTORY) {
             return PacketSignal.HANDLED;
@@ -1131,7 +1162,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return null;
         }
 
-        player.closeInventory(InventoryCloseEvent.Reason.DEATH);
+        player.closeInventory(InventoryCloseReason.DEATH);
         resetInteractionState();
         player.stopSleep();
 
@@ -1225,6 +1256,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return PacketSignal.HANDLED;
         }
 
+        player.resetLastActionTime();
+
         packet.setRuntimeEntityId(player.getRuntimeId());
 
         switch (packet.getAction()) {
@@ -1258,6 +1291,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return PacketSignal.HANDLED;
         }
 
+        if (packet.getAction() != InteractPacket.Action.MOUSEOVER) {
+            player.resetLastActionTime();
+        }
+
         // player.getCraftingInventory().resetCraftingGrid();
 
         Entity targetEntity = player.getLevel().getEntityByRuntimeId(packet.getRuntimeEntityId());
@@ -1267,7 +1304,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
 
         if (targetEntity instanceof DroppedItem || targetEntity instanceof EntityArrow || targetEntity instanceof ExperienceOrb) {
-            player.kick(KickReason.INVALID_PVE, "Attempting to interact with an invalid entity");
+            player.kick(Component.translatable("cloudburst.disconnect.invalidEntityAttacked"), KickCause.INVALID_ENTITY_ATTACKED);
             log.warn(player.getServer().getLanguage().translate("cloudburst.player.invalidEntity", player.getName()));
             return PacketSignal.HANDLED;
         }
@@ -1380,12 +1417,16 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return PacketSignal.HANDLED;
         }
 
-        PlayerAnimationEvent.Type animationType = switch (packet.getAction()) {
-            case NO_ACTION -> PlayerAnimationEvent.Type.NO_ACTION;
-            case SWING_ARM -> PlayerAnimationEvent.Type.SWING_ARM;
-            case WAKE_UP -> PlayerAnimationEvent.Type.WAKE_UP;
-            case CRITICAL_HIT -> PlayerAnimationEvent.Type.CRITICAL_HIT;
-            case MAGIC_CRITICAL_HIT -> PlayerAnimationEvent.Type.MAGIC_CRITICAL_HIT;
+        if (packet.getAction() == AnimatePacket.Action.SWING_ARM) {
+            player.resetLastActionTime();
+        }
+
+        PlayerAnimationType animationType = switch (packet.getAction()) {
+            case NO_ACTION -> PlayerAnimationType.NO_ACTION;
+            case SWING_ARM -> PlayerAnimationType.SWING_ARM;
+            case WAKE_UP -> PlayerAnimationType.WAKE_UP;
+            case CRITICAL_HIT -> PlayerAnimationType.CRITICAL_HIT;
+            case MAGIC_CRITICAL_HIT -> PlayerAnimationType.MAGIC_CRITICAL_HIT;
             default -> null;
         };
 
@@ -1399,7 +1440,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return PacketSignal.HANDLED;
         }
 
-        if (animationEvent.getAnimationType() == PlayerAnimationEvent.Type.SWING_ARM) {
+        if (animationEvent.getAnimationType() == PlayerAnimationType.SWING_ARM) {
             player.interruptBlocking();
         }
 
@@ -1449,6 +1490,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return PacketSignal.HANDLED;
         }
 
+        player.resetLastActionTime();
+
         CommandOriginData origin = packet.getCommandOriginData();
         if (origin == null || origin.getOrigin() != CommandOriginType.PLAYER) {
             return PacketSignal.HANDLED;
@@ -1475,6 +1518,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (!player.spawned || !player.isAlive()) {
             return PacketSignal.HANDLED;
         }
+
+        player.resetLastActionTime();
 
         if (packet.getType() == TextPacket.Type.CHAT) {
             player.chat(packet.getMessage(CharSequence.class).toString());
@@ -1554,6 +1599,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
     @Override
     public PacketSignal handle(ItemStackRequestPacket packet) {
+        this.player.resetLastActionTime();
         this.player.getInventoryRequestQueue().handlePacket(packet);
         return PacketSignal.HANDLED;
     }
@@ -1564,6 +1610,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             player.getInventoryManager().sendAllInventories();
             return PacketSignal.HANDLED;
         }
+
+        player.resetLastActionTime();
 
         switch (packet.getTransactionType()) {
             case ITEM_USE, ITEM_USE_ON_ENTITY, ITEM_RELEASE -> {
@@ -1736,7 +1784,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
 
         if (!screen.isAvailable()) {
-            this.player.getInventoryManager().closeScreen(InventoryCloseEvent.Reason.CANT_USE);
+            this.player.getInventoryManager().closeScreen(InventoryCloseReason.CANT_USE);
             return PacketSignal.HANDLED;
         }
 

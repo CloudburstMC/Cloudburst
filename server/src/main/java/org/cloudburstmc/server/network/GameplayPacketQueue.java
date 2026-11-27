@@ -4,6 +4,7 @@ import io.netty.util.ReferenceCountUtil;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 
 import java.util.ArrayDeque;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -18,14 +19,31 @@ public class GameplayPacketQueue implements AutoCloseable {
 
     private final ArrayDeque<Entry> pending = new ArrayDeque<>();
     private int bytes;
+    private int received;
     private boolean closed;
+    private PacketLimiter limiter = PacketLimiter.NONE;
 
     /**
-     * Retains an accepted packet. The caller keeps responsibility for its original reference.
+     * Applies the limiter to packets offered from now on.
+     */
+    public synchronized void limit(PacketLimiter limiter) {
+        this.limiter = Objects.requireNonNull(limiter, "limiter");
+    }
+
+    /**
+     * Retains an accepted packet, or drops it when it exceeds its rate limit.
+     * The caller keeps responsibility for its original reference.
+     *
+     * @return false when the queue cannot take the packet and the connection should close
      */
     public synchronized boolean offer(BedrockPacket packet, int size) {
+        this.received++;
         if (this.closed || size <= 0 || size > MAX_BYTES - this.bytes || this.pending.size() >= MAX_PACKETS) {
             return false;
+        }
+
+        if (!this.limiter.tryAcquire(packet)) {
+            return true;
         }
 
         this.pending.addLast(new Entry(ReferenceCountUtil.retain(packet), size));
@@ -52,6 +70,15 @@ public class GameplayPacketQueue implements AutoCloseable {
                 ReferenceCountUtil.release(entry.packet());
             }
         }
+    }
+
+    /**
+     * Returns the number of packets offered since the previous call, including rejected packets.
+     */
+    public synchronized int takeReceivedCount() {
+        int count = this.received;
+        this.received = 0;
+        return count;
     }
 
     private synchronized Entry poll(int budget) {

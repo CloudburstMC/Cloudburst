@@ -80,12 +80,17 @@ public class CloudOfflinePlayer implements OfflinePlayer {
     @Override
     public boolean isWhitelisted() {
         UUID uuid = this.getUniqueId();
-        return uuid != null && this.server.isWhitelisted(uuid);
+        return uuid != null ? this.server.isWhitelisted(uuid) : this.server.isReservedWhitelisted(this.requireName());
     }
 
     @Override
     public void setWhitelisted(boolean value) {
-        this.server.setWhitelisted(this.requireUniqueId(), this.getName(), value);
+        UUID uuid = this.getUniqueId();
+        if (uuid != null) {
+            this.server.setWhitelisted(uuid, this.getName(), value);
+        } else {
+            this.server.setReservedWhitelisted(this.requireName(), value);
+        }
     }
 
     @Override
@@ -112,18 +117,27 @@ public class CloudOfflinePlayer implements OfflinePlayer {
     @Override
     public boolean isOp() {
         UUID uuid = this.getUniqueId();
-        return uuid != null && this.server.isOperator(uuid);
+        return uuid != null ? this.server.isOperator(uuid) : this.server.isReservedOperator(this.requireName());
     }
 
     @Override
     public void setOp(boolean value) {
-        this.server.setOperator(this.requireUniqueId(), this.getName(), value);
+        UUID uuid = this.getUniqueId();
+        if (uuid != null) {
+            this.server.setOperator(uuid, this.getName(), value);
+        } else {
+            this.server.setReservedOperator(this.requireName(), value);
+        }
     }
 
     private NbtMap data() {
         UUID uuid = this.getUniqueId();
         NbtMap data = uuid == null ? null : this.server.getOfflinePlayerData(uuid, false);
         return data != null ? data : NbtMap.EMPTY;
+    }
+
+    private String requireName() {
+        return Objects.requireNonNull(this.name, "name");
     }
 
     private UUID requireUniqueId() {

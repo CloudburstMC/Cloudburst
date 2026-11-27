@@ -24,7 +24,7 @@ import tools.jackson.databind.annotation.JsonNaming;
 public class LevelDefinition {
 
     /**
-     * Required dimension. Worlds whose dimension is disabled are not loaded.
+     * Required dimension.
      */
     private LevelDimension dimension;
 

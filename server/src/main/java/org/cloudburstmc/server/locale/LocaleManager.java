@@ -286,8 +286,12 @@ public final class LocaleManager {
 
         this.texts.clear(); // Clear any existing
 
+        // Keys missing from the selected language keep their fallback text.
         for (LocaleTextSource source : this.textSources) {
             try {
+                if (!locale.equals(FALLBACK_LOCALE)) {
+                    this.loadTransforms(source.open(FALLBACK_LOCALE));
+                }
                 this.loadTransforms(source.open(locale));
             } catch (IOException e) {
                 throw new IllegalArgumentException("Unable to load transforms", e);

@@ -11,9 +11,10 @@ import org.cloudburstmc.api.command.CommandSourceStack;
 import org.cloudburstmc.api.command.Commands;
 import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
 import org.cloudburstmc.api.command.argument.CommandArguments;
-import org.cloudburstmc.api.player.KickReason;
+import org.cloudburstmc.api.event.player.KickCause;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.command.AdvertisedCommand;
+import org.cloudburstmc.server.player.BanMessages;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -44,7 +45,7 @@ public class BanIpCommand extends AdvertisedCommand {
 
         BanList<InetAddress> bans = server.getIpBanList();
         if (bans.isBanned(address)) {
-            return failure(context, Component.text("IP address is already banned: " + InetAddresses.toAddrString(address)));
+            return failure(context, Component.translatable("cloudburst.command.banip.alreadyBanned", Component.text(InetAddresses.toAddrString(address))));
         }
 
         List<? extends Player> affected = server.getOnlinePlayers().values().stream()
@@ -58,7 +59,7 @@ public class BanIpCommand extends AdvertisedCommand {
         context.getSource().broadcastSuccess(Component.translatable("commands.banip.success",
                 Component.text(InetAddresses.toAddrString(address))).append(Component.text(": " + entry.reason())));
         for (Player player : affected) {
-            player.kick(Component.text(entry.reason()), KickReason.IP_BANNED);
+            player.kick(BanMessages.address(entry), KickCause.IP_BANNED);
         }
 
         return affected.size();

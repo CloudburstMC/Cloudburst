@@ -66,7 +66,7 @@ public class GameruleCommand extends AdvertisedCommand {
     protected int execute(CommandContext<CommandSourceStack> context) {
         CommandSender sender = sender(context);
         if (!(sender instanceof CloudPlayer)) {
-            sender.sendMessage(Component.translatable("commands.locate.fail.noplayer"));
+            sender.sendMessage(Component.translatable("commands.locate.structure.fail.noplayer"));
             return success();
         }
 
@@ -153,7 +153,7 @@ public class GameruleCommand extends AdvertisedCommand {
         if (sender instanceof CloudPlayer player) {
             return player.getLevel().getGameRules();
         }
-        sender.sendMessage(Component.translatable("commands.locate.fail.noplayer"));
+        sender.sendMessage(Component.translatable("commands.locate.structure.fail.noplayer"));
         return null;
     }
 }

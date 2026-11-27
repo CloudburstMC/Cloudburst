@@ -44,7 +44,7 @@ public class SetBlockCommand extends AdvertisedCommand {
     protected int execute(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSender sender = sender(context);
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(Component.translatable("commands.locate.fail.noplayer"));
+            sender.sendMessage(Component.translatable("commands.locate.structure.fail.noplayer"));
             return success();
         }
 

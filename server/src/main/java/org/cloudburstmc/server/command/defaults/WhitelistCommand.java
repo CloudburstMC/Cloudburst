@@ -15,12 +15,13 @@ import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.network.CommandNetworkData;
 
 import java.util.List;
+import java.util.Set;
 import java.util.StringJoiner;
 
 public class WhitelistCommand extends AdvertisedCommand {
 
     public WhitelistCommand() {
-        super("allowlist", "commands.whitelist.description", List.of("whitelist"), CommandNetworkData.DEFAULT,
+        super("whitelist", "cloudburst.command.whitelist.description", List.of(), CommandNetworkData.DEFAULT,
                 "cloudburst.command.whitelist.reload",
                 "cloudburst.command.whitelist.enable", "cloudburst.command.whitelist.disable",
                 "cloudburst.command.whitelist.list", "cloudburst.command.whitelist.add",
@@ -57,36 +58,45 @@ public class WhitelistCommand extends AdvertisedCommand {
     }
 
     private int enable(CommandContext<CommandSourceStack> context) {
-        CommandSender sender = sender(context);
+        if (server(context).hasWhitelist()) {
+            return failure(context, Component.translatable("cloudburst.command.whitelist.alreadyEnabled"));
+        }
+
         server(context).setWhitelist(true);
-        CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.enabled"));
+        CommandUtils.broadcastCommandMessage(sender(context), Component.translatable("cloudburst.command.whitelist.enabled"));
         return success();
     }
 
     private int disable(CommandContext<CommandSourceStack> context) {
-        CommandSender sender = sender(context);
+        if (!server(context).hasWhitelist()) {
+            return failure(context, Component.translatable("cloudburst.command.whitelist.alreadyDisabled"));
+        }
+
         server(context).setWhitelist(false);
-        CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.disabled"));
+        CommandUtils.broadcastCommandMessage(sender(context), Component.translatable("cloudburst.command.whitelist.disabled"));
         return success();
     }
 
     private int list(CommandContext<CommandSourceStack> context) {
-        CommandSender sender = sender(context);
-        StringJoiner result = new StringJoiner(", ");
-        int count = 0;
-        for (OfflinePlayer player : server(context).getWhitelistedPlayers()) {
-            result.add(player.getName() == null ? player.getUniqueId().toString() : player.getName());
-            count++;
+        Set<OfflinePlayer> players = server(context).getWhitelistedPlayers();
+        if (players.isEmpty()) {
+            sender(context).sendMessage(Component.translatable("cloudburst.command.whitelist.empty"));
+            return success();
         }
-        sender.sendMessage(Component.translatable("commands.whitelist.list", Component.text(count), Component.text(count)));
-        sender.sendMessage(Component.text(result.toString()));
+
+        StringJoiner names = new StringJoiner(", ");
+        for (OfflinePlayer player : players) {
+            names.add(player.getName() == null ? player.getUniqueId().toString() : player.getName());
+        }
+
+        sender(context).sendMessage(Component.translatable("cloudburst.command.whitelist.players",
+                Component.text(players.size()), Component.text(names.toString())));
         return success();
     }
 
     private int reload(CommandContext<CommandSourceStack> context) {
-        CommandSender sender = sender(context);
         server(context).reloadWhitelist();
-        CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.reloaded"));
+        CommandUtils.broadcastCommandMessage(sender(context), Component.translatable("cloudburst.command.whitelist.reloaded"));
         return success();
     }
 
@@ -94,12 +104,12 @@ public class WhitelistCommand extends AdvertisedCommand {
         CommandSender sender = sender(context);
         String player = argumentValue(context, "player");
         OfflinePlayer target = server(context).getOfflinePlayer(player);
-        if (target.getUniqueId() == null) {
-            return failure(context, Component.translatable("commands.generic.player.notFound"));
+        if (target.isWhitelisted()) {
+            return failure(context, Component.translatable("cloudburst.command.whitelist.alreadyAdded", Component.text(player)));
         }
 
         target.setWhitelisted(true);
-        CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.add.success", Component.text(player)));
+        CommandUtils.broadcastCommandMessage(sender, Component.translatable("cloudburst.command.whitelist.added", Component.text(player)));
         return success();
     }
 
@@ -107,12 +117,12 @@ public class WhitelistCommand extends AdvertisedCommand {
         CommandSender sender = sender(context);
         String player = argumentValue(context, "player");
         OfflinePlayer target = server(context).getOfflinePlayer(player);
-        if (target.getUniqueId() == null) {
-            return failure(context, Component.translatable("commands.generic.player.notFound"));
+        if (!target.isWhitelisted()) {
+            return failure(context, Component.translatable("cloudburst.command.whitelist.notAdded", Component.text(player)));
         }
 
         target.setWhitelisted(false);
-        CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.remove.success", Component.text(player)));
+        CommandUtils.broadcastCommandMessage(sender, Component.translatable("cloudburst.command.whitelist.removed", Component.text(player)));
         return success();
     }
 

@@ -20,6 +20,9 @@ import org.cloudburstmc.api.boss.BossBarStyle;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.command.Commands;
 import org.cloudburstmc.api.crafting.Recipe;
+import org.cloudburstmc.api.event.player.KickCause;
+import org.cloudburstmc.api.event.player.PlayerGameModeChangeCause;
+import org.cloudburstmc.api.event.player.QuitReason;
 import org.cloudburstmc.api.event.server.*;
 import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.Level;
@@ -34,6 +37,7 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.PlayerDataSerializer;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
+import org.cloudburstmc.protocol.bedrock.data.DisconnectFailReason;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
@@ -42,7 +46,6 @@ import org.cloudburstmc.server.command.CloudConsoleCommandSender;
 import org.cloudburstmc.server.configuration.ConfigurationTemplates;
 import org.cloudburstmc.server.configuration.LevelDefinition;
 import org.cloudburstmc.server.configuration.ServerConfigurations;
-import org.cloudburstmc.server.configuration.type.LevelDimension;
 import org.cloudburstmc.server.console.CloudConsole;
 import org.cloudburstmc.server.crafting.CraftingManager;
 import org.cloudburstmc.server.diagnostics.ServerExceptionHandler;
@@ -69,6 +72,7 @@ import org.cloudburstmc.server.scheduler.CloudGlobalScheduler;
 import org.cloudburstmc.server.utils.Watchdog;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.net.InetAddress;
 import java.net.SocketAddress;
@@ -86,9 +90,13 @@ public class CloudServer implements Server {
     @Getter
     private static CloudServer instance;
 
-    private final Path filePath;
+    private static final String API_VERSION = "2.0.0";
+    private static final String IMPLEMENTATION_VERSION = readImplementationVersion();
+
+    private final long startedAt = System.nanoTime();
     private final Path dataPath;
     private final Path pluginPath;
+    private final Map<String, String> propertyOverrides;
     private final ServerFileLayout files;
     private final Thread currentThread;
 
@@ -101,10 +109,6 @@ public class CloudServer implements Server {
 
     private ServerConfigurations configuration;
     private UUID serverID;
-    private int maxPlayers;
-    private Boolean getAllowFlight;
-    private Difficulty difficulty;
-    private GameMode defaultGamemode;
 
     private final CloudConsole console;
     private final Thread consoleThread;
@@ -138,7 +142,7 @@ public class CloudServer implements Server {
     private UserBanList playerBans;
     private IpBanList ipBans;
     private ServerOpList operators;
-    private UserWhiteList whitelist;
+    private UserWhitelist whitelist;
 
     private int tickCounter;
     private final ServerTickLoop tickLoop = new ServerTickLoop();
@@ -175,17 +179,17 @@ public class CloudServer implements Server {
 
     private final CloudCommandRegistry commandRegistry = new CloudCommandRegistry(this.blockRegistry);
 
-    public CloudServer(final Path dataPath, final Path pluginPath, final Path levelPath, final String predefinedLanguage) {
+    public CloudServer(final Path dataPath, final Path pluginPath, final Path levelPath, final Map<String, String> propertyOverrides, final String predefinedLanguage) {
         Preconditions.checkState(instance == null, "Already initialized!");
         instance = this;
         currentThread = Thread.currentThread(); // Saves the current thread instance as a reference, used in Server#isPrimaryThread()
 
         this.injector = Guice.createInjector(Stage.PRODUCTION, new CloudburstPrivateModule(this), new CloudburstModule(this, levelPath));
 
-        this.filePath = Bootstrap.PATH;
         this.dataPath = dataPath;
         this.files = new ServerFileLayout(dataPath, levelPath);
         this.pluginPath = pluginPath;
+        this.propertyOverrides = Map.copyOf(propertyOverrides);
         this.predefinedLanguage = predefinedLanguage;
 
         this.pluginManager = injector.getInstance(CloudPluginManager.class);
@@ -252,16 +256,15 @@ public class CloudServer implements Server {
         this.console.enableCommands();
 
         log.info("Loading {} ...", configPath);
-        this.configuration = ServerConfigurations.load(this.files);
+        this.configuration = ServerConfigurations.load(this.files, this.propertyOverrides);
         this.levelManager.initializeExecutors(this.configuration.getChunkSystem());
         this.playerDataSerializer = new DefaultPlayerDataSerializer(this.getPlayerDataPath());
         this.profileCache = new UserProfileCache(this.files.userCache(),
                 this.getConfig().getPlayer().getUserCacheSize(), this.getConfig().getPlayer().isSaveUserCacheOnStopOnly());
-        this.mapManager = new CloudMapManager(this, this.files.savedData(this.configuration.getDefaultLevel()));
+        this.mapManager = new CloudMapManager(this, this.files.savedData(this.configuration.getLevelName()));
 
         ignoredPackets.addAll(getConfig().getDebug().getIgnoredPackets());
 
-        Bootstrap.configureLogLevel(this.getConfig().getDebug().getLevel());
         log.debug("DataPath Directory: {}", this.dataPath);
 
         this.forceLanguage = getConfig().getSettings().isForceLanguage();
@@ -271,16 +274,10 @@ public class CloudServer implements Server {
         log.info(this.getLanguage().translate("cloudburst.server.start", "§b" + this.getVersion() + "§r"));
 
         this.operators = new ServerOpList(this.files.operators());
-        this.whitelist = new UserWhiteList(this.files.whitelist());
+        this.whitelist = new UserWhitelist(this.files.whitelist());
         this.playerBans = new UserBanList(this.files.playerBans(), uuid -> this.profileCache.find(uuid).map(UserProfileCache.CachedProfile::name).orElse(null));
         this.ipBans = new IpBanList(this.files.ipBans());
 
-        this.maxPlayers = this.configuration.getMaxPlayers();
-        this.setAutoSave(this.configuration.isAutoSave());
-
-        if (this.configuration.isHardcore() && this.getDifficulty() != Difficulty.HARD) {
-            this.configuration.setDifficulty(Difficulty.HARD);
-        }
 
         if (this.getConfig().getDebug().isUncaughtExceptionReports()) {
             Thread.setDefaultUncaughtExceptionHandler(new ServerExceptionHandler(this.files.crashReports()));
@@ -367,8 +364,9 @@ public class CloudServer implements Server {
         }
 
         try {
-            if (Bootstrap.DEBUG < 2) {
-                this.watchdog = new Watchdog(this, 60000);
+            long maxTickTime = this.configuration.getMaxTickTime();
+            if (maxTickTime > 0) {
+                this.watchdog = new Watchdog(this, maxTickTime);
                 this.watchdog.start();
             }
 
@@ -451,7 +449,10 @@ public class CloudServer implements Server {
 
     private void disconnectPlayers() {
         for (CloudPlayer player : List.copyOf(this.players.values())) {
-            shutdownStep("disconnect player " + player.getName(), () -> player.close(player.leaveMessage(), this.getConfig().getSettings().getShutdownMessage()));
+            shutdownStep("disconnect player " + player.getName(), () -> player.disconnect(player.leaveMessage(),
+                    Component.text(this.getConfig().getSettings().getShutdownMessage()), DisconnectFailReason.SHUTDOWN,
+                    QuitReason.KICKED)
+            );
         }
     }
 
@@ -503,10 +504,10 @@ public class CloudServer implements Server {
         this.network.refreshStatus();
         this.network.startAcceptingConnections();
 
-        String gameMode = this.getLanguage().translate(this.getGameMode().translationKey());
+        String gameMode = this.getLanguage().translate(this.getDefaultGameMode().translationKey());
         log.info(this.getLanguage().translate("cloudburst.server.defaultGameMode", "§b" + gameMode + "§r"));
 
-        double startupSeconds = (System.currentTimeMillis() - Bootstrap.START_TIME) / 1000d;
+        double startupSeconds = (System.nanoTime() - this.startedAt) / 1_000_000_000d;
         log.info(this.getLanguage().translate("cloudburst.server.startFinished", String.format(Locale.ROOT, "%.2f", startupSeconds)));
 
         this.runTicks();
@@ -553,6 +554,7 @@ public class CloudServer implements Server {
 
         for (CloudPlayer player : List.copyOf(this.players.values())) {
             player.processNetworkInput();
+            player.tickConnection();
         }
 
         if (!this.isRunning()) {
@@ -721,7 +723,7 @@ public class CloudServer implements Server {
     }
 
     public String getImplementationVersion() {
-        return Bootstrap.VERSION;
+        return IMPLEMENTATION_VERSION;
     }
 
     public String getVersion() {
@@ -729,11 +731,19 @@ public class CloudServer implements Server {
     }
 
     public String getApiVersion() {
-        return Bootstrap.API_VERSION;
+        return API_VERSION;
     }
 
-    public Path getFilePath() {
-        return filePath;
+    private static String readImplementationVersion() {
+        Properties properties = new Properties();
+        try (InputStream stream = CloudServer.class.getClassLoader().getResourceAsStream("git.properties")) {
+            if (stream != null) {
+                properties.load(stream);
+            }
+        } catch (IOException ignored) {
+            return "git-null";
+        }
+        return "git-" + properties.getProperty("git.commit.id.abbrev", "null");
     }
 
     public Path getDataPath() {
@@ -744,20 +754,28 @@ public class CloudServer implements Server {
         return pluginPath;
     }
 
+    @Override
     public int getMaxPlayers() {
-        return maxPlayers;
+        return this.configuration.getMaxPlayers();
     }
 
+    @Override
     public void setMaxPlayers(int maxPlayers) {
-        this.maxPlayers = maxPlayers;
+        this.configuration.setMaxPlayers(maxPlayers);
     }
 
     public int getPort() {
         return this.configuration.getServerPort();
     }
 
+    @Override
     public int getViewDistance() {
         return this.configuration.getViewDistance();
+    }
+
+    @Override
+    public int getSimulationDistance() {
+        return this.configuration.getSimulationDistance();
     }
 
     public String getIp() {
@@ -779,60 +797,82 @@ public class CloudServer implements Server {
         }
     }
 
-    public boolean getGenerateStructures() {
-        return this.configuration.isGenerateStructures();
+    @Override
+    public GameMode getDefaultGameMode() {
+        return this.configuration.getGamemode();
     }
 
-    public GameMode getGameMode() {
-        return this.configuration.getGamemode();
+    @Override
+    public void setDefaultGameMode(GameMode mode) {
+        this.configuration.setGamemode(Objects.requireNonNull(mode, "mode"));
+        if (this.getForceGamemode()) {
+            for (CloudPlayer player : List.copyOf(this.getOnlinePlayers().values())) {
+                player.setGameMode(mode, PlayerGameModeChangeCause.DEFAULT_GAMEMODE);
+            }
+        }
     }
 
     public boolean getForceGamemode() {
         return this.configuration.isForceGamemode();
     }
 
+    /**
+     * Returns the difficulty applied to levels: hard in hardcore mode, otherwise the configured difficulty.
+     */
     public Difficulty getDifficulty() {
-        if (this.difficulty == null) {
-            this.difficulty = this.configuration.getDifficulty();
-        }
-        return this.difficulty;
+        return this.isHardcore() ? Difficulty.HARD : this.configuration.getDifficulty();
     }
 
+    /**
+     * Persists the configured difficulty and applies the resulting difficulty to every level.
+     */
     public void setDifficulty(Difficulty difficulty) {
-        this.getConfig().setDifficulty(difficulty);
-        this.difficulty = difficulty;
-        this.levelDefaults.setDifficulty(difficulty);
+        this.configuration.setDifficulty(difficulty);
+        Difficulty applied = this.getDifficulty();
+        this.levelDefaults.setDifficulty(applied);
         for (CloudLevel level : this.levelManager.getLevels()) {
-            level.setDifficulty(difficulty);
+            level.setDifficulty(applied);
         }
     }
 
     @Override
     public boolean hasWhitelist() {
-        return this.configuration.isWhiteList();
+        return this.configuration.isWhitelist();
     }
 
+    @Override
     public int getSpawnRadius() {
         return this.configuration.getSpawnProtection();
     }
 
-    public boolean getAllowFlight() {
-        if (getAllowFlight == null) {
-            getAllowFlight = this.configuration.isAllowFlight();
-        }
-
-        return getAllowFlight;
+    @Override
+    public void setSpawnRadius(int radius) {
+        this.configuration.setSpawnProtection(radius);
     }
 
+    @Override
+    public int getIdleTimeout() {
+        return this.configuration.getPlayerIdleTimeout();
+    }
+
+    @Override
+    public void setIdleTimeout(int minutes) {
+        this.configuration.setPlayerIdleTimeout(minutes);
+    }
+
+    @Override
+    public boolean getOnlineMode() {
+        return this.configuration.isOnlineMode();
+    }
+
+    @Override
+    public boolean getAllowFlight() {
+        return this.configuration.isAllowFlight();
+    }
+
+    @Override
     public boolean isHardcore() {
         return this.configuration.isHardcore();
-    }
-
-    public GameMode getDefaultGamemode() {
-        if (this.defaultGamemode == null) {
-            this.defaultGamemode = this.getGameMode();
-        }
-        return this.defaultGamemode;
     }
 
     @Override
@@ -867,8 +907,8 @@ public class CloudServer implements Server {
         return levelMetadata;
     }*/
 
-    public boolean getForceResources() {
-        return this.configuration.isForceResources();
+    public boolean getRequireResourcePack() {
+        return this.configuration.isRequireResourcePack();
     }
 
     public CloudEventManager getEventManager() {
@@ -949,7 +989,7 @@ public class CloudServer implements Server {
     }
 
     public Path getPlayerDataPath() {
-        return this.files.playerData(this.configuration.getDefaultLevel());
+        return this.files.playerData(this.configuration.getLevelName());
     }
 
     @Override
@@ -957,7 +997,7 @@ public class CloudServer implements Server {
         Preconditions.checkNotNull(uuid, "uuid");
         String name = this.profileCache.find(uuid).map(UserProfileCache.CachedProfile::name)
                 .or(() -> this.operators.get(uuid).map(ServerOpListEntry::name))
-                .or(() -> this.whitelist.get(uuid).map(UserWhiteListEntry::name))
+                .or(() -> this.whitelist.get(uuid).map(UserWhitelistEntry::name))
                 .or(() -> this.playerBans.findName(uuid)).orElse(null);
         return new CloudOfflinePlayer(this, uuid, name);
     }
@@ -979,13 +1019,13 @@ public class CloudServer implements Server {
     private Optional<UUID> findListedIdentity(String name) {
         Set<UUID> matches = new HashSet<>(this.playerBans.findIdentities(name));
         for (ServerOpListEntry entry : this.operators.entries()) {
-            if (entry.name() != null && entry.name().equalsIgnoreCase(name)) {
+            if (entry.uuid() != null && entry.name() != null && entry.name().equalsIgnoreCase(name)) {
                 matches.add(entry.uuid());
             }
         }
 
-        for (UserWhiteListEntry entry : this.whitelist.entries()) {
-            if (entry.name() != null && entry.name().equalsIgnoreCase(name)) {
+        for (UserWhitelistEntry entry : this.whitelist.entries()) {
+            if (entry.uuid() != null && entry.name() != null && entry.name().equalsIgnoreCase(name)) {
                 matches.add(entry.uuid());
             }
         }
@@ -1173,22 +1213,77 @@ public class CloudServer implements Server {
         return this.operators.contains(uuid);
     }
 
+    /**
+     * Returns the operator's permission level from 1 to 4, or 0 when the player is not an operator.
+     */
+    public int getOperatorLevel(UUID uuid) {
+        return this.operators.getLevel(uuid);
+    }
+
+    /**
+     * Returns whether the name is reserved as an operator for a player who has not signed in yet.
+     */
+    public boolean isReservedOperator(String name) {
+        return this.operators.getReserved(name).isPresent();
+    }
+
+    /**
+     * Reserves operator status for a player who has not signed in yet, or removes the reservation.
+     */
+    public void setReservedOperator(String name, boolean value) {
+        if (value) {
+            this.operators.add(new ServerOpListEntry(null, name, this.configuration.getOpPermissionLevel(), false));
+        } else {
+            this.operators.removeReserved(name);
+        }
+    }
+
     public void setOperator(UUID uuid, @Nullable String name, boolean value) {
         if (value == this.operators.contains(uuid)) {
             return;
         }
 
         if (value) {
-            this.operators.add(new ServerOpListEntry(uuid, name, false));
+            this.operators.add(new ServerOpListEntry(uuid, name, this.configuration.getOpPermissionLevel(), false));
         } else {
             this.operators.remove(uuid);
         }
 
         this.getPlayer(uuid).ifPresent(player -> ((CloudPlayer) player).refreshOperatorStatus());
+        if (!value) {
+            this.kickUnlistedPlayers();
+        }
     }
 
     public boolean isWhitelisted(UUID uuid) {
         return this.whitelist.contains(uuid);
+    }
+
+    /**
+     * Returns whether the name is reserved on the whitelist for a player who has not signed in yet.
+     */
+    public boolean isReservedWhitelisted(String name) {
+        return this.whitelist.getReserved(name).isPresent();
+    }
+
+    /**
+     * Reserves a whitelist entry for a player who has not signed in yet, or removes the reservation.
+     */
+    public void setReservedWhitelisted(String name, boolean value) {
+        if (value) {
+            this.whitelist.add(new UserWhitelistEntry(null, name));
+        } else {
+            this.whitelist.removeReserved(name);
+        }
+    }
+
+    /**
+     * Gives entries reserved for the player's name to the signed-in player.
+     * Call only for authenticated players, since an unauthenticated player can use any name.
+     */
+    public void claimReservedEntries(UUID uuid, String name) {
+        this.whitelist.claim(uuid, name);
+        this.operators.claim(uuid, name);
     }
 
     public boolean mayJoin(UUID uuid) {
@@ -1201,21 +1296,46 @@ public class CloudServer implements Server {
 
     public void setWhitelisted(UUID uuid, @Nullable String name, boolean value) {
         if (value) {
-            this.whitelist.add(new UserWhiteListEntry(uuid, name));
+            this.whitelist.add(new UserWhitelistEntry(uuid, name));
         } else {
             this.whitelist.remove(uuid);
+            this.kickUnlistedPlayers();
         }
     }
 
     @Override
     public void setWhitelist(boolean enabled) {
         this.configuration.setWhitelist(enabled);
+        this.kickUnlistedPlayers();
+    }
+
+    @Override
+    public boolean isWhitelistEnforced() {
+        return this.configuration.isEnforceWhitelist();
+    }
+
+    @Override
+    public void setWhitelistEnforced(boolean enforced) {
+        this.configuration.setEnforceWhitelist(enforced);
+        this.kickUnlistedPlayers();
+    }
+
+    private void kickUnlistedPlayers() {
+        if (!this.isWhitelistEnforced() || !this.hasWhitelist()) {
+            return;
+        }
+
+        for (CloudPlayer player : List.copyOf(this.getOnlinePlayers().values())) {
+            if (!this.mayJoin(player.getServerId())) {
+                player.kick(Component.translatable("disconnectionScreen.notAllowed"), KickCause.WHITELIST);
+            }
+        }
     }
 
     @Override
     public Set<OfflinePlayer> getWhitelistedPlayers() {
         Set<OfflinePlayer> players = new LinkedHashSet<>();
-        for (UserWhiteListEntry entry : this.whitelist.entries()) {
+        for (UserWhitelistEntry entry : this.whitelist.entries()) {
             players.add(new CloudOfflinePlayer(this, entry.uuid(), entry.name()));
         }
 
@@ -1235,6 +1355,7 @@ public class CloudServer implements Server {
     @Override
     public void reloadWhitelist() {
         this.whitelist.reload();
+        this.kickUnlistedPlayers();
     }
 
     public boolean shouldSavePlayerData() {
@@ -1306,18 +1427,13 @@ public class CloudServer implements Server {
             throw new IllegalStateException("No levels configured. Add a level to config/cloudburst-global.yml.");
         }
 
-        String defaultName = this.configuration.getDefaultLevel();
+        String defaultName = this.configuration.getLevelName();
 
         List<CloudLevelLoadRequest> requests = new ArrayList<>(levelDefinitions.size());
         for (String name : levelDefinitions.keySet()) {
             final LevelDefinition config = levelDefinitions.get(name);
             if (config.getDimension() == null) {
                 throw new IllegalStateException("Level '" + name + "' does not declare a dimension in config/cloudburst-global.yml");
-            }
-
-            if (this.isDimensionDisabled(config.getDimension())) {
-                log.info("Skipping world '{}' because its dimension is disabled", name);
-                continue;
             }
 
             //fallback to level name if no seed is set
@@ -1363,28 +1479,10 @@ public class CloudServer implements Server {
         if (this.getDefaultLevel() == null) {
             CloudLevel defaultLevel = this.levelManager.getLevel(defaultName);
             if (defaultLevel == null) {
-                throw new IllegalArgumentException("default-level refers to unknown level: \"" + defaultName + '"');
+                throw new IllegalArgumentException("level-name refers to unknown level: \"" + defaultName + '"');
             }
             this.levelManager.setDefaultLevel(defaultLevel);
         }
-    }
-
-    private boolean isDimensionDisabled(LevelDimension dimension) {
-        return switch (dimension) {
-            case OVERWORLD -> false;
-            case NETHER -> !this.configuration.isAllowNether();
-            case THE_END -> !this.configuration.isAllowEnd();
-        };
-    }
-
-    @Override
-    public boolean isNetherAllowed() {
-        return this.configuration.isAllowNether();
-    }
-
-    @Override
-    public boolean isEndAllowed() {
-        return this.configuration.isAllowEnd();
     }
 
     public PlayerDataSerializer getPlayerDataSerializer() {

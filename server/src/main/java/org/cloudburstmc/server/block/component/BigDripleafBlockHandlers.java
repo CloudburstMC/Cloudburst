@@ -8,6 +8,7 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.api.event.entity.EntityChangeBlockEvent;
 import org.cloudburstmc.api.event.entity.EntityInteractEvent;
+import org.cloudburstmc.api.event.player.PlayerInteractAction;
 import org.cloudburstmc.api.event.player.PlayerInteractEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -94,7 +95,7 @@ public class BigDripleafBlockHandlers {
         }
 
         Event interaction = entity instanceof Player player
-                ? new PlayerInteractEvent(player, null, block, null, PlayerInteractEvent.Action.PHYSICAL)
+                ? new PlayerInteractEvent(player, null, block, null, PlayerInteractAction.PHYSICAL)
                 : new EntityInteractEvent(entity, block);
         block.getLevel().getServer().getEventManager().fire(interaction);
         if (!interaction.isCancelled()) {

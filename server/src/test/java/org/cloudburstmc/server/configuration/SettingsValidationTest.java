@@ -72,11 +72,28 @@ class SettingsValidationTest {
         Files.writeString(file, "server-port=70000\n");
 
         ConfigurationValidationException exception = assertThrows(ConfigurationValidationException.class,
-                () -> ServerConfigurations.load(new ServerFileLayout(directory, directory.resolve("worlds"))));
+                () -> ServerConfigurations.load(new ServerFileLayout(directory, directory.resolve("worlds")), Map.of()));
 
         assertEquals(file, exception.getFile());
         assertEquals("server-port", exception.getProblems().getFirst().path());
         assertEquals(70000, exception.getProblems().getFirst().value());
+    }
+
+    @Test
+    void validatesSettingsObjectsInsideLists() {
+        GlobalConfiguration settings = GlobalConfiguration.builder()
+                .network(GlobalConfiguration.Network.builder()
+                        .packetLimits(List.of(GlobalConfiguration.PacketLimit.builder()
+                                .packets(List.of("TextPacket")).rate(0).burst(1).build()))
+                        .build())
+                .levels(Map.of("example", LevelDefinition.builder().dimension(LevelDimension.OVERWORLD).build()))
+                .build();
+
+        ConfigurationValidationException exception = assertThrows(ConfigurationValidationException.class,
+                () -> SettingsValidation.validate(directory.resolve("cloudburst.yml"), settings));
+
+        assertEquals(List.of("network.packet-limits[0].rate"),
+                exception.getProblems().stream().map(ConfigurationProblem::path).toList());
     }
 
     @Test

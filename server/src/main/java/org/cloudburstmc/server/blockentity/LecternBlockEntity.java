@@ -2,7 +2,7 @@ package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Lectern;
-import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
+import org.cloudburstmc.api.event.inventory.InventoryCloseReason;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.api.inventory.view.SlotGroupType;
 import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
@@ -175,7 +175,7 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
     private void closeReaders() {
         for (CloudPlayer viewer : this.getChunk().getViewers()) {
             if (viewer.getInventoryManager().getScreen() instanceof CloudLecternContainerScreen screen && screen.lecternEntity() == this) {
-                viewer.getInventoryManager().closeScreen(InventoryCloseEvent.Reason.CANT_USE);
+                viewer.getInventoryManager().closeScreen(InventoryCloseReason.CANT_USE);
             }
         }
     }

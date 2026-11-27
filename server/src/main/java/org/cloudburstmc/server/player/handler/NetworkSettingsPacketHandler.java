@@ -13,6 +13,7 @@ import org.cloudburstmc.protocol.bedrock.packet.RequestNetworkSettingsPacket;
 import org.cloudburstmc.protocol.common.PacketSignal;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.network.ProtocolInfo;
+import org.cloudburstmc.server.network.nethernet.CloudNetherNetPeer;
 
 @RequiredArgsConstructor(access = AccessLevel.PUBLIC)
 public class NetworkSettingsPacketHandler implements BedrockPacketHandler {
@@ -38,11 +39,17 @@ public class NetworkSettingsPacketHandler implements BedrockPacketHandler {
         this.session.setCodec(codec);
         this.session.getPeer().getCodecHelper().setTextConverter(new AdventureTextConverter());
 
+        int threshold = this.server.getConfig().getNetworkCompressionThreshold();
+        PacketCompressionAlgorithm algorithm = switch (this.server.getConfig().getNetwork().getCompressionAlgorithm()) {
+            case ZLIB -> PacketCompressionAlgorithm.ZLIB;
+            case SNAPPY -> PacketCompressionAlgorithm.SNAPPY;
+        };
+
         NetworkSettingsPacket networkSettings = new NetworkSettingsPacket();
-        networkSettings.setCompressionThreshold(1);
-        networkSettings.setCompressionAlgorithm(PacketCompressionAlgorithm.ZLIB);
+        networkSettings.setCompressionThreshold(threshold);
+        networkSettings.setCompressionAlgorithm(algorithm);
         this.session.sendPacketImmediately(networkSettings);
-        this.session.setCompression(PacketCompressionAlgorithm.ZLIB);
+        ((CloudNetherNetPeer) this.session.getPeer()).setCompression(algorithm, threshold);
         this.session.setPacketHandler(new LoginPacketHandler(this.session, this.server, this.authenticatedTransport));
         return PacketSignal.HANDLED;
     }

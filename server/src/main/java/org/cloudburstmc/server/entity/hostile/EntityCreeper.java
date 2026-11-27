@@ -3,6 +3,7 @@ package org.cloudburstmc.server.entity.hostile;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.hostile.Creeper;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
+import org.cloudburstmc.api.event.entity.CreeperPowerCause;
 import org.cloudburstmc.api.event.entity.CreeperPowerEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -70,8 +71,8 @@ public class EntityCreeper extends EntityHostile implements Creeper {
 
     @Override
     public void setPowered(boolean powered) {
-        CreeperPowerEvent.PowerCause cause = powered ? CreeperPowerEvent.PowerCause.SET_ON
-                : CreeperPowerEvent.PowerCause.SET_OFF;
+        CreeperPowerCause cause = powered ? CreeperPowerCause.SET_ON
+                : CreeperPowerCause.SET_OFF;
         this.changePower(new CreeperPowerEvent(this, cause), powered);
     }
 
@@ -86,7 +87,7 @@ public class EntityCreeper extends EntityHostile implements Creeper {
     @Override
     public void onStruckByLightning(LightningBolt lightningBolt) {
         super.onStruckByLightning(lightningBolt);
-        this.changePower(new CreeperPowerEvent(this, lightningBolt, CreeperPowerEvent.PowerCause.LIGHTNING), true);
+        this.changePower(new CreeperPowerEvent(this, lightningBolt, CreeperPowerCause.LIGHTNING), true);
     }
 
     @Override

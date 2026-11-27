@@ -85,7 +85,6 @@ class GlobalConfigurationMappingTest {
 
         assertEquals(
                 GlobalConfiguration.Debug.builder()
-                        .level(1)
                         .commands(false)
                         .uncaughtExceptionReports(false)
                         .ignoredPackets(Stream.of("LevelChunkPacket").collect(Collectors.toList()))

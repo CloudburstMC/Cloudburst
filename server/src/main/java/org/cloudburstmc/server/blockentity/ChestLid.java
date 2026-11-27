@@ -3,7 +3,7 @@ package org.cloudburstmc.server.blockentity;
 import lombok.Getter;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.event.block.BlockRedstoneEvent;
-import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
+import org.cloudburstmc.api.event.inventory.InventoryCloseReason;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEventPacket;
 import org.cloudburstmc.server.block.component.ChestBlockHandlers;
@@ -65,7 +65,7 @@ public class ChestLid {
 
     public void closeViewers() {
         for (CloudPlayer player : List.copyOf(this.viewers.keySet())) {
-            player.closeInventory(InventoryCloseEvent.Reason.CANT_USE);
+            player.closeInventory(InventoryCloseReason.CANT_USE);
         }
     }
 

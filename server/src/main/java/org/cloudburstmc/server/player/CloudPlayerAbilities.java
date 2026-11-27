@@ -13,7 +13,7 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 
-public final class CloudPlayerAbilities implements PlayerAbilities {
+public class CloudPlayerAbilities implements PlayerAbilities {
 
     public static final float DEFAULT_WALK_SPEED = 0.1f;
     public static final float DEFAULT_FLY_SPEED = 0.05f;
@@ -158,8 +158,8 @@ public final class CloudPlayerAbilities implements PlayerAbilities {
     public void update() {
         UpdateAbilitiesPacket packet = new UpdateAbilitiesPacket();
         packet.setUniqueEntityId(player.getUniqueId());
-        packet.setPlayerPermission(player.isOp() ? PlayerPermission.OPERATOR : PlayerPermission.MEMBER);
-        packet.setCommandPermission(player.isOp() ? CommandPermission.GAME_DIRECTORS : CommandPermission.ANY);
+        packet.setPlayerPermission(this.playerPermission());
+        packet.setCommandPermission(this.commandPermission());
         packet.setAbilityLayers(new ObjectArrayList<>());
 
         if (player.isSpectator()) {
@@ -168,6 +168,22 @@ public final class CloudPlayerAbilities implements PlayerAbilities {
 
         packet.getAbilityLayers().add(buildBaseLayer());
         player.sendPacket(packet);
+    }
+
+    public PlayerPermission playerPermission() {
+        return player.isOp() ? PlayerPermission.OPERATOR : PlayerPermission.MEMBER;
+    }
+
+    public CommandPermission commandPermission() {
+        int operatorLevel = player.getServer().getOperatorLevel(player.getServerId());
+        return switch (operatorLevel) {
+            case 0 -> CommandPermission.ANY;
+            case 1 -> CommandPermission.GAME_DIRECTORS;
+            case 2 -> CommandPermission.ADMIN;
+            case 3 -> CommandPermission.HOST;
+            case 4 -> CommandPermission.OWNER;
+            default -> throw new IllegalArgumentException("Unknown operator level: " + operatorLevel);
+        };
     }
 
     /**

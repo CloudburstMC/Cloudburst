@@ -3,28 +3,20 @@ package org.cloudburstmc.api.event.player;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.player.Player;
 
-public final class PlayerAnimationEvent extends PlayerEvent implements Cancellable {
+public class PlayerAnimationEvent extends PlayerEvent implements Cancellable {
 
-    private final Type animationType;
+    private final PlayerAnimationType animationType;
 
     public PlayerAnimationEvent(Player player) {
-        this(player, Type.SWING_ARM);
+        this(player, PlayerAnimationType.SWING_ARM);
     }
 
-    public PlayerAnimationEvent(Player player, Type animation) {
+    public PlayerAnimationEvent(Player player, PlayerAnimationType animation) {
         super(player);
         this.animationType = animation;
     }
 
-    public Type getAnimationType() {
+    public PlayerAnimationType getAnimationType() {
         return this.animationType;
-    }
-
-    public enum Type {
-        NO_ACTION,
-        SWING_ARM,
-        WAKE_UP,
-        CRITICAL_HIT,
-        MAGIC_CRITICAL_HIT
     }
 }

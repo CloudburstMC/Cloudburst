@@ -81,7 +81,7 @@ public class TeleportCommand extends AdvertisedCommand {
         if (hasArgument(context, "position")) {
             Entity target = context.getSource().executor();
             if (target == null) {
-                sender.sendMessage(Component.translatable("commands.locate.fail.noplayer"));
+                sender.sendMessage(Component.translatable("commands.locate.structure.fail.noplayer"));
                 return success();
             }
 
@@ -94,7 +94,7 @@ public class TeleportCommand extends AdvertisedCommand {
         if (hasArgument(context, "player")) {
             Entity origin = context.getSource().executor();
             if (origin == null) {
-                sender.sendMessage(Component.translatable("commands.locate.fail.noplayer"));
+                sender.sendMessage(Component.translatable("commands.locate.structure.fail.noplayer"));
                 return success();
             }
 

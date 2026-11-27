@@ -29,6 +29,20 @@ network:
   max-pending-joins: 64
   # Bounds authentication, resource pack negotiation and initial spawn readiness.
   login-timeout-seconds: 120
+  # Compression for game traffic: zlib or snappy.
+  compression-algorithm: zlib
+  # Drops packets a player sends faster than allowed. Each entry gives the listed packet types one
+  # shared allowance that refills at rate packets per second, up to burst packets.
+  packet-limits:
+    - packets: [TextPacket, BookEditPacket]
+      rate: 10
+      burst: 50
+    - packets: [PlayerSkinPacket]
+      rate: 10
+      burst: 50
+    - packets: [PositionTrackingDBClientRequestPacket]
+      rate: 20
+      burst: 60
 
   builtin:
     # Local UDP port. Zero uses the server port.
@@ -75,8 +89,6 @@ network:
 debug:
   # Save local crash reports for uncaught thread errors.
   uncaught-exception-reports: true
-  # %debug.level
-  level: 1
   # %debug.commands
   commands: false
   ignored-packets:
@@ -118,8 +130,6 @@ player:
   save-player-data: true
   # %player.skin-change-cooldown
   skin-change-cooldown: 30
-  # %player.log-player-addresses
-  log-player-addresses: true
 
 movement:
   # How many ticks of movement history to retain for server-side rewind

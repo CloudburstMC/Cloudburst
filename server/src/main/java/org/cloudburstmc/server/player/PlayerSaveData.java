@@ -79,7 +79,7 @@ public class PlayerSaveData {
         this.lastPlayed = tag.get("lastPlayed") instanceof Number value ? value.longValue() : null;
         this.levelId = tag.get("Level") instanceof String id ? id : null;
         if (tag.get("playerGameType") instanceof Number value) {
-            this.gameMode = GameMode.from(value.intValue());
+            this.gameMode = GameMode.getByValue(value.intValue());
         }
         this.respawn = Respawn.read(tag);
         return new Food(intOr(tag, "foodLevel", 20), floatOr(tag, "foodSaturationLevel", 5f),
@@ -100,7 +100,7 @@ public class PlayerSaveData {
         }
 
         if (this.gameMode != null) {
-            tag.putInt("playerGameType", this.gameMode.getVanillaId());
+            tag.putInt("playerGameType", this.gameMode.getValue());
         }
 
         this.respawn.write(tag);

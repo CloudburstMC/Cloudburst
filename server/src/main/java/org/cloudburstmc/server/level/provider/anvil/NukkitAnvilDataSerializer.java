@@ -17,6 +17,7 @@ import org.cloudburstmc.server.registry.CloudGameRuleRegistry;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Objects;
 
 /**
  * Reads Nukkit Anvil level metadata without changing the source files.
@@ -47,8 +48,8 @@ public class NukkitAnvilDataSerializer {
         tag.listenForString("generatorName", s -> data.setGenerator(Identifier.parse(s)));
         tag.listenForString("generatorOptions", data::setGeneratorOptions);
         tag.listenForInt("thunderTime", data::setLightningTime);
-        tag.listenForInt("Difficulty", id -> data.setDifficulty(Difficulty.fromId(id)));
-        tag.listenForInt("GameType", id -> data.setGameMode(GameMode.from(id)));
+        tag.listenForInt("Difficulty", id -> data.setDifficulty(Objects.requireNonNull(Difficulty.getByValue(id), () -> "Unknown difficulty ID: " + id)));
+        tag.listenForInt("GameType", id -> data.setGameMode(GameMode.getByValue(id)));
         tag.listenForInt("serverChunkTickRange", data::setServerChunkTickRange);
         tag.listenForInt("NetherScale", data::setNetherScale);
         tag.listenForLong("Time", data::setGameTime);

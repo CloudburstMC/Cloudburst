@@ -28,8 +28,6 @@ network:
     handshake-timeout-seconds: 20
 
 debug:
-  # If > 1, it will show debug messages in the console
-  level: 1
   # Enables commands: /status /gc
   commands: false
   ignored-packets:
@@ -65,7 +63,6 @@ player:
   # The time between skin change action in seconds. Set 0 to disable the cooldown
   skin-change-cooldown: 30
 
-# These settings will override the generator set in server.properties and allows loading multiple levels
 levels:
   world:
     dimension: overworld

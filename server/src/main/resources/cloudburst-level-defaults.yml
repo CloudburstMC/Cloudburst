@@ -10,8 +10,6 @@ level:
   max-chained-neighbor-updates: 1000000
 
 chunk-ticking:
-  # %chunk-ticking.tick-radius
-  tick-radius: 3
   # %chunk-ticking.per-tick
   per-tick: 40
   light-updates: false
@@ -20,9 +18,6 @@ chunk-ticking:
 chunk-sending:
   # %chunk-sending.per-tick
   per-tick: 4
-  # Maximum chunk radius a player may request.
-  max-chunk-radius: 48
-  max-loaded-chunk-radius: 10
   # %chunk-sending.spawn-threshold
   spawn-threshold: 56
   # %chunk-sending.cache-chunks.1

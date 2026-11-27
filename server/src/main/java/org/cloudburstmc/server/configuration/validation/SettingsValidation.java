@@ -160,16 +160,22 @@ public class SettingsValidation {
         } else if (value instanceof List<?> list) {
             for (int index = 0; index < list.size(); index++) {
                 Object element = list.get(index);
-                if (!(element instanceof String)) {
-                    problems.add(new ConfigurationProblem(path + "[" + index + "]", element, "must be a string"));
+                String elementPath = path + "[" + index + "]";
+                if (element != null && isSettingsObject(element)) {
+                    inspect(element, elementPath, problems);
+                } else if (!(element instanceof String)) {
+                    problems.add(new ConfigurationProblem(elementPath, element, "must be a string"));
                 }
             }
-        } else if (value.getClass().getEnclosingClass() == GlobalConfiguration.class
-                || value.getClass().getEnclosingClass() == LevelConfiguration.class
-                || value.getClass() == LevelDefinition.class) {
-            if (!value.getClass().isEnum()) {
-                inspect(value, path, problems);
-            }
+        } else if (isSettingsObject(value)) {
+            inspect(value, path, problems);
         }
+    }
+
+    private static boolean isSettingsObject(Object value) {
+        Class<?> type = value.getClass();
+        return !type.isEnum() && (type.getEnclosingClass() == GlobalConfiguration.class
+                || type.getEnclosingClass() == LevelConfiguration.class
+                || type == LevelDefinition.class);
     }
 }

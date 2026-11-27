@@ -10,11 +10,12 @@ import org.cloudburstmc.api.command.CommandSourceStack;
 import org.cloudburstmc.api.command.Commands;
 import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
 import org.cloudburstmc.api.command.argument.CommandArguments;
-import org.cloudburstmc.api.player.KickReason;
+import org.cloudburstmc.api.event.player.KickCause;
 import org.cloudburstmc.api.player.OfflinePlayer;
 import org.cloudburstmc.server.command.AdvertisedCommand;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.network.CommandNetworkData;
+import org.cloudburstmc.server.player.BanMessages;
 
 import java.util.UUID;
 
@@ -49,7 +50,7 @@ public class BanCommand extends AdvertisedCommand {
 
         String reason = hasArgument(context, "reason") ? argumentValue(context, "reason") : null;
         BanEntry<UUID> entry = bans.addBan(uuid, reason, null, sender.getName());
-        player.getPlayer().ifPresent(online -> online.kick(Component.text(entry.reason()), KickReason.PLAYER_BANNED));
+        player.getPlayer().ifPresent(online -> online.kick(BanMessages.player(entry), KickCause.BANNED));
 
         return broadcastSuccess(context, Component.translatable("commands.ban.success",
                         Component.text(CommandUtils.displayName(player, name)))

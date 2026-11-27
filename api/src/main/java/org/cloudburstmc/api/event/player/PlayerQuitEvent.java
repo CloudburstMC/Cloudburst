@@ -4,6 +4,8 @@ import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.player.Player;
 
+import java.util.Objects;
+
 /**
  * Called on the server thread when a joined player disconnects.
  * Connections that never joined do not produce this event.
@@ -11,55 +13,53 @@ import org.cloudburstmc.api.player.Player;
  */
 public class PlayerQuitEvent extends PlayerEvent {
 
-    private final String reason;
-
-    @Nullable
-    private Component quitMessage;
+    private final QuitReason reason;
+    private @Nullable Component quitMessage;
     private boolean autoSave = true;
 
-    public PlayerQuitEvent(Player player, @Nullable Component quitMessage, String reason) {
-        this(player, quitMessage, true, reason);
-    }
-
-    public PlayerQuitEvent(Player player, @Nullable Component quitMessage) {
-        this(player, quitMessage, true, "No reason");
-    }
-
-    public PlayerQuitEvent(Player player, @Nullable Component quitMessage, boolean autoSave, String reason) {
+    /**
+     * @param player      the disconnecting player
+     * @param quitMessage the message broadcast to other players, or {@code null} to omit it
+     * @param reason      how the connection ended
+     */
+    public PlayerQuitEvent(Player player, @Nullable Component quitMessage, QuitReason reason) {
         super(player);
         this.quitMessage = quitMessage;
-        this.autoSave = autoSave;
-        this.reason = reason;
+        this.reason = Objects.requireNonNull(reason, "reason");
     }
 
     /**
-     * Returns the quit message that will be broadcast, or {@code null} if suppressed.
-     *
-     * @return the quit message component, or {@code null}
+     * Returns the message broadcast to other players, or {@code null} when none is broadcast.
      */
-    @Nullable
-    public Component getQuitMessage() {
-        return quitMessage;
+    public @Nullable Component quitMessage() {
+        return this.quitMessage;
     }
 
     /**
-     * Sets the quit message to broadcast. Pass {@code null} to suppress the message entirely.
-     *
-     * @param quitMessage the new quit message, or {@code null}
+     * Sets the message broadcast to other players. Pass {@code null} to broadcast none.
      */
-    public void setQuitMessage(@Nullable Component quitMessage) {
+    public void quitMessage(@Nullable Component quitMessage) {
         this.quitMessage = quitMessage;
     }
 
+    /**
+     * Returns how the connection ended.
+     */
+    public QuitReason getReason() {
+        return this.reason;
+    }
+
+    /**
+     * Returns whether the player's data is saved after listeners return.
+     */
     public boolean getAutoSave() {
         return this.autoSave;
     }
 
+    /**
+     * Sets whether the player's data is saved after listeners return.
+     */
     public void setAutoSave(boolean autoSave) {
         this.autoSave = autoSave;
-    }
-
-    public String getReason() {
-        return reason;
     }
 }

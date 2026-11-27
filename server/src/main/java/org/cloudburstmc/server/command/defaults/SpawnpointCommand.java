@@ -47,7 +47,7 @@ public class SpawnpointCommand extends AdvertisedCommand {
         } else if (sender instanceof CloudPlayer player) {
             targets = List.of(player);
         } else {
-            sender.sendMessage(Component.translatable("commands.locate.fail.noplayer"));
+            sender.sendMessage(Component.translatable("commands.locate.structure.fail.noplayer"));
             return success();
         }
 

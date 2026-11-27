@@ -131,7 +131,7 @@ public class CloudPlayerDataStore implements AutoCloseable {
                         spawn.getPosition().getZ()
                 ))
                 .putString("Level", this.server.getDefaultLevel().getName())
-                .putInt("playerGameType", this.server.getGameMode().getVanillaId())
+                .putInt("playerGameType", this.server.getDefaultGameMode().getValue())
                 .putList("Rotation", NbtType.FLOAT, Arrays.asList(
                         spawn.getYaw(),
                         spawn.getPitch()

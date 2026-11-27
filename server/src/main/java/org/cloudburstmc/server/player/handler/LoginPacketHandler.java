@@ -88,7 +88,7 @@ public class LoginPacketHandler implements BedrockPacketHandler {
             return;
         }
 
-        if ((this.authenticatedTransport || this.server.getConfig().isXboxAuth()) && !playerData.isAuthenticated()) {
+        if ((this.authenticatedTransport || this.server.getConfig().isOnlineMode()) && !playerData.isAuthenticated()) {
             this.disconnect(DisconnectFailReason.NOT_AUTHENTICATED, "disconnectionScreen.notAuthenticated");
             return;
         }
@@ -124,9 +124,9 @@ public class LoginPacketHandler implements BedrockPacketHandler {
             }
 
             ResourcePackPacketHandler packs = new ResourcePackPacketHandler(this.session, this.server.getPackManager(),
-                    this.server.getForceResources(), this.server.getNetwork()::executeResourcePackRead,
+                    this.server.getRequireResourcePack(), this.server.getNetwork()::executeResourcePackRead,
                     () -> this.server.getGlobalScheduler().execute(null, context::completeResourcePacks),
-                    context::setClientCacheEnabled
+                    context::setClientCacheEnabled, context.locale()
             );
             this.session.setPacketHandler(packs);
 
@@ -139,6 +139,6 @@ public class LoginPacketHandler implements BedrockPacketHandler {
     }
 
     private void disconnect(DisconnectFailReason reason, String translationKey) {
-        this.loginContext.disconnect(reason, Component.text(this.server.getLanguage().translate(translationKey)));
+        this.loginContext.disconnect(reason, Component.translatable(translationKey));
     }
 }

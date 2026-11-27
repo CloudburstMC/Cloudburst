@@ -10,6 +10,8 @@ import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.HumanEntity;
 import org.cloudburstmc.api.entity.projectile.FishingHook;
+import org.cloudburstmc.api.event.player.KickCause;
+import org.cloudburstmc.api.event.player.PlayerSetSpawnCause;
 import org.cloudburstmc.api.event.player.PlayerSetSpawnEvent;
 import org.cloudburstmc.api.inventory.*;
 import org.cloudburstmc.api.inventory.view.*;
@@ -446,19 +448,28 @@ public interface Player extends HumanEntity, CommandSender {
     void displayName(Component displayName);
 
     /**
-     * Kicks this player with the given reason displayed on their screen.
-     *
-     * @param reason the disconnect message shown to the player
+     * Kicks this player with the default message and {@link KickCause#PLUGIN}.
      */
-    void kick(Component reason);
+    default void kick() {
+        this.kick(null);
+    }
 
     /**
-     * Kicks this player with the given reason and kick-event cause.
+     * Kicks this player with {@link KickCause#PLUGIN}.
      *
-     * @param reason the disconnect message shown to the player
-     * @param cause  the kick cause reported to {@link org.cloudburstmc.api.event.player.PlayerKickEvent}
+     * @param message the message shown to the player, or {@code null} for the default message
      */
-    void kick(Component reason, KickReason cause);
+    default void kick(@Nullable Component message) {
+        this.kick(message, KickCause.PLUGIN);
+    }
+
+    /**
+     * Kicks this player unless a {@link org.cloudburstmc.api.event.player.PlayerKickEvent} listener cancels it.
+     *
+     * @param message the message shown to the player, or {@code null} for the default message
+     * @param cause   why the player is kicked
+     */
+    void kick(@Nullable Component message, KickCause cause);
 
     /**
      * Returns the current round-trip latency of this player's connection in milliseconds.
@@ -736,7 +747,7 @@ public interface Player extends HumanEntity, CommandSender {
      * @param spawn the new spawn location
      * @param cause the reason for the change (used as the event cause)
      */
-    void setSpawn(Location spawn, PlayerSetSpawnEvent.Cause cause);
+    void setSpawn(Location spawn, PlayerSetSpawnCause cause);
 
     /**
      * Clears the player's personal spawn point so they will respawn at the primary level's spawn.

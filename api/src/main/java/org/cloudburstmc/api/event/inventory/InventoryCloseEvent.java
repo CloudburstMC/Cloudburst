@@ -9,13 +9,13 @@ import org.cloudburstmc.api.inventory.InventoryScreen;
  */
 public class InventoryCloseEvent extends InventoryEvent {
 
-    private final Reason reason;
+    private final InventoryCloseReason reason;
 
     public InventoryCloseEvent(InventoryScreen screen) {
-        this(screen, Reason.UNKNOWN);
+        this(screen, InventoryCloseReason.UNKNOWN);
     }
 
-    public InventoryCloseEvent(InventoryScreen screen, Reason reason) {
+    public InventoryCloseEvent(InventoryScreen screen, InventoryCloseReason reason) {
         super(screen);
         this.reason = reason;
     }
@@ -25,52 +25,7 @@ public class InventoryCloseEvent extends InventoryEvent {
      *
      * @return the close reason
      */
-    public Reason getReason() {
+    public InventoryCloseReason getReason() {
         return reason;
-    }
-
-    /**
-     * The reason the inventory was closed.
-     */
-    public enum Reason {
-        /**
-         * Reason is not known.
-         */
-        UNKNOWN,
-        /**
-         * The player closed the inventory themselves.
-         */
-        PLAYER,
-        /**
-         * A plugin closed the inventory.
-         */
-        PLUGIN,
-        /**
-         * The player disconnected.
-         */
-        DISCONNECT,
-        /**
-         * The player was teleported.
-         */
-        TELEPORT,
-        /**
-         * The player died.
-         */
-        DEATH,
-        /**
-         * A new inventory was opened while this one was already open,
-         * causing this one to be closed first.
-         */
-        OPEN_NEW,
-        /**
-         * The player can no longer use this inventory
-         * (e.g. moved too far away from the block, or the block was removed).
-         */
-        CANT_USE,
-        /**
-         * The chunk or world containing the inventory was unloaded while the
-         * player still had the screen open.
-         */
-        UNLOADED
     }
 }

@@ -16,10 +16,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.server.configuration.validation.ConfigurationValidationException;
 import org.cloudburstmc.server.console.CloudConsole;
 import org.cloudburstmc.server.diagnostics.CrashReports;
 
-import java.io.*;
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.*;
@@ -29,15 +33,6 @@ import java.util.*;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Bootstrap {
-
-    public static final String VERSION = readVersion();
-    public static final String API_VERSION = "2.0.0";
-
-    public static final Path PATH = Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize();
-    public static final long START_TIME = System.currentTimeMillis();
-
-    public static int DEBUG = 1;
-    private static @Nullable Level commandLineLogLevel;
 
     @Getter
     private static boolean titleDisabled = true;
@@ -87,18 +82,25 @@ public class Bootstrap {
     private static Optional<LaunchOptions> parseArguments(String[] args) throws IOException {
         OptionParser parser = new OptionParser();
         OptionSpec<Void> help = parser.accepts("help", "Shows this page").forHelp();
-        OptionSpec<Void> disableAnsi = parser.accepts("disable-ansi", "Disables console coloring");
-        OptionSpec<Void> enableTitle = parser.accepts("enable-title", "Enables terminal title updates");
-        OptionSpec<String> verbosity = parser.acceptsAll(List.of("v", "verbosity"), "Sets the log level")
+        OptionSpec<Void> noAnsi = parser.accepts("no-ansi", "Disables console coloring");
+        OptionSpec<Void> title = parser.accepts("title", "Updates the terminal title");
+        OptionSpec<String> logLevel = parser.accepts("log-level", "Sets the log level, such as info, debug or trace")
                 .withRequiredArg();
         OptionSpec<String> language = parser.accepts("language", "Sets the initial server language")
                 .withRequiredArg();
-        OptionSpec<Path> dataPath = parser.accepts("data-path", "Main server data directory")
-                .withRequiredArg().withValuesConvertedBy(new PathConverter()).defaultsTo(PATH);
-        OptionSpec<Path> pluginPath = parser.accepts("plugin-path", "Plugin directory")
+        OptionSpec<Path> dataDir = parser.accepts("data-dir", "Server data directory")
+                .withRequiredArg().withValuesConvertedBy(new PathConverter()).defaultsTo(Path.of(""));
+        OptionSpec<Path> pluginPath = parser.accepts("plugins", "Plugin directory")
                 .withRequiredArg().withValuesConvertedBy(new PathConverter());
-        OptionSpec<Path> levelPath = parser.accepts("level-path", "World directory")
+        OptionSpec<Path> levelPath = parser.accepts("world-container", "World container directory")
                 .withRequiredArg().withValuesConvertedBy(new PathConverter());
+        List<OptionSpec<String>> propertyOverrides = List.of(
+                parser.accepts("server-ip", "Overrides server-ip in server.properties").withRequiredArg(),
+                parser.accepts("server-port", "Overrides server-port in server.properties").withRequiredArg(),
+                parser.accepts("online-mode", "Overrides online-mode in server.properties").withRequiredArg(),
+                parser.accepts("max-players", "Overrides max-players in server.properties").withRequiredArg(),
+                parser.accepts("level-name", "Overrides level-name in server.properties").withRequiredArg()
+        );
 
         OptionSet options = parser.parse(args);
         if (options.has(help)) {
@@ -110,14 +112,20 @@ public class Bootstrap {
             throw new IllegalArgumentException("Unexpected arguments: " + options.nonOptionArguments());
         }
 
-        Path data = options.valueOf(dataPath).toAbsolutePath().normalize();
+        Path data = options.valueOf(dataDir).toAbsolutePath().normalize();
         Path plugins = options.has(pluginPath) ? options.valueOf(pluginPath) : data.resolve("plugins");
         Path levels = options.has(levelPath) ? options.valueOf(levelPath) : data.resolve("worlds");
-        Level logLevel = parseLogLevel(options.valueOf(verbosity));
+        Map<String, String> properties = new LinkedHashMap<>();
+        for (OptionSpec<String> override : propertyOverrides) {
+            if (options.has(override)) {
+                properties.put(override.options().getFirst(), options.valueOf(override));
+            }
+        }
 
         return Optional.of(new LaunchOptions(data, plugins.toAbsolutePath().normalize(),
-                levels.toAbsolutePath().normalize(), options.valueOf(language), logLevel,
-                options.has(disableAnsi), options.has(enableTitle)));
+                levels.toAbsolutePath().normalize(), Map.copyOf(properties), options.valueOf(language),
+                parseLogLevel(options.valueOf(logLevel)), options.has(noAnsi), options.has(title))
+        );
     }
 
     private static @Nullable Level parseLogLevel(@Nullable String value) {
@@ -134,10 +142,9 @@ public class Bootstrap {
     }
 
     private static void configureLogging(LaunchOptions options) {
-        titleDisabled = options.disableAnsi() || !options.enableTitle();
-        commandLineLogLevel = options.logLevel();
-        System.setProperty("cloudburst.disable-ansi", Boolean.toString(options.disableAnsi()));
-        if (options.disableAnsi()) {
+        titleDisabled = options.noAnsi() || !options.title();
+        System.setProperty("cloudburst.disable-ansi", Boolean.toString(options.noAnsi()));
+        if (options.noAnsi()) {
             System.setProperty("terminal.ansi", "false");
             System.setProperty("cloudburst.console-pattern", "%d{HH:mm:ss} [%-5level] %minecraftFormatting{%msg}{strip}%n");
         }
@@ -145,16 +152,12 @@ public class Bootstrap {
         System.setProperty("cloudburst.log-directory", options.dataPath().resolve("logs").toString());
         LoggerContext context = (LoggerContext) LogManager.getContext(false);
         context.reconfigure();
-        configureLogLevel(DEBUG);
+        if (options.logLevel() != null) {
+            setLogLevel(options.logLevel());
+        }
 
         InternalLoggerFactory.setDefaultFactory(Log4J2LoggerFactory.INSTANCE);
         ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED);
-    }
-
-    public static void configureLogLevel(int debugLevel) {
-        DEBUG = Math.max(debugLevel, 1);
-        Level configured = DEBUG >= 3 ? Level.TRACE : DEBUG == 2 ? Level.DEBUG : Level.INFO;
-        setLogLevel(commandLineLogLevel != null ? commandLineLogLevel : configured);
     }
 
     private static void setLogLevel(Level level) {
@@ -170,9 +173,12 @@ public class Bootstrap {
         CloudServer server = null;
         try {
             CloudConsole.setWindowTitle("Cloudburst is starting up...");
-            server = new CloudServer(options.dataPath(), options.pluginPath(), options.levelPath(), options.language());
+            server = new CloudServer(options.dataPath(), options.pluginPath(), options.levelPath(), options.propertyOverrides(), options.language());
             server.boot();
             return 0;
+        } catch (ConfigurationValidationException invalid) {
+            log.fatal(invalid.getMessage());
+            return 1;
         } catch (Throwable failure) {
             reportCrash(log, files, failure);
             return 1;
@@ -194,18 +200,6 @@ public class Bootstrap {
         }
     }
 
-    private static String readVersion() {
-        Properties properties = new Properties();
-        try (InputStream stream = Bootstrap.class.getClassLoader().getResourceAsStream("git.properties")) {
-            if (stream != null) {
-                properties.load(stream);
-            }
-        } catch (IOException ignored) {
-            return "git-null";
-        }
-        return "git-" + properties.getProperty("git.commit.id.abbrev", "null");
-    }
-
-    private record LaunchOptions(Path dataPath, Path pluginPath, Path levelPath, @Nullable String language, @Nullable Level logLevel, boolean disableAnsi, boolean enableTitle) {
+    private record LaunchOptions(Path dataPath, Path pluginPath, Path levelPath, Map<String, String> propertyOverrides, @Nullable String language, @Nullable Level logLevel, boolean noAnsi, boolean title) {
     }
 }

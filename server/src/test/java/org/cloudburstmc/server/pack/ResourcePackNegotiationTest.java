@@ -16,10 +16,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -111,7 +108,7 @@ class ResourcePackNegotiationTest {
                 session.setCodec(ProtocolInfo.getDefaultPacketCodec());
                 session.getPeer().getCodecHelper().setTextConverter(new AdventureTextConverter());
                 ResourcePackPacketHandler handler = new ResourcePackPacketHandler(session, this.packs, false,
-                        this.reads::offer, this.completions::incrementAndGet, _ -> {});
+                        this.reads::offer, this.completions::incrementAndGet, _ -> {}, Locale.US);
                 session.setPacketHandler(handler);
                 handler.offer();
             }), new ChannelOutboundHandlerAdapter() {

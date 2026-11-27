@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.entity.component;
 
 import lombok.Getter;
-import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
+import org.cloudburstmc.api.event.inventory.InventoryCloseReason;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.sound.SoundPlayback;
 import org.cloudburstmc.api.level.sound.SoundTypes;
@@ -92,7 +92,7 @@ public class EntityStorage {
     public void closeUnavailableViewers() {
         for (CloudPlayer player : Set.copyOf(this.viewers)) {
             if (this.isUnavailableTo(player)) {
-                player.closeInventory(InventoryCloseEvent.Reason.CANT_USE);
+                player.closeInventory(InventoryCloseReason.CANT_USE);
             }
         }
     }
@@ -110,7 +110,7 @@ public class EntityStorage {
 
     public void close() {
         for (CloudPlayer player : Set.copyOf(this.viewers)) {
-            player.closeInventory(InventoryCloseEvent.Reason.CANT_USE);
+            player.closeInventory(InventoryCloseReason.CANT_USE);
         }
         this.inventory.getContainer().close();
     }

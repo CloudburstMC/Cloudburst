@@ -4,10 +4,13 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import lombok.*;
 import org.cloudburstmc.api.configuration.Configuration;
 import org.cloudburstmc.server.configuration.file.YamlConfigurationLoader;
+import org.cloudburstmc.server.configuration.type.NetworkCompression;
 import org.cloudburstmc.server.configuration.type.SignalingMode;
+import org.cloudburstmc.server.configuration.validation.ConfigurationProblem;
 import org.cloudburstmc.server.configuration.validation.ConfigurationValidationException;
 import org.cloudburstmc.server.configuration.validation.SettingConstraint;
 import org.cloudburstmc.server.configuration.validation.SettingsValidation;
+import org.cloudburstmc.server.network.PacketLimiter;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonNaming;
 import tools.jackson.databind.node.ObjectNode;
@@ -15,10 +18,7 @@ import tools.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Getter
 @EqualsAndHashCode
@@ -76,6 +76,7 @@ public class GlobalConfiguration {
                     configuration.getValues(false), GlobalConfiguration.class);
 
             SettingsValidation.validate(file, yaml);
+            yaml.network.validatePacketLimits(file);
             yaml.freezeCollections();
 
             return yaml;
@@ -160,14 +161,68 @@ public class GlobalConfiguration {
         @Builder.Default
         private ExternalSignaling nxs = new ExternalSignaling();
 
+        @Builder.Default
+        private NetworkCompression compressionAlgorithm = NetworkCompression.ZLIB;
+
+        @Builder.Default
+        private List<PacketLimit> packetLimits = PacketLimit.DEFAULTS;
+
         public List<String> getMediaProxyRelays() {
             return List.copyOf(this.mediaProxyRelays);
         }
 
+        private void validatePacketLimits(Path file) {
+            List<ConfigurationProblem> problems = new ArrayList<>();
+            for (int i = 0; i < this.packetLimits.size(); i++) {
+                for (String name : this.packetLimits.get(i).getPackets()) {
+                    if (PacketLimiter.packetType(name).isEmpty()) {
+                        problems.add(new ConfigurationProblem("network.packet-limits[" + i + "].packets", name, "must name a packet type"));
+                    }
+                }
+            }
+
+            if (!problems.isEmpty()) {
+                throw new ConfigurationValidationException(file, problems);
+            }
+        }
+
         private void freezeCollections() {
             this.mediaProxyRelays = List.copyOf(this.mediaProxyRelays);
+            this.packetLimits = this.packetLimits.stream().map(PacketLimit::frozen).toList();
             this.builtin.freezeCollections();
             this.nxs.advertisedAddresses = List.copyOf(this.nxs.advertisedAddresses);
+        }
+    }
+
+    @Getter
+    @EqualsAndHashCode
+    @ToString
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonAutoDetect(
+            fieldVisibility = JsonAutoDetect.Visibility.ANY,
+            getterVisibility = JsonAutoDetect.Visibility.NONE,
+            isGetterVisibility = JsonAutoDetect.Visibility.NONE)
+    @JsonNaming(PropertyNamingStrategies.KebabCaseStrategy.class)
+    public static class PacketLimit {
+
+        static final List<PacketLimit> DEFAULTS = List.of(
+                new PacketLimit(List.of("TextPacket", "BookEditPacket"), 10, 50),
+                new PacketLimit(List.of("PlayerSkinPacket"), 10, 50),
+                new PacketLimit(List.of("PositionTrackingDBClientRequestPacket"), 20, 60));
+
+        @Builder.Default
+        private List<String> packets = List.of();
+
+        @SettingConstraint(min = 0, minInclusive = false)
+        private double rate;
+
+        @SettingConstraint(min = 1)
+        private int burst;
+
+        private PacketLimit frozen() {
+            return new PacketLimit(List.copyOf(this.packets), this.rate, this.burst);
         }
     }
 
@@ -363,9 +418,6 @@ public class GlobalConfiguration {
     public static class Debug {
 
         @Builder.Default
-        private int level = 1;
-
-        @Builder.Default
         private List<String> ignoredPackets = Collections.emptyList();
 
         @Builder.Default
@@ -500,9 +552,6 @@ public class GlobalConfiguration {
 
         @Builder.Default
         private boolean savePlayerData = true;
-
-        @Builder.Default
-        private boolean logPlayerAddresses = true;
     }
 
     @Getter

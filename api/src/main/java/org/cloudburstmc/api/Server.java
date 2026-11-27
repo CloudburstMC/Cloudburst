@@ -8,7 +8,6 @@ import org.cloudburstmc.api.boss.BossBarColor;
 import org.cloudburstmc.api.boss.BossBarStyle;
 import org.cloudburstmc.api.command.Commands;
 import org.cloudburstmc.api.event.EventManager;
-import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.LevelBuilder;
 import org.cloudburstmc.api.map.Maps;
@@ -159,6 +158,52 @@ public interface Server {
     boolean getAllowFlight();
 
     /**
+     * Returns whether players must be authenticated to join.
+     */
+    boolean getOnlineMode();
+
+    /**
+     * Returns whether levels are in hardcore mode.
+     */
+    boolean isHardcore();
+
+    /**
+     * Returns the chunk radius sent to players.
+     */
+    int getViewDistance();
+
+    /**
+     * Returns the chunk radius around players in which the world is ticked.
+     */
+    int getSimulationDistance();
+
+    /**
+     * Returns the radius around the world spawn in which only operators may build.
+     */
+    int getSpawnRadius();
+
+    /**
+     * Sets the spawn protection radius and persists the setting.
+     *
+     * @param radius the radius in blocks, zero or more
+     * @throws IllegalArgumentException if the radius is negative
+     */
+    void setSpawnRadius(int radius);
+
+    /**
+     * Returns the number of minutes after which idle players are kicked, or zero when they are not kicked.
+     */
+    int getIdleTimeout();
+
+    /**
+     * Sets the idle timeout and persists the setting.
+     *
+     * @param minutes the timeout in minutes, or zero to never kick idle players
+     * @throws IllegalArgumentException if the timeout is negative
+     */
+    void setIdleTimeout(int minutes);
+
+    /**
      * Returns the registry of permission definitions.
      *
      * @return the permission manager
@@ -240,9 +285,17 @@ public interface Server {
     int broadcast(Component message, String permission);
 
     /**
-     * Returns the default game mode for players.
+     * Returns the game mode of new players, and of every player when it is forced.
      */
-    GameMode getGameMode();
+    GameMode getDefaultGameMode();
+
+    /**
+     * Sets the default game mode and persists the setting.
+     * Online players switch to it when the game mode is forced.
+     *
+     * @param mode the new default game mode
+     */
+    void setDefaultGameMode(GameMode mode);
 
     /**
      * Returns the primary level.
@@ -278,15 +331,35 @@ public interface Server {
     int getMaxPlayers();
 
     /**
+     * Sets the player limit and persists the setting. Players already online stay connected.
+     *
+     * @param maxPlayers the limit, one or more
+     * @throws IllegalArgumentException if the limit is less than one
+     */
+    void setMaxPlayers(int maxPlayers);
+
+    /**
      * Returns whether the whitelist is enabled. Operators may join without being listed.
      */
     boolean hasWhitelist();
 
     /**
      * Enables or disables whitelist admission checks and persists the setting.
-     * Does not disconnect players already online.
+     * Disconnects players who may no longer join when the whitelist is enforced.
      */
     void setWhitelist(boolean enabled);
+
+    /**
+     * Returns whether online players who may no longer join are disconnected when the whitelist,
+     * its members or the operators change.
+     */
+    boolean isWhitelistEnforced();
+
+    /**
+     * Enables or disables whitelist enforcement and persists the setting.
+     * Enabling it disconnects online players who may not join.
+     */
+    void setWhitelistEnforced(boolean enforced);
 
     /**
      * Returns a snapshot of explicitly whitelisted players, whether or not the whitelist is enabled.
@@ -296,6 +369,7 @@ public interface Server {
 
     /**
      * Reloads whitelist membership from disk. Invalid data preserves the active list.
+     * Disconnects players who may no longer join when the whitelist is enforced.
      */
     void reloadWhitelist();
 
@@ -324,21 +398,6 @@ public interface Server {
      * Returns the configured bind address, or an empty string to bind to all interfaces.
      */
     String getIp();
-
-    /**
-     * Returns the server's default difficulty.
-     */
-    Difficulty getDifficulty();
-
-    /**
-     * @return whether Nether levels are enabled
-     */
-    boolean isNetherAllowed();
-
-    /**
-     * @return whether End levels are enabled
-     */
-    boolean isEndAllowed();
 
     /**
      * Finds the online player with the shortest case-insensitive name prefix match.

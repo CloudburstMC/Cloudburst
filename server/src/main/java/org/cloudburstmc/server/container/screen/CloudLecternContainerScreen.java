@@ -2,7 +2,7 @@ package org.cloudburstmc.server.container.screen;
 
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTypes;
-import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
+import org.cloudburstmc.api.event.inventory.InventoryCloseReason;
 import org.cloudburstmc.api.inventory.LecternScreen;
 import org.cloudburstmc.api.inventory.ScreenTypes;
 import org.cloudburstmc.api.inventory.view.BlockLecternView;
@@ -67,7 +67,7 @@ public class CloudLecternContainerScreen extends CloudInventoryScreen implements
 
     public void closeByReader() {
         this.closedByReader = true;
-        this.player.getInventoryManager().closeScreen(InventoryCloseEvent.Reason.PLAYER);
+        this.player.getInventoryManager().closeScreen(InventoryCloseReason.PLAYER);
     }
 
     @Override

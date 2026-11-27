@@ -72,7 +72,7 @@ public class EntityLightningBolt extends CloudEntity implements LightningBolt {
         if (this.flashTicks == 2) {
             this.level.addLevelSoundEvent(this.getPosition(), SoundEvent.THUNDER, -1, EntityTypes.LIGHTNING_BOLT);
             this.level.addLevelSoundEvent(this.getPosition(), SoundEvent.EXPLODE, -1, EntityTypes.LIGHTNING_BOLT);
-            if (this.server.getDifficulty().getId() >= 2) {
+            if (this.server.getDifficulty().getValue() >= 2) {
                 this.igniteStrikeBlock();
             }
         }

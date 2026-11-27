@@ -549,7 +549,7 @@ public abstract class CloudLivingEntity extends CloudEntity implements LivingEnt
         Entity causingEntity = source.getCausingEntity();
         Entity impactEntity = directEntity != null ? directEntity : causingEntity;
         if (impactEntity != null && impactEntity.isOnFire() && !(impactEntity instanceof CloudPlayer)) {
-            this.setOnFire(2 * this.server.getDifficulty().getId());
+            this.setOnFire(2 * this.server.getDifficulty().getValue());
         }
 
         if (!this.isClosed() && !event.getDamageType().is(DamageTypeTags.NO_KNOCKBACK)) {

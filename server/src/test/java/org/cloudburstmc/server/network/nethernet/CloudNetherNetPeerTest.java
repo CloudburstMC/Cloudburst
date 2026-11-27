@@ -33,6 +33,7 @@ import java.security.KeyPairGenerator;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.Inflater;
 
@@ -51,7 +52,7 @@ class CloudNetherNetPeerTest {
         Component message = Component.text("Denied");
 
         try {
-            peer.disconnectSession(session, DisconnectFailReason.NOT_ALLOWED, message);
+            peer.disconnectSession(session, DisconnectFailReason.NOT_ALLOWED, message, Locale.US);
             channel.runPendingTasks();
 
             assertEquals(1, session.packets.size());
@@ -75,7 +76,7 @@ class CloudNetherNetPeerTest {
         Component message = Component.text("Denied");
 
         try {
-            peer.disconnectSession(session, DisconnectFailReason.KICKED, message);
+            peer.disconnectSession(session, DisconnectFailReason.KICKED, message, Locale.US);
             channel.runPendingTasks();
 
             assertNull(session.closeReason);
@@ -99,7 +100,7 @@ class CloudNetherNetPeerTest {
 
         try {
             assertThrows(IllegalArgumentException.class,
-                    () -> peer.disconnectSession(session, DisconnectFailReason.KICKED, Component.empty()));
+                    () -> peer.disconnectSession(session, DisconnectFailReason.KICKED, Component.empty(), Locale.US));
             assertTrue(session.packets.isEmpty());
         } finally {
             channel.finishAndReleaseAll();

@@ -478,10 +478,7 @@ public final class PlayerChunkManager {
     }
 
     private int getMaxChunkRadius() {
-        return Math.max(8, Math.min(
-                this.player.getLevel().getConfiguration().getChunkSending().getMaxChunkRadius(),
-                this.player.getLevel().getConfiguration().getChunkSending().getMaxLoadedChunkRadius()
-        ));
+        return Math.max(8, this.player.getServer().getViewDistance());
     }
 
     private int compareDistanceToPlayer(long a, long b) {

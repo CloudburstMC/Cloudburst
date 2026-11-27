@@ -11,7 +11,7 @@ import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.command.CommandSourceStack;
 import org.cloudburstmc.api.command.Commands;
 import org.cloudburstmc.api.command.argument.CommandArguments;
-import org.cloudburstmc.api.player.KickReason;
+import org.cloudburstmc.api.event.player.KickCause;
 import org.cloudburstmc.api.player.OfflinePlayer;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.command.ServerCommand;
@@ -165,7 +165,7 @@ class BanManagementCommandsTest {
                     case "kick" -> {
                         assertTrue(ips().isBanned(address.getAddress()));
                         assertInstanceOf(Component.class, arguments[0]);
-                        assertEquals(KickReason.IP_BANNED, arguments[1]);
+                        assertEquals(KickCause.IP_BANNED, arguments[1]);
                         kicked.add(name);
                         yield null;
                     }

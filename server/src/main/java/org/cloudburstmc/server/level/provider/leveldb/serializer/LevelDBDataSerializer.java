@@ -39,6 +39,10 @@ public class LevelDBDataSerializer implements CloudLevelDataSerializer {
 
     private static final int STORAGE_VERSION = 10;
     private static final int STORAGE_VERSION_MIN = 8;
+    private static final int GAME_TYPE_SURVIVAL = 0;
+    private static final int GAME_TYPE_CREATIVE = 1;
+    private static final int GAME_TYPE_ADVENTURE = 2;
+    private static final int GAME_TYPE_SPECTATOR = 6;
 
     /**
      * Reads one metadata file without modifying it or falling back to a backup.
@@ -91,8 +95,7 @@ public class LevelDBDataSerializer implements CloudLevelDataSerializer {
                 .putString("generatorOptions", data.getGeneratorOptions())
                 .putString("generatorName", data.getGenerator().toString())
                 .putInt("lightningTime", data.getLightningTime())
-                .putInt("Difficulty", data.getDifficulty().getId())
-                .putInt("GameType", data.getGameMode().getVanillaId())
+                .putInt("Difficulty", data.getDifficulty().getValue())
                 .putInt("StorageVersion", STORAGE_VERSION)
                 .putInt("serverChunkTickRange", data.getServerChunkTickRange())
                 .putInt("NetherScale", data.getNetherScale())
@@ -113,6 +116,10 @@ public class LevelDBDataSerializer implements CloudLevelDataSerializer {
                 .putFloat("lightningLevel", data.getLightningLevel())
                 .putBoolean("Hardcore", data.isHardcore());
 
+        if (data.getGameMode() != null) {
+            tag.putInt("GameType", gameType(data.getGameMode()));
+        }
+
         writeEndFightData(tag, data.getEndFightData());
 
         CloudGameRules gameRules = data.getGameRules();
@@ -132,6 +139,39 @@ public class LevelDBDataSerializer implements CloudLevelDataSerializer {
                 .putInt(STORAGE_VERSION).putInt(tagBytes.length).put(tagBytes).array();
     }
 
+    private static @Nullable GameMode gameMode(int gameType) {
+        return switch (gameType) {
+            case GAME_TYPE_SURVIVAL -> GameMode.SURVIVAL;
+            case GAME_TYPE_CREATIVE -> GameMode.CREATIVE;
+            case GAME_TYPE_ADVENTURE -> GameMode.ADVENTURE;
+            case GAME_TYPE_SPECTATOR -> GameMode.SPECTATOR;
+            default -> null;
+        };
+    }
+
+    private static Difficulty difficulty(int id) {
+        Difficulty difficulty = Difficulty.getByValue(id);
+        if (difficulty == null) {
+            throw new IllegalArgumentException("Unknown difficulty ID: " + id);
+        }
+
+        return difficulty;
+    }
+
+    private static int gameType(GameMode gameMode) {
+        if (gameMode == GameMode.SURVIVAL) {
+            return GAME_TYPE_SURVIVAL;
+        } else if (gameMode == GameMode.CREATIVE) {
+            return GAME_TYPE_CREATIVE;
+        } else if (gameMode == GameMode.ADVENTURE) {
+            return GAME_TYPE_ADVENTURE;
+        } else if (gameMode == GameMode.SPECTATOR) {
+            return GAME_TYPE_SPECTATOR;
+        }
+
+        throw new IllegalArgumentException("Game mode cannot be stored in a level: " + gameMode);
+    }
+
     private void loadData(CloudLevelData data, Path levelDatPath) throws IOException {
         NbtMap tag = readMetadata(levelDatPath);
         data.setAdditionalData(tag);
@@ -139,8 +179,8 @@ public class LevelDBDataSerializer implements CloudLevelDataSerializer {
         tag.listenForString("LevelName", data::setName);
         readGenerator(tag, data);
         tag.listenForInt("lightningTime", data::setLightningTime);
-        tag.listenForInt("Difficulty", id -> data.setDifficulty(Difficulty.fromId(id)));
-        tag.listenForInt("GameType", id -> data.setGameMode(GameMode.from(id)));
+        tag.listenForInt("Difficulty", id -> data.setDifficulty(difficulty(id)));
+        tag.listenForInt("GameType", id -> data.setGameMode(gameMode(id)));
         tag.listenForInt("serverChunkTickRange", data::setServerChunkTickRange);
         tag.listenForInt("NetherScale", data::setNetherScale);
         tag.listenForLong("currentTick", data::setGameTime);

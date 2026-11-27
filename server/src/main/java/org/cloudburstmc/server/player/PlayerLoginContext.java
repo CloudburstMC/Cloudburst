@@ -6,16 +6,22 @@ import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.ban.BanEntry;
 import org.cloudburstmc.api.event.player.PlayerConnectionValidateLoginEvent;
 import org.cloudburstmc.api.event.player.PlayerLoginResult;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.data.DisconnectFailReason;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.server.locale.LocaleManager;
 import org.cloudburstmc.server.network.nethernet.CloudNetherNetPeer;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Collection;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -60,8 +66,20 @@ public class PlayerLoginContext {
 
     public void disconnect(DisconnectFailReason reason, Component message) {
         if (this.disconnected.compareAndSet(false, true)) {
-            ((CloudNetherNetPeer) this.session.getPeer()).disconnectSession(this.session, reason, message);
+            ((CloudNetherNetPeer) this.session.getPeer()).disconnectSession(this.session, reason, message, this.locale());
         }
+    }
+
+    /**
+     * Returns the player's locale once the login is authenticated, otherwise the server's locale.
+     */
+    public Locale locale() {
+        AuthenticatedPlayerData data = this.playerData;
+        if (data != null) {
+            return data.getLocale();
+        }
+
+        return Objects.requireNonNullElse(this.server.getLanguage().getLocale(), LocaleManager.FALLBACK_LOCALE);
     }
 
     public boolean isActive() {
@@ -150,18 +168,26 @@ public class PlayerLoginContext {
     }
 
     private boolean validateAdmission() {
+        if (this.playerData.isAuthenticated()) {
+            this.server.claimReservedEntries(this.playerData.getUniqueId(), this.playerData.getName());
+        }
+
         InetSocketAddress address = (InetSocketAddress) this.session.getSocketAddress();
         Collection<CloudPlayer> onlinePlayers = this.server.getOnlinePlayers().values();
         PlayerLoginResult result = PlayerLoginResult.ALLOWED;
         Component message = Component.empty();
 
-        if (this.server.getPlayerBanList().isBanned(this.playerData.getUniqueId())
-                || address.getAddress() != null && this.server.getIpBanList().isBanned(address.getAddress())) {
+        BanEntry<UUID> playerBan = this.server.getPlayerBanList().getBanEntry(this.playerData.getUniqueId());
+        BanEntry<InetAddress> addressBan = address.getAddress() == null ? null : this.server.getIpBanList().getBanEntry(address.getAddress());
+        if (playerBan != null) {
             result = PlayerLoginResult.KICK_BANNED;
-            message = Component.text("You are banned");
+            message = BanMessages.player(playerBan);
+        } else if (addressBan != null) {
+            result = PlayerLoginResult.KICK_BANNED;
+            message = BanMessages.address(addressBan);
         } else if (!this.server.mayJoin(this.playerData.getUniqueId())) {
             result = PlayerLoginResult.KICK_WHITELIST;
-            message = Component.text("Server is white-listed");
+            message = Component.translatable("disconnectionScreen.notAllowed");
         } else if (onlinePlayers.size() >= this.server.getMaxPlayers()
                 && !this.server.canBypassPlayerLimit(this.playerData.getUniqueId())
                 && onlinePlayers.stream().noneMatch(player ->

@@ -2,7 +2,6 @@ package org.cloudburstmc.server.configuration;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import lombok.*;
-import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.server.configuration.validation.SettingConstraint;
 
 @Getter
@@ -24,80 +23,94 @@ public class DedicatedServerProperties {
     private String subMotd = "https://cloudburstmc.org";
 
     @Builder.Default
-    private String serverIp = "0.0.0.0";
+    private String serverIp = "";
 
     @Builder.Default
     @SettingConstraint(min = 1, max = 65535)
     private int serverPort = 19132;
 
     @Builder.Default
-    @SettingConstraint(min = 1)
-    private int viewDistance = 10;
-
-    @Builder.Default
-    private boolean whiteList = false;
-
-    @Builder.Default
-    private boolean achievements = true;
-
-    @Builder.Default
-    private boolean announcePlayerAchievements = true;
-
-    @Builder.Default
-    @SettingConstraint(min = 0)
-    private int spawnProtection = 16;
+    private boolean onlineMode = true;
 
     @Builder.Default
     @SettingConstraint(min = 1)
     private int maxPlayers = 20;
 
     @Builder.Default
-    private boolean allowFlight = false;
+    @SettingConstraint(min = 1)
+    private int viewDistance = 10;
 
     @Builder.Default
-    private boolean spawnAnimals = true;
+    @SettingConstraint(min = 1)
+    private int simulationDistance = 10;
 
     @Builder.Default
-    private boolean spawnMobs = true;
+    private boolean whitelist = false;
 
     @Builder.Default
-    @SettingConstraint(min = 0, max = 3)
-    private int gamemode = 0;
+    private boolean enforceWhitelist = false;
+
+    @Builder.Default
+    @SettingConstraint(nonBlank = true)
+    private String levelName = "world";
+
+    @Builder.Default
+    @SettingConstraint(nonBlank = true)
+    private String gamemode = "survival";
 
     @Builder.Default
     private boolean forceGamemode = false;
 
     @Builder.Default
+    @SettingConstraint(nonBlank = true)
+    private String difficulty = "easy";
+
+    @Builder.Default
     private boolean hardcore = false;
 
     @Builder.Default
-    private boolean pvp = true;
+    @SettingConstraint(min = 0)
+    private int spawnProtection = 16;
 
     @Builder.Default
-    @SettingConstraint(min = 0, max = 3)
-    private int difficulty = 1;
+    @SettingConstraint(min = 0, max = 4)
+    private int opPermissionLevel = 4;
 
     @Builder.Default
-    @SettingConstraint(nonBlank = true)
-    private String defaultLevel = "world";
+    private boolean allowFlight = false;
 
     @Builder.Default
-    private boolean allowNether = true;
+    private boolean requireResourcePack = false;
 
     @Builder.Default
-    private boolean allowEnd = true;
+    @SettingConstraint(min = 0)
+    private int playerIdleTimeout = 0;
 
     @Builder.Default
-    private boolean autoSave = true;
+    @SettingConstraint(min = 0, max = 65535)
+    private int networkCompressionThreshold = 1;
 
     @Builder.Default
-    private boolean forceResources = false;
+    @SettingConstraint(min = 0)
+    private int rateLimit = 0;
 
     @Builder.Default
-    private boolean xboxAuth = true;
+    private boolean logIps = true;
 
     @Builder.Default
-    private boolean generateStructures = true;
+    private long maxTickTime = 60000;
+
+    public void modifyMaxPlayers(int maxPlayers) {
+        this.maxPlayers = maxPlayers;
+    }
+
+    public void modifySpawnProtection(int spawnProtection) {
+        this.spawnProtection = spawnProtection;
+    }
+
+    public void modifyPlayerIdleTimeout(int playerIdleTimeout) {
+        this.playerIdleTimeout = playerIdleTimeout;
+    }
 
     public void modifyMotd(String motd) {
         this.motd = motd;
@@ -107,15 +120,19 @@ public class DedicatedServerProperties {
         this.subMotd = subMotd;
     }
 
-    public void modifyWhitelist(boolean b) {
-        this.whiteList = b;
+    public void modifyWhitelist(boolean whitelist) {
+        this.whitelist = whitelist;
     }
 
-    public void modifyGamemode(int id) {
-        this.gamemode = id;
+    public void modifyEnforceWhitelist(boolean enforceWhitelist) {
+        this.enforceWhitelist = enforceWhitelist;
     }
 
-    public void modifyDifficulty(Difficulty difficulty) {
-        this.difficulty = difficulty.getId();
+    public void modifyGamemode(String gamemode) {
+        this.gamemode = gamemode;
+    }
+
+    public void modifyDifficulty(String difficulty) {
+        this.difficulty = difficulty;
     }
 }

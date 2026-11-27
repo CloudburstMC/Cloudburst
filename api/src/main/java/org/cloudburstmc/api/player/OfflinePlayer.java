@@ -69,16 +69,16 @@ public interface OfflinePlayer extends ServerOperator {
     /**
      * Adds or replaces this player's UUID ban without disconnecting an online player.
      *
-     * @param reason the reason, or null for the default
+     * @param reason     the reason, or null for the default
      * @param expiration the expiration, or null for a permanent ban
-     * @param source the issuer, or null for the default
+     * @param source     the issuer, or null for the default
      * @return the saved ban
      * @throws IllegalStateException if this player's UUID is unknown
      */
     BanEntry<UUID> ban(@Nullable String reason, @Nullable Instant expiration, @Nullable String source);
 
     /**
-     * Returns whether this player's UUID is explicitly whitelisted.
+     * Returns whether this player is explicitly whitelisted, by UUID or, while the UUID is unknown, by reserved name.
      * This does not depend on whether the whitelist is enabled or the player is an operator.
      *
      * @return true if whitelisted
@@ -86,18 +86,26 @@ public interface OfflinePlayer extends ServerOperator {
     boolean isWhitelisted();
 
     /**
-     * Sets whether this player's UUID is explicitly whitelisted.
+     * Sets whether this player is explicitly whitelisted. While the UUID is unknown the name is reserved,
+     * and the entry gains the UUID when an authenticated player with that name first joins.
      *
      * @param value true to add to the whitelist, false to remove
-     * @throws IllegalStateException if this player's UUID is unknown
      */
     void setWhitelisted(boolean value);
 
     /**
-     * Changes this player's operator status by UUID.
+     * Returns whether this player is an operator, by UUID or, while the UUID is unknown, by reserved name.
+     *
+     * @return true if an operator
+     */
+    @Override
+    boolean isOp();
+
+    /**
+     * Changes this player's operator status. While the UUID is unknown the name is reserved,
+     * and the entry gains the UUID when an authenticated player with that name first joins.
      *
      * @param value whether to grant operator status
-     * @throws IllegalStateException if this player's UUID is unknown
      */
     @Override
     void setOp(boolean value);

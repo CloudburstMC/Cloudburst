@@ -16,7 +16,7 @@ public class GameModeNetworkMapping {
             return GameType.SPECTATOR;
         }
 
-        return GameType.from(gameMode.getVanillaId());
+        return GameType.from(gameMode.getValue());
     }
 
     public static int playerTypeId(GameMode gameMode) {

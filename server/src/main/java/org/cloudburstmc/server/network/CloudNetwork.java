@@ -142,7 +142,7 @@ public class CloudNetwork implements AutoCloseable {
 
         Path directory = this.server.getDataPath();
         OperatorIdentity identity = OperatorIdentity.fromPemOrCreate(directory.resolve(builtin.getIdentityFile()).toFile(), this.server.getName());
-        boolean authenticated = this.server.getConfig().isXboxAuth();
+        boolean authenticated = this.server.getConfig().isOnlineMode();
         NetherNetHTTPServerSignaling.Builder builder = new NetherNetHTTPServerSignaling.Builder()
                 .setIdentity(identity)
                 .setTokenTrust(authenticated ? TokenTrust.MINECRAFT_AUTH : TokenTrust.ANY)
@@ -344,10 +344,10 @@ public class CloudNetwork implements AutoCloseable {
 
         CloudServerStatus previous = this.status;
         this.status = new CloudServerStatus(this.server.motd(),
-                this.server.getDefaultLevel() == null ? this.server.getConfig().getDefaultLevel() : this.server.getDefaultLevel().getName(),
-                this.server.getDefaultGamemode(),
+                this.server.getDefaultLevel() == null ? this.server.getConfig().getLevelName() : this.server.getDefaultLevel().getName(),
+                this.server.getDefaultGameMode(),
                 this.server.getOnlinePlayers().size(), this.server.getMaxPlayers(),
-                this.server.getConfig().isHardcore(), this.server.getConfig().isXboxAuth());
+                this.server.getConfig().isHardcore(), this.server.getConfig().isOnlineMode());
         if (this.externalSignaling != null && this.acceptingConnections.get() && !this.status.equals(previous)) {
             this.externalSignaling.refreshStatus();
         }
@@ -367,7 +367,7 @@ public class CloudNetwork implements AutoCloseable {
                 .setProtocol(ProtocolInfo.getDefaultProtocolVersion())
                 .setVersion(ProtocolInfo.getDefaultMinecraftVersion())
                 .setLevelName(event.getLevelName())
-                .setGameType(event.getGameMode().getVanillaId())
+                .setGameType(event.getGameMode().getValue())
                 .setPlayerCount(event.getPlayerCount())
                 .setMaxPlayerCount(event.getMaxPlayerCount())
                 .setIsHardcore(event.isHardcore())

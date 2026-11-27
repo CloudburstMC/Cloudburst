@@ -43,7 +43,7 @@ public class CloudMetrics {
             metrics.addCustomChart(new Metrics.SingleLineChart("players", () -> server.getOnlinePlayers().size()));
             metrics.addCustomChart(new Metrics.SimplePie("minecraft_version", server::getVersion));
             metrics.addCustomChart(new Metrics.SimplePie("cloudburst_version", server::getImplementationVersion));
-            metrics.addCustomChart(new Metrics.SimplePie("xbox_auth", () -> server.getConfig().isXboxAuth() ? "Required" : "Not required"));
+            metrics.addCustomChart(new Metrics.SimplePie("xbox_auth", () -> server.getConfig().isOnlineMode() ? "Required" : "Not required"));
 
             metrics.addCustomChart(new Metrics.AdvancedPie("player_platform", () -> {
                 Map<String, Integer> valueMap = new HashMap<>();

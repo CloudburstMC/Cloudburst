@@ -22,23 +22,23 @@ public enum EnumLevel {
         THE_END.level = null;
 
         CloudLevel netherLevel = CloudServer.getInstance().getLevelByName("nether");
-        if (netherLevel != null && CloudServer.getInstance().isNetherAllowed()) {
+        if (netherLevel != null) {
             NETHER.level = netherLevel;
             if (NETHER.level.getDimension() != CloudLevel.DIMENSION_NETHER) {
                 throw new IllegalStateException("Level 'nether' is not configured as the Nether dimension");
             }
         } else {
-            log.info("Nether functionality is disabled because the Nether is disabled or no world named 'nether' is loaded");
+            log.info("Nether functionality is disabled because no world named 'nether' is loaded");
         }
 
         CloudLevel endLevel = CloudServer.getInstance().getLevelByName("the_end");
-        if (endLevel != null && CloudServer.getInstance().isEndAllowed()) {
+        if (endLevel != null) {
             THE_END.level = endLevel;
             if (THE_END.level.getDimension() != CloudLevel.DIMENSION_THE_END) {
                 throw new IllegalStateException("Level 'the_end' is not configured as the End dimension");
             }
         } else {
-            log.info("End functionality is disabled because the End is disabled or no world named 'the_end' is loaded");
+            log.info("End functionality is disabled because no world named 'the_end' is loaded");
         }
     }
 
