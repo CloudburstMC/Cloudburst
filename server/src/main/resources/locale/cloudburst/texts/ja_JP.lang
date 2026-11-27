@@ -1,0 +1,116 @@
+#X-Generator: crowdin.com
+# Localizations for Cloudburst
+#
+# These are custom localizations that need to be converted before being sent or used in the console.
+#
+
+cloudburst.language.selected=言語の初期値を %1$2s に設定しました。
+
+cloudburst.data.playerNotFound="%1$2s"のプレイヤーデータが見つかりませんでした。新しいプロファイルを作成します。
+cloudburst.data.playerCorrupted="%1$2s"の破損したデータが見つかりました。新しいプロファイルを作成します。
+cloudburst.data.playerOld="%1$2s"の古いプレイヤーデータが見つかりました。プロファイルを改修します。
+cloudburst.data.saveError=プレイヤー "%1$2s" を保存できませんでした: %2$2s
+
+cloudburst.level.notFound=ワールド "%1$2s" は見つかりませんでした。
+cloudburst.level.loadError=ワールド "%1$2s" を読み込めませんでした: %2$2s
+cloudburst.level.generationError=ワールド "%1$2s" を生成できませんでした: %2$2s
+cloudburst.level.tickError=ワールド "%1$2s" のティックを処理できませんでした: %2$2s
+cloudburst.level.chunkUnloadError=チャンクのアンロード中に障害が発生しました: %1$2s
+cloudburst.level.backgroundGeneration=ワールド "%1$2s" の地形がバックグラウンドで生成されています。
+cloudburst.level.defaultError=初期値のワールドが読み込まれませんでした。
+cloudburst.level.preparing=ワールド "%1$2s" を準備しています。
+cloudburst.level.unloading=ワールド "%1$2s" をアンロードしています。
+cloudburst.level.updating=ワールド"%1$2s"に古いデータが見つかりました。フォーマットを変換しています。
+
+cloudburst.server.start=Minecraft: Bedrock Edition サーバー (ver. %1$2s) を起動しています。
+cloudburst.server.networkError=[Network] インターフェイス %1$2s が %2$2s のため停止しました。
+cloudburst.server.networkStart=%1$2s:%2$2s でサーバーを開放しています。
+cloudburst.server.info=このサーバーは %1$2s バージョン %2$2s「%3$2s」(API %4$2s) を実行しています。
+cloudburst.server.info.extended=このサーバーは Minecraft: Bedrock Edition %4$2s (プロトコルバージョン %5$2s) 用APIバージョン %3$2s を実装する %1$2s %2$2s を実行しています。
+cloudburst.server.license=%1$2s は GPL ライセンスのもとで配布されています。
+cloudburst.server.tickOverload=注意! サーバーに負荷をかけすぎていませんか?
+cloudburst.server.startFinished=完了 (%1$2s 秒)! ヘルプを表示するには "help" または "?" を実行してください。
+cloudburst.server.defaultGameMode=ゲームモードの初期値: %1$2s
+cloudburst.server.query.start=GS4 ステータスリスナーを開始しています。
+cloudburst.server.query.info=Query ポートを %1$2s に設定しています。
+cloudburst.server.query.running=Query は %1$2s:%2$2s で動作しています。
+cloudburst.server.upnp.enabled=UPnPが有効になりました。UPnPでポートフォワードを試みています。
+cloudburst.server.upnp.disabled=UPnPは無効化されています。
+cloudburst.server.upnp.unavailable=UPnPは有効ですが、UPnPに対応したゲートウェイが見つかりませんでした。
+cloudburst.server.upnp.success=UPnPを使用してUDPポート %1$2s を正常にポートフォワードしました。
+cloudburst.server.upnp.fail=UPnPでUDPポート %1$2s をポートフォワードできませんでした。
+cloudburst.server.upnp.closed=UPnPを使用してUDPポート %1$2s のポートフォワード・ルールを削除しました。
+
+cloudburst.command.alias.illegal=エイリアス "%1$2s" は不当な文字が含まれているため登録できませんでした。
+cloudburst.command.alias.notFound=エイリアス "%1$2s" は存在しないコマンド "%2$2s" を含むため登録できませんでした。
+cloudburst.command.exception=コマンド '%1$2s' を '%2$2s:%3$2s' で実行中に未処理の例外が発生しました。
+
+cloudburst.command.version.description=使用中の全てのプラグインを含むサーバーのバージョンを取得します。
+cloudburst.command.version.usage=/version [プラグインの名称]
+cloudburst.command.version.server=このサーバーは %1$2s バージョン %2$2s (MC: %3$2s) (実装API バージョン: %4$2s) を実行しています。
+cloudburst.command.version.plugin=%1$2s はバージョン %1$2s で動作しています。
+cloudburst.command.version.noSuchPlugin=このサーバーはその名前のプラグインは実行していません。/plugins を使用してプラグインの一覧を取得してください。
+
+cloudburst.command.plugins.description=サーバー上で実行されているプラグインの一覧を取得します。
+cloudburst.command.plugins.success=プラグイン(%1$2s): %2$2s
+cloudburst.command.plugins.usage=/plugins
+
+cloudburst.command.status.description=サーバーの状態を調査します。
+cloudburst.command.status.usage=/status
+
+cloudburst.command.timings.description=サーバーの状態を記録するためにタイミングを記録します。
+cloudburst.command.timings.usage=/timings <reset|report/paste|on|off|verbon|verboff>
+cloudburst.command.timings.enable=タイミングがリセット・有効化されたました。
+cloudburst.command.timings.disable=タイミングを無効化しました。
+cloudburst.command.timings.timingsDisabled=タイミングを有効化するには、'/timings on' を実行してください。
+cloudburst.command.timings.verboseEnable=Enabled verbose timings
+cloudburst.command.timings.verboseDisable=Disabled verbose timings
+cloudburst.command.timings.reset=Timings reset
+cloudburst.command.timings.rcon=Warning: Timings report done over RCON will cause lag spikes, you should use /timings report in game or console
+cloudburst.command.timings.uploadStart=Preparing timings report...
+cloudburst.command.timings.uploadError=Upload Error: %1$2s: %2$2s, check logs for more information
+cloudburst.command.timings.reportError=An error happened while pasting the report, check logs for more information
+cloudburst.command.timings.timingsLocation=View timings report: %1$2s
+cloudburst.command.timings.timingsResponse=Timings response: %1$2s
+cloudburst.command.timings.timingsWrite=Timings written to %1$2s
+
+cloudburst.crash.create=An unrecoverable error has occurred and the server has crashed. Creating a crash dump
+cloudburst.crash.error=Could not create crash dump: %1$2s
+cloudburst.crash.submit=Please upload the "%1$2s" file to the Crash Archive and submit the link to the Bug Reporting page. Give as much info as you can.
+cloudburst.crash.archive=クラッシュダンプが自動的にクラッシュアーカイブに提出されました。%1$2s で確認または ID #%2$2s を使用できます。
+
+cloudburst.debug.enable=LevelDBへの対応が有効になっています。
+
+cloudburst.bugreport.create=エラーが検出されました。バグレポートを作成しています。
+cloudburst.bugreport.error=バグレポートを作成できませんでした: %1$2s
+cloudburst.bugreport.archive=バグレポートが作成されました: %1$2s
+
+cloudburst.player.invalidMove=%1$2s 異常に移動しました。
+cloudburst.player.logIn=%1$2s [%2$2s] がエンティティ Id %3$2s として ([%4$2s]%5$2s、%6$2s、%7$2s) にログインしました。
+cloudburst.player.logOut=%1$2s[%2$2s] が %3$2s によってログアウトされました。
+cloudburst.player.invalidEntity=%1$2s が無効なエンティティを攻撃しようとしました。
+
+cloudburst.plugin.load=%1$2s を読み込んでいます。
+cloudburst.plugin.enable=%1$2s を有効化しています。
+cloudburst.plugin.disable=%1$2s を無効化しています。
+cloudburst.plugin.restrictedName=制限された名前
+cloudburst.plugin.incompatibleAPI=互換性のないAPIバージョンです。
+cloudburst.plugin.unknownDependency=不明な依存関係
+cloudburst.plugin.circularDependency=循環依存関係が検出されました。
+cloudburst.plugin.genericLoadError=プラグイン '%1$2s' を読み込めませんでした。
+cloudburst.plugin.spacesDiscouraged=プラグイン '%1$2s' は名前に空白を使用しています。これは推奨されていません。
+cloudburst.plugin.loadError=プラグイン '%1$2s' を読み込めませんでした: %2$2s
+cloudburst.plugin.duplicateError=プラグイン '%1$2s' を読み込めませんでした: 既に存在しています。
+cloudburst.plugin.fileError=フォルダ '%2$2s' の中にある '%1$2s' を読み込めませんでした: %3$2s
+cloudburst.plugin.commandError=プラグイン '%2$2s' のコマンド '%1$2s' を読み込めませんでした。
+cloudburst.plugin.aliasError=プラグイン '%2$2s' のエイリアス '%1$2s' を読み込めませんでした。
+cloudburst.plugin.deprecatedEvent=プラグイン '%1$2s' はメソッド '%3$2s' で '%2$2s' のリスナーを登録しましたが、このイベントは廃止されています。
+cloudburst.plugin.eventError=イベント '%1$2s' を '%2$2s' に渡せませんでした: %4$2s での %3$2s
+
+cloudburst.resources.invalid-path=リソースパックのパス '%1$2s' は存在し、ディレクトリではありません。
+cloudburst.resources.unknown-format=フォーマットが認識されなかったため '%1$2s' を読み込めませんでした。
+cloudburst.resources.fail='%1$2s' を読み込めませんでした: %2$2s
+cloudburst.resources.success=%1$2s 個のリソースパックが正常に読み込まれました。
+cloudburst.resources.zip.not-found=ファイル '%1$2s' が見つかりませんでした。
+cloudburst.resources.zip.no-manifest='manifest.json' が見つかりませんでした。
+cloudburst.resources.zip.invalid-manifest='manifest.json' が無効または不完全です。

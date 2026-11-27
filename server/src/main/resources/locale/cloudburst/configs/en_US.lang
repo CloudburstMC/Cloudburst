@@ -1,0 +1,28 @@
+header.1=Advanced configuration file for Cloudburst
+header.2=Some of these settings are safe, others can break your server if modified incorrectly
+header.3=New settings/defaults won't appear automatically on this file when upgrading
+
+settings.language=Multi-language setting
+settings.force-language=Whether to send all strings translated to server locale or let the device handle them
+
+settings.shutdown-message=Disconnect message sent to players when the server is shutdown
+settings.deprecated-verbose=Show a console message when a plugin uses deprecated API methods
+settings.upnp=Attempt to port forward on the gateway using UPnP
+
+debug.level=If > 1, it will show debug messages in the console
+debug.commands=Enables commands: /status /gc
+
+level-settings.default-format=The default format that levels will use when created
+
+chunk-sending.per-tick=Amount of chunks sent to players per tick
+chunk-sending.spawn-threshold=Amount of chunks that need to be sent before spawning the player
+chunk-sending.cache-chunks.1=Save a serialized copy of the chunk in memory for faster sending
+chunk-sending.cache-chunks.2=Useful in mostly-static worlds where lots of players join at the same time
+
+chunk-ticking.per-tick=Max amount of chunks processed each tick
+
+spawn-limits=Max amount of these entities
+
+player.save-player-data.1=If true, player data will be saved as players/playername.dat
+player.save-player-data.2=If false, cloudburst won't save player data as "dat" files, in order that plugins can do something on it.
+player.skin-change-cooldown=The time between skin change action in seconds. Set 0 to disable the cooldown

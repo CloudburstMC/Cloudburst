@@ -1,0 +1,62 @@
+header.1=Cloudburst의 고급 구성 파일
+header.2=안전한 설정도 있고 잘못 수정하면 서버를 손상시킬 수 있는 설정도 있습니다
+header.3=새 설정/기본값은 업그레이드할 때 이 파일에 자동으로 나타나지 않습니다
+
+settings.language=다국어 설정
+settings.force-language=모든 문자열을 서버 로캘로 번역하여 전송할지, 아니면 기기가 처리할 수 있게 할지 여부
+
+settings.shutdown-message=서버가 종료될 때 플레이어에게 전송되는 연결 끊기 메시지
+settings.query-plugins=Query를 통한 플러그인 목록 표시 허용
+settings.deprecated-verbose=플러그인이 지원 중단된 API 메서드를 사용할 때 콘솔 메시지 표시
+settings.async-workers.1=비동기 작업자 수
+settings.async-workers.2=auto로 설정하면 코어 수를 감지하려고 합니다(최소 4개)
+settings.upnp=UPnP를 사용하여 게이트웨이에서 포트 전달 시도
+
+network.batch-threshold.1=일괄 처리 패킷의 임곗값(바이트)입니다. 이 패킷만 압축됩니다
+network.batch-threshold.2=모두 압축하려면 0으로 설정하고, 사용하지 않으려면 -1로 설정합니다
+network.compression-level=일괄 처리된 패킷을 전송할 때 Zlib에 사용되는 압축 수준입니다. 높을수록 CPU 사용량이 많아지지만 대역폭 사용량은 적어집니다
+network.async-compression=압축에 AsyncTask를 사용합니다. 0.5/1틱 지연을 추가하지만 메인 스레드의 CPU 부하가 적어집니다
+
+debug.level=> 1이면 콘솔에 디버그 메시지를 표시합니다
+debug.commands=명령어 사용: /status /gc
+
+timings.enabled=코어와 플러그인 타이밍을 기본적으로 사용
+timings.verbose=자세함 수준의 모니터링 사용, 고빈도 타이밍 포함
+timings.history-interval.1=히스토리 프레임 간격(틱)
+timings.history-interval.2=기본값은 5분(6000틱)입니다
+timings.history-length.1=전체 타이밍 히스토리의 길이(틱)
+timings.history-length.2=기본값은 1시간(72000틱)입니다
+timings.history-length.3=이 값은 최대 히스토리 간격 * 12로 제한됩니다
+timings.bypass-max.1=최댓값을 우회할 특별한 권한이 있는 특수한 경우의 서버용
+timings.bypass-max.2=이 최댓값을 사용하면 Aikar의 타이밍 파서 측에서의 처리를 위해 데이터 파일 크기를 적절하게 유지할 수 있습니다
+timings.bypass-max.3=이를 설정해도 Aikar가 API 측에서 예외를 추가하지 않는 한 최댓값을 우회하는 데에는 도움이 되지 않습니다
+timings.privacy=true로 설정하면 서버의 이름이 전송되지 않습니다
+timings.ignore.1=무시할 설정 부분입니다. 이 부분은 Aikar의 타이밍 파서로 보내지지 않습니다
+timings.ignore.2=예시 형식:
+
+level-settings.default-format=레벨이 만들어질 때 사용할 기본 형식
+level-settings.auto-tick-rate=1초당 20틱을 유지하기 위해 레벨 틱 속도를 자동으로 변경
+level-settings.base-tick-rate=기본 틱 속도 설정(1 = 1초당 20틱, 2 = 1초당 10틱 등)
+level-settings.always-tick-players=다른 설정이 이를 허용하지 않더라도 모든 플레이어를 틱 처리
+
+chunk-sending.per-tick=플레이어에게 틱당 전송되는 청크의 양
+chunk-sending.max-chunks=각 플레이어 주변의 전송되는 청크의 양
+chunk-sending.spawn-threshold=플레이어를 생성하기 전에 전송되어야 하는 청크의 양
+chunk-sending.cache-chunks.1=빠른 전송을 위해 메모리에 청크의 직렬화된 복사본 저장
+chunk-sending.cache-chunks.2=많은 플레이어가 동시에 참여하는 대부분 정적인 세계에서 유용합니다
+
+chunk-ticking.per-tick=각 틱마다 처리되는 청크의 최대량
+chunk-ticking.tick-radius=플레이어 주변의 틱 처리할 청크의 반지름
+
+chunk-generation.queue-size=대기열에 있는 생성될 청크의 최대량
+chunk-generation.population-queue-size=대기열에 있는 채워질 청크의 최대량
+
+spawn-limits=이 개체의 최대량
+
+player.save-player-data.1=true면 플레이어 데이터가 players/플레이어 이름.dat으로 저장됩니다
+player.save-player-data.2=false면 Cloudburst에서 플러그인이 플레이어 데이터에 대해 작업을 수행할 수 있도록 플레이어 데이터를 "dat" 파일로 저장하지 않습니다.
+player.skin-change-cooldown=스킨 변경 작업 간 시간(초)입니다. 대기 시간을 사용하지 않으려면 0으로 설정합니다
+
+aliases=명령어의 별칭
+
+worlds=이 설정은 server.properties에서 설정된 생성기를 재정의하며 여러 레벨을 불러올 수 있도록 합니다

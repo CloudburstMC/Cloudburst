@@ -1,0 +1,62 @@
+header.1=Cloudburst için gelişmiş yapılandırma dosyası
+header.2=Bu ayarlardan bazıları güvenli, diğerleri yanlış değiştirilirse sunucunuz bozulabilir
+header.3=Güncelleştirildiğinde yeni ayarlar bu dosyada otomatik olarak görünmez
+
+settings.language=Çoklu dil ayarı
+settings.force-language=Tüm dizelerin sunucu yerel ayarlarına gönderilip gönderilmeyeceği veya cihazın bunları işlemesine izin verilip verilmediği
+
+settings.shutdown-message=Sunucu çöktüğünde oyunculara gönderilecek mesaj
+settings.query-plugins=Eklentileri Query ile listelemeye izin ver
+settings.deprecated-verbose=Eklentiden kaldırılmış API yöntemi kullanıldığında konsolda uyarı göster
+settings.async-workers.1=Asenkron çalışan sayısı
+settings.async-workers.2="auto" seçilirse, kendisi tespit edecektir. (en az 4)
+settings.upnp=UPnP kullanarak ağ geçidinde ileriye doğru bağlantı sağlamaya çalışın
+
+network.batch-threshold.1=Bayt cinsinden paketleri toplamak için sınır. Sadece bu paketler sıkıştırılacak
+network.batch-threshold.2=Her şeyi sıkıştırmak için 0'a, kapatmak için -1 olarak ayarlayın
+network.compression-level=Paketler gönderilirken kullanılacak Zlib sıkıştırma seviyesi. Yüksek = fazla işlemci kullanımı, az ağ kullanımı
+network.async-compression=Sıkıştırmalar için AsyncTask kullan. Yarım/bir tick gecikme ekler, ana thread'da daha az CPU yüklenmesi olur
+
+debug.level=1'den büyük olursa, konsolda hata ayıklama mesajları gösterilir
+debug.commands=Aktif komutlar: /status /gc
+
+timings.enabled=Varsayılan olarak çekirdek ve eklenti zamanlamalarını aç
+timings.verbose=Yüksek düzeyde izleyiciyi etkinleştir, yüksek frekanslı timings kaydını arttırır
+timings.history-interval.1=Tick'lerdeki tarih çerçeveleri arasındaki aralık
+timings.history-interval.2=Varsayılan 5 dakika (6000 tick)
+timings.history-length.1=Tick'lerdeki tüm zamanlama geçmişinin uzunluğu
+timings.history-length.2=Varsayılan 1 saat (72000 tick)
+timings.history-length.3=Bu değer maksimum-tarih-aralığı * 12 ile sınırlıdır
+timings.bypass-max.1=Sınırı aşmak için özel kayıtlar
+timings.bypass-max.2=Bu en fazla dosyası boyutlarının Aikar'ın Zamanlama ayrıştırıcı tarafında işlenmek üzere makul tutulmasına yardımcı olur
+timings.bypass-max.3=Aikar API tarafında bir istisna eklemedikçe, bu ayarı yapmak maksimum değeri atlamanıza yardımcı olmaz
+timings.privacy="true" seçilirse, sunucu ismi gönderilmez
+timings.ignore.1=Bu ayarlar Timings'e gönderilmeyecek
+timings.ignore.2=Örnek formatlar:
+
+level-settings.default-format=Dünyalar oluşturulduğunda kullanılacak varsayılan format
+level-settings.auto-tick-rate=Dünyaların tick sıklığını otomatik olarak 20 tick/saniye yap
+level-settings.base-tick-rate=Tick sıklığı (1 = saniyede 20 tick, 2 = saniyede 10 tick vb.)
+level-settings.always-tick-players=Diğer ayarlar bunu devre dışı bırakana kadar tüm oyuncuları tick'le
+
+chunk-sending.per-tick=Oyunculara tick başına gönderilecek yığın sayısı
+chunk-sending.max-chunks=Oyuncunun etrafına gönderilecek yığın sayısı
+chunk-sending.spawn-threshold=Oyuncu doğmadan önce gerekli olan yığın sayısı
+chunk-sending.cache-chunks.1=Hızlı göndermek için yığının kopyasını kaydet
+chunk-sending.cache-chunks.2=Oyuncuların aynı anda girdiği statik dünyalarda faydalıdır
+
+chunk-ticking.per-tick=Tick başına işlenecek yığın sayısı
+chunk-ticking.tick-radius=Oyuncuyu işlemek için yığın yarıçapı
+
+chunk-generation.queue-size=Oluşturulmayı bekleyen en fazla yığın sayısı
+chunk-generation.population-queue-size=İşlenilmeyi bekleyecek en fazla yığın sayısı
+
+spawn-limits=Bu varlıkların en fazla sayıları
+
+player.save-player-data.1="true" seçilirse, oyuncu verileri players/oyuncuismi.dat olarak kaydedilecek
+player.save-player-data.2=Eğer "false" ise, cloudburst, eklentilerin üzerinde bir şeyler yapabilmesi için oyuncu verilerini "dat" dosyaları olarak kaydetmez.
+player.skin-change-cooldown=Cilt değiştirme zaman aralığı. Kapatmak için 0 yazın
+
+aliases=Komutlar için kısayollar
+
+worlds=Bu ayar server.properties dosyasındaki oluşturucu ayarlarından baskındır ve çoklu dünya yüklemeyi destekler

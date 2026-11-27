@@ -1,0 +1,116 @@
+#X-Generator: crowdin.com
+# Localizations for Cloudburst
+#
+# These are custom localizations that need to be converted before being sent or used in the console.
+#
+
+cloudburst.language.selected=%1$2s wurde als Standard Sprache ausgewählt.
+
+cloudburst.data.playerNotFound=Spielerdaten für "%1$2s" wurde nicht gefunden, erstelle ein neues Profil
+cloudburst.data.playerCorrupted=Beschädigte Daten für "%1$2s" gefunden, erstelle neues Profil
+cloudburst.data.playerOld=Alte Spielerdaten für "%1$2s" gefunden, Profil wird aktualisiert
+cloudburst.data.saveError=Spieler "%1$2s" konnte nicht gespeichert werden: %2$2s
+
+cloudburst.level.notFound=Welt "%1$2s" wurde nicht gefunden
+cloudburst.level.loadError=Welt "%1$2s" konnte nicht geladen werden: %2$2s
+cloudburst.level.generationError=Welt "%1$2s" konnte nicht generiert werden: %2$2s
+cloudburst.level.tickError=Tick für Welt "%1$2s" konnte nicht durchgeführt werden: %2$2s
+cloudburst.level.chunkUnloadError=Fehler beim Entladen eines Chunks: %1$2s
+cloudburst.level.backgroundGeneration=Spawn-Gelände für Welt "%1$2s" wird im Hintergrund generiert
+cloudburst.level.defaultError=Keine Standartwelt wurde geladen
+cloudburst.level.preparing=Welt "%1$2s" wird vorbereitet
+cloudburst.level.unloading=Welt "%1$2s" wird entladen
+cloudburst.level.updating=Alter Speicherformat wurde in "%1$2s" gefunden, Format wird konvertiert
+
+cloudburst.server.start=Starte Minecraft: Bedrock Edition Server; Version %1$2s
+cloudburst.server.networkError=[Network] Interface %1$2s wird gestoppt aufgrund: %2$2s
+cloudburst.server.networkStart=Öffne Server auf %1$2s:%2$2s
+cloudburst.server.info=Dieses Server läuft auf %1$2s; Version %2$2s "%3$2s" (API %4$2s)
+cloudburst.server.info.extended=Dieser Server läuft %1$2s %2$2s mit der API Version %3$2s für Minecraft: Bedrock Edition %4$2s (Protokollversion %5$2s)
+cloudburst.server.license=%1$2s wurde unter der LGPL Lizenz veröffentlicht
+cloudburst.server.tickOverload=Ist der Server überlastet?
+cloudburst.server.startFinished=Server gestartet in (%1$2ss)! Für Hilfe, tippen Sie "help" oder "?"
+cloudburst.server.defaultGameMode=Standard Gamemode: %1$2s
+cloudburst.server.query.start=Starte GS4 Status Listener
+cloudburst.server.query.info=Setze Query Port auf %1$2s
+cloudburst.server.query.running=Query läuft auf %1$2s:%2$2s
+cloudburst.server.upnp.enabled=UPnP wurde aktiviert. Versuche zu Port-forwarden mit UPnP.
+cloudburst.server.upnp.disabled=UPnP ist deaktiviert.
+cloudburst.server.upnp.unavailable=UPnP ist aktiviert, aber es wurde kein UPnP aktiviertes Gateway gefunden.
+cloudburst.server.upnp.success=UDP Port %1$2s wurde mit UPnP erfolgreich weitergeleitet.
+cloudburst.server.upnp.fail=UDP Port %1$2s wurde mit UPnP erfolgreich weitergeleitet.
+cloudburst.server.upnp.closed=Weiterleitungsregel für UDP-Port %1$2s mit UPnP entfernt.
+
+cloudburst.command.alias.illegal=Alias %1$2s konnte nicht registriert werden, da er ungültige Zeichen enthält
+cloudburst.command.alias.notFound=Alias %1$2s konnte nicht registriert werden, da er Befehle enthält die nicht existieren: %2$2s
+cloudburst.command.exception=Ein unerwarteter Fehler ist aufgetreten, während des Ausführens des Befehls '%1$2s' %2$2s: %3$2s
+
+cloudburst.command.version.description=Zeigt die Version des Servers, inklusive aller installierten Plugins
+cloudburst.command.version.usage=/version [Plugin Name]
+cloudburst.command.version.server=Dieser Server läuft auf %1$2s mit der Version %2$2s (MC: %3$2s) (API Version: %4$2s)
+cloudburst.command.version.plugin=%1$2s läuft Version %1$2s
+cloudburst.command.version.noSuchPlugin=Auf diesem Server läuft kein Plugin mit diesem Namen. Benutze /plugins um eine Liste aller Plugins zu erhalten.
+
+cloudburst.command.plugins.description=Ruft eine Liste der auf dem Server laufenden Plugins ab
+cloudburst.command.plugins.success=Plugins (%1$2s): %2$2s
+cloudburst.command.plugins.usage=/plugins
+
+cloudburst.command.status.description=Zeigt die aktuelle Serverauslastung.
+cloudburst.command.status.usage=/status
+
+cloudburst.command.timings.description=Records timings to see performance of the server.
+cloudburst.command.timings.usage=/timings <reset|report/paste|on|off|verbon|verboff>
+cloudburst.command.timings.enable=Timings wurden aktiviert und zurückgesetzt
+cloudburst.command.timings.disable=Timings deaktiviert
+cloudburst.command.timings.timingsDisabled=Bitte aktiviere die Timings mit /timings on
+cloudburst.command.timings.verboseEnable=Ausführliche Timings wurden aktiviert
+cloudburst.command.timings.verboseDisable=Ausführliche Timings wurden deaktiviert
+cloudburst.command.timings.reset=Timings zurückgesetzt
+cloudburst.command.timings.rcon=Warnung: Timings Bericht werden über RCON laufen und wird Lag Spikes verursachen, du solltest /timings report im Spiel oder der Konsole verwenden
+cloudburst.command.timings.uploadStart=Bereite Timings Bericht vor...
+cloudburst.command.timings.uploadError=Upload Fehler: %1$2s: %2$2s, schaue in die Logs für mehr Informationen
+cloudburst.command.timings.reportError=Ein Fehler ist aufgetreten während des speicherns des Berichts, schaue in die Konsole für mehr Informationen
+cloudburst.command.timings.timingsLocation=Timings Bericht anzeigen: %1$2s
+cloudburst.command.timings.timingsResponse=Timings Antwort: %1$2s
+cloudburst.command.timings.timingsWrite=Timings wurden in %1$2s geschrieben
+
+cloudburst.crash.create=Ein Kritischer Fehler ist aufgetreten und der Server ist abgestürzt. Ein Crash Log wird erstellt
+cloudburst.crash.error=Crash-Log konnte nicht erstellt werden: %1$2s
+cloudburst.crash.submit=Bitte lade die "%1$2s" Datei in das Crash-Archiv hoch und sende den Link auf der Bug-Report Seite. Gebe so viele Informationen an wie möglich.
+cloudburst.crash.archive=Der Crash-Log wurde automatisch übermittelt. Du siehst es auf %1$2s oder verwende die ID #%2$2s.
+
+cloudburst.debug.enable=LevelDB-Unterstützung aktiviert
+
+cloudburst.bugreport.create=Ein Fehler wurde erkannt, ein Fehlerbericht wurde erstellt.
+cloudburst.bugreport.error=Fehler Bericht konnten nicht erstellt werden: %1$2s
+cloudburst.bugreport.archive=Ein Fehlerbericht wurde erstellt: %1$2s
+
+cloudburst.player.invalidMove=%1$2s hat sich falsch bewegt!
+cloudburst.player.logIn=%1$2s [%2$2s] angemeldet mit Entity-ID %3$2s in ([%4$2s]%5$2s, %6$2s, %7$2s)
+cloudburst.player.logOut=%1$2s[%2$2s] hat sich ausgeloggt aufgrund %3$2s
+cloudburst.player.invalidEntity=%1$2s versuchte eine ungültige Entität anzugreifen
+
+cloudburst.plugin.load=Lade %1$2s
+cloudburst.plugin.enable=Aktiviere %1$2s
+cloudburst.plugin.disable=Deaktiviere %1$2s
+cloudburst.plugin.restrictedName=Eingeschränkter Name
+cloudburst.plugin.incompatibleAPI=Inkompatible API-Version
+cloudburst.plugin.unknownDependency=Unbekannte Plugin Abhängigkeit
+cloudburst.plugin.circularDependency=Zirkuläre Abhängigkeit erkannt
+cloudburst.plugin.genericLoadError=Konnte Plugin "%1$2s " nicht laden
+cloudburst.plugin.spacesDiscouraged=Plugin "%1$2s" verwendet Leerzeichen im Namen, dies wird abgeraten
+cloudburst.plugin.loadError=Plugin "%1$2s" konnte nicht geladen werden: %2$2s
+cloudburst.plugin.duplicateError=Plugin "%1$2s" konnte nicht geladen werden weil, das Plugin schon existiert
+cloudburst.plugin.fileError="%1$2s" im Ordner "%2$2s" konnte nicht geladen werden: %3$2s
+cloudburst.plugin.commandError=Befehl %1$2s für Plugin "%2$2s" konnte nicht geladen werden
+cloudburst.plugin.aliasError=Alias %1$2s für das Plugin "%2$2s" konnte nicht geladen werden
+cloudburst.plugin.deprecatedEvent=Plugin "%1$2s" hat einen Listener für "%2$2s" in der Methode '%3$2s" registriert, aber das Event ist veraltet.
+cloudburst.plugin.eventError=Event "%1$2s" konnte nicht an "%2$2s" übermittelt werden: %3$2s in %4$2s
+
+cloudburst.resources.invalid-path=Ressourcepack Pfad '%1$2s' existiert und ist kein Ordner
+cloudburst.resources.unknown-format="%1$2s" konnte nicht geladen werden, weil das Format nicht erkannt wurde
+cloudburst.resources.fail="%1$2s" konnte nicht geladen werden: %2$2s
+cloudburst.resources.success=%1$2s Ressourcenpacks wurden erfolgreich geladen
+cloudburst.resources.zip.not-found=Datei "%1$2s" wurde nicht gefunden
+cloudburst.resources.zip.no-manifest="manifest.json" wurde nicht gefunden
+cloudburst.resources.zip.invalid-manifest="manifest.json" ist ungültig oder unvollständig

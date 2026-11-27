@@ -1,0 +1,62 @@
+header.1=Cloudburstin asetustiedosto
+header.2=Jotkut näistä asetuksista ovat turvallisia, mutta toiset voivat rikkoa palvelimen, jos niitä muutetaan väärin
+header.3=Uudet asetukset eivät ilmesty tähän tiedostoon automaattisesti päivityksen yhteydessä
+
+settings.language=Monikielisyysasetukset
+settings.force-language=Lähetetäänkö kaikki merkkijonot palvelimen kielelle käännettynä vai annetaanko laitteen käsitellä ne
+
+settings.shutdown-message=Viesti, joka näytetään pelaajille, kun palvelin sammutetaan
+settings.query-plugins=Salli lisäosien listaus tiedustelun kautta
+settings.deprecated-verbose=Näytä viesti konsolissa, kun lisäosa käyttää käytöstä poistuneita API menetelmiä
+settings.async-workers.1=Asynkronisten työntekijöiden lukumäärä
+settings.async-workers.2=Jos asetetaan automaattiseksi, palvelin yrittää tunnistaa ydinten lukumäärän (vähintään 4)
+settings.upnp=Yritä portin uudelleenohjausta yhdyskäytävälle käyttäen UPnP:tä
+
+network.batch-threshold.1=Pakettien eräraja tavuina. Vain nämä paketit pakataan
+network.batch-threshold.2=Aseta arvoksi 0 pakataksesi kaikki tai -1 poistaaksesi käytöstä
+network.compression-level=Zlibin käyttämä pakkaustaso eräpaketteja lähetettäessä. Suurempi = suurempi prosessorin käyttö, matalampi kaistan käyttö
+network.async-compression=Käytä async-pakkausta. Lisää viivettä, mutta alentaa prosessorin kuormitusta
+
+debug.level=Jos > 1, debug-viestit näytetään konsolissa
+debug.commands=Ottaa käyttöön /status ja /gc -komennot
+
+timings.enabled=Ota käyttöön ytimen ja lisäosien ajoitukset oletuksena
+timings.verbose=Ota käyttöön valvonta verbose-tasolla mukaan lukien korkean taajuuden ajoitukset
+timings.history-interval.1=Historiakehysten välinen aika (ticks)
+timings.history-interval.2=Oletus on 5 minuuttia (6000 ticks)
+timings.history-length.1=Koko ajoitushistorian pituus (ticks)
+timings.history-length.2=Oletus on 1 tunti (72000 ticks)
+timings.history-length.3=Tämä arvo on rajattu korkeintaan historiaväli * 12
+timings.bypass-max.1=Erityistapauksissa, joissa palvelimella on lupa ohittaa enimmäisarvo
+timings.bypass-max.2=Tämä enimmäisarvo auttaa pitämään datatiedostokoot kohtuullisina käsiteltäväksi Aikarin Ajoitus-jäsennyspuolella
+timings.bypass-max.3=Tämän asettaminen ei auta maksimin ohittamisessa, ellei Aikar ole lisännyt poikkeusta API-puolelle
+timings.privacy=Jos "true", niin palvelimen nimeä ei lähetetä
+timings.ignore.1=Asetukset, joita ei oteta huomioon. Näitä osioita ei lähetetä Aikarin ajoitusjäsentäjälle
+timings.ignore.2=Esimerkkejä muotoilusta:
+
+level-settings.default-format=Oletusformaatti, jota käytetään, kun maailmoja luodaan
+level-settings.auto-tick-rate=Muuta maailman tick ratea automaattisesti 20 ticks sekunnissa ylläpitämiseksi
+level-settings.base-tick-rate=Asettaa peruskutsunopeuden (1 = 20 TPS, 2 = 10 TPS jne.)
+level-settings.always-tick-players=Päivitä aina kaikki pelaajat, vaikka muut asetukset estäisivät tämän
+
+chunk-sending.per-tick=Pelaajille lähetettävien lohkojen määrä per tick
+chunk-sending.max-chunks=Kunkin pelaajan ympärillä lähetettävien lohkojen määrä
+chunk-sending.spawn-threshold=Lohkojen määrä, joka on lähetettävä ennen pelaajan syntymistä
+chunk-sending.cache-chunks.1=Tallenna sarjanumeroitu kopio lohkosta muistiin nopeampaa lähettämistä varten
+chunk-sending.cache-chunks.2=Hyödyllinen enimmäkseen staattisissa maailmoissa, joissa paljon pelaajia liittyy samanaikaisesti
+
+chunk-ticking.per-tick=Käsiteltävien lohkojen enimmäismäärä per tick
+chunk-ticking.tick-radius=Maailman päivittämisen etäisyys pelaajan ympärillä (lohkoja)
+
+chunk-generation.queue-size=Generointia odottavien lohkojen enimmäismäärä
+chunk-generation.population-queue-size=Populointia odottavien lohkojen enimmäismäärä
+
+spawn-limits=Näiden olioiden enimmäismäärä
+
+player.save-player-data.1=Jos "true", pelaajien tiedot tallennetaan kohteeseen players/uuid.dat
+player.save-player-data.2=Jos "false", Cloudburst ei tallenna pelaajien tietoja "dat"-tiedostoina, jotta lisäosat voivat hoitaa tämän.
+player.skin-change-cooldown=Skinin vaihtamisen välinen aika sekunneissa. Aseta "0" poistaaksesi rajoituksen
+
+aliases=Komentojen aliakset
+
+worlds=Nämä asetukset ohittavat server.properties-asetukset ja sallivat useiden maailmojen lataamisen

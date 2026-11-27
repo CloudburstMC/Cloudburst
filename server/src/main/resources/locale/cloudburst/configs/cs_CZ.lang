@@ -1,0 +1,62 @@
+header.1=Pokročilá konfigurace pro Cloudburst
+header.2=Některá z těchto nastavení jsou bezpečná. Jiná ovšem mohou způsobit nesprávné fungování serveru v případě špatného nastavení
+header.3=V případě upgradu serveru se do tohoto souboru nové možnosti nastavení automaticky nepřidají
+
+settings.language=Vícejazyčné nastavení
+settings.force-language=Zda se mají veškeré zprávy posílat v jazyku serveru, nebo být přeloženy zařízením hráče
+
+settings.shutdown-message=Zpráva odeslaná hráčům při vypnutí serveru
+settings.query-plugins=Povolit výpis pluginů zkrze Query
+settings.deprecated-verbose=Upozornit v konzoli pokud plugin využívá zastaralé části API
+settings.async-workers.1=Počet asynchronních vláken
+settings.async-workers.2=Pokud je nastaveno na auto, pokusí se automaticky detekovat počet jader (alespoň 4)
+settings.upnp=Pokusit se o přesměrování portu na bráně pomocí UPnP
+
+network.batch-threshold.1=Hranice pro balení paketů v bytech. Pouze tyto pakety budou komprimovány
+network.batch-threshold.2=Nastavte na 0 pro kompresi všeho. -1 pro vypnutí
+network.compression-level=Úroveň komprese Zlib při odesílání paketů. Vyšší hodnota = větší zátěž procesoru, ale menší nároky na využití sítě
+network.async-compression=Provádět kompresi asynchronně. Zvýší odezvu o 1/2 herního tiku, ale sníží využití CPU na hlavním vlákně
+
+debug.level=Pokud > 1, zapne se výpis zpráv určených pro ladění
+debug.commands=Povolí příkazy: /status /gc
+
+timings.enabled=Povolí profilování jádra serveru a pluginů
+timings.verbose=Povolí podrobné monitorování činnosti včetně častých profilování
+timings.history-interval.1=Interval mezi snímky v ticích
+timings.history-interval.2=Výchozí hodnota je 5 minut (6000 tiků)
+timings.history-length.1=Délka celkové historie profileru
+timings.history-length.2=Výchozí hodnota je 1 hodina (72000 tiků)
+timings.history-length.3=Hodnota je limitována na maximum, a to interval snímků * 12
+timings.bypass-max.1=Pro výjimečné případy serverů pro překročení limitu
+timings.bypass-max.2=Toto omezení pomůže udržet rozumné velikosti souborů pro následnou analýzu na stránce Aikar's Timings
+timings.bypass-max.3=Nastavením nedosáhnete obejití maximální hodnoty bez udělení výjimky na straně Aikar API
+timings.privacy=Pokud nastaveno na true, jméno serveru nebude zasíláno v reportu
+timings.ignore.1=Sekce nastavení, které chcete ignorovat. Tyto sekce nebudou odesílány to Aikar API
+timings.ignore.2=Ukázkové formáty:
+
+level-settings.default-format=Výchozí formát, který bude aplikován při vytváření světa
+level-settings.auto-tick-rate=Automaticky přizpůsobit tikování levelů pro zachování 20 tiků za sekundu
+level-settings.base-tick-rate=Nastavít základní počet tiků (1 = 20 tiků za sekundu, 2 = 10 tiků za sekundu, atp)
+level-settings.always-tick-players=Aktualizovat hráče každý tik i přesto, že to ostatní nastavení zakazují
+
+chunk-sending.per-tick=Počet chunků odeslaný hráčům za tik
+chunk-sending.max-chunks=Počet chunků odeslaných kolem každého hráče
+chunk-sending.spawn-threshold=Počet chunků, které musí být odeslány před spawnutím hráče
+chunk-sending.cache-chunks.1=Ukládat kopie chunků v paměti pro rychlejší odesílání
+chunk-sending.cache-chunks.2=Užitečné hlavně ve statických světech, kde se připojuje velké množství hráčů ve stejný čas
+
+chunk-ticking.per-tick=Maximální počet chunků zpracovaných za tik
+chunk-ticking.tick-radius=Poloměr kolem hráče, ve kterém se budou aktualizovat (tikovat) chunky
+
+chunk-generation.queue-size=Maximální počet chunků ve frontě pro vygenerování
+chunk-generation.population-queue-size=Maximální počet chunků ve frontě pro populaci
+
+spawn-limits=Maximální počet těchto entit
+
+player.save-player-data.1=Při nastavení na true budou data hráčů ukládána ve formátu /players/jméno-hráče.dat
+player.save-player-data.2=Při nastavení na false, nebude cloudburst ukládat data hráčů jako "dat" soubory, aby s nimi mohly pluginy pracovat.
+player.skin-change-cooldown=Interval, ve kterém si hráč může změnit svůj skin. 0 pro vypnutí omezení
+
+aliases=Aliasy pro příkazy
+
+worlds=Tyto nastavení nahradí generátor nastavený v server.properties a umožní načítání více světů

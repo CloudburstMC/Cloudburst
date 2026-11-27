@@ -1,0 +1,116 @@
+#X-Generator: crowdin.com
+# Localizations for Cloudburst
+#
+# These are custom localizations that need to be converted before being sent or used in the console.
+#
+
+cloudburst.language.selected=%1$2s varsayılan dil olarak seçildi.
+
+cloudburst.data.playerNotFound="%1$2s" için oyuncu verileri bulunamadı, yeni profil oluşturuluyor
+cloudburst.data.playerCorrupted="%1$2s" için bozuk veri bulundu, yeni profil oluşturuluyor
+cloudburst.data.playerOld="%1$2s" için eski oyuncu verisi bulundu, profil yükseltiliyor
+cloudburst.data.saveError=Oyuncu kaydedilemedi: "%1$2s": %2$2s
+
+cloudburst.level.notFound="%1$2s" dünyası bulunamadı
+cloudburst.level.loadError=Dünya "%1$2s": %2$2s yüklenemedi
+cloudburst.level.generationError=Level 1%1$2s": %2$2s oluşturulamadı
+cloudburst.level.tickError=Level "%1$2s": %2$2s işlenemedi
+cloudburst.level.chunkUnloadError=Chunk %1$2s yüklenirken bir hata oluştu
+cloudburst.level.backgroundGeneration="%1$2s" seviyesi için başlangıç arazisi arka planda oluşturuluyor
+cloudburst.level.defaultError=Varsayılan dünya yüklenmedi
+cloudburst.level.preparing=Dünya "%1$2s" hazırlanıyor
+cloudburst.level.unloading=Dünya "%1$2s" kapatılıyor
+cloudburst.level.updating="%1$2s" için eski dünya verisi bulundu, yeni formata dönüştürülüyor
+
+cloudburst.server.start=Minecraft: Bedrock Edition %1$2s versiyonu ile sunucu başlatılıyor
+cloudburst.server.networkError=[Network] Arayüz %1$2s, %2$2s nedeniyle durduruldu
+cloudburst.server.networkStart=Sunucu, %1$2s:%2$2s üzerinde açılıyor
+cloudburst.server.info=Bu sunucu %1$2s sürüm %2$2s "%3$2s" (API %4$2s) ile çalışıyor
+cloudburst.server.info.extended=Bu sunucu %1$2s %2$2s tamamlanan API sürümü %3$2s birlikte Minecraft: Bedrock Edition %4$2s (protokol sürümü %5$2s) ile çalışıyor
+cloudburst.server.license=%1$2s GPL Lisansı altında dağıtılır
+cloudburst.server.tickOverload=Devam edemiyorum! Sunucu aşırı mı yüklendi?
+cloudburst.server.startFinished=Hazır (%1$2ss)! Yardım için, "help" veya "?" yaz
+cloudburst.server.defaultGameMode=Varsayılan oyun modu: %1$2s
+cloudburst.server.query.start=GS4 durum dinleyicisi başlatılıyor
+cloudburst.server.query.info=Query port %1$2s olarak ayarlanıyor
+cloudburst.server.query.running=Query %1$2s:%2$2s üzerinde çalışıyor
+cloudburst.server.upnp.enabled=UPnP açıldı. UPnP ile bağlantı noktası iletmeye çalışılıyor.
+cloudburst.server.upnp.disabled=UPnP kapatıldı.
+cloudburst.server.upnp.unavailable=UPnP açıldı, ancak UPnP için etkin ağ geçidi bulunamadı.
+cloudburst.server.upnp.success=UPnP kullanılarak UDP Portu %1$2s başarıyla iletildi.
+cloudburst.server.upnp.fail=UPnP kullanılarak UDP Portu %1$2s iletilemedi.
+cloudburst.server.upnp.closed=UPnP kullanılarak UDP Portu %1$2s için yönlendirme kuralı kaldırıldı.
+
+cloudburst.command.alias.illegal=%1$2s takma adı kaydedilemedi çünkü geçersiz karakterler içeriyor
+cloudburst.command.alias.notFound=%1$2s takma adı kaydedilemedi çünkü var olmayan komutlar içeriyor: %2$2s
+cloudburst.command.exception='%1$2s' Komutu %2$2s içinde çalıştırılırken işlenmeyen hata: %3$2s
+
+cloudburst.command.version.description=Kullanımdaki tüm eklentiler dahil bu sunucunun sürümünü gösterir
+cloudburst.command.version.usage=/version [eklenti ismi]
+cloudburst.command.version.server=Bu sunucu %1$2s sürüm %2$2s (MC: %3$2s) (Tamamlanan API sürümü %4$2s) ile çalışıyor
+cloudburst.command.version.plugin=%1$2s, %1$2s sürümünde çalışıyor
+cloudburst.command.version.noSuchPlugin=Bu sunucu bu isimde herhangi bir eklenti çalıştırmıyor. Eklenti listesini görmek için /plugins kullanın.
+
+cloudburst.command.plugins.description=Sunucuda çalışan eklentilerin bir listesini alır
+cloudburst.command.plugins.success=Eklentiler (%1$2s): %2$2s
+cloudburst.command.plugins.usage=/plugins
+
+cloudburst.command.status.description=Sunucunun performansını ölçer.
+cloudburst.command.status.usage=/status
+
+cloudburst.command.timings.description=Sunucunun performansını görmek için zamanlamaları kaydeder.
+cloudburst.command.timings.usage=/timings <reset|report/paste|on|off|verbon|verboff>
+cloudburst.command.timings.enable=Zamanlayıcılar açıldı ve sıfırlandı
+cloudburst.command.timings.disable=Zamanlayıcılar kapatıldı
+cloudburst.command.timings.timingsDisabled=Lütfen /timings on yazarak zamanlayıcıları etkinleştirin
+cloudburst.command.timings.verboseEnable=Ayrıntılı zamanlayıcılar açıldı
+cloudburst.command.timings.verboseDisable=Ayrıntılı zamanlayıcılar kapatıldı
+cloudburst.command.timings.reset=Zamanlayıcılar sıfırlandı
+cloudburst.command.timings.rcon=Uyarı: RCON üzerinden yapılan zamanlayıcı raporu gecikmelere neden olur, /timings report komutunu oyunda veya konsolda kullanmalısınız
+cloudburst.command.timings.uploadStart=Zamanlayıcı raporu hazırlanıyor...
+cloudburst.command.timings.uploadError=Yükleme Hatası: %1$2s: %2$2s, daha fazla bilgi için logları kontrol et
+cloudburst.command.timings.reportError=Raporu yapıştırırken bir hata oluştu, daha fazla bilgi için logları kontrol edin
+cloudburst.command.timings.timingsLocation=Zamanlayıcı raporunu görüntüle: %1$2s
+cloudburst.command.timings.timingsResponse=Zamanlayıcı cevabı: %1$2s
+cloudburst.command.timings.timingsWrite=Zamanlayıcılar %1$2s içine yazıldı
+
+cloudburst.crash.create=Kurtarılamaz bir hata oluştu ve sunucu çöktü. Çökme dökümü oluşturuluyor
+cloudburst.crash.error=Çökme dökümü oluşturulamıyor: %1$2s
+cloudburst.crash.submit=Lütfen "%1$2s" dosyasını Çökme Arşivine yükleyin ve bağlantıyı Hata Bildirme sayfasına gönderin. Mümkün olduğu kadar çok bilgi verin.
+cloudburst.crash.archive=Çökme dökümü otomatikman Çökme Arşivine gönderildi. Burdan görüntüleyebilir %1$2s veya #%2$2s IDsini kullanabilirsin.
+
+cloudburst.debug.enable=LevelDB desteği açıldı
+
+cloudburst.bugreport.create=Bir hata tespit edildi, hata raporu oluşturuluyor.
+cloudburst.bugreport.error=Hata raporu oluşturulamadı: %1$2s
+cloudburst.bugreport.archive=Bir hata raporu oluşturuldu: %1$2s
+
+cloudburst.player.invalidMove=%1$2s yanlış hareket etti!
+cloudburst.player.logIn=%1$2s[%2$2s] varlık kimliği %3$2s ile ([%4$2s]%5$2s, %6$2s, %7$2s) konumunda giriş yaptı
+cloudburst.player.logOut=%1$2s[%2$2s] %3$2s nedeniyle çıkış yaptı
+cloudburst.player.invalidEntity=%1$2s geçersiz bir varlığa saldırmayı denedi
+
+cloudburst.plugin.load=%1$2s yükleniyor
+cloudburst.plugin.enable=%1$2s aktif ediliyor
+cloudburst.plugin.disable=%1$2s kapatılıyor
+cloudburst.plugin.restrictedName=Kısıtlanmış İsim
+cloudburst.plugin.incompatibleAPI=Uyumsuz API sürümü
+cloudburst.plugin.unknownDependency=Bilinmeyen bağımlılık
+cloudburst.plugin.circularDependency=Döngüsel bağımlılık algılandı
+cloudburst.plugin.genericLoadError=Eklenti '%1$2s' yüklenemedi
+cloudburst.plugin.spacesDiscouraged=Eklenti '%1$2s' isminde boşluk kullanıyor, bu önerilmez
+cloudburst.plugin.loadError=Eklenti '%1$2s' yüklenemedi: %2$2s
+cloudburst.plugin.duplicateError=Eklenti '%1$2s' yüklenemedi: eklenti zaten var
+cloudburst.plugin.fileError='%2$2s' klasöründeki '%1$2s' yüklenemedi: %3$2s
+cloudburst.plugin.commandError=Komut %1$2s eklenti %2$2s için yüklenemedi
+cloudburst.plugin.aliasError=Takma ad %1$2s eklenti %2$2s için yüklenemedi
+cloudburst.plugin.deprecatedEvent=Eklenti '%1$2s', '%3$2s' yönteminde '%2$2s' için bir dinleyici kaydetti, ancak olay kullanımdan kaldırıldı.
+cloudburst.plugin.eventError=Olay '%1$2s', '%2$2s': %4$2s üzerinde %3$2s için gerçekleştirilemedi
+
+cloudburst.resources.invalid-path=Kaynak paketi yolu '%1$2s' var ancak bir klasör değil
+cloudburst.resources.unknown-format=Format tanınmadığı için '%1$2s' yüklenemedi
+cloudburst.resources.fail='%1$2s' yüklenemedi: %2$2s
+cloudburst.resources.success=Başarıyla %1$2s kaynak paketi yüklendi
+cloudburst.resources.zip.not-found=Dosya '%1$2s' bulunamadı
+cloudburst.resources.zip.no-manifest='manifest.json' bulunamadı
+cloudburst.resources.zip.invalid-manifest='manifest.json' geçersiz veya eksik

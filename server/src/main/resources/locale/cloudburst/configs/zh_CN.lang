@@ -1,0 +1,62 @@
+header.1=Cloudburst的高级配置文件
+header.2=此处部分设置是安全的，而一些在设置不当的情况下可能会损害您的服务器
+header.3=升级时，新设置或默认设置不会自动显示在此文件上
+
+settings.language=多语言设置
+settings.force-language=是发送所有翻译为服务器指定语言的字符串还是让客户端翻译
+
+settings.shutdown-message=服务器关闭时给玩家发送断开连接消息
+settings.query-plugins=允许使用Query协议查询您的插件
+settings.deprecated-verbose=当某插件使用不被推荐的API时，在控制台提醒
+settings.async-workers.1=异步任务线程数量
+settings.async-workers.2=如果设置为auto，则自动识别CPU核心数量（最少4线程）
+settings.upnp=Attempt to port forward on the gateway using UPnP
+
+network.batch-threshold.1=批包大小阀值（单位：字节）。仅这些数据包会被压缩
+network.batch-threshold.2=设为 0 以压缩全部。设为 -1 以禁用此功能
+network.compression-level=发送批包时的Zlib压缩等级。等级越高，CPU 占用越高，占用带宽越少
+network.async-compression=使用异步任务进行压缩。通过增加半个/一个 tick 的延迟以缓解主线程 CPU 负载
+
+debug.level=如果> 1，它将在控制台中显示调试消息
+debug.commands=启用命令：/ status / gc
+
+timings.enabled=默认启用核心和插件的性能分析
+timings.verbose=启用详细级别的监控，包括高频记录
+timings.history-interval.1=以 tick 为单位的历史帧间隔
+timings.history-interval.2=默认 5 分钟（6000 ticks）
+timings.history-length.1=以 tick 为单位的整个分析历史时长
+timings.history-length.2=默认 1 小时（72000 ticks）
+timings.history-length.3=该值上限为 history-interval 的 12 倍
+timings.bypass-max.1=对于有特殊权限以绕过最大值的服务器的特殊情况
+timings.bypass-max.2=最大值有助于保持数据文件大小合理，以便在 Aikar 的性能分析器端进行处理
+timings.bypass-max.3=设置此选项不会帮您绕过最大值限制，除非 Aikar 在 API 端添加了一个例外
+timings.privacy=如果设置为 true，您的服务器名称就不会被发送出去
+timings.ignore.1=设置忽略部分。这部分不会被发送到 Aikar 的性能分析器
+timings.ignore.2=格式示例：
+
+level-settings.default-format=默认生成的存档格式
+level-settings.auto-tick-rate=自动改变世界的 tick 速率以维持每秒 20 ticks
+level-settings.base-tick-rate=设置基准 tick 速率（1 = 20 TPS，2 = 10 TPS，以此类推）
+level-settings.always-tick-players=始终保持玩家Tick，即使其他选项不允许这么做
+
+chunk-sending.per-tick=每 tick 发送给玩家的区块数量
+chunk-sending.max-chunks=每个玩家附近区块的发送数量
+chunk-sending.spawn-threshold=玩家生成前需要发送的区块数量
+chunk-sending.cache-chunks.1=将序列化的区块副本保存在内存中以便更快地发送
+chunk-sending.cache-chunks.2=在很多玩家同时加入的静态世界中很有用
+
+chunk-ticking.per-tick=每 tick 处理的区块数量上限
+chunk-ticking.tick-radius=玩家周围区块的 tick 半径
+
+chunk-generation.queue-size=区块生成队列中的等待数量上限
+chunk-generation.population-queue-size=区块填充队列中的等待数量上限
+
+spawn-limits=实体数量上限
+
+player.save-player-data.1=若为 true, 玩家数据将保存为 players/玩家名.dat
+player.save-player-data.2=If false, cloudburst won't save player data as "dat" files, in order that plugins can do something on it.
+player.skin-change-cooldown=切换皮肤的冷却时间（单位：秒）。设为 0 以禁用冷却
+
+aliases=指令的别名
+
+worlds=这些设置将覆盖 server.properties 中的生成器设置，并允许加载多个存档

@@ -1,0 +1,62 @@
+header.1=Erweiterte Konfigurationsdatei für Nukkit
+header.2=Einige Einstellungen sind komplett sicher umzustellen hingegen andere bei Falscher Konfiguration kann dein Server zu Fehlern führen
+header.3=Neue Einstellungen / Standardeinstellungen werden beim Upgrade nicht automatisch in dieser Datei angezeigt
+
+settings.language=Mehrsprachige Einstellung
+settings.force-language=Gibt an, ob alle in die Server übersetzten Zeichenfolgen gesendet oder vom Gerät verarbeitet werden sollen
+
+settings.shutdown-message=Disconnect Nachricht falls der Server herunterfährt
+settings.query-plugins=Erlaube das Auflisten von Plugins über eine Query
+settings.deprecated-verbose=Zeige eine Konsolennachricht, wenn ein Plugin veraltete API-Methoden verwendet
+settings.async-workers.1=Anzahl an Asynchronen Arbeiter/Threads
+settings.async-workers.2=Wenn es auf auto gesetzt wurde versucht es die Prozessorkerne zu ermitteln. (und setzt Mindestens 4)
+settings.upnp=Versuch die Weiterleitung auf dem Gateway mittels UPnP zu portieren
+
+network.batch-threshold.1=Grenzwert für das Batchen von Paketen in Bytes. Nur diese Pakete werden komprimiert
+network.batch-threshold.2=Setze es auf 0 um alles zu Komprimieren, -1 um es zu deaktivieren
+network.compression-level=Kompressionslevel für Zlib beim Senden von Batchpaketen. Höher = mehr CPU Verbrauch, weniger Bandbreitennutzung
+network.async-compression=AsyncTasks für Komprimierung verwenden. Fügt einen Halben Tick Verzögerung hinzu, geringere CPU-Last beim Hauptthread
+
+debug.level=Wenn > 1 werden Debug-Meldungen in der Konsole angezeigt
+debug.commands=Aktiviert folgende Befehle: /status und /gc
+
+timings.enabled=Core- und Plugin-Timings standardmäßig aktivieren
+timings.verbose=Ermöglicht die Beobachtung auf ausführlicher Ebene, inklusive Hochfrequenz-Timings
+timings.history-interval.1=Intervall zwischen Verlaufsrahmen in Ticks
+timings.history-interval.2=Standard ist 5 Minuten (6000 Ticks)
+timings.history-length.1=Länge der gesamten Chronik in Ticks
+timings.history-length.2=Standard ist 1 Stunde (72000 Ticks)
+timings.history-length.3=Dieser Wert ist auf ein Maximum an Verlaufsintervall * 12 beschränkt
+timings.bypass-max.1=Für spezielle Fälle von Servern mit besonderer Berechtigung, kann die Begrenzung umgangen werden
+timings.bypass-max.2=Dieses Maximum hilft, die Dateigrößen für die Verarbeitung auf Aikars Timing-Parser-Seite angemessen zu halten
+timings.bypass-max.3=Diese Einstellung hilft dir nicht die Begrenzung zu umgehen, es sei denn, Aikar hat eine Ausnahme auf der API-Seite hinzugefügt
+timings.privacy=Wenn es auf "true" gesetzt wurde, wird der Name Ihres Servers nicht gesendet
+timings.ignore.1=Zu ignorierende Einstellungsbereiche. Diese Abschnitte werden nicht an Aikars Timing-Parser gesendet
+timings.ignore.2=Beispielformate:
+
+level-settings.default-format=Das Standard Weltenformat wenn eine neue Welt erstellt wird
+level-settings.auto-tick-rate=Level Tickrate automatisch ändern, um 20 Ticks pro Sekunde zu erhalten
+level-settings.base-tick-rate=Legt die Basis-Tick-Rate fest (1 = 20 Ticks pro Sekunde, 2 = 10 Ticks pro Sekunde, etc.)
+level-settings.always-tick-players=Tick alle Spieler jeden Tick, auch wenn andere Einstellungen dies nicht zulassen
+
+chunk-sending.per-tick=Anzahl an Chunks, die pro Tick an Spieler gesendet werden
+chunk-sending.max-chunks=Anzahl an Chunks, die um jeden Spieler gesendet werden
+chunk-sending.spawn-threshold=Anzahl der Chunks, die vor dem Laichen des Spielers gesendet werden müssen
+chunk-sending.cache-chunks.1=Speichern Sie eine serialisierte Kopie des Chunks im Speicher für schnelleres Senden
+chunk-sending.cache-chunks.2=Nützlich in größtenteils statischen Welten, in denen viele Spieler gleichzeitig beitreten
+
+chunk-ticking.per-tick=Maximale Anzahl an Chunks die pro Tick verarbeitet werden
+chunk-ticking.tick-radius=Radius der Chunks um einen Spieler zu markieren
+
+chunk-generation.queue-size=Max. Anzahl der Chunks in der Warteschlange, die erstellt werden soll
+chunk-generation.population-queue-size=Max. Anzahl an Chunks in der Warteschlange, die besetzt werden sollen
+
+spawn-limits=Maximaler Betrag dieser Entitys
+
+player.save-player-data.1=Wenn es aktiviert wurde werden die Spielerdaten als player/playername.dat gespeichert
+player.save-player-data.2=Wenn es auf false gesetzt wurde wird Cloudburst keine Spielerdaten als "dat" Dateien speichern, sodass Plugins können damit etwas anfangen können.
+player.skin-change-cooldown=Setze den Cooldown für einen Skin Change, setzte es auf 0 um den Cooldown zu deaktivieren
+
+aliases=Aliase für Befehle
+
+worlds=Diese Einstellungen werden den Generator in server.properties überschreiben und erlauben das Laden mehrerer Level

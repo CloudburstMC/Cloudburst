@@ -1,0 +1,62 @@
+header.1=Advanced configuration file for Cloudburst
+header.2=Niektóre z tych ustawień są bezpieczne, inne mogą uszkodzić Twój serwer, jeśli zostaną zmodyfikowane niepoprawnie
+header.3=Nowe ustawienia/domyślne ustawienia nie pojawią się automatycznie w tym pliku podczas aktualizacji
+
+settings.language=Ustawienia wielojęzyczności
+settings.force-language=Czy wysłać wszystkie napisy przetłumaczone na język serwera lub pozwolić urządzeniu na ich obsługę
+
+settings.shutdown-message=Wiadomość wysłana do graczy po wyłączeniu serwera
+settings.query-plugins=Zezwalaj na wyświetlanie rozszerzeń przez Query
+settings.deprecated-verbose=Pokaż wiadomość konsoli, gdy rozszerzenie używa przestarzałych metod API
+settings.async-workers.1=Liczba workerów asynchronicznych
+settings.async-workers.2=Jeśli ustawione na auto spróbuje wykryć liczbę rdzeni (i co najmniej 4)
+settings.upnp=Attempt to port forward on the gateway using UPnP
+
+network.batch-threshold.1=Próg dla grupowania pakietów w bajtach. Tylko te pakiety zostaną skompresowane
+network.batch-threshold.2=Ustaw 0, aby kompresować wszystko, -1 aby wyłączyć
+network.compression-level=Poziom kompresji używany przez Zlib podczas wysyłania pakietów. Wyższy = używa więcej CPU, mniej przepustowości
+network.async-compression=Użyj AsyncTasks do kompresji. Dodaje pół/jedno opóźnienie, mniejsze obciążenie procesora w głównym wątku
+
+debug.level=Jeśli > 1, wyświetli wiadomości debugowania w konsoli
+debug.commands=Włącza polecenia: /status /gc
+
+timings.enabled=Domyślnie włączaj timingi rdzenia i rozszerzeń
+timings.verbose=Włącz monitorowanie przy włączonym verbose, podaj timingi wysokiej częstotliwości
+timings.history-interval.1=Interwał pomiędzy klatkami historii w tickach
+timings.history-interval.2=Domyślnie 5 minut (6000 ticków)
+timings.history-length.1=Długość całej historii timingów w tickach
+timings.history-length.2=Domyślnie 1 godzina (72000 ticków)
+timings.history-length.3=Wartość ta jest ograniczona do maksymalnego przedziału historii * 12
+timings.bypass-max.1=Dla szczególnych przypadków serwerów ze specjalnymi uprawnieniami do ominięcia maksimum
+timings.bypass-max.2=Ten maks. pomaga utrzymać rozmiar plików danych rozsądny do przetwarzania po stronie analizatora Timingów Aikara
+timings.bypass-max.3=Ustawienie tego nie pomoże ominąć maksimum, chyba że Aikar doda wyjątek po stronie API
+timings.privacy=Jeśli ustawione na true, nazwa serwera nie zostanie wysłana
+timings.ignore.1=Sekcje ustawień do zignorowania. Te sekcje nie zostaną wysłane do parsera Timingów Aikara
+timings.ignore.2=Przykładowe formaty:
+
+level-settings.default-format=Domyślny format, który będzie używany po utworzeniu poziomu
+level-settings.auto-tick-rate=Automatically change levels tick rate to maintain 20 ticks per second
+level-settings.base-tick-rate=Sets the base tick rate (1 = 20 ticks per second, 2 = 10 ticks per second, etc.)
+level-settings.always-tick-players=Tick all players each tick even when other settings disallow this
+
+chunk-sending.per-tick=Amount of chunks sent to players per tick
+chunk-sending.max-chunks=Amount of chunks sent around each player
+chunk-sending.spawn-threshold=Amount of chunks that need to be sent before spawning the player
+chunk-sending.cache-chunks.1=Save a serialized copy of the chunk in memory for faster sending
+chunk-sending.cache-chunks.2=Useful in mostly-static worlds where lots of players join at the same time
+
+chunk-ticking.per-tick=Max amount of chunks processed each tick
+chunk-ticking.tick-radius=Radius of chunks around a player to tick
+
+chunk-generation.queue-size=Max. amount of chunks in the waiting queue to be generated
+chunk-generation.population-queue-size=Max. amount of chunks in the waiting queue to be populated
+
+spawn-limits=Max amount of these entities
+
+player.save-player-data.1=If true, player data will be saved as players/playername.dat
+player.save-player-data.2=If false, cloudburst won't save player data as "dat" files, in order that plugins can do something on it.
+player.skin-change-cooldown=The time between skin change action in seconds. Set 0 to disable the cooldown
+
+aliases=Aliases for commands
+
+worlds=These settings will override the generator set in server.properties and allows loading multiple levels

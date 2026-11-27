@@ -1,0 +1,116 @@
+#X-Generator: crowdin.com
+# Localizations for Cloudburst
+#
+# These are custom localizations that need to be converted before being sent or used in the console.
+#
+
+cloudburst.language.selected=Выбран %1$2s как язык по умолчанию.
+
+cloudburst.data.playerNotFound=Данные игрока "%1$2s" не найдены, создание нового профиля
+cloudburst.data.playerCorrupted=Данные игрока "%1$2s" повреждены, создание нового профиля
+cloudburst.data.playerOld=Данные игрока "%1$2s" устарели, обновление профиля
+cloudburst.data.saveError=Не удалось сохранить данные игрока "%1$2s": %2$2s
+
+cloudburst.level.notFound=Уровень "%1$2s" не найден
+cloudburst.level.loadError=Не удалось загрузить уровень "%1$2s": %2$2s
+cloudburst.level.generationError=Не удалось сгенерировать уровень "%1$2s": %2$2s
+cloudburst.level.tickError=Не удалось обработать уровень "%1$2s": %2$2s
+cloudburst.level.chunkUnloadError=Ошибка при выгрузке чанка: %1$2s
+cloudburst.level.backgroundGeneration=Ландшафт спауна для уровня "%1$2s" генерируется в фоновом режиме
+cloudburst.level.defaultError=Уровень по умолчанию не был загружен
+cloudburst.level.preparing=Подготовка уровня "%1$2s"
+cloudburst.level.unloading=Выгрузка уровня "%1$2s"
+cloudburst.level.updating=Найдены старые данные для уровня "%1$2s", преобразование формата
+
+cloudburst.server.start=Запуск Minecraft: Bedrock Edition сервера версии %1$2s
+cloudburst.server.networkError=[Network] Интерфейс %1$2s остановлен по причине %2$2s
+cloudburst.server.networkStart=Открытие сервера на %1$2s:%2$2s
+cloudburst.server.info=На этом сервере %1$2s версии %2$2s "%3$2s" (API %4$2s)
+cloudburst.server.info.extended=Этот сервер работает на %1$2s %2$2s версии API %3$2s для Minecraft: Bedrock Edition %4$2s (версия протокола %5$2s)
+cloudburst.server.license=%1$2s распространяется под лицензией GPL
+cloudburst.server.tickOverload=Не удается продолжить работу! Сервер перегружен?
+cloudburst.server.startFinished=Выполнено (%1$2s)! Для получения помощи, используйте команду "help" или "?"
+cloudburst.server.defaultGameMode=Режим игры по умолчанию: %1$2s
+cloudburst.server.query.start=Запуск слушателя статуса GS4
+cloudburst.server.query.info=Установка порта query на %1$2s
+cloudburst.server.query.running=Query запущен на %1$2s:%2$2s
+cloudburst.server.upnp.enabled=UPnP включён. Попытка проброса портов с помощью UPnP.
+cloudburst.server.upnp.disabled=UPnP отключён.
+cloudburst.server.upnp.unavailable=UPnP включён, но шлюз с поддержкой UPnP не найден.
+cloudburst.server.upnp.success=Порт UDP %1$2s успешно проброшен с помощью UPnP.
+cloudburst.server.upnp.fail=Не удалось пробросить UDP порт %1$2s с помощью UPnP.
+cloudburst.server.upnp.closed=Удалено правило проброса для UDP порта %1$2s с помощью UPnP.
+
+cloudburst.command.alias.illegal=Не удалось зарегистрировать псевдоним команды %1$2s, так как он содержит недопустимые символы
+cloudburst.command.alias.notFound=Не удалось зарегистрировать псевдоним команды %1$2s, так как он содержит команду, которая не существует: %2$2s
+cloudburst.command.exception=Необработанное исключение при выполнение команды '%1$2s' в %2$2s: %3$2s
+
+cloudburst.command.version.description=Выводит версию сервера, включая любые плагины
+cloudburst.command.version.usage=/version [название плагина]
+cloudburst.command.version.server=Этот сервер работает на %1$2s версии %2$2s (MC: %3$2s) (Версия API: %4$2s)
+cloudburst.command.version.plugin=%1$2s работает на версии %1$2s
+cloudburst.command.version.noSuchPlugin=На этом сервере нет плагина с таким названием. Используйте /plugins для получения списка всех плагинов.
+
+cloudburst.command.plugins.description=Выводит список плагинов на этом сервере
+cloudburst.command.plugins.success=Плагины (%1$2s): %2$2s
+cloudburst.command.plugins.usage=/plugins
+
+cloudburst.command.status.description=Выводит статус сервера.
+cloudburst.command.status.usage=/status
+
+cloudburst.command.timings.description=Записывает тайминги для просмотра производительности сервера.
+cloudburst.command.timings.usage=/timings <reset|report/paste|on|off|verbon|verboff>
+cloudburst.command.timings.enable=Тайминги включены и сброшены
+cloudburst.command.timings.disable=Тайминги выключены
+cloudburst.command.timings.timingsDisabled=Пожалуйста, включите тайминги, используя команду /timings on
+cloudburst.command.timings.verboseEnable=Включены подробные тайминги
+cloudburst.command.timings.verboseDisable=Выключены подробные тайминги
+cloudburst.command.timings.reset=Сброс таймингов
+cloudburst.command.timings.rcon=Предупреждение: Запрос отчёта таймингов из RCON может вызывать зависания, вам нужно использовать /timings report в игре или в консоли
+cloudburst.command.timings.uploadStart=Подготовка отчёта о таймингах...
+cloudburst.command.timings.uploadError=Ошибка загрузки: %1$2s: %2$2s, см. логи для получения большей информации
+cloudburst.command.timings.reportError=Произошла ошибка при вставке отчёта, см. логи для получения большей информации
+cloudburst.command.timings.timingsLocation=Просмотреть отчёт о таймингах: %1$2s
+cloudburst.command.timings.timingsResponse=Timings response: %1$2s
+cloudburst.command.timings.timingsWrite=Тайминги записаны на %1$2s
+
+cloudburst.crash.create=Прозиошла неустранимая ошибка и произошёл сбой сервера. Создание аварийного отчёта об ошибках
+cloudburst.crash.error=Не удалось создать аварийный отчёт об ошибках: %1$2s
+cloudburst.crash.submit=Пожалуйста, загрузите файл "%1$2s" в Архив Сбоев и отправьте ссылку на страницу отчётов об ошибках. Сообщите нам как можно больше информации.
+cloudburst.crash.archive=Аварийный отчёт об ошибках был автоматически загружен в Архив Сбоев. Вы можете просмотреть его на %1$2s или использовать ID #%2$2s.
+
+cloudburst.debug.enable=Поддержка LevelDB включена
+
+cloudburst.bugreport.create=Обнаружена ошибка, создание отчёта о ней.
+cloudburst.bugreport.error=Не удалось создать отчёт об ошибке: %1$2s
+cloudburst.bugreport.archive=Создан отчёт об ошибке: %1$2s
+
+cloudburst.player.invalidMove=%1$2s двинулся подозрительно!
+cloudburst.player.logIn=%1$2s[%2$2s] вошёл с идентификатором существа %3$2s на ([%4$2s]%5$2s, %6$2s, %7$2s)
+cloudburst.player.logOut=%1$2s[%2$2s] вышел по причине %3$2s
+cloudburst.player.invalidEntity=%1$2s попытался атаковать некорректную сущность
+
+cloudburst.plugin.load=Загрузка %1$2s
+cloudburst.plugin.enable=Включение %1$2s
+cloudburst.plugin.disable=Выключение %1$2s
+cloudburst.plugin.restrictedName=Имя с ограниченным доступом
+cloudburst.plugin.incompatibleAPI=Несовместимая версия API
+cloudburst.plugin.unknownDependency=Неизвестная зависимость
+cloudburst.plugin.circularDependency=Обнаружена круговая зависимость
+cloudburst.plugin.genericLoadError=Не удалось загрузить плагин '%1$2s'
+cloudburst.plugin.spacesDiscouraged=В названии плагина '%1$2s' используются пробелы, это не рекомендуется
+cloudburst.plugin.loadError=Не удалось загрузить плагин '%1$2s': %2$2s
+cloudburst.plugin.duplicateError=Не удалось загрузить плагин '%1$2s': плагин существует
+cloudburst.plugin.fileError=Не удалось загрузить '%1$2s' в папке '%2$2s': %3$2s
+cloudburst.plugin.commandError=Не удалось загрузить команду %1$2s для плагина %2$2s
+cloudburst.plugin.aliasError=Не удалось загрузить псевдоним команды %1$2s для плагина %2$2s
+cloudburst.plugin.deprecatedEvent=Плагин '%1$2s' зарегистрировал слушатель для '%2$2s' в методе '%3$2s', но событие устаревшее.
+cloudburst.plugin.eventError=Не удалось передать событие '%1$2s' для '%2$2s': %3$2s на %4$2s
+
+cloudburst.resources.invalid-path=Путь к пакету ресурсов '%1$2s' существует и не является директорией
+cloudburst.resources.unknown-format=Не удалось загрузить '%1$2s' из-за нераспозанного формата
+cloudburst.resources.fail=Не удалось загрузить '%1$2s': %2$2s
+cloudburst.resources.success=Успешно загружено %1$2s пакетов ресурсов
+cloudburst.resources.zip.not-found=Файл '%1$2s' не найден
+cloudburst.resources.zip.no-manifest='manifest.json' не найден
+cloudburst.resources.zip.invalid-manifest='manifest.json' недопустимый или неполный
