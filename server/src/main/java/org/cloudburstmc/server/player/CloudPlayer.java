@@ -1038,11 +1038,6 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
         }
     }
 
-    @Override
-    public void close() {
-        this.disconnect(null, Component.translatable("disconnectionScreen.noReason"), DisconnectFailReason.DISCONNECTED, QuitReason.KICKED);
-    }
-
     private static DisconnectFailReason disconnectReason(KickCause cause) {
         return switch (cause) {
             case WHITELIST -> DisconnectFailReason.NOT_ALLOWED;
@@ -1065,8 +1060,12 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
             List.copyOf(this.bossBars).forEach(bossBar -> bossBar.removePlayer(this));
             this.connected = false;
             this.inboundQueue.close();
-            PlayerQuitEvent ev = null;
 
+            if (this.session.getPeer().isConnected()) {
+                ((CloudNetherNetPeer) this.session.getPeer()).disconnectSession(this.session, failReason, reason, this.getLocale());
+            }
+
+            PlayerQuitEvent ev = null;
             if (this.getName() != null && !this.getName().isEmpty()) {
                 if (this.initialized) {
                     this.server.getEventManager().fire(ev = new PlayerQuitEvent(this, quitMessage, quitReason));
@@ -1092,10 +1091,6 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
             this.getChunkManager().unpairReadyEntities();
 
             super.remove(EntityRemoveCause.PLAYER_QUIT);
-
-            if (this.session.getPeer().isConnected()) {
-                ((CloudNetherNetPeer) this.session.getPeer()).disconnectSession(this.session, failReason, reason, this.getLocale());
-            }
 
             if (this.loggedIn) {
                 this.server.removeOnlinePlayer(this);
@@ -1128,6 +1123,11 @@ public class CloudPlayer extends CloudHumanEntity implements Player, ContainerLi
         this.getChunkManager().clear();
 
         this.server.removePlayer(this);
+    }
+
+    @Override
+    public void close() {
+        this.disconnect(null, Component.translatable("disconnectionScreen.noReason"), DisconnectFailReason.DISCONNECTED, QuitReason.KICKED);
     }
 
     @Override

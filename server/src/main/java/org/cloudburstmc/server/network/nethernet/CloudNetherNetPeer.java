@@ -1,6 +1,9 @@
 package org.cloudburstmc.server.network.nethernet;
 
 import io.netty.channel.Channel;
+import io.netty.channel.EventLoop;
+import io.netty.util.AttributeKey;
+import io.netty.util.concurrent.ScheduledFuture;
 import io.netty.util.internal.SystemPropertyUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.translation.GlobalTranslator;
@@ -30,17 +33,20 @@ import javax.crypto.SecretKey;
 import java.security.PublicKey;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 
 public class CloudNetherNetPeer extends BedrockPeer {
 
     private static final int DISCONNECT_TIMEOUT_SECONDS = SystemPropertyUtil.getInt("org.cloudburstmc.protocol.bedrock.disconnectTimeout", 10);
+    private static final AttributeKey<Boolean> DISCONNECT_PENDING = AttributeKey.valueOf(CloudNetherNetPeer.class, "disconnectPending");
 
     private static final CompressionStrategy ZLIB = new SimpleCompressionStrategy(new ZlibCompression(Zlib.RAW));
     private static final CompressionStrategy SNAPPY = new SimpleCompressionStrategy(new SnappyCompression());
     private static final CompressionStrategy NONE = new SimpleCompressionStrategy(new NoopCompression());
 
     private final GameplayPacketQueue gameplayPackets = new GameplayPacketQueue();
+    private @Nullable ScheduledFuture<?> disconnectDeadline;
     private boolean gameplay;
 
     public CloudNetherNetPeer(Channel channel, BedrockSessionFactory sessionFactory) {
@@ -121,40 +127,66 @@ public class CloudNetherNetPeer extends BedrockPeer {
     }
 
     /**
-     * Sends a disconnect with the message translated for the given locale, then closes the session.
-     * Disconnecting the primary session also stops further input.
+     * Sends the first disconnect reason and gives the client time to close the connection.
      */
-    @SuppressWarnings("resource")
     public void disconnectSession(BedrockServerSession session, DisconnectFailReason reason, Component message, Locale locale) {
-        if (session.getPeer() != this) {
-            throw new IllegalArgumentException("Session belongs to a different peer");
+        if (session.getPeer() != this || session.isSubClient()) {
+            throw new IllegalArgumentException("Only this peer's primary session controls the connection");
         }
 
-        this.getChannel().eventLoop().execute(() -> {
-            if (!session.isConnected()) {
-                return;
-            }
+        Channel channel = this.getChannel();
+        if (!channel.isOpen() || channel.attr(DISCONNECT_PENDING).setIfAbsent(true) != null) {
+            return;
+        }
 
-            BedrockComponent kickMessage = new BedrockComponent(GlobalTranslator.render(message, locale));
-            DisconnectPacket packet = new DisconnectPacket();
-            packet.setReason(reason);
-            packet.setKickMessage(kickMessage);
-            session.sendPacketImmediately(packet);
-            if (!session.isSubClient()) {
-                this.blackholeInboundPackets();
-            }
+        EventLoop loop = channel.eventLoop();
+        if (loop.inEventLoop()) {
+            this.beginDisconnect(session, reason, message, locale);
+            return;
+        }
 
-            this.getChannel().eventLoop().schedule(() -> {
-                if (session.isConnected()) {
-                    session.close(kickMessage);
-                }
-            }, DISCONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        });
+        try {
+            loop.execute(() -> this.beginDisconnect(session, reason, message, locale));
+        } catch (RejectedExecutionException rejected) {
+            channel.close();
+        }
+    }
+
+    public static boolean hasPendingDisconnect(Channel channel) {
+        return channel.isOpen() && channel.hasAttr(DISCONNECT_PENDING) && Boolean.TRUE.equals(channel.attr(DISCONNECT_PENDING).get());
+    }
+
+    @SuppressWarnings("resource") // The event loop belongs to the channel.
+    private void beginDisconnect(BedrockServerSession session, DisconnectFailReason reason, Component message, Locale locale) {
+        if (!session.isConnected()) {
+            return;
+        }
+
+        Channel channel = this.getChannel();
+        if (channel.pipeline().get(CloudLoginTimeoutHandler.class) != null) {
+            channel.pipeline().remove(CloudLoginTimeoutHandler.class);
+        }
+        this.blackholeInboundPackets();
+
+        BedrockComponent kickMessage = new BedrockComponent(GlobalTranslator.render(message, locale));
+        DisconnectPacket packet = new DisconnectPacket();
+        packet.setReason(reason);
+        packet.setKickMessage(kickMessage);
+        this.disconnectDeadline = channel.eventLoop().schedule(() -> {
+            if (session.isConnected()) {
+                session.close(kickMessage);
+            }
+        }, DISCONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        session.sendPacketImmediately(packet);
     }
 
     @Override
     protected void onClose() {
         if (!this.getChannel().isOpen()) {
+            if (this.disconnectDeadline != null) {
+                this.disconnectDeadline.cancel(false);
+                this.disconnectDeadline = null;
+            }
             this.gameplayPackets.close();
         }
         super.onClose();

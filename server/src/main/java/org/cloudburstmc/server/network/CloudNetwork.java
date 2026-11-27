@@ -26,10 +26,7 @@ import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.configuration.GlobalConfiguration;
 import org.cloudburstmc.server.configuration.type.SignalingMode;
-import org.cloudburstmc.server.network.nethernet.CloudExternalSignaling;
-import org.cloudburstmc.server.network.nethernet.CloudLoginTimeoutHandler;
-import org.cloudburstmc.server.network.nethernet.CloudNetherNetServerInitializer;
-import org.cloudburstmc.server.network.nethernet.NetherNetJoinThrottle;
+import org.cloudburstmc.server.network.nethernet.*;
 import org.cloudburstmc.server.player.handler.NetworkSettingsPacketHandler;
 
 import java.net.InetAddress;
@@ -45,6 +42,8 @@ import java.util.concurrent.atomic.LongAdder;
 
 @Log4j2
 public class CloudNetwork implements AutoCloseable {
+
+    private static final int DISCONNECT_DRAIN_SECONDS = 2;
 
     private final CloudServer server;
     private final ChannelGroup connections = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE, true);
@@ -432,6 +431,9 @@ public class CloudNetwork implements AutoCloseable {
         }
 
         try {
+            this.connections.newCloseFuture(CloudNetherNetPeer::hasPendingDisconnect)
+                    .awaitUninterruptibly(DISCONNECT_DRAIN_SECONDS, TimeUnit.SECONDS);
+
             if (this.externalSignaling != null) {
                 this.externalSignaling.close();
             }

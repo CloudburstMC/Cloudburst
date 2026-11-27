@@ -21,7 +21,11 @@ public class CloudLoginTimeoutHandler extends ChannelInboundHandlerAdapter {
     @SuppressWarnings("resource")
     public void channelActive(ChannelHandlerContext context) {
         if (this.timeout == null) {
-            this.timeout = context.executor().schedule(() -> context.channel().close(), this.timeoutSeconds, TimeUnit.SECONDS);
+            this.timeout = context.executor().schedule(() -> {
+                if (!CloudNetherNetPeer.hasPendingDisconnect(context.channel())) {
+                    context.close();
+                }
+            }, this.timeoutSeconds, TimeUnit.SECONDS);
         }
 
         context.fireChannelActive();

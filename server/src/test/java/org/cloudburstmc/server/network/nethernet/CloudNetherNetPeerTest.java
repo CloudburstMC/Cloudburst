@@ -3,7 +3,12 @@ package org.cloudburstmc.server.network.nethernet;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.DefaultChannelId;
 import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.ChannelGroupFuture;
+import io.netty.channel.group.DefaultChannelGroup;
+import io.netty.util.concurrent.ImmediateEventExecutor;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.netty.channel.nethernet.NetherNetChildChannel;
@@ -53,6 +58,7 @@ class CloudNetherNetPeerTest {
 
         try {
             peer.disconnectSession(session, DisconnectFailReason.NOT_ALLOWED, message, Locale.US);
+            peer.disconnectSession(session, DisconnectFailReason.SHUTDOWN, Component.text("Server closed"), Locale.US);
             channel.runPendingTasks();
 
             assertEquals(1, session.packets.size());
@@ -92,6 +98,32 @@ class CloudNetherNetPeerTest {
     }
 
     @Test
+    void shutdownCanWaitForPendingDisconnectsWithoutWaitingForOtherConnections() {
+        EmbeddedChannel pending = newChannel();
+        EmbeddedChannel idle = newChannel();
+        ChannelGroup connections = new DefaultChannelGroup(ImmediateEventExecutor.INSTANCE);
+        assertTrue(connections.add(pending));
+        assertTrue(connections.add(idle));
+        CloudNetherNetPeer peer = new CloudNetherNetPeer(pending, BedrockServerSession::new);
+        RecordingSession session = new RecordingSession(peer);
+
+        try {
+            peer.disconnectSession(session, DisconnectFailReason.SHUTDOWN, Component.text("Server closed"), Locale.US);
+            ChannelGroupFuture closing = connections.newCloseFuture(CloudNetherNetPeer::hasPendingDisconnect);
+            assertFalse(closing.isDone());
+
+            pending.close();
+            pending.runPendingTasks();
+
+            assertTrue(closing.isSuccess());
+            assertTrue(idle.isOpen());
+        } finally {
+            pending.finishAndReleaseAll();
+            idle.finishAndReleaseAll();
+        }
+    }
+
+    @Test
     void rejectsDisconnectingASessionOwnedByAnotherPeer() {
         EmbeddedChannel channel = newChannel();
         EmbeddedChannel otherChannel = newChannel();
@@ -105,6 +137,49 @@ class CloudNetherNetPeerTest {
         } finally {
             channel.finishAndReleaseAll();
             otherChannel.finishAndReleaseAll();
+        }
+    }
+
+    @Test
+    void anExplicitRejectionTakesOverTheLoginDeadline() {
+        EmbeddedChannel channel = newChannel();
+        channel.freezeTime();
+        channel.pipeline().addLast(new CloudLoginTimeoutHandler(1));
+        channel.pipeline().fireChannelActive();
+        CloudNetherNetPeer peer = new CloudNetherNetPeer(channel, BedrockServerSession::new);
+        RecordingSession session = new RecordingSession(peer);
+
+        try {
+            assertFalse(CloudNetherNetPeer.hasPendingDisconnect(channel));
+            peer.disconnectSession(session, DisconnectFailReason.KICKED, Component.text("Banned"), Locale.US);
+            channel.runPendingTasks();
+
+            assertTrue(CloudNetherNetPeer.hasPendingDisconnect(channel));
+            assertNull(channel.pipeline().get(CloudLoginTimeoutHandler.class));
+            channel.advanceTimeBy(1, TimeUnit.SECONDS);
+            channel.runScheduledPendingTasks();
+
+            assertTrue(channel.isOpen());
+            assertEquals(1, session.packets.size());
+        } finally {
+            channel.finishAndReleaseAll();
+        }
+    }
+
+    @Test
+    void aSilentLoginStillExpires() {
+        EmbeddedChannel channel = newChannel();
+        channel.freezeTime();
+        channel.pipeline().addLast(new CloudLoginTimeoutHandler(1));
+        channel.pipeline().fireChannelActive();
+
+        try {
+            channel.advanceTimeBy(1, TimeUnit.SECONDS);
+            channel.runScheduledPendingTasks();
+
+            assertFalse(channel.isOpen());
+        } finally {
+            channel.finishAndReleaseAll();
         }
     }
 
@@ -217,7 +292,7 @@ class CloudNetherNetPeerTest {
     }
 
     private static EmbeddedChannel newChannel() {
-        EmbeddedChannel channel = new EmbeddedChannel();
+        EmbeddedChannel channel = new EmbeddedChannel(DefaultChannelId.newInstance());
 
         channel.pipeline()
                 .addLast(CloudNetherNetFrameCodec.NAME, new CloudNetherNetFrameCodec())
@@ -226,6 +301,18 @@ class CloudNetherNetPeerTest {
                 .addLast(BedrockPacketCodec.NAME, new BedrockPacketCodec_v3());
 
         return channel;
+    }
+
+    private static void assertRawDeflate(ByteBuf wire, int prefix) throws Exception {
+        try (Inflater inflater = new Inflater(true)) {
+            inflater.setInput(ByteBufUtil.getBytes(wire, wire.readerIndex() + prefix, wire.readableBytes() - prefix));
+            byte[] result = new byte[PAYLOAD.length + 1];
+            int size = inflater.inflate(result);
+
+            assertTrue(inflater.finished());
+            assertEquals(PAYLOAD.length, size);
+            assertArrayEquals(PAYLOAD, java.util.Arrays.copyOf(result, size));
+        }
     }
 
     private static class RecordingSession extends BedrockServerSession {
@@ -245,18 +332,6 @@ class CloudNetherNetPeerTest {
         @Override
         public void close(CharSequence reason) {
             this.closeReason = reason;
-        }
-    }
-
-    private static void assertRawDeflate(ByteBuf wire, int prefix) throws Exception {
-        try (Inflater inflater = new Inflater(true)) {
-            inflater.setInput(ByteBufUtil.getBytes(wire, wire.readerIndex() + prefix, wire.readableBytes() - prefix));
-            byte[] result = new byte[PAYLOAD.length + 1];
-            int size = inflater.inflate(result);
-
-            assertTrue(inflater.finished());
-            assertEquals(PAYLOAD.length, size);
-            assertArrayEquals(PAYLOAD, java.util.Arrays.copyOf(result, size));
         }
     }
 }
