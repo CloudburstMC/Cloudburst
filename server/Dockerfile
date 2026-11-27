@@ -8,6 +8,7 @@ WORKDIR /src
 # independently from source changes
 COPY gradlew gradlew.bat gradle.properties settings.gradle.kts build.gradle.kts ./
 COPY gradle ./gradle
+COPY LICENSE LICENSE.LESSER ./
 COPY api ./api
 COPY codegen ./codegen
 COPY server ./server
@@ -29,7 +30,7 @@ ARG VERSION=dev
 LABEL org.opencontainers.image.title="Cloudburst" \
       org.opencontainers.image.description="Cloudburst Minecraft: Bedrock Edition server" \
       org.opencontainers.image.source="https://github.com/CloudburstMC/Server" \
-      org.opencontainers.image.licenses="LGPL-3.0" \
+      org.opencontainers.image.licenses="LGPL-3.0-or-later" \
       org.opencontainers.image.version="${VERSION}"
 
 RUN apk add --no-cache libssl3 libstdc++ \
